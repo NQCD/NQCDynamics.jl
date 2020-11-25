@@ -1,4 +1,4 @@
-# DICE
+# DICE.jl
 Designing initial conditions for computer experiments
 
 **TODO**
