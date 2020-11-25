@@ -1,4 +1,4 @@
-# DICE.jl
+# MDPrePostProcessing.jl
 Designing initial conditions for computer experiments
 
 **TODO**
