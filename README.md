@@ -7,7 +7,7 @@ This would work for classical MD and MDEF (incl. RPMD extension)
 
 2. Thermalised on-surface dynamics (molecule on surface positions/momenta sampled from Boltzmann distribution, long-time NVT simulation OR 
 using West, Estreicher method: https://journals.aps.org/prl/pdf/10.1103/PhysRevLett.96.115504 [already implemented in ASE_local by Reini])
-This would work for classical MD and MDEF (incl. any ring-polymer extension)
+This would work for classical MD and MDEF (incl. any ring-polymer extension) (@Reini)
 
 3. Surface Hopping initial conditions(classical position/momenta sampling + select initial condition for electronic density matrix, and combine them)
 This should work for the surface hopping case of 1 and 2
