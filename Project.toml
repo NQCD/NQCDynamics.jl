@@ -1,0 +1,11 @@
+name = "MDPrePostProcessing"
+uuid = "36248dfb-79eb-4f4d-ab9c-e29ea5f33e14"
+authors = ["James <james.gardner1421@gmail.com>"]
+version = "0.1.0"
+
+[deps]
+PeriodicTable = "7b2266bf-644c-5ea3-82d8-af4bbd25a884"
+RecursiveArrayTools = "731186ca-8d62-57ce-b412-fbd966d074cd"
+Revise = "295af30f-e4ad-537b-8983-00126c2a3abe"
+Unitful = "1986cc42-f94f-5a68-af5c-568840ba703d"
+UnitfulAtomic = "a7773ee8-282e-5fa2-be4e-bd808c38a91a"
