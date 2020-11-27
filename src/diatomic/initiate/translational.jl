@@ -7,9 +7,9 @@ function translate(system,positions,v,ei,θᵢ)
     #theta_i is user defined incidence angle
     masses=system.get_masses()
 
-    com,rm = calc_COM(system)  
+    com,μ = calc_COM(system)  
 
-    com_v=[0,0,-sqrt(2*ei/rm)] #straight down
+    com_v=[0,0,-sqrt(2*ei/μ)] #straight down
 
     com_v=[0,com_v[2]*cos(θᵢ)-com_v[3]*sin(θᵢ),com_v[2]*sin(θᵢ)-com_v[3]*cos(θᵢ)] #rotate by θᵢ
     

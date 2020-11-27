@@ -4,6 +4,7 @@ Designing initial conditions for computer experiments
 **TODO**
 1. Diatomic state-to-state scattering (harmonic oscilator, rigid rotor, verticla position, kinetic energy) + thermalised surface (@Connor)
 This would work for classical MD and MDEF (incl. RPMD extension)
+Venus manual: http://hase-group.ttu.edu/venus/venus96_manual.html
 
 2. Thermalised on-surface dynamics (molecule on surface positions/momenta sampled from Boltzmann distribution, long-time NVT simulation OR 
 using West, Estreicher method: https://journals.aps.org/prl/pdf/10.1103/PhysRevLett.96.115504 [already implemented in ASE_local by Reini])
