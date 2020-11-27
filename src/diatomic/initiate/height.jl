@@ -4,7 +4,7 @@
 
 function height(system,positions,height)
 
-    COM,rm = calc_COM(system)
+    COM,μ = calc_COM(system)
 
     COM[2] = height_original
 
