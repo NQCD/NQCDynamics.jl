@@ -1,3 +1,9 @@
+module IO
+
+using PyCall
+using Unitful
+using ..Systems
+
 export read_system
 
 function read_system(file::String)
@@ -12,6 +18,7 @@ function read_system(file::String)
     P = zero(R)
     z = Phasespace(R, P)
     
-    (p, z)
+    System(p, z)
 end
 
+end # module
