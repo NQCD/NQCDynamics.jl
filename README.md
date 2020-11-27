@@ -21,3 +21,5 @@ This should work for the surface hopping case of 1 and 2
 
 7. Excited state sampling: For small molecules we should do Wigner sampling, for large molecules classical MD and take every xth step. Every initial condition needs an excited state calulation. The oscillator strengths for every transition need to be calculated (energies and transition dipoles - this most often requires the reference method unless we have a model which can fit both values accurately) and according to the initial excitation wave length we set the initial state to start the dynamics. The initial state is the output which we then give to julia/MD via an input file(?). 
 Worth to consider: If we want to do something with excited-states, maybe do the sampling in the beginning of a study and use these data points for fitting (at least when ML is applied).
+
+![image](https://user-images.githubusercontent.com/38594562/100458375-91ea4880-30bb-11eb-9118-bb8eb97eaed3.png)
