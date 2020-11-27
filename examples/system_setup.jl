@@ -1,6 +1,7 @@
 push!(LOAD_PATH, pwd())
 
 using MDPrePostProcessing.Basic
+using Unitful
 
 x = [10, 0, 0]
 y = [0, 10, 0]
