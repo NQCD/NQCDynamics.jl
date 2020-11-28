@@ -1,6 +1,7 @@
 push!(LOAD_PATH, pwd())
 
-using MDPrePostProcessing.Basic
+using MDPrePostProcessing.Systems
+using Unitful
 
 x = [10, 0, 0]
 y = [0, 10, 0]
@@ -23,3 +24,5 @@ z = Phasespace(R, P)
 
 @show get_positions(z)
 @show get_momenta(z)
+
+system = System(p, z)

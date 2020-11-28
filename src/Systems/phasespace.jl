@@ -9,14 +9,14 @@ We might also want to add alternatives to the phasespace that also store electro
 variables. An option to consider is the DEDataArray if we decide to go with 
 DifferentialEquation.jl.
 """
-abstract type DynamicalVariables end
+abstract type DynamicalVariables{T<:AbstractFloat} end
 
 """
-    Phasespace{T<:Real}
+    Phasespace{T<:AbstractFloat} <: DynamicalVariables{T}
 
 Container for the dynamical positions and momenta of the atoms in the system.
 """
-struct Phasespace{T<:AbstractFloat} <: DynamicalVariables
+struct Phasespace{T<:AbstractFloat} <: DynamicalVariables{T}
     z::ArrayPartition{T, Tuple{Vector{T}, Vector{T}}}
     Phasespace{T}(z::ArrayPartition) where {T<:AbstractFloat} = new(austrip.(z))
 end
