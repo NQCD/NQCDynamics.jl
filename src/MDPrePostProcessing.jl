@@ -1,5 +1,7 @@
 module MDPrePostProcessing
 
-include("Basic/Basic.jl")
+include("Models/Models.jl")
+include("Systems/Systems.jl")
+include("IO/IO.jl")
 
 end # module

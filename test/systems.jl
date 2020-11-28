@@ -1,8 +1,7 @@
 push!(LOAD_PATH, pwd())
 
 using Test
-using MDPrePostProcessing
-using MDPrePostProcessing.Basic
+using MDPrePostProcessing.Systems
 using Unitful
 using UnitfulAtomic
 using PeriodicTable
@@ -17,7 +16,7 @@ using PeriodicTable
     @test_throws MethodError Cell([x y z], u"s") # Throws error for non-length units
 end
 
-@testset "System" begin
+@testset "Parameters" begin
     x = [1, 0, 0]
     y = [0, 1, 0]
     z = [0, 0, 1]
@@ -38,4 +37,12 @@ end
     z = Phasespace(R, P)
     @test get_positions(z) == R
     @test get_momenta(z) == P
+end
+
+@testset "System" begin
+    p = SystemParameters(Cell(zeros(3, 3)), [:C, :C])
+    z = Phasespace(rand(p.n_atoms), rand(p.n_atoms))
+    system = System(p, z)
+    @test system.parameters == p
+    @test system.dynamical_variables == z
 end
