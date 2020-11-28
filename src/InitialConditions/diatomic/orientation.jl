@@ -21,8 +21,8 @@ function orient(system,R::positions, P :: momenta)
     RZZ=cos(θ)
     
 
-    for i in 1:N
-        J=3*L[i]
+    for i in 1:2
+        J=3*L[i] #what is L?
         R[J-2]=COM[J-2]*RXX+COM[J-1]*RXY+COM[J]*RXZ
         R[J-1]=COM[J-2]*RYX+COM[J-1]*RYY+COM[J]*RYZ
         R[J]=COM[J-2]*RZX+COM[J-1]*RZY+COM[J]*RZZ
