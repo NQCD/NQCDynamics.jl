@@ -1,5 +1,5 @@
 using Test
-using MDPrePostProcessing
+using NonadiabaticMolecularDynamics
 
 include("systems.jl")
 include("io/io.jl")

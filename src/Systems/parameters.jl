@@ -18,7 +18,7 @@ end
 
 """
     SystemParameters(
-        cell::Cell{<:Unitful.Length{T}},
+        cell::Cell{T},
         atom_types::Vector{Symbol}, 
         n_beads::Integer=1) where {T<:AbstractFloat}
 
