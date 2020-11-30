@@ -177,3 +177,6 @@ function calc_NJ(ENJ,AM,RMIN,RMAX,DH,AN,AJ)
    AN=AN-0.5
 
 end
+
+
+
