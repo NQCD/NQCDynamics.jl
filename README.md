@@ -1,4 +1,4 @@
-# MDPrePostProcessing.jl
+# NonadiabaticMolecularDynamics.jl
 Designing initial conditions for computer experiments
 
 **TODO**
