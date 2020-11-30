@@ -1,6 +1,83 @@
 #Set momenta from selected initial vibrational state
 
-function set_vibration(N,J,RMIN,RMAX,DH,μ,ENJ,PTEST,AL)
+
+function HOMOQP(R,PR,AL,AM,RMASS,A)
+
+   # SET CARTESIAN COORDINATES AND MOMENTA
+   #Q positions, P momenta, R bondlength ?, RMASS reduced mass?
+
+   do I=1:2
+      J3=3*L(I)
+      J2=J3-1
+      J1=J2-1
+      Q(J1)=0.0
+      Q(J2)=0.0
+      Q(J3)=0.0
+      P(J2)=0.0
+      P(J3)=0.0
+   end
+
+   Q(J1)=R
+   VREL=PR/RMASS
+   WT=W(L(1))+W(L(2))
+   VELA=VREL*W(L(2))/WT
+   VELB=VELA-VREL
+   J1=3*L(1)-2
+   P(J1)=W(L(1))*VELA
+   J1=3*L(2)-2
+   P(J1)=W(L(2))*VELB
+   # SET INERTIA ARRAYS.  CHOOSE Y AND Z ANGULAR MOMENTUM COMPONENTS
+   A(1)=1.0D+20
+   A(2)=RMASS*R**2
+   A(3)=A(2)
+   RAND=RAND0(ISEED)
+   DUM=TWOPI*RAND
+   AM(1)=0.0D0
+   AM(2)=AL*SIN(DUM)
+   AM(3)=AL*COS(DUM)
+   if (NTHTA>0) THEN
+      AM(3)=AL
+      AM(2)=0.0D0
+   end
+   #  CALCULATE CENTER OF MASS COORDIANTES QQ AND MOMENTA PP
+   call CENMAS(WT,QCM,VCM,2)
+   #  MOVE PP ARRAY TO P ARRAY AND QQ ARRAY TO Q ARRAY
+   do I=1,2
+      J=3*L(I)+1
+      do K=1,3
+         Q(J-K)=QQ(J-K)
+         P(J-K)=PP(J-K)
+      end
+   end
+   # ADD THE ANGULAR MOMENTUM VECTOR.  CALCULATE THE REQUIRED
+   # ANGULAR VELOCITY AND ADD IT TO THE DIATOM, WHICH LIES
+   # ALONG THE X-AXIS.
+   WX=0.0D0
+   WY=-AM(2)/A(2)
+   WZ=-AM(3)/A(3)
+   call ANGVEL(2)
+
+
+   if (NTHTA.GE.0)
+      if (NTHTA>JA)
+            STOP 'NTHTA (Mj) CAN NOT EXCEED JA'
+      else
+         #  ROTATE A DIATOM (N=2) TO MODEL A SPECIFIC (J,M) STATE BY A VECTOR MODEL
+         call ROTATEJM(NTHTA,JA,2)
+      end
+   else
+      # RANDOMLY ROTATE THE DIATOM ABOUT ITS CENTER OF MASS BY
+      # EULER'S ANGLES.  CENTER OF MASS COORDINATES QQ AND MOMENTA
+      # PP ARE PASSED FROM SUBROUTINES CENMAS AND ANGVEL THROUGH
+      # COMMON BLOCK WASTE.
+      call ROTATE(2)
+   end
+
+   # ALCULATE ANGULAR MOMENTUM AND COMPONENTS.
+   call ROTN(AM,EROT,2)
+end
+
+function INITEBK(N,J,RMIN,RMAX,DH,μ,ENJ,PTEST,AL)
     #    INITIALIZE PARAMETERS FOR AN OSCILLATOR WITH GIVEN
     #    QUANTUM NUMBERS N AND J BY SEMICLASSICAL EBK QUANTIZATION
 
