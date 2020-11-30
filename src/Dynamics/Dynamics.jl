@@ -3,6 +3,13 @@ module Dynamics
     using ..Electronics
     using ..Systems
     
+    """
+        DynamicsParameters
+        
+    Parameters for use with the DifferentialEquations.jl solvers.
+
+    Acts as a simple container to allow two unrelated quantities to be passed to the solver.
+    """
     struct DynamicsParameters
         system::Systems.SystemParameters
         electronics::Electronics.ElectronicContainer

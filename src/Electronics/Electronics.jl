@@ -3,6 +3,11 @@ module Electronics
 using LinearAlgebra: Hermitian
 using ..Models
 
+"""
+    ElectronicContainer{T<:AbstractFloat}
+    
+Container for the model and the model derived electronic quantities.
+"""
 mutable struct ElectronicContainer{T<:AbstractFloat}
     model::Model
 
