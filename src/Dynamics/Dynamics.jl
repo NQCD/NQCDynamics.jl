@@ -1,6 +1,7 @@
 module Dynamics
 
     using ..Electronics
+    using ..Models
     using ..Systems
     
     """
@@ -12,7 +13,12 @@ module Dynamics
     """
     struct DynamicsParameters
         system::Systems.SystemParameters
+        model::Models.Model
         electronics::Electronics.ElectronicContainer
+    end
+    
+    function DynamicsParameters(system, model)
+        DynamicsParameters(system, model, Electronics.ElectronicContainer(model.n_states, system.n_atoms))
     end
 
     function differential!(du::DynamicalVariables, u::DynamicalVariables, p::DynamicsParameters, t)
@@ -21,7 +27,7 @@ module Dynamics
     end
     
     function get_force(p::DynamicsParameters, u::DynamicalVariables)
-        Electronics.calculate_derivative!(p.electronics, get_positions(u))
+        Electronics.calculate_derivative!(p.model, p.electronics, get_positions(u))
         -p.electronics.D0
     end
 
