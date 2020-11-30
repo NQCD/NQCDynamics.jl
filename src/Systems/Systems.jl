@@ -4,6 +4,7 @@ using RecursiveArrayTools
 using PeriodicTable
 using Unitful
 using UnitfulAtomic
+using DiffEqBase
 
 include("cell.jl")
 include("parameters.jl")
