@@ -18,6 +18,10 @@ struct Phasespace{T} <: DynamicalVariables{T}
     Phasespace{T}(z::ArrayPartition) where {T<:AbstractFloat} = new(austrip.(z))
 end
 
+function Phasespace(x::ArrayPartition{T, Tuple{Vector{T}, Vector{T}}}) where T<:AbstractFloat
+    Phasespace{T}(x)
+end
+
 function Phasespace(
     R::Vector{T},
     P::Vector{T},
