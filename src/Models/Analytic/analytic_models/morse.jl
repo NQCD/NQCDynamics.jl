@@ -61,6 +61,6 @@ struct MorsePotential <: AnalyticModel
             return Hermitian([v1 v12 v13; v12 v2 v23; v13 v23 v3])
         end
 
-        new(zero, zero, morse_potential, morse_derivative)
+        new(3, zero, zero, morse_potential, morse_derivative)
     end
 end

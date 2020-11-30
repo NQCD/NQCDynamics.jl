@@ -54,7 +54,7 @@ struct DiffusionMetal <: AnalyticModel
             return Hermitian(v)
         end
 
-        new(U0, D0, V, D)
+        new(N+1, U0, D0, V, D)
     end
 end
 
@@ -115,6 +115,6 @@ struct ScatteringMetal <: AnalyticModel
             return Hermitian(d)
         end
 
-        new(U0, D0, V, D)
+        new(N+1, U0, D0, V, D)
     end
 end
