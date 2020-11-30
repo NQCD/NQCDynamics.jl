@@ -16,6 +16,7 @@ and the state-dependent diabatic matrix along with their associated derivatives.
 """
 macro add_standard_fields()
     esc(quote
+        n_states::UInt
         get_V0::Function
         get_D0::Function
         get_potential::Function
