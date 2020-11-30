@@ -1,5 +1,3 @@
-push!(LOAD_PATH, pwd())
-
 using Test
 using MDPrePostProcessing.IO
 
