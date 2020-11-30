@@ -1,5 +1,3 @@
-push!(LOAD_PATH, pwd())
-
 using MDPrePostProcessing.Systems
 using Unitful
 

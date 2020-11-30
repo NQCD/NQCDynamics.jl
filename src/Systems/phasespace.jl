@@ -1,23 +1,20 @@
+export DynamicalVariables
 export Phasespace
 export get_positions
 export get_momenta
 
 """
 Abstract type for different kinds of systems.
-    
-We might also want to add alternatives to the phasespace that also store electronic
-variables. An option to consider is the DEDataArray if we decide to go with 
-DifferentialEquation.jl.
 """
-abstract type DynamicalVariables{T<:AbstractFloat} end
+DynamicalVariables{T} = DEDataVector{T} where T<:AbstractFloat
 
 """
-    Phasespace{T<:AbstractFloat} <: DynamicalVariables{T}
+    Phasespace{T} <: DynamicalVariables{T}
 
 Container for the dynamical positions and momenta of the atoms in the system.
 """
-struct Phasespace{T<:AbstractFloat} <: DynamicalVariables{T}
-    z::ArrayPartition{T, Tuple{Vector{T}, Vector{T}}}
+struct Phasespace{T} <: DynamicalVariables{T}
+    x::ArrayPartition{T, Tuple{Vector{T}, Vector{T}}}
     Phasespace{T}(z::ArrayPartition) where {T<:AbstractFloat} = new(austrip.(z))
 end
 
@@ -28,5 +25,10 @@ function Phasespace(
     Phasespace{T}(ArrayPartition(R.*unit[1], P.*unit[2]))
 end
 
-get_positions(z::Phasespace) = z.z.x[1]
-get_momenta(z::Phasespace) = z.z.x[2]
+get_positions(z::Phasespace) = z.x.x[1]
+get_momenta(z::Phasespace) = z.x.x[2]
+function Base.zero(z::Phasespace)
+    blank = deepcopy(z)
+    blank.x .= zero(z.x)
+    blank
+end

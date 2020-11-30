@@ -1,5 +1,3 @@
-push!(LOAD_PATH, pwd())
-
 using Test
 using MDPrePostProcessing.Systems
 using Unitful
@@ -35,8 +33,10 @@ end
     @test get_positions(z) != R
     @test get_momenta(z) != R
     z = Phasespace(R, P)
-    @test get_positions(z) == R
-    @test get_momenta(z) == P
+    @test get_positions(z) == R # check the positions are extracted
+    @test get_momenta(z) == P # check the momenta are extracted
+    @test all(zero(z).x .== 0) # test zero function
+    @test all(z.x .!= 0) # test that zero creates a copy and doesn't zero inplace
 end
 
 @testset "System" begin
