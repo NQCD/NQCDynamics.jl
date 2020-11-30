@@ -15,8 +15,7 @@ system = SystemParameters(Cell([x y z]), fill(:H, 10))
 z = Phasespace(randn(system.n_atoms), randn(system.n_atoms))
 
 model = Models.Analytic.Harmonic(austrip(elements[:H].atomic_mass), 1, 0)
-electronics = Electronics.ElectronicContainer(model, system.n_atoms)
-p = Dynamics.DynamicsParameters(system, electronics)
+p = Dynamics.DynamicsParameters(system, model)
 
 du = zero(z)
 Dynamics.differential!(du, z, p, 0)
