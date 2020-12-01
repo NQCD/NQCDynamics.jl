@@ -1,5 +1,5 @@
 using Test
-using MDPrePostProcessing.Systems
+using NonadiabaticMolecularDynamics.Systems
 using Unitful
 using UnitfulAtomic
 using PeriodicTable
@@ -19,30 +19,13 @@ end
     y = [0, 1, 0]
     z = [0, 0, 1]
     cell = Cell([x y z])
-    p = SystemParameters(cell, [:O, :C, :H, :Pd])
-    @test p.n_beads == 1
+    p = AtomicParameters(cell, [:O, :C, :H, :Pd])
     @test p.n_atoms == 4
     @test p.atom_types[1] == :O
     @test elements[p.atom_types[1]] == elements[:O]
 end
 
-@testset "Phasespace" begin
-    R = rand(10)
-    P = rand(10)
-    z = Phasespace(R, P, (u"m", u"kg*m/s"))
-    @test get_positions(z) != R
-    @test get_momenta(z) != R
-    z = Phasespace(R, P)
-    @test get_positions(z) == R # check the positions are extracted
-    @test get_momenta(z) == P # check the momenta are extracted
-    @test all(zero(z).x .== 0) # test zero function
-    @test all(z.x .!= 0) # test that zero creates a copy and doesn't zero inplace
-end
-
 @testset "System" begin
-    p = SystemParameters(Cell(zeros(3, 3)), [:C, :C])
-    z = Phasespace(rand(p.n_atoms), rand(p.n_atoms))
-    system = System(p, z)
-    @test system.parameters == p
-    @test system.dynamical_variables == z
+    p = AtomicParameters(Cell(zeros(3, 3)), [:C, :C])
+    system = System(p, Free())
 end
