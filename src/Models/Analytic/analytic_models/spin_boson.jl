@@ -37,7 +37,7 @@ struct OhmicSpinBoson <: AnalyticModel
         V(R::Vector)::Hermitian = (sum(cⱼ.*R) + ϵ)*σ_z + Δ*σ_x
         D(R::Vector)::Vector{Hermitian} = [j*σ_z for j in cⱼ]
 
-        new(V0, D0, V, D)
+        new(2, V0, D0, V, D)
     end
 end
 
@@ -66,7 +66,7 @@ struct OhmicBosonicBath <: AnalyticModel
             [d for _=1:Nᵇ]
         end
 
-        new(V0, D0, zero_hermitian, D)
+        new(1, V0, D0, zero_hermitian, D)
     end
 end
 
@@ -103,7 +103,7 @@ struct DebyeSpinBoson <: AnalyticModel
         V(R::Vector)::Hermitian = (sum(cⱼ.*R) + ϵ)*σ_z + Δ*σ_x
         D(R::Vector)::Vector{Hermitian} = [j*σ_z for j in cⱼ]
 
-        new(V0, D0, V, D)
+        new(2, V0, D0, V, D)
     end
 end
 
@@ -136,6 +136,6 @@ struct DebyeBosonicBath <: AnalyticModel
             [d for _=1:Nᵇ]
         end
 
-        new(V0, D0, zero_hermitian, D, ωⱼ)
+        new(1, V0, D0, zero_hermitian, D, ωⱼ)
     end
 end

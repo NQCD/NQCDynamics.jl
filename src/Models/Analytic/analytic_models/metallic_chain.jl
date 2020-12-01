@@ -51,6 +51,6 @@ struct MetallicChain <: AnalyticModel
 
         Deriv(q) = Hermitian(Diagonal(vcat([dVdRkDdα(q, i-n-1) for i=1:2n+1]...)))
 
-        new(zero, zero, potential, Deriv)
+        new((2n+1)*m, zero, zero, potential, Deriv)
     end
 end

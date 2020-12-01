@@ -21,7 +21,7 @@ struct DoubleWell <: AnalyticModel
             return Hermitian([d0+k 0; 0 d0-k])
         end
 
-        new(zero, zero, V, D)
+        new(2, zero, zero, V, D)
     end
 
     # function DoubleWell(;m, ω, g, ϵ)
@@ -62,6 +62,6 @@ struct DoubleWell <: AnalyticModel
             return Hermitian([v 0; 0 -v])
         end
 
-        new(V0, D0, V, D)
+        new(2, V0, D0, V, D)
     end
 end
