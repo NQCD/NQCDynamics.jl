@@ -3,6 +3,7 @@ module IO
 using PyCall
 using Unitful
 using ..Systems
+using ..Dynamics
 
 export read_system
 
@@ -12,13 +13,13 @@ function read_system(file::String)
 
     cell = Cell(atoms.cell.data, u"Å")
     atom_types = Symbol.(atoms.get_chemical_symbols())
-    p = SystemParameters(cell, atom_types)
+    p = AtomicParameters(cell, atom_types)
 
     R = vcat(atoms.get_positions()'...)
     P = zero(R)
     z = Phasespace(R, P)
     
-    System(p, z)
+    (p, z)
 end
 
 end # module

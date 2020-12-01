@@ -1,25 +1,38 @@
 module Systems
 
-using RecursiveArrayTools
 using PeriodicTable
 using Unitful
 using UnitfulAtomic
-using DiffEqBase
+
+using ..Models
+using ..Electronics
 
 include("cell.jl")
-include("parameters.jl")
-include("phasespace.jl")
+include("atomic_parameters.jl")
 
 export System
 
-"""
-    System{T<:AbstractFloat}
+abstract type AbstractSystem end
 
-Simple container for both the static parameters and dynamical variables
 """
-struct System{T<:AbstractFloat}
-    parameters::SystemParameters{T}
-    dynamical_variables::DynamicalVariables{T}
+    System
+
+Top level container for all the parametric quantities needed.
+"""
+struct System <: AbstractSystem
+    atomic_parameters::AtomicParameters
+    model::Models.Model
+    electronics::Electronics.ElectronicContainer
+end
+
+function System(atomic_parameters::AtomicParameters, model::Models.Model)
+    System(atomic_parameters, model, Electronics.ElectronicContainer(model.n_states, atomic_parameters.n_atoms))
+end
+
+struct RingPolymerSystem <: AbstractSystem
+    atomic_parameters::AtomicParameters
+    model::Models.Model
+    electronics::Electronics.ElectronicContainer
 end
 
 end # module
