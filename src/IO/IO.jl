@@ -11,7 +11,7 @@ function read_system(file::String)
     io = pyimport("ase.io")
     atoms = io.read(file)
 
-    cell = Cell(atoms.cell.data, u"Å")
+    cell = PeriodicCell(atoms.cell.data, u"Å")
     atom_types = Symbol.(atoms.get_chemical_symbols())
     p = AtomicParameters(cell, atom_types)
 

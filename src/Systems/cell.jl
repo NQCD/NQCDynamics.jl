@@ -1,18 +1,25 @@
-export Cell
+export AbstractCell
+export PeriodicCell
+export InfiniteCell
+
+abstract type AbstractCell{T<:AbstractFloat} end
 
 """
-    Cell{T<:Unitful.Length{<:AbstractFloat}}
+    struct Cell{T<:AbstractFloat} <: AbstractCell
 
 Simulation cell
 """
-struct Cell{T<:AbstractFloat}
+struct PeriodicCell{T} <: AbstractCell{T}
     vectors::Matrix{<:Unitful.Length{T}}
 end
 
-function Cell(vectors::Matrix{T}, unit::Unitful.Units=u"bohr") where {T<:AbstractFloat}
-    Cell(vectors .* unit) 
+function PeriodicCell(vectors::Matrix{T}, unit::Unitful.Units=u"bohr") where {T<:AbstractFloat}
+    PeriodicCell(vectors .* unit) 
 end
 
-function Cell(vectors::Matrix{T}, unit::Unitful.Units=u"bohr") where {T<:Integer}
-    Cell(vectors .* unit .* 1.0) 
+function PeriodicCell(vectors::Matrix{T}, unit::Unitful.Units=u"bohr") where {T<:Integer}
+    PeriodicCell(vectors .* unit .* 1.0) 
 end
+
+struct InfiniteCell{T} <: AbstractCell{T} end
+InfiniteCell() = InfiniteCell{Float64}()

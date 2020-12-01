@@ -8,17 +8,17 @@ using PeriodicTable
     x = [1.0, 0.0, 0.0]
     y = [0.0, 1.0, 0.0]
     z = [0.0, 0.0, 1.0]
-    @test Cell([x y z] .* u"Å") isa Cell
-    @test Cell([x y z], u"bohr").vectors == Cell([x y z]).vectors # Defaults to Angstrom
-    @test Cell([x y z], u"m") isa Cell
-    @test_throws MethodError Cell([x y z], u"s") # Throws error for non-length units
+    @test PeriodicCell([x y z] .* u"Å") isa AbstractCell
+    @test PeriodicCell([x y z], u"bohr").vectors == PeriodicCell([x y z]).vectors # Defaults to Angstrom
+    @test PeriodicCell([x y z], u"m") isa AbstractCell
+    @test_throws MethodError PeriodicCell([x y z], u"s") # Throws error for non-length units
 end
 
 @testset "Parameters" begin
     x = [1, 0, 0]
     y = [0, 1, 0]
     z = [0, 0, 1]
-    cell = Cell([x y z])
+    cell = PeriodicCell([x y z])
     p = AtomicParameters(cell, [:O, :C, :H, :Pd])
     @test p.n_atoms == 4
     @test p.atom_types[1] == :O
@@ -26,6 +26,6 @@ end
 end
 
 @testset "System" begin
-    p = AtomicParameters(Cell(zeros(3, 3)), [:C, :C])
+    p = AtomicParameters(PeriodicCell(zeros(3, 3)), [:C, :C])
     system = System(p, Free())
 end
