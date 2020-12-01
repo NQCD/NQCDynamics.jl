@@ -38,7 +38,7 @@ function ElectronicContainer(n_states::Integer, n_DoF::Integer)
     ElectronicContainer{Float64}(n_states, n_DoF)
 end
 
-function calculate_derivative!(model::Model, electronics::ElectronicContainer, R::Vector)
+function calculate_derivative!(model::Model, electronics::ElectronicContainer, R::AbstractVector)
     electronics.D0 .= model.get_D0.(R)
 end
 
