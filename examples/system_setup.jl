@@ -5,7 +5,7 @@ using Unitful
 x = [10, 0, 0]
 y = [0, 10, 0]
 z = [0, 0, 10]
-cell = Cell([x y z], u"Å")  # Simulation cell
+cell = PeriodicCell([x y z], u"Å")  # Simulation cell
 
 atom_types = [fill(:Pt, 10); :O; :C]  # Vector of all elements in the system
 p = AtomicParameters(cell, atom_types)  # Static system parameters
