@@ -97,9 +97,8 @@ function pyinit()
                 cell = torch.eye(3, dtype=species.dtype).to(device)
             else:
                 cell = torch.Tensor(cell_).to(device)
-            print(cell)
             shifts = compute_shifts(cell=cell,pbc=pbc,cutoff=cutoff)
-
+            print(shifts)
             # The returned indices are only one directional
             idx_i, idx_j, idx_S = neighbor_pairs(
                 species == -1, coordinates, cell, shifts, cutoff
