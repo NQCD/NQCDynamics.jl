@@ -23,7 +23,8 @@ mutable struct MLParam{T<:AbstractFloat}
         force_mask = false
 
     end
-end 
+
+end
 
 device = "cpu"
 force_mask=false
