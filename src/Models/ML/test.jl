@@ -9,6 +9,7 @@ using NonadiabaticMolecularDynamics.Models.ML_descriptor
 #include(joinpath(pwd(),"src","Models","ML","ML.jl"))
 using Unitful
 using UnitfulAtomic
+using Revise
 using PeriodicTable
 
 

@@ -23,11 +23,8 @@ mutable struct MLParam{T<:AbstractFloat}
         force_mask = false
 
     end
-end
-function MLParam{T}(device::String, force_mask::Bool) where {T<:AbstractFloat}
-    MLParam{Float64}(device, force_mask)
+end 
 
-end
 device = "cpu"
 force_mask=false
 
