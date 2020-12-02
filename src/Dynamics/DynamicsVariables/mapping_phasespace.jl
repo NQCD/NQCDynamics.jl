@@ -32,5 +32,9 @@ end
 
 get_positions(z::MappingPhasespace) = @view z.x.x[1][:,1]
 get_momenta(z::MappingPhasespace) = @view z.x.x[1][:,2]
+
 get_mapping_positions(z::MappingPhasespace) = z.x.x[2][:,1]
+# get_mapping_positions(z::MappingPhasespace, i::Integer) = z.x.x[2][:,1]
+
 get_mapping_momenta(z::MappingPhasespace) = z.x.x[2][:,2]
+# get_mapping_momenta(z::MappingPhasespace, i::Integer) = z.x.x[2][:,2]
