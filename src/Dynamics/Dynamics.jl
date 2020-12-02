@@ -3,14 +3,21 @@ module Dynamics
 using ..Electronics
 using ..Systems
 
-using RecursiveArrayTools
 using DiffEqBase
-using Unitful
-using UnitfulAtomic
 
-include("DynamicalVariables/phasespace.jl")
-include("DynamicalVariables/mapping_phasespace.jl")
-include("DynamicalVariables/surface_hopping_phasespace.jl")
+include("DynamicsVariables/DynamicsVariables.jl")
+using .DynamicsVariables
+
+export Phasespace
+export MappingPhasespace
+export SurfaceHoppingPhasespace
+
+export get_momenta
+export get_positions
+export get_mapping_momenta
+export get_mapping_positions
+export get_density_matrix
+export get_adiabatic_state
 
 function differential!(du::DynamicalVariables, u::DynamicalVariables, p::AbstractSystem, t)
     get_positions(du) .= get_velocity(p, u)
