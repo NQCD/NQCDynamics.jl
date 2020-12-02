@@ -27,5 +27,14 @@ function Phasespace(
     Phasespace{T}(hcat(R.*unit[1], P.*unit[2]))
 end
 
-get_positions(z::Phasespace) = @view z[:,1]
-get_momenta(z::Phasespace) = @view z[:,2]
+get_positions(z::Phasespace) = @view z.x[:,1]
+
+function get_bead_positions(z::Phasespace, n_beads::Integer)
+    collect(Iterators.partition(get_positions(z), n_beads))
+end
+
+get_momenta(z::Phasespace) = @view z.x[:,2]
+
+function get_bead_momenta(z::Phasespace, n_beads::Integer)
+    collect(Iterators.partition(get_momenta(z), n_beads))
+end
