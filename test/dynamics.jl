@@ -25,3 +25,14 @@ end
     get_mapping_positions(z)
     get_mapping_momenta(z)
 end
+
+@testset "SurfaceHoppingPhasespace" begin
+    R = rand(10)
+    P = rand(10)
+    z = SurfaceHoppingPhasespace(R, P, 2, 1)
+    
+    @test get_positions(z) == R
+    @test get_momenta(z) == P
+    @show get_density_matrix(z)
+    @show get_adiabatic_state(z)
+end
