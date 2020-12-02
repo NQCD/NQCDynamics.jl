@@ -16,8 +16,6 @@ system = Systems.RingPolymerSystem(atoms, model, 9, 1e-3, 1)
 R = randn(system.atomic_parameters.n_atoms * system.ring_polymer.n_beads)
 P = randn(system.atomic_parameters.n_atoms * system.ring_polymer.n_beads).*10
 z = Dynamics.Phasespace(R, P)
-du = zero(z)
-Dynamics.differential!(du, z, system, 0)
 
 problem = ODEProblem(Dynamics.differential!, z, (0.0, 1e4), system)
 solution = solve(problem)
