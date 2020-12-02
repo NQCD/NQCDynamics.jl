@@ -7,7 +7,9 @@ using RecursiveArrayTools
 using DiffEqBase
 using Unitful
 using UnitfulAtomic
+
 include("DynamicalVariables/phasespace.jl")
+include("DynamicalVariables/mapping_phasespace.jl")
 
 function differential!(du::DynamicalVariables, u::DynamicalVariables, p::AbstractSystem, t)
     get_positions(du) .= get_velocity(p, u)
