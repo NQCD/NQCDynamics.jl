@@ -1,5 +1,8 @@
 module NonadiabaticMolecularDynamics
 
+include("Atoms/Atoms.jl")
+export PeriodicCell
+export InfiniteCell
 include("Models/Models.jl")
 include("Electronics/Electronics.jl")
 include("Systems/Systems.jl")

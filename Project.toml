@@ -4,6 +4,7 @@ authors = ["James <james.gardner1421@gmail.com>"]
 version = "0.1.0"
 
 [deps]
+BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
 BlockArrays = "8e7c35d0-a365-5155-bbbb-fb81a777f24e"
 Conda = "8f4d0f93-b110-5947-807f-2305c1781a2d"
 DiffEqBase = "2b5f629d-d688-5b77-993f-72d75c75574e"
