@@ -37,6 +37,7 @@ function System(atomic_parameters::AtomicParameters, model::Models.Model, n_DoF:
 end
 
 struct RingPolymerSystem <: AbstractSystem
+    n_DoF::UInt8
     atomic_parameters::AtomicParameters
     model::Models.Model
     electronics::Vector{Electronics.ElectronicContainer}
@@ -46,7 +47,7 @@ end
 function RingPolymerSystem(atomic_parameters::AtomicParameters{T}, model::Models.Model, n_beads::Integer, temperature::Real, n_DoF::Integer=3) where {T<:AbstractFloat}
     electronics = [Electronics.ElectronicContainer{T}(model.n_states, n_DoF*atomic_parameters.n_atoms) for _=1:n_beads]
     ring_polymer = Systems.RingPolymerParameters{T}(n_beads, temperature)
-    RingPolymerSystem(atomic_parameters, model, electronics, ring_polymer)
+    RingPolymerSystem(n_DoF, atomic_parameters, model, electronics, ring_polymer)
 end
 
 n_atoms(system::AbstractSystem) = system.atomic_parameters.n_atoms
