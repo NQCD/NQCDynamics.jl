@@ -1,14 +1,18 @@
 module ML_descriptor
 
 using PyCall
+using ....Atoms
 #import the necessary functions
 np = pyimport("numpy")
 ase = pyimport("ase")
 spk = pyimport("schnetpack")
+torch = pyimport("torch")
+
 using Unitful
 using UnitfulAtomic    
 export julia2schnet
 export schnet2julia
+export update_schnet_input!
 pushfirst!(PyVector(pyimport("sys")."path"),"")
 
 #abstract type DynamicalVariables end
@@ -16,7 +20,8 @@ pushfirst!(PyVector(pyimport("sys")."path"),"")
 #struct Descriptor_Variables{T<:AbstractFloat} <: DynamicalVariables
 #    schnet_inputs::Dict
 #end
-function pyinit()
+
+function __init__()
     py"""
     import schnetpack as spk
     from schnetpack import Properties
@@ -49,9 +54,7 @@ function pyinit()
                     dtype=np.float32,
                 )
             return neighborhood_idx, offsets
-    """
 
-    py"""
     def get_ase_environment(n_atoms, species_, positions_,pbc_array,cell_,model_args):
             import numpy as np
             from ase.neighborlist import neighbor_list
@@ -81,8 +84,7 @@ function pyinit()
                 offset = np.zeros((n_atoms, 1, 3), dtype=np.float32)
 
             return neighborhood_idx, offset
-    """
-    py"""
+
     def get_torch_environment(n_atoms, species_, positions_,pbc_array,cell_,model_args):
             import torch 
             import numpy as np
@@ -141,8 +143,7 @@ function pyinit()
                 offset = np.zeros((n_atoms, 1, 3), dtype=np.float32)
 
             return neighborhood_idx, offset
-    """
-    py"""
+
     def compute_shifts(cell, pbc, cutoff):
         import math
         import torch
@@ -175,8 +176,7 @@ function pyinit()
                 torch.cartesian_prod(o, o, r3),
             ]
         )
-    """
-    py"""
+
     def neighbor_pairs(padding_mask, coordinates, cell, shifts, cutoff):
         import math
         import torch
@@ -232,12 +232,11 @@ end
 
 
 function julia2schnet(p::Any,R::Array,model_args::PyObject)
-    torch = pyimport("torch")
     spk=pyimport("schnetpack")
 
     cell = ustrip.(u"Å", p.cell.vectors)
     positions = positions_spk(R,p.n_atoms)
-    pyinit()
+
     if model_args.environment_provider == "simple"
         #nbh_idx, offsets = simple_env(p)
         nbh_idx, offsets = py"get_simple_environment"(p.n_atoms,p.atom_types,positions,model_args.pbc,cell,model_args)
@@ -257,11 +256,37 @@ function julia2schnet(p::Any,R::Array,model_args::PyObject)
     #get cells
     schnet_inputs[spk.Properties.cell] = torch.FloatTensor(cell)
     schnet_inputs[spk.Properties.cell_offset]= torch.FloatTensor(offsets)
-    schnet_inputs_julia=Dict()
     for (k,v) in schnet_inputs
-        schnet_inputs_julia[k] = v.unsqueeze(0).to(model_args.device)
+        schnet_inputs[k] = v.unsqueeze(0).to(model_args.device)
     end
-    return schnet_inputs_julia
+    return schnet_inputs
+end
+
+function update_schnet_input!(schnet_inputs::Dict, p::AtomicParameters, R::Vector, model_args::PyObject)
+
+    cell = ustrip.(u"Å", p.cell.vectors)
+    positions = reshape(R, (p.n_atoms, 3))
+
+    # We might want to get Julia versions of these, also we should remove the if statement.
+    if model_args.environment_provider == "simple"
+        nbh_idx, offsets = py"get_simple_environment"(p.n_atoms,p.atom_types,positions,model_args.pbc,cell,model_args)
+    elseif model_args.environment_provider == "ase"
+        nbh_idx,offsets = py"get_ase_environment"(p.n_atoms,p.atom_types,positions,model_args.pbc,cell,model_args)
+    elseif model_args.environment_provider == "torch"
+        nbh_idx,offsets = py"get_torch_environment"(p.n_atoms,model_args.atomic_charges,positions,model_args.pbc,cell,model_args)
+    end
+    
+    # Some of these will not change and do not need to be updated every time.
+    schnet_inputs["_atomic_numbers"] =  torch.LongTensor(model_args.atomic_charges).unsqueeze(0).to(model_args.device)
+    schnet_inputs["_atom_mask"] = torch.ones_like(schnet_inputs["_atomic_numbers"]).float()
+    schnet_inputs["_positions"] = torch.FloatTensor(positions).unsqueeze(0).to(model_args.device)
+    mask = torch.FloatTensor(nbh_idx) >= 0
+    schnet_inputs["_neighbor_mask"] = mask.float().unsqueeze(0).to(model_args.device)
+    schnet_inputs["_neighbors"] = (torch.LongTensor(nbh_idx) * mask.long()).unsqueeze(0).to(model_args.device)
+    schnet_inputs["_cell"] = torch.FloatTensor(cell).unsqueeze(0).to(model_args.device)
+    schnet_inputs["_cell_offset"] = torch.FloatTensor(offsets).unsqueeze(0).to(model_args.device)
+
+    schnet_inputs
 end
 
 function positions_spk(R,n_atoms)
