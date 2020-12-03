@@ -58,7 +58,7 @@ struct DiffusionAndersonHolstein <: AnalyticModel
 
         D(q) = Hermitian(zeros(N+1, N+1))
 
-        new(V0, zero, V, D)
+        new(N+1, V0, zero, V, D)
     end
 end
 
@@ -120,6 +120,6 @@ struct ScatteringAndersonHolstein <: AnalyticModel
 
         D(q) = Hermitian(zeros(N+1, N+1))
 
-        new(V0, zero, V, D)
+        new(N+1, V0, zero, V, D)
     end
 end
