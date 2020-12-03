@@ -10,10 +10,6 @@ using NonadiabaticMolecularDynamics.Models.ML_descriptor
 using Unitful
 using UnitfulAtomic
 using Revise
-<<<<<<< HEAD
-
-=======
->>>>>>> 65ea1cb (some changes, not sure if they make sense)
 using PeriodicTable
 
 
