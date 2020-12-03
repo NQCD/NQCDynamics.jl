@@ -3,10 +3,9 @@ module ML
 using PyCall
 using PeriodicTable
 using ....Atoms
-#import the necessary functions
+using ..Models
 
-#init need to give the path to the best model
-
+export SchNetPackModel
 export initialize_MLmodel
 export torch_load
 export getmetadata
@@ -15,13 +14,28 @@ export check_atoms
 np = pyimport("numpy")
 ase = pyimport("ase")
 
-mutable struct MLParam{T<:AbstractFloat}
-    device::String
-    force_mask::Bool
+include("ML_descriptor.jl")
 
-    function MLParam{T}(device::String, force_mask::Bool) where {T<:AbstractFloat}
-        device = "cpu"
-        force_mask = false
+struct SchNetPackModel <: Models.Model
+
+    get_V0::Function
+    get_D0::Function
+
+    function SchNetPackModel(path::String, atoms::AtomicParameters)
+        model, model_args, force_mask = initialize_MLmodel(path, atoms)
+        input = Dict{String, PyObject}()
+        
+        function get_V0(R::Vector)
+            update_schnet_input!(input, atoms, R, model_args)
+            model(input)["energy"].detach().numpy()[1,1]
+        end
+        
+        function get_D0(R::Vector)
+            update_schnet_input!(input, atoms, R, model_args)
+            model(input)["forces"].detach().numpy()[1,:,:]'[:]
+        end
+        
+        new(get_V0, get_D0)
     end
 end
 
