@@ -7,7 +7,6 @@ ase = pyimport("ase")
 spk = pyimport("schnetpack")
 using Unitful
 using UnitfulAtomic    
-a2B=ustrip(u"bohr",1u"Å")
 export julia2schnet
 export schnet2julia
 pushfirst!(PyVector(pyimport("sys")."path"),"")
@@ -236,8 +235,8 @@ function julia2schnet(p::Any,R::Array,model_args::PyObject)
     torch = pyimport("torch")
     spk=pyimport("schnetpack")
 
-    cell = cell_spk(p.cell)
-    positions=positions_spk(R,p.n_atoms)
+    cell = ustrip.(u"Å", p.cell.vectors)
+    positions = positions_spk(R,p.n_atoms)
     pyinit()
     if model_args.environment_provider == "simple"
         #nbh_idx, offsets = simple_env(p)
@@ -263,11 +262,6 @@ function julia2schnet(p::Any,R::Array,model_args::PyObject)
         schnet_inputs_julia[k] = v.unsqueeze(0).to(model_args.device)
     end
     return schnet_inputs_julia
-end
-
-function cell_spk(cell)
-    return austrip.(cell.vectors)/a2B
-    
 end
 
 function positions_spk(R,n_atoms)
