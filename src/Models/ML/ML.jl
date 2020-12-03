@@ -18,6 +18,7 @@ include("ML_descriptor.jl")
 
 struct SchNetPackModel <: Models.Model
 
+    n_states::UInt
     get_V0::Function
     get_D0::Function
 
@@ -25,17 +26,17 @@ struct SchNetPackModel <: Models.Model
         model, model_args, force_mask = initialize_MLmodel(path, atoms)
         input = Dict{String, PyObject}()
         
-        function get_V0(R::Vector)
+        function get_V0(R::AbstractVector)
             update_schnet_input!(input, atoms, R, model_args)
             model(input)["energy"].detach().numpy()[1,1]
         end
         
-        function get_D0(R::Vector)
+        function get_D0(R::AbstractVector)::Vector
             update_schnet_input!(input, atoms, R, model_args)
-            model(input)["forces"].detach().numpy()[1,:,:]'[:]
+            -model(input)["forces"].detach().numpy()[1,:,:]'[:]
         end
         
-        new(get_V0, get_D0)
+        new(1, get_V0, get_D0)
     end
 end
 
