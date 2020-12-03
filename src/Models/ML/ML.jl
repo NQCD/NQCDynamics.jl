@@ -2,6 +2,7 @@ module ML
 
 using PyCall
 using PeriodicTable
+using ....Atoms
 #import the necessary functions
 
 #init need to give the path to the best model
@@ -26,22 +27,28 @@ mutable struct MLParam{T<:AbstractFloat}
 
 end
 
-
-
-
 device = "cpu"
 force_mask=false
 
+function initialize_MLmodel(path::String, atoms::AtomicParameters)
+    model = torch_load(path)
+    model_args = get_param_model(path)
+    #get metadata
+    force_mask = get_metadata(path, model_args, atoms.atom_types)
+    #global for now
+    model_args.atomic_charges = [elements[type].number for type in atoms.atom_types]
+    model_args.pbc = atoms.cell.periodicity
+    return model, model_args, force_mask
+end
+
 function torch_load(path::String)
     torch = pyimport("torch")
-    model = torch.load(joinpath(path,"best_model"),map_location=torch.device(device)).to(device)
-    return model
+    torch.load(joinpath(path, "best_model"), map_location=torch.device(device)).to(device)
 end
 
 function get_param_model(path::String)
     spk = pyimport("schnetpack")
     model_args = spk.utils.read_from_json(joinpath(path,"args.json"))
-    #println(model_args)
     if model_args.cuda == true && torch.cuda.is_available() == true
         global device = "cuda"
     else 
@@ -52,18 +59,7 @@ function get_param_model(path::String)
     return model_args #, environment_provider
 end
 
-function check_atoms(atoms::Array,mask::Any)
-    
-    for atom in atoms
-        if atom in mask
-            global force_mask = true
-            continue
-        end
-    end
-    return 
-end
-
-function getmetadata(path::String,model_args::PyObject,atoms::Array)
+function get_metadata(path::String,model_args::PyObject,atoms::Array)
     spk = pyimport("schnetpack")
     dataset = spk.data.AtomsData(string(joinpath(path,model_args.datapath)),collect_triples=model_args=="wacsf")
     if in("force_mask",keys(dataset.get_metadata())) == true
@@ -77,18 +73,15 @@ function getmetadata(path::String,model_args::PyObject,atoms::Array)
     end
 end
 
-function initialize_MLmodel(path::String,atoms::Any,a::Any)
-    model = torch_load(path)
-    model_args = get_param_model(path)
-    #get metadata
-    force_mask = getmetadata(path,model_args,atoms.atom_types)
-    #global for now
-    model_args.atomic_charges = [elements[type].number for type in atoms.atom_types]
-    model_args.pbc=a.periodicity
-    return model, model_args, force_mask
-
+function check_atoms(atoms::Array,mask::Any)
+    for atom in atoms
+        if atom in mask
+            global force_mask = true
+            continue
+        end
+    end
+    return 
 end
-
 
 function get_properties(model_path, atoms, args...)
     #get energy and forces and other relevant properties
@@ -102,6 +95,6 @@ function get_properties(model_path, atoms, args...)
     end
 
     return (energy,forces)
+end
 
-end
-end
+end # module

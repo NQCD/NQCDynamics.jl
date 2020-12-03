@@ -4,11 +4,10 @@ using PeriodicTable
 using Unitful
 using UnitfulAtomic
 
+using ..Atoms
 using ..Models
 using ..Electronics
 
-include("cell.jl")
-include("atomic_parameters.jl")
 include("ring_polymer.jl")
 
 export AbstractSystem
