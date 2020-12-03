@@ -7,7 +7,5 @@ struct Free <: AnalyticModel
 
     @add_standard_fields
 
-    function Free()
-        new(x->0, x->0, zero_hermitian, zero_hermitian)
-    end
+    Free() = new(1, x->0, x->0, zero_hermitian, zero_hermitian)
 end

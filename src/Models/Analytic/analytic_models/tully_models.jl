@@ -28,7 +28,7 @@ struct TullyModelOne <: AnalyticModel
             return Hermitian([v1 v12; v12 v2])
         end
 
-        new(zero, zero, V, Deriv)
+        new(2, zero, zero, V, Deriv)
     end
 end
 
@@ -52,6 +52,6 @@ struct TullyModelTwo <: AnalyticModel
             return Hermitian([v1 v12; v12 v2])
         end
 
-        new(zero, zero, V, Deriv)
+        new(2, zero, zero, V, Deriv)
     end
 end
