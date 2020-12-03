@@ -38,6 +38,11 @@ function ElectronicContainer(n_states::Integer, n_DoF::Integer)
     ElectronicContainer{Float64}(n_states, n_DoF)
 end
 
+function calculate_potential!(model::Model, electronics::ElectronicContainer, R::AbstractVector)
+    electronics.V0 = model.get_V0(R)
+    electronics.diabatic_potential .= model.get_potential(R)
+end
+
 function calculate_derivative!(model::Model, electronics::ElectronicContainer, R::AbstractVector)
     electronics.D0 .= model.get_D0.(R)
 end

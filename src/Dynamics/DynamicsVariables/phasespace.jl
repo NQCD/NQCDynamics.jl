@@ -1,12 +1,8 @@
-export DynamicalVariables
 export Phasespace
 export get_positions
 export get_momenta
-
-"""
-Abstract type for different kinds of systems.
-"""
-DynamicalVariables{T} = DEDataVector{T} where T<:AbstractFloat
+export get_bead_positions
+export get_bead_momenta
 
 """
     Phasespace{T} <: DynamicalVariables{T}
