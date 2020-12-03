@@ -22,13 +22,8 @@ mutable struct MLParam{T<:AbstractFloat}
     function MLParam{T}(device::String, force_mask::Bool) where {T<:AbstractFloat}
         device = "cpu"
         force_mask = false
-
     end
-
 end
-
-device = "cpu"
-force_mask=false
 
 function initialize_MLmodel(path::String, atoms::AtomicParameters)
     model = torch_load(path)
@@ -43,6 +38,7 @@ end
 
 function torch_load(path::String)
     torch = pyimport("torch")
+    device = "cpu"
     torch.load(joinpath(path, "best_model"), map_location=torch.device(device)).to(device)
 end
 
@@ -50,37 +46,25 @@ function get_param_model(path::String)
     spk = pyimport("schnetpack")
     model_args = spk.utils.read_from_json(joinpath(path,"args.json"))
     if model_args.cuda == true && torch.cuda.is_available() == true
-        global device = "cuda"
+        model_args.device = "cuda"
     else 
-        global device = "cpu"
+        model_args.device = "cpu"
     end
     #environment_provider = spk.utils.script_utils.settings.get_environment_provider(model_args,device=device)
-    model_args.device = device
     return model_args #, environment_provider
 end
 
-function get_metadata(path::String,model_args::PyObject,atoms::Array)
+# This function is not type stable. force_mask can be either Bool or Vector
+function get_metadata(path::String, model_args::PyObject, atoms::Vector{Symbol})
     spk = pyimport("schnetpack")
     dataset = spk.data.AtomsData(string(joinpath(path,model_args.datapath)),collect_triples=model_args=="wacsf")
-    if in("force_mask",keys(dataset.get_metadata())) == true
-        check_atoms(atoms,dataset.get_metadata("force_mask_index"))
-    end
-    if force_mask == true
-        index=length(dataset.get_metadata("force_mask_index"))-length(atoms)
+
+    if in("force_mask",keys(dataset.get_metadata()))
+        index = length(dataset.get_metadata("force_mask_index")) - length(atoms)
         return dataset.get_metadata("force_mask_index")[index:length(dataset.get_metadata("force_mask_index"))]
     else
         return force_mask
     end
-end
-
-function check_atoms(atoms::Array,mask::Any)
-    for atom in atoms
-        if atom in mask
-            global force_mask = true
-            continue
-        end
-    end
-    return 
 end
 
 function get_properties(model_path, atoms, args...)
