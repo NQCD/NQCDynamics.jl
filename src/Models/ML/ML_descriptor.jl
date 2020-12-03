@@ -8,7 +8,7 @@ export update_schnet_input!
 
 # pushfirst!(PyVector(pyimport("sys")."path"),"")
 
-function update_schnet_input!(schnet_inputs::Dict, p::AtomicParameters, R::Vector, model_args::PyObject)
+function update_schnet_input!(schnet_inputs::Dict, p::AtomicParameters, R::AbstractVector, model_args::PyObject)
 
     cell = ustrip.(u"Å", p.cell.vectors)
     positions = reshape(R, (p.n_atoms, 3))
