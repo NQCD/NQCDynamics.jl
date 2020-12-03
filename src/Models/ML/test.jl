@@ -1,7 +1,5 @@
-push!(LOAD_PATH,pwd())
-push!(LOAD_PATH,joinpath(pwd(),"src","Dynamics"))
-
 #this is just for testing and copied from the examples of MDPrePostProcessing
+using NonadiabaticMolecularDynamics.Atoms
 using NonadiabaticMolecularDynamics.Systems
 using NonadiabaticMolecularDynamics.Models
 using NonadiabaticMolecularDynamics.Models.ML
@@ -22,12 +20,13 @@ z = [0.0, 0.0, 1.0]
 
 a = PeriodicCell([x y z])
 set_periodicity!(a, [false, true, false])
-p = AtomicParameters(PeriodicCell(zeros(3, 3)), [:H, :H])
+p = AtomicParameters(a, [:H, :H])
 system = System(p, Models.Analytic.Free())
-R=[5.08124009 0.94499003 8.42028042; 4.72585008 0.70419003 7.57972028]
+R = [5.08124009 0.94499003 8.42028042; 4.72585008 0.70419003 7.57972028]
 #init ML
 property_dict = Dict("energy" => true, "forces" => true)
-model,model_args,force_mask = initialize_MLmodel(model_path,p,a)
+model, model_args, force_mask = initialize_MLmodel(model_path, p)
+
 #init schnet_descriptor
 #environment_provider=env_init(model_args)
 
