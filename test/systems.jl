@@ -1,5 +1,6 @@
 using Test
 using NonadiabaticMolecularDynamics.Systems
+using NonadiabaticMolecularDynamics.Atoms
 using NonadiabaticMolecularDynamics.Models
 using Unitful
 using UnitfulAtomic
