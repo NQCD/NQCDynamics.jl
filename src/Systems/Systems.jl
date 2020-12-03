@@ -26,13 +26,14 @@ abstract type AbstractSystem end
 Top level container for all the parametric quantities needed.
 """
 struct System <: AbstractSystem
+    n_DoF::UInt8
     atomic_parameters::AtomicParameters
     model::Models.Model
     electronics::Electronics.ElectronicContainer
 end
 
 function System(atomic_parameters::AtomicParameters, model::Models.Model, n_DoF::Integer=3)
-    System(atomic_parameters, model, Electronics.ElectronicContainer(model.n_states, n_DoF*atomic_parameters.n_atoms))
+    System(n_DoF, atomic_parameters, model, Electronics.ElectronicContainer(model.n_states, n_DoF*atomic_parameters.n_atoms))
 end
 
 struct RingPolymerSystem <: AbstractSystem
@@ -49,7 +50,7 @@ function RingPolymerSystem(atomic_parameters::AtomicParameters{T}, model::Models
 end
 
 n_atoms(system::AbstractSystem) = system.atomic_parameters.n_atoms
-masses(system::AbstractSystem) = system.atomic_parameters.masses
+masses(system::AbstractSystem) = repeat(system.atomic_parameters.masses, inner=system.n_DoF)
 n_beads(system::RingPolymerSystem) = system.ring_polymer.n_beads
 
 end # module
