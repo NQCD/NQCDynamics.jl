@@ -22,7 +22,16 @@ function update_schnet_input!(schnet_inputs::Dict, p::AtomicParameters, R::Abstr
     end
     # Some of these will not change and do not need to be updated every time.
     schnet_inputs["_atomic_numbers"] =  torch.LongTensor(model_args.atomic_charges).unsqueeze(0).to(model_args.device)
-    schnet_inputs["_atom_mask"] = torch.ones_like(schnet_inputs["_atomic_numbers"]).float()
+    if model_args.contributions == true
+        #manual for 2 atoms
+        #TODO update if we ever use larger molecules 
+        schnet_inputs["_atom_mask"] = torch.zeros_like(schnet_inputs["_atomic_numbers"]).float()
+        schnet_inputs["_atom_mask"][0,2].fill_(1.0)
+        schnet_inputs["_atom_mask"][0,1].fill_(1.0)
+        schnet_inputs["_atom_mask"].unsqueeze(0).to(model_args.device)
+    else
+        schnet_inputs["_atom_mask"] = torch.ones_like(schnet_inputs["_atomic_numbers"]).float().unsqueeze(0).to(model_args.device)
+    end
     schnet_inputs["_positions"] = torch.FloatTensor(positions).unsqueeze(0).to(model_args.device)
     mask = torch.FloatTensor(nbh_idx) >= 0
     schnet_inputs["_neighbor_mask"] = mask.float().unsqueeze(0).to(model_args.device)
