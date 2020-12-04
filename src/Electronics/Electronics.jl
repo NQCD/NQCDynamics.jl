@@ -44,7 +44,7 @@ function calculate_potential!(model::Model, electronics::ElectronicContainer, R:
 end
 
 function calculate_derivative!(model::Model, electronics::ElectronicContainer, R::AbstractVector)
-    electronics.D0 .= model.get_D0.(R)
+    electronics.D0 .= model.get_D0(R)
 end
 
 end # module
