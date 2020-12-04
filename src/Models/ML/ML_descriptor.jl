@@ -12,7 +12,6 @@ function update_schnet_input!(schnet_inputs::Dict, p::AtomicParameters, R::Abstr
 
     cell = ustrip.(u"Å", p.cell.vectors)
     positions = reshape(R, (p.n_atoms, 3))
-
     # We might want to get Julia versions of these, also we should remove the if statement.
     if model_args.environment_provider == "simple"
         nbh_idx, offsets = py"get_simple_environment"(p.n_atoms,p.atom_types,positions,model_args.pbc,cell,model_args)
@@ -21,7 +20,6 @@ function update_schnet_input!(schnet_inputs::Dict, p::AtomicParameters, R::Abstr
     elseif model_args.environment_provider == "torch"
         nbh_idx,offsets = py"get_torch_environment"(p.n_atoms,model_args.atomic_charges,positions,model_args.pbc,cell,model_args)
     end
-    
     # Some of these will not change and do not need to be updated every time.
     schnet_inputs["_atomic_numbers"] =  torch.LongTensor(model_args.atomic_charges).unsqueeze(0).to(model_args.device)
     schnet_inputs["_atom_mask"] = torch.ones_like(schnet_inputs["_atomic_numbers"]).float()
@@ -30,10 +28,10 @@ function update_schnet_input!(schnet_inputs::Dict, p::AtomicParameters, R::Abstr
     schnet_inputs["_neighbor_mask"] = mask.float().unsqueeze(0).to(model_args.device)
     schnet_inputs["_neighbors"] = (torch.LongTensor(nbh_idx) * mask.long()).unsqueeze(0).to(model_args.device)
     schnet_inputs["_cell"] = torch.FloatTensor(cell).unsqueeze(0).to(model_args.device)
-    schnet_inputs["_cell_offset"] = torch.FloatTensor(offsets).unsqueeze(0).to(model_args.device)
-
+    schnet_inputs["_cell_offset"] = torch.FloatTensor(offsets).unsqueeze(0).to(model_args.device).contiguous()
     schnet_inputs
 end
+
 
 function __init__()
     copy!(torch, pyimport("torch"))
@@ -68,9 +66,11 @@ function __init__()
 
     def get_ase_environment(n_atoms, species_, positions_,pbc_array,cell_,model_args):
         cutoff = model_args.cutoff
-
+        atoms=ase.Atoms(species_,np.array(positions_))
+        atoms.set_cell(cell_)
+        atoms.set_pbc(pbc_array)
         idx_i, idx_j, idx_S = ase.neighborlist.neighbor_list(
-            "ijS", ase.Atoms(species_,positions_), cutoff, self_interaction=False
+            "ijS", atoms, cutoff, self_interaction=False
         )
         if idx_i.shape[0] > 0:
             uidx, n_nbh = np.unique(idx_i, return_counts=True)

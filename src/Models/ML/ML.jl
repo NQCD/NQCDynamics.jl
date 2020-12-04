@@ -29,6 +29,11 @@ struct SchNetPackModel <: Models.Model
         function get_V0(R::AbstractVector)
             update_schnet_input!(input, atoms, R, model_args)
             model(input)["energy"].detach().numpy()[1,1]
+            print(model(input))
+        end
+
+        function get_V0_atomic(R::AbstractVector)
+            update_schnet_input!(input, atoms, R, model_args)
         end
         
         function get_D0(R::AbstractVector)::Vector
@@ -44,7 +49,8 @@ function initialize_MLmodel(path::String, atoms::AtomicParameters)
     model = torch_load(path)
     model_args = get_param_model(path)
     #get metadata
-    force_mask = get_metadata(path, model_args, atoms.atom_types)
+    #force_mask = get_metadata(path, model_args, atoms.atom_types)
+    force_mask = false
     #global for now
     model_args.atomic_charges = [elements[type].number for type in atoms.atom_types]
     model_args.pbc = atoms.cell.periodicity
@@ -70,13 +76,18 @@ function get_param_model(path::String)
 end
 
 # This function is not type stable. force_mask can be either Bool or Vector
+# This should be removed
 function get_metadata(path::String, model_args::PyObject, atoms::Vector{Symbol})
     spk = pyimport("schnetpack")
     dataset = spk.data.AtomsData(string(joinpath(path,model_args.datapath)),collect_triples=model_args=="wacsf")
 
     if in("force_mask",keys(dataset.get_metadata()))
-        index = length(dataset.get_metadata("force_mask_index")) - length(atoms)
-        return dataset.get_metadata("force_mask_index")[index:length(dataset.get_metadata("force_mask_index"))]
+        index = length(dataset.get_metadata("force_mask_index")) - length(atoms) 
+        if index <= 0
+            return dataset.get_metadata("force_mask_index")
+        else 
+            return dataset.get_metadata("force_mask_index")[index:length(dataset.get_metadata("force_mask_index"))]
+        end
     else
         return force_mask
     end
