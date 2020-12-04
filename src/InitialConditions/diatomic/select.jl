@@ -11,42 +11,37 @@ H,T,V = system.calc_energy()
 
 V1=V
 
-# C             SELECT INITIAL Q'S AND P'S FOR REACTANT A
-L(1)=LA(1,1)
-L(2)=LA(1,2)
 # C          DIATOM A IS TREATED SEMICLASSICALLY
-if (NSFLAG!=1)
-    ENJA=(νᵢ+0.5)*DUM
-    RMIN,RMAX, ENJA = INITEBK(νᵢ,Jᵢ,RMIN,RMAX,V1,μ,ENJA,PTESTA,ALA)  #Gives RMIN and RMAX
-    SDUM=ENJA
-end
+#CALCULATE TURNING POINTS (done in the semiclassical quantization procedure.)
+
+ENJA=(νᵢ+0.5)*DUM
+RMIN,RMAX, ENJA = INITEBK(νᵢ,Jᵢ,RMIN,RMAX,V1,μ,ENJA,PTESTA,ALA)  #Gives RMIN and RMAX
+SDUM=ENJA
+
 
 # SELECT INITIAL RELATIVE COORDINATE AND MOMENTUM.
 DUM=ALA**2/2.0/μ
-R=RMIN+(RMAX-RMIN)*RAND
-Q(3*L(1))=-0.5*R
-Q(3*L(1)-1)=0.0
-Q(3*L(1)-2)=0.0
-Q(3*L(2))= 0.5*R
-Q(3*L(2)-1)=0.0
-Q(3*L(2)-2)=0.0
 
-# !-->    SHIFT Z COORINDATES UP IN ORDER TO CALCULATE THE POTENTIAL ENERGY
-system.shift_up()
-H,T,V = system.calc_energy()
-# !-->    SHIFT Z COORINDATES BACK AFTER THE POTENTIAL ENERGY
-system.shift_down()
+   #1. Generate random number
+   102 RAND = gen(rand)
+   #2. Calculate bond length, R
+   R=RMIN+(RMAX-RMIN)*RAND
 
-VDUM=V-V1
-SUMM=ENJA-DUM/R**2-VDUM
-if (SUMM<=0.0)
-   SUMM=0.0
-   PR=0.0
-else
-   PR=sqrt(2.0*μ*SUMM)
-   SDUM=PTESTA/PR
-   IF (SDUM.LT.RAND) GOTO 102
-end
+   #3. Calculate V(r)
+   H,T,V = system.calc_energy(diatomic,bondlength=R)
+
+   SUMM=ENJA-DUM/R**2-VDUM
+
+   if (SUMM<=0.0)
+      SUMM=0.0
+      PR=0.0
+   else
+      #4. Calc p(r) , test if bigger than second random number, if not restart
+      RAND = gen(rand)
+      PR=sqrt(2.0*μ*SUMM)
+      SDUM=PTESTA/PR
+      IF (SDUM.LT.RAND) GOTO 102
+   end
 if (RAND<0.5) 
    PR=-PR
 end
@@ -114,6 +109,8 @@ function HOMOQP(R,PR,AL,AM,μ,A)
    P(J1)=W(L(1))*VELA
    J1=3*L(2)-2
    P(J1)=W(L(2))*VELB
+
+
    # SET INERTIA ARRAYS.  CHOOSE Y AND Z ANGULAR MOMENTUM COMPONENTS
    A(1)=1.0D+20
    A(2)=μ*R**2
