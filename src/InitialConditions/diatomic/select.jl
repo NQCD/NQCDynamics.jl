@@ -9,39 +9,39 @@ system.shift_up()
 #  ENERGY REFERENCE FOR SEPARATED REACTANTS
 H,T,V = system.calc_energy()
 
-V1=V
+V_ref=V
 
 # C          DIATOM A IS TREATED SEMICLASSICALLY
 #CALCULATE TURNING POINTS (done in the semiclassical quantization procedure.)
 
 ENJA=(νᵢ+0.5)*DUM
-RMIN,RMAX, ENJA = INITEBK(νᵢ,Jᵢ,RMIN,RMAX,V1,μ,ENJA,PTESTA,ALA)  #Gives RMIN and RMAX
+RMIN,RMAX, ENJA = INITEBK(νᵢ,Jᵢ,RMIN,RMAX,V_ref,μ,ENJA,PTESTA,ALA)  #Gives RMIN and RMAX
 SDUM=ENJA
 
-
 # SELECT INITIAL RELATIVE COORDINATE AND MOMENTUM.
-DUM=ALA**2/2.0/μ
 
    #1. Generate random number
-   102 RAND = gen(rand)
+converged = false
+do while (converged=false)
+   RAND = gen(rand)
    #2. Calculate bond length, R
    R=RMIN+(RMAX-RMIN)*RAND
-
    #3. Calculate V(r)
    H,T,V = system.calc_energy(diatomic,bondlength=R)
-
    SUMM=ENJA-DUM/R**2-VDUM
-
    if (SUMM<=0.0)
       SUMM=0.0
       PR=0.0
    else
       #4. Calc p(r) , test if bigger than second random number, if not restart
       RAND = gen(rand)
-      PR=sqrt(2.0*μ*SUMM)
+      PR = sqrt(2*μ) * sqrt(ENJ - J(J+1)/(2μR**2) - V)
       SDUM=PTESTA/PR
-      IF (SDUM.LT.RAND) GOTO 102
+      if (SDUM>RAND)
+         converged = true
+      end
    end
+end
 if (RAND<0.5) 
    PR=-PR
 end
@@ -49,14 +49,13 @@ end
 # ANGULAR MOMENTUM.  DIATOM LIES ALONG THE X-AXIS.
 # THEN RANDOMLY ROTATE THE CARTESIAN COORDINATES AND
 # MOMENTA IN THE CENTER OF MASS FRAME.
-CALL HOMOQP(R,PR,ALA,AMA,μ,AI)
-AMAI(1)=AMA(1)/ħ
-AMAI(2)=AMA(2)/ħ
-AMAI(3)=AMA(3)/ħ
-AMAI(4)=AMA(4)/ħ
-CALL ROTN(AMA,EROTA,2)
+CALL HOMOQP(R,PR,ALA,AM,μ,AI)
 
-function INITEBK(νᵢ,Jᵢ,RMIN,RMAX,DH,μ,ENJ,PTEST,AL)
+#CALCULATE ANGULAR MOMENTUM, MOMENT OF INERTIA TENSOR,
+# ANGULAR VELOCITY, AND ROTATIONAL ENERGY
+CALL ROTN(AM,EROTA)
+
+function INITEBK(νᵢ,Jᵢ,RMIN,RMAX,V_ref,μ,ENJ,PTEST,AL)
    #    INITIALIZE PARAMETERS FOR AN OSCILLATOR WITH GIVEN
    #    QUANTUM NUMBERS N AND J BY SEMICLASSICAL EBK QUANTIZATION
 
@@ -66,9 +65,10 @@ function INITEBK(νᵢ,Jᵢ,RMIN,RMAX,DH,μ,ENJ,PTEST,AL)
    μ=calc_reduced_mass()
    DUM=1.0
    #  SOLVE FOR ENJ BY FIXED POINT APPROACH
+   # i.e keep adjusting till you get vi requested
    i=0
    do while (abs(DUM)>.1.0D-6)
-      RMIN,RMAX,AN,AJ = calc_NJ(ENJ,AM,RMIN,RMAX,DH,AN,AJ)
+      RMIN,RMAX,AN,AJ = calc_NJ(ENJ,AM,RMIN,RMAX,V_ref,AN,AJ)
       DUM=νᵢ-AN
       ENJ=ENJ+DUM*HNU
       i=i+1
@@ -154,6 +154,78 @@ function HOMOQP(R,PR,AL,AM,μ,A)
 end
 
 
+function calc_NJ(ENJ,AM,RMIN,RMAX,V_ref,AN,AJ)
+   using FastGaussQuadrature
+   #    CALCULATE VIBRATIONAL AND ROTATIONAL QUANTUM NUMBERS FOR
+   #    A PRODUCT DIATOM
+
+   #     FIND THE ROTATIONAL QUANTUM NUMBER AJ FROM THE ROTATIONAL
+   #     ANGULAR MOMENTUM AM IN UNITS OF H-BAR.
+
+   AN=0
+   AJ=0.5*(-1+√(1+4*AM²))
+   #    FIND THE VIBRATIONAL QUANTUM NUMBER AN, USING AN INVERSION
+   #    OF THE SEMICLASSICAL RYDBERG-KLEIN-REES (RKR) APPROACH.
+   #
+   #    INITIALIZE SOME VARIABLES FOR THE DIATOM.
+
+   μ=calc_reduced_mass()
+   T3=Q(2,3)-Q(1,3)
+   T2=Q(2,2)-Q(1,2)
+   T1=Q(2,1)-Q(1,1)
+   RO=√(T1*T1+T2*T2+T3*T3)
+
+   do i=1:3
+      QO(i)=Q(3*L1-3+i)
+      QO(i+3)=Q(3*L2-3+i)
+      Q(3*L1-3+i)=(W(L1)*QO(i)+W(L2)*QO(i+3))/(W(L1)+W(L2))
+      Q(3*L2-3+i)=(W(L1)*QO(i)+W(L2)*QO(i+3))/(W(L1)+W(L2))
+   end
+   Q(3*L1)=Q(3*L1)-0.5*RO
+   Q(3*L2)=Q(3*L2)+0.5*RO
+   H,T,V = diatomic.calc_energy(bondlength=R0)
+   VEFF=V-V_ref+0.5*AM²*ħ²/(μ*RO²)
+
+   # DETERMINE BOUNDARIES OF THE SEMICLASSICAL INTEGRAL
+   do while (VEFF<ENJ and RZ<50.0)
+      Q(3*L2)=Q(3*L2)+0.001
+      H,T,V = system.calc_energy()
+      RZ=Q(3*L2)-Q(3*L1)
+      VEFF=V-V_ref+0.5*AM²*ħ²/(μ*RZ²)
 
 
+   RMAX=RZ
+   Q(3*L2)=Q(3*L1)+RO
+
+   do while (VEFF<ENJ)
+      Q(3*L2)=Q(3*L2)-0.001
+      H,T,V = system.calc_energy()
+      RZ=Q(3*L2)-Q(3*L1)
+      VEFF=V-V_ref+0.5*AM²*ħ²/(μ*RZ²)
+
+   RMIN=RZ
+
+   # EVALUATE THE SEMICLASSICAL INTEGRAL BY GAUSSIAN QUADRATURE
+
+   #Gauss-Legendre quadrature Parameters
+   n_nodes = 50
+   nodes, weights = gausslegendre(n_nodes)
+   ASUM=0.0
+   ΔR=(RMAX-RMIN)/50
+   do i=1,n_nodes
+      RZ=ΔR*(i-1)
+      Q(3*L2)=Q(3*L1)+RZ
+      H,T,V = system.calc_energy(Q)
+      VEFF=(V-V_ref)+0.5*AM²*ħ²/(μ*RZ²)
+      if (ENJ>VEFF)
+         ASUM=ASUM+weights[i]*√(ENJ-VEFF)
+   end
+   do I=1,3
+      Q(3*L1-3+I)=QO(I)
+      Q(3*L2-3+I)=QO(I+3)
+   end
+   AN=√(8.0*μ)*ASUM/2π/ħ
+   AN=AN-0.5
+
+   end
 
