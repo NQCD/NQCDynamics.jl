@@ -9,6 +9,7 @@ export Models
 include("Electronics/Electronics.jl")
 export Electronics
 include("Systems/Systems.jl")
+@reexport using .Systems
 export Systems
 include("Dynamics/Dynamics.jl")
 export Dynamics
