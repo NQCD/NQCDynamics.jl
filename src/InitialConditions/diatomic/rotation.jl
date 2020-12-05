@@ -1,6 +1,6 @@
 #Set rotational / angular momenta from selected rotational state
 
-SUBROUTINE ROTN(AM,EROT,N)
+SUBROUTINE ROTN(AM,EROT)
 
 # C         CALCULATE ANGULAR MOMENTUM, MOMENT OF INERTIA TENSOR,
 # C         ANGULAR VELOCITY, AND ROTATIONAL ENERGY
@@ -15,7 +15,7 @@ if (NAM.EQ.0) THEN
     AM(4)=0.0D0
     EROT=0.0D0
     if (N.EQ.1) RETURN
-    do I=1,N
+    do I=1,2
         J=L(I)
         J3=3*J
         J2=J3-1
@@ -25,18 +25,18 @@ if (NAM.EQ.0) THEN
         AM(3)=AM(3)+(QQ(J1)*PP(J2)-QQ(J2)*PP(J1))
     end
     AM(4)=SQRT(AM(1)**2+AM(2)**2+AM(3)**2)
-    if (N.EQ.2) THEN
-        AIXX=0.0D0
-        do I=1,N
-            J=3*L(I)+1
-            SR=0.0D0
-            do K=1,3
-                SR=SR+QQ(J-K)**2
-            end
-            AIXX=AIXX+SR*W(L(I))
+    
+    AIXX=0.0D0
+    do I=1,2
+        J=3*L(I)+1
+        SR=0.0D0
+        do K=1,3
+            SR=SR+QQ(J-K)**2
         end
-        EROT=AM(4)**2/AIXX/2.0D0/C1
-        RETURN
+        AIXX=AIXX+SR*W(L(I))
+
+    EROT=AM(4)**2/AIXX/2.0D0/C1
+    RETURN
     end
 end
 #         CALCULATE THE MOMENT OF INERTIA TENSOR
@@ -46,7 +46,7 @@ AIZZ=0.0D0
 AIXY=0.0D0
 AIXZ=0.0D0
 AIYZ=0.0D0
-do I=1,N
+do I=1,2
     J=L(I)
     J3=3*J
     J2=J3-1
@@ -77,7 +77,7 @@ if (ABS(DET).GE.0.01D0) THEN
 else
     #    CALCULATE ROTATIONAL ENERGY
     AIXX=0.0D0
-    do I=1,N
+    do I=1,2
         J=3*L(I)+1
         SR=0.0D0
         do K=1,3
