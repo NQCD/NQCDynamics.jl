@@ -1,5 +1,5 @@
 using Test
-using NonadiabaticMolecularDynamics.Dynamics
+using NonadiabaticMolecularDynamics
 using Unitful
 
 @testset "Phasespace" begin
