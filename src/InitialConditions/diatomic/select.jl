@@ -3,91 +3,88 @@ SUBROUTINE SELECT
 # C         IN THE MAIN PROGRAM THE COORDINATES Q ARE SET EQUAL TO QZ
 # C         AND THE MOMENTA P ARE SET EQUAL TO ZERO (FOR NSELT=2).
 # think nthta is chosen mj but we dont choose it
-
-#-->IN THIS CASE, ONLY REACTANT A IS MOVING, SURFACE IS FIXED AS REACTANT B 
-system.shift_up()
+#f is vibrational frequency
 #  ENERGY REFERENCE FOR SEPARATED REACTANTS
-H,T,V = system.calc_energy()
-
-V_ref=V
+H,T,V_ref = diatomic_calc_energy!(bondlength=5000,height=9)
 
 # C          DIATOM A IS TREATED SEMICLASSICALLY
 #CALCULATE TURNING POINTS (done in the semiclassical quantization procedure.)
 
-ENJA=(νᵢ+0.5)*DUM
-RMIN,RMAX, ENJA = INITEBK(νᵢ,Jᵢ,RMIN,RMAX,V_ref,μ,ENJA,PTESTA,ALA)  #Gives RMIN and RMAX
-SDUM=ENJA
+enj=(νᵢ+0.5)*f*ħ   #desired vibrational energy
+μ = calc_reduced_mass()
+rmin,rmax, enj = INITEBK!(νᵢ,Jᵢ,rmin,rmax,V_ref,μ,enj,ptest,ALA)  #Gives rmin and rmax
 
 # SELECT INITIAL RELATIVE COORDINATE AND MOMENTUM.
 
    #1. Generate random number
 converged = false
 do while (converged=false)
-   RAND = gen(rand)
-   #2. Calculate bond length, R
-   R=RMIN+(RMAX-RMIN)*RAND
+   random = rand(1)
+   #2. Calculate bond length, r
+   r=rmin+(rmax-rmin)*random
    #3. Calculate V(r)
-   H,T,V = system.calc_energy(diatomic,bondlength=R)
-   SUMM=ENJA-DUM/R**2-VDUM
+   H,T,V = system.calc_energy(diatomic,bondlength=r)
+   SUMM=enj-DUM/r**2-VDUM
    if (SUMM<=0.0)
       SUMM=0.0
       PR=0.0
    else
       #4. Calc p(r) , test if bigger than second random number, if not restart
-      RAND = gen(rand)
-      PR = sqrt(2*μ) * sqrt(ENJ - J(J+1)/(2μR**2) - V)
-      SDUM=PTESTA/PR
-      if (SDUM>RAND)
+      random = rand(1)
+      PR = sqrt(2*μ) * sqrt(enj - J(J+1)/(2μR**2) - V)
+      SDUM=ptest/PR
+      if (SDUM>random)
          converged = true
       end
    end
 end
-if (RAND<0.5) 
+if (random<0.5) 
    PR=-PR
 end
 # CHOOSE INITIAL CARTESIAN COORDINATES AND MOMENTA, AND
 # ANGULAR MOMENTUM.  DIATOM LIES ALONG THE X-AXIS.
 # THEN RANDOMLY ROTATE THE CARTESIAN COORDINATES AND
 # MOMENTA IN THE CENTER OF MASS FRAME.
-CALL HOMOQP(R,PR,ALA,AM,μ,AI)
+HOMOQP!(r,PR,ALA,AM,μ,AI)
 
 #CALCULATE ANGULAR MOMENTUM, MOMENT OF INERTIA TENSOR,
 # ANGULAR VELOCITY, AND ROTATIONAL ENERGY
-CALL ROTN(AM,EROTA)
+ROTN!(AM,EROTA)
 
-function INITEBK(νᵢ,Jᵢ,RMIN,RMAX,V_ref,μ,ENJ,PTEST,AL)
+function INITEBK!(νᵢ,Jᵢ,rmin,rmax,V_ref,μ,enj,ptest,AL)
    #    INITIALIZE PARAMETERS FOR AN OSCILLATOR WITH GIVEN
-   #    QUANTUM NUMBERS N AND J BY SEMICLASSICAL EBK QUANTIZATION
+   #    QUANTUM NUMBERS n AND J BY SEMICLASSICAL EBK QUANTIZATION
 
-   HNU=ENJ/(νᵢ+0.5)
+   HNU=enj/(νᵢ+0.5)
    AM=√((Jᵢ*(Jᵢ+1)))
    AL=AM*ħ
-   μ=calc_reduced_mass()
-   DUM=1.0
-   #  SOLVE FOR ENJ BY FIXED POINT APPROACH
+   
+   #  SOLVE FOR enj BY FIXED POINT APPROACH
    # i.e keep adjusting till you get vi requested
+   DUM=1.0
    i=0
-   do while (abs(DUM)>.1.0D-6)
-      RMIN,RMAX,AN,AJ = calc_NJ(ENJ,AM,RMIN,RMAX,V_ref,AN,AJ)
-      DUM=νᵢ-AN
-      ENJ=ENJ+DUM*HNU
-      i=i+1
-      if (i>1000)
-        break
-  end
+   while (abs(DUM)>1.0e-6)
+       rmin,rmax,n,J = calc_NJ(enj,AM,rmin,rmax,V_ref,n,J)
+       DUM=νᵢ-n
+       enj=enj+DUM*HNU
+       i=i+1
+       if (i>1000)
+           break
+       end
+   end
 
-   RMIN=RMIN+0.001
-   RMAX=RMAX-0.001
-   PTEST=√(0.0001*2.0*μ*ENJ)
+   rmin=rmin+0.001
+   rmax=rmax-0.001
+   ptest=√(0.0001*2.0*μ*enj)
 
-   return
+   return nothing
 end
 
 
-function HOMOQP(R,PR,AL,AM,μ,A)
+function HOMOQP!(r,PR,AL,AM,μ,A)
 
    # SET CARTESIAN COORDINATES AND MOMENTA
-   #Q positions, P momenta, R bondlength ?, μ reduced mass
+   #Q positions, P momenta, r bondlength ?, μ reduced mass
 
    do I=1:2
       J3=3*L(I)
@@ -100,7 +97,7 @@ function HOMOQP(R,PR,AL,AM,μ,A)
       P(J3)=0.0
    end
 
-   Q(J1)=R
+   Q(J1)=r
    VREL=PR/μ
    WT=W(L(1))+W(L(2))
    VELA=VREL*W(L(2))/WT
@@ -113,9 +110,9 @@ function HOMOQP(R,PR,AL,AM,μ,A)
 
    # SET INERTIA ARRAYS.  CHOOSE Y AND Z ANGULAR MOMENTUM COMPONENTS
    A(1)=1.0D+20
-   A(2)=μ*R**2
+   A(2)=μ*r**2
    A(3)=A(2)
-   DUM=2π*RAND
+   DUM=2π*random
    AM(1)=0.0D0
    AM(2)=AL*SIN(DUM)
    AM(3)=AL*COS(DUM)
@@ -154,17 +151,17 @@ function HOMOQP(R,PR,AL,AM,μ,A)
 end
 
 
-function calc_NJ(ENJ,AM,RMIN,RMAX,V_ref,AN,AJ)
+function calc_NJ!(enj,AM,rmin,rmax,V_ref,n,J)
    using FastGaussQuadrature
    #    CALCULATE VIBRATIONAL AND ROTATIONAL QUANTUM NUMBERS FOR
    #    A PRODUCT DIATOM
 
-   #     FIND THE ROTATIONAL QUANTUM NUMBER AJ FROM THE ROTATIONAL
-   #     ANGULAR MOMENTUM AM IN UNITS OF H-BAR.
+   #     FIND THE ROTATIONAL QUANTUM NUMBER J FROM THE ROTATIONAL
+   #     ANGULAR MOMENTUM AM IN UNITS OF ħ.
 
-   AN=0
-   AJ=0.5*(-1+√(1+4*AM²))
-   #    FIND THE VIBRATIONAL QUANTUM NUMBER AN, USING AN INVERSION
+   n=0
+   J=0.5*(-1+√(1+4*AM²))
+   #    FIND THE VIBRATIONAL QUANTUM NUMBER n, USING AN INVERSION
    #    OF THE SEMICLASSICAL RYDBERG-KLEIN-REES (RKR) APPROACH.
    #
    #    INITIALIZE SOME VARIABLES FOR THE DIATOM.
@@ -175,35 +172,29 @@ function calc_NJ(ENJ,AM,RMIN,RMAX,V_ref,AN,AJ)
    T1=Q(2,1)-Q(1,1)
    RO=√(T1*T1+T2*T2+T3*T3)
 
-   do i=1:3
-      QO(i)=Q(3*L1-3+i)
-      QO(i+3)=Q(3*L2-3+i)
-      Q(3*L1-3+i)=(W(L1)*QO(i)+W(L2)*QO(i+3))/(W(L1)+W(L2))
-      Q(3*L2-3+i)=(W(L1)*QO(i)+W(L2)*QO(i+3))/(W(L1)+W(L2))
-   end
-   Q(3*L1)=Q(3*L1)-0.5*RO
-   Q(3*L2)=Q(3*L2)+0.5*RO
    H,T,V = diatomic.calc_energy(bondlength=R0)
    VEFF=V-V_ref+0.5*AM²*ħ²/(μ*RO²)
 
    # DETERMINE BOUNDARIES OF THE SEMICLASSICAL INTEGRAL
-   do while (VEFF<ENJ and RZ<50.0)
+   while (VEFF<enj and RZ<50.0)
       Q(3*L2)=Q(3*L2)+0.001
       H,T,V = system.calc_energy()
       RZ=Q(3*L2)-Q(3*L1)
       VEFF=V-V_ref+0.5*AM²*ħ²/(μ*RZ²)
+   end
 
 
-   RMAX=RZ
+   rmax=RZ
    Q(3*L2)=Q(3*L1)+RO
 
-   do while (VEFF<ENJ)
+   while (VEFF<enj)
       Q(3*L2)=Q(3*L2)-0.001
       H,T,V = system.calc_energy()
       RZ=Q(3*L2)-Q(3*L1)
       VEFF=V-V_ref+0.5*AM²*ħ²/(μ*RZ²)
+   end
 
-   RMIN=RZ
+   rmin=RZ
 
    # EVALUATE THE SEMICLASSICAL INTEGRAL BY GAUSSIAN QUADRATURE
 
@@ -211,21 +202,23 @@ function calc_NJ(ENJ,AM,RMIN,RMAX,V_ref,AN,AJ)
    n_nodes = 50
    nodes, weights = gausslegendre(n_nodes)
    ASUM=0.0
-   ΔR=(RMAX-RMIN)/50
+   ΔR=(rmax-rmin)/50
    do i=1,n_nodes
       RZ=ΔR*(i-1)
+      R0 = rmin+RZ
       Q(3*L2)=Q(3*L1)+RZ
-      H,T,V = system.calc_energy(Q)
+      H,T,V = diatomic.calc_energy(bondlength=R0)
       VEFF=(V-V_ref)+0.5*AM²*ħ²/(μ*RZ²)
-      if (ENJ>VEFF)
-         ASUM=ASUM+weights[i]*√(ENJ-VEFF)
+      if (enj>VEFF)
+         ASUM=ASUM+weights[i]*√(enj-VEFF)
+      end
    end
    do I=1,3
       Q(3*L1-3+I)=QO(I)
       Q(3*L2-3+I)=QO(I+3)
    end
-   AN=√(8.0*μ)*ASUM/2π/ħ
-   AN=AN-0.5
+   n=√(8.0*μ)*ASUM/2π/ħ
+   n=n-0.5
 
-   end
+end
 
