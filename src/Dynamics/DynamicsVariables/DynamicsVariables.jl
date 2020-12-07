@@ -7,6 +7,8 @@ using DiffEqBase
 
 export DynamicalVariables
 export RingPolymerDynamicalVariables
+export get_positions
+export get_momenta
 
 """
 Abstract type for different kinds of systems.
