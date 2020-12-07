@@ -1,8 +1,4 @@
 export Phasespace
-export get_positions
-export get_momenta
-export get_bead_positions
-export get_bead_momenta
 
 """
     Phasespace{T} <: DynamicalVariables{T}
@@ -24,13 +20,4 @@ function Phasespace(
 end
 
 get_positions(z::Phasespace) = @view z.x[:,1]
-
-function get_bead_positions(z::Phasespace, n_beads::Integer)
-    collect(Iterators.partition(get_positions(z), n_beads))
-end
-
 get_momenta(z::Phasespace) = @view z.x[:,2]
-
-function get_bead_momenta(z::Phasespace, n_beads::Integer)
-    collect(Iterators.partition(get_momenta(z), n_beads))
-end
