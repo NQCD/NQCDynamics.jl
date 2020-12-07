@@ -18,22 +18,22 @@ rmin,rmax, enj = INITEBK!(νᵢ,Jᵢ,rmin,rmax,V_ref,μ,enj,ptest,ALA)  #Gives r
 
    #1. Generate random number
 converged = false
-do while (converged=false)
+while converged=false
    random = rand(1)
    #2. Calculate bond length, r
    r=rmin+(rmax-rmin)*random
    #3. Calculate V(r)
    H,T,V = system.calc_energy(diatomic,bondlength=r)
-   SUMM=enj-DUM/r**2-VDUM
+   SUMM=enj-DUM/r^2-VDUM
    if (SUMM<=0.0)
       SUMM=0.0
       PR=0.0
    else
       #4. Calc p(r) , test if bigger than second random number, if not restart
       random = rand(1)
-      PR = sqrt(2*μ) * sqrt(enj - J(J+1)/(2μR**2) - V)
+      PR = sqrt(2*μ) * sqrt(enj - J(J+1)/(2μR^2) - V)
       SDUM=ptest/PR
-      if (SDUM>random)
+      if SDUM>random
          converged = true
       end
    end
@@ -151,7 +151,7 @@ function HOMOQP!(r,PR,AL,AM,μ,A)
 end
 
 
-function calc_NJ!(enj,AM,rmin,rmax,V_ref,n,J)
+function calc_NJ!(enj,μ,AM,rmin,rmax,V_ref,n,J)
    using FastGaussQuadrature
    #    CALCULATE VIBRATIONAL AND ROTATIONAL QUANTUM NUMBERS FOR
    #    A PRODUCT DIATOM
@@ -166,7 +166,6 @@ function calc_NJ!(enj,AM,rmin,rmax,V_ref,n,J)
    #
    #    INITIALIZE SOME VARIABLES FOR THE DIATOM.
 
-   μ=calc_reduced_mass()
    T3=Q(2,3)-Q(1,3)
    T2=Q(2,2)-Q(1,2)
    T1=Q(2,1)-Q(1,1)
@@ -176,24 +175,19 @@ function calc_NJ!(enj,AM,rmin,rmax,V_ref,n,J)
    VEFF=V-V_ref+0.5*AM²*ħ²/(μ*RO²)
 
    # DETERMINE BOUNDARIES OF THE SEMICLASSICAL INTEGRAL
-   while (VEFF<enj and RZ<50.0)
-      Q(3*L2)=Q(3*L2)+0.001
-      H,T,V = system.calc_energy()
-      RZ=Q(3*L2)-Q(3*L1)
-      VEFF=V-V_ref+0.5*AM²*ħ²/(μ*RZ²)
+   while VEFF<enj & RZ<50.0
+       RZ=RZ+0.001
+       H,T,V = diatomic.calc_energy(bondlength=RZ)
+       VEFF=V-V_ref+0.5*AM²*ħ²/(μ*RZ²)
    end
-
-
    rmax=RZ
-   Q(3*L2)=Q(3*L1)+RO
 
-   while (VEFF<enj)
-      Q(3*L2)=Q(3*L2)-0.001
-      H,T,V = system.calc_energy()
-      RZ=Q(3*L2)-Q(3*L1)
+   RZ=R0
+   while VEFF<enj
+      RZ=RZ-0.001
+      H,T,V = diatomc.calc_energy(bondlength=RZ)
       VEFF=V-V_ref+0.5*AM²*ħ²/(μ*RZ²)
    end
-
    rmin=RZ
 
    # EVALUATE THE SEMICLASSICAL INTEGRAL BY GAUSSIAN QUADRATURE
@@ -203,22 +197,17 @@ function calc_NJ!(enj,AM,rmin,rmax,V_ref,n,J)
    nodes, weights = gausslegendre(n_nodes)
    ASUM=0.0
    ΔR=(rmax-rmin)/50
-   do i=1,n_nodes
+   for i=1:n_nodes
       RZ=ΔR*(i-1)
       R0 = rmin+RZ
-      Q(3*L2)=Q(3*L1)+RZ
       H,T,V = diatomic.calc_energy(bondlength=R0)
       VEFF=(V-V_ref)+0.5*AM²*ħ²/(μ*RZ²)
       if (enj>VEFF)
          ASUM=ASUM+weights[i]*√(enj-VEFF)
       end
    end
-   do I=1,3
-      Q(3*L1-3+I)=QO(I)
-      Q(3*L2-3+I)=QO(I+3)
-   end
+
    n=√(8.0*μ)*ASUM/2π/ħ
    n=n-0.5
 
 end
-
