@@ -19,9 +19,16 @@ function calc_diatomic_energy(bondlength=R)
     return H, T, V
 end
 
-function calc_reduced_mass()
+function diatomic_reduced_mass()
     #calc reduced mass (μ)
-
+    
 
     return μ
+end
+
+#generate large seed for all random number generation. Should be able to rerun with seed
+
+function gen_seed()
+
+    return seed
 end
