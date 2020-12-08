@@ -1,60 +1,59 @@
-SUBROUTINE SELECT
-# C         NSELT=2  CHOOSE INITIAL CONDITIONS FOR ONE OR TWO MOLECULES
-# C         IN THE MAIN PROGRAM THE COORDINATES Q ARE SET EQUAL TO QZ
-# C         AND THE MOMENTA P ARE SET EQUAL TO ZERO (FOR NSELT=2).
-# think nthta is chosen mj but we dont choose it
-#f is vibrational frequency
-#  ENERGY REFERENCE FOR SEPARATED REACTANTS
-H,T,V_ref = diatomic_calc_energy!(bondlength=5000,height=9)
+function select(νᵢJᵢ,Eᵢ,)
+   # think nthta is chosen mj but we dont choose it
+   #f is vibrational frequency
+   #  ENERGY REFERENCE FOR SEPARATED REACTANTS
+   H,T,V_ref = diatomic_calc_energy!(bondlength=5000,height=9)
 
-# C          DIATOM A IS TREATED SEMICLASSICALLY
-#CALCULATE TURNING POINTS (done in the semiclassical quantization procedure.)
+   # DIATOM A IS TREATED SEMICLASSICALLY
+   #CALCULATE TURNING POINTS (done in the semiclassical quantization procedure.)
+   enj=(νᵢ+0.5)*f*ħ   #desired vibrational energy
+   μ = calc_reduced_mass()
+   limits, enj, AL, AM, ptest = INITEBK!(νᵢ,Jᵢ,V_ref,enj)  #Gives rmin and rmax
 
-enj=(νᵢ+0.5)*f*ħ   #desired vibrational energy
-μ = calc_reduced_mass()
-rmin,rmax, enj = INITEBK!(νᵢ,Jᵢ,rmin,rmax,V_ref,μ,enj,ptest,ALA)  #Gives rmin and rmax
+   # SELECT INITIAL RELATIVE COORDINATE AND MOMENTUM.
 
-# SELECT INITIAL RELATIVE COORDINATE AND MOMENTUM.
-
-   #1. Generate random number
-converged = false
-while converged=false
-   random = rand(1)
-   #2. Calculate bond length, r
-   r=rmin+(rmax-rmin)*random
-   #3. Calculate V(r)
-   H,T,V = system.calc_energy(diatomic,bondlength=r)
-   SUMM=enj-DUM/r^2-VDUM
-   if (SUMM<=0.0)
-      SUMM=0.0
-      PR=0.0
-   else
-      #4. Calc p(r) , test if bigger than second random number, if not restart
+      #1. Generate random number
+   converged = false
+   while converged=false
       random = rand(1)
-      PR = sqrt(2*μ) * sqrt(enj - J(J+1)/(2μR^2) - V)
-      SDUM=ptest/PR
-      if SDUM>random
-         converged = true
+      #2. Calculate bond length, r
+      r=rmin+(rmax-rmin)*random
+      #3. Calculate V(r)
+      H,T,V = system.calc_energy(diatomic,bondlength=r)
+      SUMM=enj-DUM/r^2-VDUM
+      if (SUMM<=0.0)
+         SUMM=0.0
+         PR=0.0
+      else
+         #4. Calc p(r) , test if bigger than second random number, if not restart
+         random = rand(1)
+         PR = sqrt(2*μ) * sqrt(enj - J(J+1)/(2μR^2) - V)
+         SDUM=ptest/PR
+         if SDUM>random
+            converged = true
+         end
       end
    end
-end
-if (random<0.5) 
-   PR=-PR
-end
-# CHOOSE INITIAL CARTESIAN COORDINATES AND MOMENTA, AND
-# ANGULAR MOMENTUM.  DIATOM LIES ALONG THE X-AXIS.
-# THEN RANDOMLY ROTATE THE CARTESIAN COORDINATES AND
-# MOMENTA IN THE CENTER OF MASS FRAME.
-HOMOQP!(r,PR,ALA,AM,μ,AI)
+   if (random<0.5) 
+      PR=-PR
+   end
+   # CHOOSE INITIAL CARTESIAN COORDINATES AND MOMENTA, AND
+   # ANGULAR MOMENTUM.  DIATOM LIES ALONG THE X-AXIS.
+   # THEN RANDOMLY ROTATE THE CARTESIAN COORDINATES AND
+   # MOMENTA IN THE CENTER OF MASS FRAME.
+   HOMOQP!(r,PR,AL,AM,μ,AI)
 
-#CALCULATE ANGULAR MOMENTUM, MOMENT OF INERTIA TENSOR,
-# ANGULAR VELOCITY, AND ROTATIONAL ENERGY
-ROTN!(AM,EROTA)
+   #CALCULATE ANGULAR MOMENTUM, MOMENT OF INERTIA TENSOR,
+   # ANGULAR VELOCITY, AND ROTATIONAL ENERGY
+   ROTN!(AM,EROTA)
 
-function INITEBK!(νᵢ,Jᵢ,rmin,rmax,V_ref,μ,enj,ptest,AL)
+end
+
+function INITEBK!(νᵢ,Jᵢ,V_ref,enj)
    #    INITIALIZE PARAMETERS FOR AN OSCILLATOR WITH GIVEN
    #    QUANTUM NUMBERS n AND J BY SEMICLASSICAL EBK QUANTIZATION
 
+   μ = diatomic_reduced_mass()
    HNU=enj/(νᵢ+0.5)
    AM=√((Jᵢ*(Jᵢ+1)))
    AL=AM*ħ
@@ -64,7 +63,7 @@ function INITEBK!(νᵢ,Jᵢ,rmin,rmax,V_ref,μ,enj,ptest,AL)
    DUM=1.0
    i=0
    while (abs(DUM)>1.0e-6)
-       rmin,rmax,n,J = calc_NJ(enj,AM,rmin,rmax,V_ref,n,J)
+       n,J,limits = calc_NJ(enj,AM,V_ref)
        DUM=νᵢ-n
        enj=enj+DUM*HNU
        i=i+1
@@ -73,11 +72,12 @@ function INITEBK!(νᵢ,Jᵢ,rmin,rmax,V_ref,μ,enj,ptest,AL)
        end
    end
 
-   rmin=rmin+0.001
-   rmax=rmax-0.001
+
+   limits[1]=limits[1]+0.001
+   limits[2]=limits[2]-0.001
    ptest=√(0.0001*2.0*μ*enj)
 
-   return nothing
+   return limits, enj, AL, AM, ptest
 end
 
 
@@ -86,7 +86,7 @@ function HOMOQP!(r,PR,AL,AM,μ,A)
    # SET CARTESIAN COORDINATES AND MOMENTA
    #Q positions, P momenta, r bondlength ?, μ reduced mass
 
-   do I=1:2
+   for I=1:2
       J3=3*L(I)
       J2=J3-1
       J1=J2-1
@@ -123,9 +123,9 @@ function HOMOQP!(r,PR,AL,AM,μ,A)
    #  CALCULATE CENTER OF MASS COORDIANTES QQ AND MOMENTA PP
    call CENMAS(WT,QCM,VCM,2)
    #  MOVE PP ARRAY TO P ARRAY AND QQ ARRAY TO Q ARRAY
-   do I=1,2
+   for I=1:2
       J=3*L(I)+1
-      do K=1,3
+      for K=1:3
          Q(J-K)=QQ(J-K)
          P(J-K)=PP(J-K)
       end
@@ -150,64 +150,78 @@ function HOMOQP!(r,PR,AL,AM,μ,A)
    call ROTN(AM,EROT,2)
 end
 
+ #Randomly rotate diatomic around COM, rotate momenta accordingly
+ #In future allow specific range of angles to be selected e.g 0-60 degrees
+ 
+function orient(system,R::positions, P :: momenta)
+ 
+   θ = cos^-1(2*rand1-1)
+   ϕ = 2*π*rand2
+   χ = 2*π*rand3
 
-function calc_NJ!(enj,μ,AM,rmin,rmax,V_ref,n,J)
-   using FastGaussQuadrature
-   #    CALCULATE VIBRATIONAL AND ROTATIONAL QUANTUM NUMBERS FOR
-   #    A PRODUCT DIATOM
+   COM,μ = calc_COM()
+   COM_P = calc_COM_momenta()
+   
+   RXX=cos(θ)*cos(ϕ)*cos(χ)-sin(ϕ)*sin(χ)
+   RXY=-cos(θ)*cos(ϕ)*sin(χ)-sin(ϕ)*cos(χ)
+   RXZ=sin(θ)*cos(ϕ)
+   RYX=cos(θ)*sin(ϕ)*cos(χ)+cos(ϕ)*sin(χ)
+   RYY=-cos(θ)*sin(ϕ)*sin(χ)+cos(ϕ)*cos(χ)
+   RYZ=sin(θ)*sin(ϕ)
+   RZX=-sin(θ)*cos(χ)
+   RZY=sin(θ)*sin(χ)
+   RZZ=cos(θ)
+   
 
-   #     FIND THE ROTATIONAL QUANTUM NUMBER J FROM THE ROTATIONAL
-   #     ANGULAR MOMENTUM AM IN UNITS OF ħ.
-
-   n=0
-   J=0.5*(-1+√(1+4*AM²))
-   #    FIND THE VIBRATIONAL QUANTUM NUMBER n, USING AN INVERSION
-   #    OF THE SEMICLASSICAL RYDBERG-KLEIN-REES (RKR) APPROACH.
-   #
-   #    INITIALIZE SOME VARIABLES FOR THE DIATOM.
-
-   T3=Q(2,3)-Q(1,3)
-   T2=Q(2,2)-Q(1,2)
-   T1=Q(2,1)-Q(1,1)
-   RO=√(T1*T1+T2*T2+T3*T3)
-
-   H,T,V = diatomic.calc_energy(bondlength=R0)
-   VEFF=V-V_ref+0.5*AM²*ħ²/(μ*RO²)
-
-   # DETERMINE BOUNDARIES OF THE SEMICLASSICAL INTEGRAL
-   while VEFF<enj & RZ<50.0
-       RZ=RZ+0.001
-       H,T,V = diatomic.calc_energy(bondlength=RZ)
-       VEFF=V-V_ref+0.5*AM²*ħ²/(μ*RZ²)
+   for i in 1:2
+       J=3*L[i] #what is L?
+       R[J-2]=COM[J-2]*RXX+COM[J-1]*RXY+COM[J]*RXZ
+       R[J-1]=COM[J-2]*RYX+COM[J-1]*RYY+COM[J]*RYZ
+       R[J]=COM[J-2]*RZX+COM[J-1]*RZY+COM[J]*RZZ
+       COM[J-2]=R[J-2]
+       COM[J-1]=R[J-1]
+       COM[J]=R[J] 
+       P[J-2]=COM_P[J-2]*RXX+COM_P[J-1]*RXY+COM_P[J]*RXZ
+       P[J-1]=COM_P[J-2]*RYX+COM_P[J-1]*RYY+COM_P[J]*RYZ
+       P[J]=COM_P[J-2]*RZX+COM_P[J-1]*RZY+COM_P[J]*RZZ
+       COM_P[J-2]=P[J-2]
+       COM_P[J-1]=P[J-1]
+       COM_P[J]=P[J] 
    end
-   rmax=RZ
+end
 
-   RZ=R0
-   while VEFF<enj
-      RZ=RZ-0.001
-      H,T,V = diatomc.calc_energy(bondlength=RZ)
-      VEFF=V-V_ref+0.5*AM²*ħ²/(μ*RZ²)
-   end
-   rmin=RZ
+#Sets translational momenta for COM
+#For now this is fixed input parameter
+#currently a mess not sure what im doing
 
-   # EVALUATE THE SEMICLASSICAL INTEGRAL BY GAUSSIAN QUADRATURE
+function translate(system,positions,v,ei,θᵢ)
+   #ei is user defined incidence translation energy
+   #theta_i is user defined incidence angle
+   masses=system.get_masses()
 
-   #Gauss-Legendre quadrature Parameters
-   n_nodes = 50
-   nodes, weights = gausslegendre(n_nodes)
-   ASUM=0.0
-   ΔR=(rmax-rmin)/50
-   for i=1:n_nodes
-      RZ=ΔR*(i-1)
-      R0 = rmin+RZ
-      H,T,V = diatomic.calc_energy(bondlength=R0)
-      VEFF=(V-V_ref)+0.5*AM²*ħ²/(μ*RZ²)
-      if (enj>VEFF)
-         ASUM=ASUM+weights[i]*√(enj-VEFF)
-      end
-   end
+   com,μ = calc_COM(system)  
 
-   n=√(8.0*μ)*ASUM/2π/ħ
-   n=n-0.5
+   com_v=[0,0,-sqrt(2*ei/μ)] #straight down
+
+   com_v=[0,com_v[2]*cos(θᵢ)-com_v[3]*sin(θᵢ),com_v[2]*sin(θᵢ)-com_v[3]*cos(θᵢ)] #rotate by θᵢ
+   
+   v[1,:] += com_v
+   v[2,:] += com_v
+
+   return v
+end
+
+ #Displace diatomic to specified height
+ 
+function height(system,R :: positions,H :: height)
+   #todo: allow any surface plane by allowing user defining orthogonal vector to surface plane
+   COM,μ = calc_COM(system)
+
+   COM[2] = height_original
+
+   displacement = height - height_original
+
+   positions(2,:) += displacement
 
 end
+
