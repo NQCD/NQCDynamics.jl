@@ -1,6 +1,8 @@
 export PdH
 
-using ForwardDiff
+using LinearAlgebra
+using Unitful
+using FiniteDifferences
 
 """
 Ciufo, R.A., Henkelman, G. Embedded atom method potential for hydrogen on palladium surfaces. J Mol Model 26, 336 (2020).
@@ -11,7 +13,7 @@ struct PdH <: Model
     get_V0::Function
     get_D0::Function
 
-    function PdH(atom_types::Vector{Symbol}, cell::Atoms.AbstractCell)
+    function PdH(atom_types::Vector{Symbol}, cell::Atoms.AbstractCell, cutoff::AbstractFloat)
 
         # Iyad Hijazi, Yang Zhang & Robert Fuller (2018) A simple embeddedatom potential for Pd-H alloys, Molecular Simulation, 44:17, 1371-1379
         # Table 1
@@ -63,8 +65,7 @@ struct PdH <: Model
         
         sum_all_except(a, i) = sum(a[1:end .!= i])
         
-        function ϕ(distances, i, j)
-            r = distances[i, j]
+        function ϕ(r, i, j)
             if atom_types[i] == atom_types[j]
                 if atom_types[i] == :Pd # Both Pd
                     return ϕ_PdPd(r)
@@ -76,28 +77,34 @@ struct PdH <: Model
             end
         end
         
-        function V0(R)
-            distances = get_distances(R)
+        function get_V0(R)
+            pairs = get_pairs(R, cutoff, cell)
             E = 0.0
+            densities = zeros(length(atom_types))
+            for (i, j, R) in NeighbourLists.pairs(pairs)
+                r = ustrip(u"Å", norm(R)u"bohr") # Convert distance to Å
+                if atom_types[i] == :Pd
+                    densities[i] += ρ_Pd(r)
+                else
+                    densities[i] += ρₕ(r)
+                end
+                E += ϕ(r, i, j)/2
+            end
+            
             for i=1:length(atom_types)
                 if atom_types[i] == :Pd
-                    ρᵢ = sum_all_except(ρ_Pd.(@view distances[:,i]), i)
-                    E += F_Pd(ρᵢ)
-                elseif atom_types[i] == :H
-                    ρᵢ = sum_all_except(ρₕ.(@view distances[:,i]), i)
-                    E += Fₕ(ρᵢ)
+                    E += F_Pd(densities[i])
                 else
-                    @warn "Incorrect atom type"
-                end
-                for j=i+1:length(atom_types)
-                    E += ϕ(distances, i, j)
+                    E += Fₕ(densities[i])
                 end
             end
             E
         end
         
-        D0(R) = ForwardDiff.gradient(V0, R)
+        # get_D0(R) = ForwardDiff.gradient(get_V0, R) # ForwardDiff autodiff, error with NeighbourLists
+        # get_D0(R) = get_V0'(R) # Zygote autodiff, crashes
+        get_D0(R) = grad(central_fdm(5, 1), get_V0, R)[1] # First derivative, 5th order
 
-        new(1, V0, D0)
+        new(1, get_V0, get_D0)
     end
 end
