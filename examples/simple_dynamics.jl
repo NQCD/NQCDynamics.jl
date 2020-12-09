@@ -10,7 +10,7 @@ atoms = Systems.AtomicParameters(Systems.InfiniteCell(), fill(:H, 10))
 model = Models.Analytic.Harmonic(austrip(elements[:H].atomic_mass), 1e-3, 0)
 p = Systems.System(atoms, model, 1)
 
-z = Dynamics.Phasespace(randn(atoms.n_atoms), randn(atoms.n_atoms))
+z = Phasespace(randn(1, atoms.n_atoms), randn(1, atoms.n_atoms))
 
 problem = ODEProblem(Dynamics.differential!, z, (0.0, 1e4), p)
 solution = solve(problem)
