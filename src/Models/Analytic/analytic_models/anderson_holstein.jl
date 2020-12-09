@@ -1,5 +1,6 @@
 export DiffusionAndersonHolstein
 export ScatteringAndersonHolstein
+export IESH_AnHol_Hamiltonian
 using LinearAlgebra
 
 @doc raw"""
@@ -58,6 +59,10 @@ struct DiffusionAndersonHolstein <: AnalyticModel
 
         D(q) = Hermitian(zeros(N+1, N+1))
 
+        #V0 = get_V0
+        #D0 = get_D0
+        #V = get_potential
+        #D = get_derivative
         new(N+1, V0, zero, V, D)
     end
 end
@@ -120,6 +125,10 @@ struct ScatteringAndersonHolstein <: AnalyticModel
 
         D(q) = Hermitian(zeros(N+1, N+1))
 
+        #V0 = get_V0
+        #D0 = get_D0
+        #V = get_potential
+        #D = get_derivative
         new(N+1, V0, zero, V, D)
     end
 end
@@ -194,40 +203,40 @@ struct IESH_AnHol_Hamiltonian <: AnalyticModel
         #
         #end # function eslab_states
 
-        function V(q)::Hermitian
+        function get_potential(q)::Hermitian
 
-            V = zeros(N+2, N+2)
+            get_potential = zeros(N+2, N+2)
 
-            V[1,1] = V0(q)
-            V[2,2] = V1(q)
+            get_potential[1,1] = V0(q)
+            get_potential[2,2] = V1(q)
             γ_q = γ2(q)
             k = 0
             for i=3:N+1
-                V[i,i] = alpha
+                get_potential[i,i] = alpha
                 # To set the diagonal elements manually
                 #k = k + 1
                 #V[i,i] = eslab_states(k, E_range=E_range, nsteps=N)
-                V[i,i+1] = beta
-                V[1,i] = 0.0 # For now, no coupling of GS w/ electrons
-                V[2,i] = γ_q
+                get_potential[i,i+1] = beta
+                get_potential[1,i] = 0.0 # For now, no coupling of GS w/ electrons
+                get_potential[2,i] = γ_q
             end
-            V[end,end] = alpha
+            get_potential[end,end] = alpha
             #V[end,end] = eslab_states(k, E_range=E_range, nsteps=N)
-            V[1,end] = 0.0 # For now, no coupling of GS w/ electrons
-            V[2,end] = γ_q
-            V[end,2] = beta
-            V[2,end] = beta
+            get_potential[1,end] = 0.0 # For now, no coupling of GS w/ electrons
+            get_potential[2,end] = γ_q
+            get_potential[end,2] = beta
+            get_potential[2,end] = beta
 
-            return Hermitian(V)
+            return Hermitian(get_potential)
         end # End function to calculate energy Hamiltonian V
 
         #D(q) = Hermitian(zeros(N+1, N+1))
-        function D(q)::Hermitian
+        function get_derivative(q)::Hermitian
 
-            V = zeros(N+2, N+2)
+            get_derivative = zeros(N+2, N+2)
 
-            V[1,1] = dV0dr(q)
-            V[2,2] = dV1dr(q)
+            get_derivative[1,1] = dV0dr(q)
+            get_derivative[2,2] = dV1dr(q)
             γ_q = dγ2dr(q)
             for i=3:N+1
                 V[i,i] = 0.0 # dalpha/dr = 0
@@ -235,21 +244,22 @@ struct IESH_AnHol_Hamiltonian <: AnalyticModel
                 V[1,i] = 0.0 # For now, no coupling of GS w/ electrons
                 V[2,i] = γ_q
             end
-            V[end,end] = 0.0 # dalpha/dr = 0
-            V[1,end] = 0.0 # For now, no coupling of GS w/ electrons
-            V[2,end] = γ_q
-            V[end,2] = 0.0 # dbeta/dr = 0
-            V[2,end] = 0.0 # dbeta/dr = 0
+            get_derivative[end,end] = 0.0 # dalpha/dr = 0
+            get_derivative[1,end] = 0.0 # For now, no coupling of GS w/ electrons
+            get_derivative[2,end] = γ_q
+            get_derivative[end,2] = 0.0 # dbeta/dr = 0
+            get_derivative[2,end] = 0.0 # dbeta/dr = 0
 
-            return Hermitian(D)
+            return Hermitian(get_derivative)
         end # End function to calculate energy Hamiltonian V
 
         # This is probably a bad idea, since it assumes the GS PES
-        D0(q) = dV0dr(q)
-        # V0 is the energy of the GS,
-        # D0 is the force (position derivative) of the GS
-        # V is the diabatic Hamiltonian
-        # D is the diabatic Force matrix
-        new(N+2, V0, D0, V, D)
+        get_D0 = dV0dr
+        get_V0 = V0
+        # get_V0 is the energy of the GS,
+        # get_D0 is the force (position derivative) of the GS
+        # get_potential is the diabatic Hamiltonian
+        # get_derivative is the diabatic Force matrix
+        new(N+2, get_V0, get_D0, get_potential, get_derivative)
     end # function IESH_AnHol_Hamiltonian
 end # struc IESH_AnHol_Hamiltonian
