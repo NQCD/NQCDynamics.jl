@@ -13,7 +13,7 @@ mutable struct ElectronicContainer{T<:AbstractFloat}
     n_states::UInt
 
     V0::T
-    D0::Vector{T}
+    D0::Matrix{T}
     diabatic_potential::Hermitian{T, Matrix{T}}
     diabatic_derivative::Vector{Hermitian{T, Matrix{T}}}
     eigenvalues::Vector{T}
@@ -21,9 +21,9 @@ mutable struct ElectronicContainer{T<:AbstractFloat}
     adiabatic_derivative::Matrix{T}
     nonadiabatic_coupling::Matrix{T}
 
-    function ElectronicContainer{T}(n_states::Integer, n_DoF::Integer) where {T<:AbstractFloat}
+    function ElectronicContainer{T}(n_states::Integer, n_DoF::Integer, n_atoms::Integer) where {T<:AbstractFloat}
         V0 = 0.0
-        D0 = zeros(n_DoF)
+        D0 = zeros(n_DoF, n_atoms)
         V = Hermitian(zeros(n_states, n_states))
         D = [Hermitian(zeros(n_states, n_states)) for _=1:n_DoF]
         eigenvalues = zeros(n_states)
@@ -34,16 +34,16 @@ mutable struct ElectronicContainer{T<:AbstractFloat}
     end
 end
 
-function ElectronicContainer(n_states::Integer, n_DoF::Integer)
-    ElectronicContainer{Float64}(n_states, n_DoF)
+function ElectronicContainer(n_states::Integer, n_DoF::Integer, n_atoms::Integer)
+    ElectronicContainer{Float64}(n_states, n_DoF, n_atoms)
 end
 
-function calculate_potential!(model::Model, electronics::ElectronicContainer, R::AbstractVector)
+function calculate_potential!(model::Model, electronics::ElectronicContainer, R::AbstractArray)
     electronics.V0 = model.get_V0(R)
     electronics.diabatic_potential .= model.get_potential(R)
 end
 
-function calculate_derivative!(model::Model, electronics::ElectronicContainer, R::AbstractVector)
+function calculate_derivative!(model::Model, electronics::ElectronicContainer, R::AbstractArray)
     electronics.D0 .= model.get_D0(R)
 end
 
