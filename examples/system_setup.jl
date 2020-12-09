@@ -16,8 +16,8 @@ p = AtomicParameters(cell, atom_types)  # Static system parameters
 @show p.n_atoms
 
 # Randomly select positions and momenta
-R = rand(p.n_atoms)
-P = rand(p.n_atoms)
+R = rand(3, p.n_atoms)
+P = rand(3, p.n_atoms)
 z = Phasespace(R, P)
 
 @show get_positions(z)

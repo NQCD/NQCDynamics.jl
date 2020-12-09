@@ -17,11 +17,8 @@ DynamicalVariables{T} = DEDataVector{T} where {T<:AbstractFloat}
 
 abstract type RingPolymerDynamicalVariables{T} <: DynamicalVariables{T} end
 
-include("types.jl")
-
 include("phasespace.jl")
 include("mapping_phasespace.jl")
 include("surface_hopping_phasespace.jl")
-include("ring_polymer_phasespace.jl")
 
 end

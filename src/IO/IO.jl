@@ -2,6 +2,7 @@ module IO
 
 using PyCall
 using Unitful
+using UnitfulAtomic
 using ..Atoms
 using ..Systems
 using ..Dynamics
@@ -18,11 +19,9 @@ function read_system(file::String)
     atom_types = Symbol.(atoms.get_chemical_symbols())
     p = Atoms.AtomicParameters(cell, atom_types)
 
-    R = vcat(atoms.get_positions()'...)
-    P = zero(R)
-    z = Dynamics.Phasespace(R, P)
+    R = austrip.(atoms.get_positions()'u"Å")
     
-    (p, z)
+    (p, R)
 end
 
 function write_trajectory(file_name::String, solution::DESolution, p::AtomicParameters)
