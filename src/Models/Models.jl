@@ -1,16 +1,22 @@
 module Models
 
-using Distances
+using NeighbourLists
+using StaticArrays
+using UnitfulAtomic
 using ..Atoms
 
 export Model
-export get_distances
 
 abstract type Model end
 
-function get_distances(positions::Vector, n_DoF::Integer=3)
-    R = reshape(positions, n_DoF, :)
-    pairwise(Euclidean(), R, dims=2)
+"""
+    get_pairs(R::Matrix, cutoff::AbstractFloat, cell::Atoms.AbstractCell)
+    
+Use NeighbourLists to calculate the neighbour list.
+"""
+function get_pairs(R::Matrix, cutoff::AbstractFloat, cell::Atoms.AbstractCell)
+    Q = copy(reinterpret(SVector{size(R)[1], eltype(R)}, vec(R))) # Convert array to vector of SVectors
+    PairList(Q, cutoff, austrip.(cell.vectors'), cell.periodicity) # Construct the list of neighbours
 end
 
 include("Analytic/Analytic.jl")
