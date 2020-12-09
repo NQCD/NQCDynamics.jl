@@ -10,17 +10,21 @@ using DiffEqBase
 
 export read_system
 export write_trajectory
+export extract_parameters_and_positions
 
 function read_system(file::String)
     io = pyimport("ase.io")
     atoms = io.read(file)
 
+    extract_parameters_and_positions(atoms)
+end
+
+function extract_parameters_and_positions(atoms::PyObject)
     cell = Systems.PeriodicCell(atoms.cell.data, u"Å")
     atom_types = Symbol.(atoms.get_chemical_symbols())
     p = Atoms.AtomicParameters(cell, atom_types)
 
     R = austrip.(atoms.get_positions()'u"Å")
-    
     (p, R)
 end
 
