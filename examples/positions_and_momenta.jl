@@ -18,3 +18,8 @@ P[5] # Access atom 5
 
 # Standard array operations should work
 R + P
+
+using RecursiveArrayTools
+typeof(ArrayPartition(R, P))
+a = Phasespace(R, P)
+typeof(a.x.x[1])
