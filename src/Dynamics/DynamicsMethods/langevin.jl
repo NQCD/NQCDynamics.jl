@@ -22,13 +22,14 @@ function set_force!(du::Phasespace, u::Phasespace, p::System{Langevin})
     get_momenta(du) .= -p.electronics.D0 .- p.dynamics.η .* get_momenta(u)
 end
 
-function set_force!(du::RingPolymerPhasespace, u::RingPolymerPhasespace, p::System{Langevin})
-    Electronics.calculate_derivative!.(Ref(p.model), p.electronics, eachcol(get_positions(u)))
-
-    get_momenta(du) .= -hcat([e.D0 for e in p.electronics]...) .- p.dynamics.η .* get_momenta(u)
+function set_force!(du::RingPolymerPhasespace, u::RingPolymerPhasespace, p::RingPolymerSystem{Langevin})
+    for i=1:n_beads(p)
+        Electronics.calculate_derivative!(p.model, p.electronics[i], get_positions(u, i))
+        get_momenta(du, i) .= -p.electronics[i].D0 .- p.dynamics.η .* get_momenta(u, i)
+    end
     apply_interbead_coupling!(du, u, p)
 end
 
 function random_force!(du::Phasespace, u::Phasespace, p::System{Langevin}, t)
-    get_momenta(du) .= sqrt.(2p.dynamics.η * p.dynamics.temperature  .* masses(p))
+    get_momenta(du) .= sqrt.(2p.dynamics.η * p.dynamics.temperature  .* masses(p)')
 end
