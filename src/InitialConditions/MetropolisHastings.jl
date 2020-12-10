@@ -12,6 +12,7 @@ using Distributions
 using ....Systems
 using ....Atoms
 using ....Models
+using ....Electronics
 
 export run_monte_carlo_sampling
 
@@ -29,7 +30,7 @@ function run_monte_carlo_sampling(system::System{Classical, T}, R0::Matrix{T}; p
     Rᵢ = copy(R0)
     Rₚ = zero(Rᵢ) # Proposed positions
     energy = zeros(2)
-    energy[1] = system.model.get_V0(Rᵢ)
+    energy[1] = Electronics.evaluate_potential(system.model, Rᵢ)
     output = MonteCarloOutput{eltype(R0)}(size(Rᵢ), passes*n_atoms(system))
 
     @showprogress 0.1 "Sampling... " for i=1:convert(Int, passes*n_atoms(system))
@@ -42,7 +43,7 @@ end
 function perform_monte_carlo_step!(system::System{Classical, T}, Rᵢ::Matrix{T}, Rₚ::Matrix{T},
     energy::Vector{T}, Δ::T, output::MonteCarloOutput{T}, i::Integer) where {T<:AbstractFloat}
     propose_move!(Rᵢ, Rₚ, Δ, n_DoF(system), n_atoms(system))
-    energy[2] = system.model.get_V0(Rₚ)
+    energy[2] = Electronics.evaluate_potential(system.model, Rₚ)
     assess_proposal!(energy, Rₚ, Rᵢ, system.temperature, output)
     write_output!(output.R[i], Rᵢ)
 end
