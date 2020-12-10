@@ -1,36 +1,35 @@
 export Phasespace
 export get_positions
 export get_momenta
+
+export RingPolymerPhasespace
 export get_bead_positions
 export get_bead_momenta
 
-"""
-    Phasespace{T} <: DynamicalVariables{T}
-
-Container for the dynamical positions and momenta of the atoms in the system.
-"""
 struct Phasespace{T} <: DynamicalVariables{T}
-    x::Matrix{T}
-    Phasespace{T}(z::Matrix) where {T<:AbstractFloat} = new(austrip.(z))
+    x::ArrayPartition{T, Tuple{Matrix{T}, Matrix{T}}}
+end
+Phasespace(R::Matrix, P::Matrix) = Phasespace(ArrayPartition(R, P))
+
+const RingPolymerArray{T, N} = ArrayPartition{T, NTuple{N, Matrix{T}}} where {T,N}
+
+struct RingPolymerPhasespace{T,N} <: DynamicalVariables{T}
+    x::ArrayPartition{T, Tuple{RingPolymerArray{T,N}, RingPolymerArray{T,N}}}
+end
+RingPolymerPhasespace(R::ArrayPartition, P::ArrayPartition) = RingPolymerPhasespace(ArrayPartition(R, P))
+function RingPolymerPhasespace(R::Matrix, P::Matrix, n_beads::Integer)
+    R = ArrayPartition([R for i=1:n_beads]...)
+    P = ArrayPartition([P for i=1:n_beads]...)
+    RingPolymerPhasespace(R, P)
 end
 
-Phasespace(RP::Matrix{T}) where {T<:Real} = Phasespace{T}(RP)
+get_positions(z::Union{RingPolymerPhasespace, Phasespace}) = z.x.x[1]
+get_momenta(z::Union{RingPolymerPhasespace, Phasespace}) = z.x.x[2]
 
-function Phasespace(
-    R::Vector{T},
-    P::Vector{T},
-    unit::Tuple{<:Unitful.Units,<:Unitful.Units}=(u"bohr", u"ħ_au/bohr")) where {T<:Real}
-    Phasespace{T}(hcat(R.*unit[1], P.*unit[2]))
-end
+"""Get the positions for bead `i`"""
+get_positions(z::RingPolymerPhasespace, i::Integer) = get_positions(z).x[i]
+get_momenta(z::RingPolymerPhasespace, i::Integer) = get_momenta(z).x[i]
 
-get_positions(z::Phasespace) = @view z.x[:,1]
-
-function get_bead_positions(z::Phasespace, n_beads::Integer)
-    collect(Iterators.partition(get_positions(z), n_beads))
-end
-
-get_momenta(z::Phasespace) = @view z.x[:,2]
-
-function get_bead_momenta(z::Phasespace, n_beads::Integer)
-    collect(Iterators.partition(get_momenta(z), n_beads))
-end
+"""Get the postions of all the beads for DoF `i`"""
+get_bead_positions(z::RingPolymerPhasespace, i::Integer, n_DoF::Integer) = @view get_positions(z)[i:n_DoF:end]
+get_bead_momenta(z::RingPolymerPhasespace, i::Integer, n_DoF::Integer) = @view get_momenta(z)[i:n_DoF:end]
