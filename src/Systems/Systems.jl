@@ -44,8 +44,9 @@ struct System{D, T<:AbstractFloat} <: AbstractSystem{D}
     end
 end
 
-function System(atomic_parameters::AtomicParameters{T}, model::Models.Model, n_DoF::Integer=3) where {T}
-    System{Classical, T}(n_DoF, 0.0, atomic_parameters, model, Classical())
+function System(atomic_parameters::AtomicParameters{T}, model::Models.Model, n_DoF::Integer=3;
+    temperature::Unitful.Temperature{<:Real}=0u"K") where {T}
+    System{Classical, T}(n_DoF, austrip(temperature), atomic_parameters, model, Classical())
 end
 
 struct RingPolymerSystem{D, T<:AbstractFloat} <: AbstractSystem{D}
@@ -68,7 +69,7 @@ end
 n_atoms(system::AbstractSystem) = system.atomic_parameters.n_atoms
 masses(system::AbstractSystem) = system.atomic_parameters.masses
 n_beads(system::RingPolymerSystem) = system.ring_polymer.n_beads
-n_DoF(system::RingPolymerSystem) = system.n_DoF
+n_DoF(system::AbstractSystem) = system.n_DoF
 
 end # module
 

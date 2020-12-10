@@ -17,5 +17,8 @@ export Dynamics
 include("IO/IO.jl")
 export IO
 
+include("InitialConditions/InitialConditions.jl")
+export InitialConditions
+
 
 end # module
