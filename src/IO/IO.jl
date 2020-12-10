@@ -2,6 +2,7 @@ module IO
 
 using PyCall
 using Unitful
+using UnitfulAtomic
 using ..Atoms
 using ..Systems
 using ..Dynamics
@@ -9,20 +10,22 @@ using DiffEqBase
 
 export read_system
 export write_trajectory
+export extract_parameters_and_positions
 
 function read_system(file::String)
     io = pyimport("ase.io")
     atoms = io.read(file)
 
+    extract_parameters_and_positions(atoms)
+end
+
+function extract_parameters_and_positions(atoms::PyObject)
     cell = Systems.PeriodicCell(atoms.cell.data, u"Å")
     atom_types = Symbol.(atoms.get_chemical_symbols())
     p = Atoms.AtomicParameters(cell, atom_types)
 
-    R = vcat(atoms.get_positions()'...)
-    P = zero(R)
-    z = Dynamics.Phasespace(R, P)
-    
-    (p, z)
+    R = austrip.(atoms.get_positions()'u"Å")
+    (p, R)
 end
 
 function write_trajectory(file_name::String, solution::DESolution, p::AtomicParameters)
