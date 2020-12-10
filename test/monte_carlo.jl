@@ -3,7 +3,7 @@ using NonadiabaticMolecularDynamics
 using NonadiabaticMolecularDynamics.InitialConditions
 using Unitful
 
-atoms = Atoms.AtomicParameters(Atoms.InfiniteCell(), fill(:H, 3))
+atoms = Atoms.AtomicParameters(Atoms.PeriodicCell(hcat(1)), fill(:H, 3))
 model = Models.Analytic.Harmonic(1.0, 1.0, 0.1)
 sys = System(atoms, model, 1; temperature=100u"K")
 
@@ -32,6 +32,19 @@ end
     e1 = 0.0
     e2 = Inf
     @test MetropolisHastings.acceptance_probability(e2, e1, 1.0) == 0
+end
+
+@testset "apply_cell_boundaries!" begin
+    cell = Atoms.PeriodicCell([1 0 0; 0 1 0; 0 0 1])
+    n_atoms = 4
+    R = rand(3, n_atoms)
+    A = copy(R)
+    MetropolisHastings.apply_cell_boundaries!(cell, A, n_atoms, 3)
+    @test R == A # Check unchanged when inside cell
+    A = copy(R)
+    A += rand(3, n_atoms) # Move atoms out of cell
+    MetropolisHastings.apply_cell_boundaries!(cell, A, n_atoms, 3)
+    @test all(A .<= 1) # Check they're all back in
 end
 
 @testset "run_monte_carlo_sampling" begin
