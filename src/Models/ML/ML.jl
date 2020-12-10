@@ -25,17 +25,13 @@ struct SchNetPackModel <: Models.Model
     function SchNetPackModel(path::String, atoms::AtomicParameters)
         model, model_args, force_mask = initialize_MLmodel(path, atoms)
         input = Dict{String, PyObject}()
-        
+        #the schnet update only needs to be done once for energy and forces.
+        #for eft separately
         function get_V0(R::AbstractVector)
             update_schnet_input!(input, atoms, R, model_args)
             model(input)["energy"].detach().numpy()[1,1]
-            print(model(input))
         end
 
-        function get_V0_atomic(R::AbstractVector)
-            update_schnet_input!(input, atoms, R, model_args)
-        end
-        
         function get_D0(R::AbstractVector)::Vector
             update_schnet_input!(input, atoms, R, model_args)
             -model(input)["forces"].detach().numpy()[1,:,:]'[:]
