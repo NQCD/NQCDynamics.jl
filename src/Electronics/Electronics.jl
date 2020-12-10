@@ -47,4 +47,8 @@ function calculate_derivative!(model::Model, electronics::ElectronicContainer, R
     electronics.D0 .= model.get_D0(R)
 end
 
+function evaluate_potential(model::Models.AnalyticModel, R::Matrix)
+    sum(model.get_V0.(R))
+end
+
 end # module
