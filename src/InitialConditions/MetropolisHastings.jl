@@ -5,6 +5,7 @@ Sampling of the initial conditions using the Metropolis-Hastings Markov chain Mo
 """
 module MetropolisHastings
 
+using StatsBase
 using ProgressMeter
 using Unitful
 using UnitfulAtomic
@@ -27,7 +28,12 @@ mutable struct MonteCarloOutput{T<:AbstractFloat}
     end
 end
 
-function run_monte_carlo_sampling(system::System{Classical, T}, R0::Matrix{T}; passes::Real=10, Δ::Real=1.0) where {T}
+function run_monte_carlo_sampling(system::System{Classical, T}, R0::Matrix{T};
+    passes::Real=10, Δ::Real=1.0, fix::Vector{<:Integer}=Int[]) where {T}
+    
+    moveables = ones(n_atoms(system))
+    moveables[fix] .= 0
+    frozen = AnalyticWeights(moveables)
 
     Rᵢ = copy(R0)
     Rₚ = zero(Rᵢ) # Proposed positions
@@ -36,24 +42,25 @@ function run_monte_carlo_sampling(system::System{Classical, T}, R0::Matrix{T}; p
     output = MonteCarloOutput{eltype(R0)}(size(Rᵢ), passes*n_atoms(system))
 
     @showprogress 0.1 "Sampling... " for i=1:convert(Int, passes*n_atoms(system))
-        perform_monte_carlo_step!(system, Rᵢ, Rₚ, energy, Δ, output, i)
+        perform_monte_carlo_step!(system, Rᵢ, Rₚ, energy, Δ, output, i, frozen)
     end
     output.acceptance /= passes*n_atoms(system)
     output
 end
 
 function perform_monte_carlo_step!(system::System{Classical, T}, Rᵢ::Matrix{T}, Rₚ::Matrix{T},
-    energy::Vector{T}, Δ::T, output::MonteCarloOutput{T}, i::Integer) where {T<:AbstractFloat}
-    propose_move!(Rᵢ, Rₚ, Δ, n_DoF(system), n_atoms(system))
+    energy::Vector{T}, Δ::T, output::MonteCarloOutput{T}, i::Integer, frozen::AnalyticWeights) where {T<:AbstractFloat}
+    propose_move!(Rᵢ, Rₚ, Δ, n_DoF(system), n_atoms(system), frozen)
     apply_cell_boundaries!(system.atomic_parameters.cell, Rₚ, n_atoms(system), n_DoF(system))
     energy[2] = Electronics.evaluate_potential(system.model, Rₚ)
     assess_proposal!(energy, Rₚ, Rᵢ, system.temperature, output)
     write_output!(output, Rᵢ, energy[1], i)
 end
 
-function propose_move!(Rᵢ::Matrix{T}, Rₚ::Matrix{T}, Δ::T, n_DoF::Integer, n_atoms::Integer) where {T<:AbstractFloat}
+function propose_move!(Rᵢ::Matrix{T}, Rₚ::Matrix{T}, Δ::T, n_DoF::Integer, n_atoms::Integer,
+    frozen::AnalyticWeights) where {T<:AbstractFloat}
     Rₚ .= Rᵢ
-    atom = sample(1:n_atoms)
+    atom = sample(1:n_atoms, frozen)
     Rₚ[:,atom] .+= (rand(n_DoF) .- 0.5) .* Δ / sqrt(n_DoF)
 end
 
