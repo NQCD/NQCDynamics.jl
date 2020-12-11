@@ -28,8 +28,8 @@ mutable struct MonteCarloOutput{T<:AbstractFloat}
     end
 end
 
-function run_monte_carlo_sampling(system::System{Classical, T}, R0::Matrix{T};
-    passes::Real=10, Δ::Real=1.0, fix::Vector{<:Integer}=Int[]) where {T}
+function run_monte_carlo_sampling(system::System{Classical,T}, R0::Matrix{T}, Δ::Dict{Symbol,T};
+    passes::Real=10, fix::Vector{<:Integer}=Int[]) where {T}
     
     moveables = ones(n_atoms(system))
     moveables[fix] .= 0
@@ -49,19 +49,19 @@ function run_monte_carlo_sampling(system::System{Classical, T}, R0::Matrix{T};
 end
 
 function perform_monte_carlo_step!(system::System{Classical, T}, Rᵢ::Matrix{T}, Rₚ::Matrix{T},
-    energy::Vector{T}, Δ::T, output::MonteCarloOutput{T}, i::Integer, frozen::AnalyticWeights) where {T<:AbstractFloat}
-    propose_move!(Rᵢ, Rₚ, Δ, n_DoF(system), n_atoms(system), frozen)
+    energy::Vector{T}, Δ::Dict{Symbol,T}, output::MonteCarloOutput{T}, i::Integer, frozen::AnalyticWeights) where {T<:AbstractFloat}
+    propose_move!(system, Rᵢ, Rₚ, Δ, n_DoF(system), n_atoms(system), frozen)
     apply_cell_boundaries!(system.atomic_parameters.cell, Rₚ, n_atoms(system), n_DoF(system))
     energy[2] = Electronics.evaluate_potential(system.model, Rₚ)
     assess_proposal!(energy, Rₚ, Rᵢ, system.temperature, output)
     write_output!(output, Rᵢ, energy[1], i)
 end
 
-function propose_move!(Rᵢ::Matrix{T}, Rₚ::Matrix{T}, Δ::T, n_DoF::Integer, n_atoms::Integer,
-    frozen::AnalyticWeights) where {T<:AbstractFloat}
+function propose_move!(system::System{Classical, T}, Rᵢ::Matrix{T}, Rₚ::Matrix{T}, Δ::Dict{Symbol,T},
+    n_DoF::Integer, n_atoms::Integer, frozen::AnalyticWeights) where {T<:AbstractFloat}
     Rₚ .= Rᵢ
     atom = sample(1:n_atoms, frozen)
-    Rₚ[:,atom] .+= (rand(n_DoF) .- 0.5) .* Δ / sqrt(n_DoF)
+    Rₚ[:,atom] .+= (rand(n_DoF) .- 0.5) .* Δ[system.atomic_parameters.atom_types[atom]] / sqrt(n_DoF)
 end
 
 """
