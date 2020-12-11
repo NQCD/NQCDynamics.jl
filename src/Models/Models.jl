@@ -20,6 +20,7 @@ function get_pairs(R::Matrix, cutoff::AbstractFloat, cell::Atoms.AbstractCell)
 end
 
 include("Analytic/Analytic.jl")
+using .Analytic
 include("ML/ML.jl")
 include("EAM/PdH.jl")
 end # module

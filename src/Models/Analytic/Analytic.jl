@@ -3,6 +3,8 @@ module Analytic
 using LinearAlgebra: Hermitian
 using ..Models
 
+export AnalyticModel
+
 abstract type AnalyticModel <: Models.Model end
 
 """
