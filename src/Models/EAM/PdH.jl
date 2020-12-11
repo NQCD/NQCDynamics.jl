@@ -98,7 +98,7 @@ struct PdH <: Model
                     E += Fₕ(densities[i])
                 end
             end
-            E
+            austrip(E*u"eV")
         end
         
         # get_D0(R) = ForwardDiff.gradient(get_V0, R) # ForwardDiff autodiff, error with NeighbourLists
