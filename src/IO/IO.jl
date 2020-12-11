@@ -11,6 +11,7 @@ using DiffEqBase
 export read_system
 export write_trajectory
 export extract_parameters_and_positions
+export create_ase_atoms
 
 function read_system(file::String)
     io = pyimport("ase.io")
@@ -28,15 +29,30 @@ function extract_parameters_and_positions(atoms::PyObject)
     (p, R)
 end
 
+function create_ase_atoms(atoms::AtomicParameters, R::Matrix{<:AbstractFloat}) 
+    ase = pyimport("ase")
+    ase.Atoms(
+        positions=ustrip.(u"Å", R'u"bohr"),
+        cell=ustrip.(u"Å", atoms.cell.vectors),
+        symbols=string.(atoms.atom_types),
+        pbc=atoms.cell.periodicity)
+end
+
 function write_trajectory(file_name::String, solution::DESolution, p::AtomicParameters)
     ase = pyimport("ase")
     trajectory = []
     for coord in get_positions.(solution.u)
-        R = reshape(coord, 3, p.n_atoms)'
-        atoms = ase.Atoms(positions=R)
-        atoms.set_chemical_symbols(string.(p.atom_types))
+        R = reshape(coord, 3, p.n_atoms)
+        atoms == create_ase_atoms(p, R)
         push!(trajectory, atoms)
     end
+
+    ase.io.write(file_name, trajectory)
+end
+
+function write_trajectory(file_name::String, positions::Vector{Matrix{T}}, p::AtomicParameters) where {T}
+    ase = pyimport("ase")
+    trajectory = create_ase_atoms.(Ref(p), positions)
 
     ase.io.write(file_name, trajectory)
 end
