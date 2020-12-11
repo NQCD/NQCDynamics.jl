@@ -13,6 +13,7 @@ struct PdH <: Model
     get_V0::Function
     get_D0::Function
 
+    # a0 = 3.89 Å
     function PdH(atom_types::Vector{Symbol}, cell::Atoms.AbstractCell, cutoff::AbstractFloat)
 
         # Iyad Hijazi, Yang Zhang & Robert Fuller (2018) A simple embeddedatom potential for Pd-H alloys, Molecular Simulation, 44:17, 1371-1379
@@ -23,6 +24,10 @@ struct PdH <: Model
         β_PdPd = 7.221224
         η = 0.999999
         ρₑ = 3.316887
+
+        # Iyad Hijazi, Yang Zhang & Robert Fuller (2018) A simple embeddedatom potential for Pd-H alloys, Molecular Simulation, 44:17, 1371-1379
+        # Table 2
+        Ec = 3.91 # Pd 
 
         # Iyad Hijazi, Yang Zhang & Robert Fuller (2018) A simple embeddedatom potential for Pd-H alloys, Molecular Simulation, 44:17, 1371-1379
         # Table 3
@@ -42,14 +47,16 @@ struct PdH <: Model
         D_PdH = 0.123452
         α_PdH = 5.583967
         r₀PdH = 1.712318
-        
-        # Not sure about these ones
+
         # Unit in angstrom and eV. assuming this is necessary
-        Ec = 3.89 # Pd cohesive energy http://www.knowledgedoor.com/2/elements_handbook/cohesive_energy.html
-        rₑ = 2*1.37 # https://en.wikipedia.org/wiki/Atomic_radii_of_the_elements_(data_page)
-        Ω = 4/3π * (rₑ/2)^3
+        rₑ = 2*1.37 # Metallic radius*2 https://en.wikipedia.org/wiki/Atomic_radii_of_the_elements_(data_page)
+        Ω = 4/3π * rₑ^3 # Atomic volume
         
-        F(ρ) = 1 # Also they don't tell me what this is
+        ########################
+        # This has to be checked
+        # They never say what it is
+        ########################
+        F(ρ) = -2.5
         F_Pd(ρ) = F(ρₑ) * (1 - η*log(ρ/ρₑ)) * (ρ/ρₑ)^η
         fₑ = Ec / Ω
         ρ_Pd(r) = fₑ * exp(-χ * (r - rₑ))
@@ -83,7 +90,7 @@ struct PdH <: Model
             densities = zeros(length(atom_types))
             for (i, j, R) in NeighbourLists.pairs(pairs)
                 r = ustrip(u"Å", norm(R)u"bohr") # Convert distance to Å
-                if atom_types[i] == :Pd
+                if atom_types[j] == :Pd
                     densities[i] += ρ_Pd(r)
                 else
                     densities[i] += ρₕ(r)
