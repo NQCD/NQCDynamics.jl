@@ -2,6 +2,7 @@ using Test
 using NonadiabaticMolecularDynamics
 using NonadiabaticMolecularDynamics.InitialConditions
 using Unitful
+using StatsBase
 
 atoms = Atoms.AtomicParameters(Atoms.PeriodicCell(hcat(1)), fill(:H, 3))
 model = Models.Analytic.Harmonic(1.0, 1.0, 0.1)
@@ -10,16 +11,17 @@ sys = System(atoms, model, 1; temperature=100u"K")
 @testset "propose_move!" begin
     Rᵢ = zeros(n_DoF(sys), n_atoms(sys))
     Rₚ = zero(Rᵢ)
+    Δ = Dict([(:H, 1.0)])
     @test Rᵢ == Rₚ
-    MetropolisHastings.propose_move!(Rᵢ, Rₚ, 1.0, n_DoF(sys), n_atoms(sys))
+    MetropolisHastings.propose_move!(sys, Rᵢ, Rₚ, Δ, n_DoF(sys), n_atoms(sys), AnalyticWeights([0]))
     @test Rᵢ != Rₚ
 end
 
 @testset "write_output!" begin
     Rₚ = fill(0.1, n_DoF(sys), n_atoms(sys))
-    output = zeros(n_DoF(sys), n_atoms(sys))
-    MetropolisHastings.write_output!(output, Rₚ)
-    @test all(output .== 0.1)
+    output = InitialConditions.MetropolisHastings.MonteCarloOutput{Float64}(size(Rₚ), 20)
+    MetropolisHastings.write_output!(output, Rₚ, 1.0, 10)
+    @test all(output.R[10] .== 0.1)
 end
 
 @testset "acceptance_probability" begin
@@ -48,5 +50,6 @@ end
 end
 
 @testset "run_monte_carlo_sampling" begin
-    run_monte_carlo_sampling(sys, zeros(1, 3); passes=5000, Δ=0.1)
+    Δ = Dict([(:H, 1.0)])
+    run_monte_carlo_sampling(sys, zeros(1, 3), Δ; passes=5000)
 end
