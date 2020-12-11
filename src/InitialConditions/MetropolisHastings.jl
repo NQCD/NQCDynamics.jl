@@ -19,9 +19,11 @@ export run_monte_carlo_sampling
 mutable struct MonteCarloOutput{T<:AbstractFloat}
     R::Vector{Matrix{T}}
     acceptance::T
+    energy::Vector{T}
     function MonteCarloOutput{T}(shape, length) where {T}
         output = [Matrix{T}(undef, shape) for _=1:length]
-        new(output, 0.0)
+        energy = zeros(length)
+        new(output, 0.0, energy)
     end
 end
 
@@ -36,7 +38,7 @@ function run_monte_carlo_sampling(system::System{Classical, T}, R0::Matrix{T}; p
     @showprogress 0.1 "Sampling... " for i=1:convert(Int, passes*n_atoms(system))
         perform_monte_carlo_step!(system, Rᵢ, Rₚ, energy, Δ, output, i)
     end
-    output.acceptance /= passes
+    output.acceptance /= passes*n_atoms(system)
     output
 end
 
@@ -46,7 +48,7 @@ function perform_monte_carlo_step!(system::System{Classical, T}, Rᵢ::Matrix{T}
     apply_cell_boundaries!(system.atomic_parameters.cell, Rₚ, n_atoms(system), n_DoF(system))
     energy[2] = Electronics.evaluate_potential(system.model, Rₚ)
     assess_proposal!(energy, Rₚ, Rᵢ, system.temperature, output)
-    write_output!(output.R[i], Rᵢ)
+    write_output!(output, Rᵢ, energy[1], i)
 end
 
 function propose_move!(Rᵢ::Matrix{T}, Rₚ::Matrix{T}, Δ::T, n_DoF::Integer, n_atoms::Integer) where {T<:AbstractFloat}
@@ -90,6 +92,9 @@ function acceptance_probability(energyₚ::T, energyᵢ::T, temperature::T) wher
     min(1, exp(-(energyₚ - energyᵢ)/temperature))
 end
 
-write_output!(output, Rₚ) = output .= Rₚ
+function write_output!(output::MonteCarloOutput, Rᵢ::Matrix{T}, energy::T, i::Integer) where {T<:AbstractFloat}
+    output.R[i] .= Rᵢ
+    output.energy[i] = energy
+end
 
 end # module
