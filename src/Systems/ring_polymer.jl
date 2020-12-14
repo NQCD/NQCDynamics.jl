@@ -8,13 +8,18 @@ struct RingPolymerParameters{T<:AbstractFloat}
     ω_n::T
     springs::Symmetric{T}
     normal_mode_springs::Vector{T}
+    U::Matrix{T}
     quantum_atoms::Vector{UInt}
     function RingPolymerParameters{T}(
         n_beads::Integer, temperature::Real,
         quantum_atoms::Vector{<:Integer}) where {T<:AbstractFloat}
 
         ω_n = n_beads * temperature
-        new(n_beads, ω_n, get_spring_matrix(n_beads, ω_n), get_normal_mode_springs(n_beads, ω_n), quantum_atoms)
+        new(n_beads, ω_n,
+            get_spring_matrix(n_beads, ω_n),
+            get_normal_mode_springs(n_beads, ω_n), 
+            get_normal_mode_transformation(n_beads),
+            quantum_atoms)
     end
 end
 
@@ -53,3 +58,13 @@ get_matsubara_frequencies(n::Integer, ω_n::Real) = 2ω_n*sin.((0:n-1)*π/n)
 get_bead_masses(n_beads::Integer, masses::Vector) = repeat(masses, inner=n_beads)
 
 bead_iterator(n_beads::Integer, vector::Vector) = Iterators.partition(vector, n_beads)
+
+"""
+    get_normal_mode_transformation(n::Int)::Matrix
+    
+Get the transformation matrix that converts to normal mode coordinates.
+"""
+function get_normal_mode_transformation(n::Int)::Matrix
+    a = ([exp(2π*im/n * j * k) for j=0:n-1, k=0:n-1])
+    (real(a) + imag(a)) / sqrt(n)
+end
