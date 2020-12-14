@@ -11,7 +11,6 @@ pd = build.bulk("Pd", "fcc", a=3.89, cubic=true)
 pd += ase.Atoms("H", positions=[[1.5, 1.5, 1.5]])
 
 atoms, positions = extract_parameters_and_positions(pd)
-atoms.atom_types
 model = Models.PdH(atoms.atom_types, atoms.cell, 10.0)
 
 sys = System(atoms, model; temperature=3000u"K")
