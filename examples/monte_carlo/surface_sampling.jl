@@ -15,10 +15,10 @@ slab.center(vacuum=10.0, axis=2)
 atoms, positions = extract_parameters_and_positions(slab)
 model = Models.PdH(atoms.atom_types, atoms.cell, 10.0)
 
-sys = System(atoms, model; temperature=300u"K")
+Δ = Dict([(:Pd, 0.5), (:H, 0.5)])
+sys = System{MonteCarlo}(atoms, model, 300u"K", Δ; passes=1000, fix=collect(1:6))
 
-step_sizes = Dict([(:Pd, 0.5), (:H, 0.5)])
-output = InitialConditions.run_monte_carlo_sampling(sys, positions, step_sizes; passes=1000, fix=collect(1:6))
+output = InitialConditions.run_monte_carlo_sampling(sys, positions)
 
 @show output.acceptance
 write_trajectory("sampling.xyz", output.R, atoms)
