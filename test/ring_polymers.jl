@@ -19,3 +19,9 @@ system = Systems.RingPolymerSystem(atoms, Models.Analytic.Free(), 10, 10)
 system = Systems.RingPolymerSystem(atoms, Models.Analytic.Free(), 10, 10, quantum_nuclei=[:H])
 @test system.ring_polymer.quantum_atoms == collect(1:10)
 
+U = system.ring_polymer.U
+S = system.ring_polymer.springs
+λ = system.ring_polymer.normal_mode_springs
+@test U'U ≈ I
+@test abs(det(U)) ≈ 1
+@test U'S*U ≈ diagm(λ)
