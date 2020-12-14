@@ -8,14 +8,25 @@ struct RingPolymerParameters{T<:AbstractFloat}
     ω_n::T
     springs::Symmetric{T}
     normal_mode_springs::Vector{T}
-    function RingPolymerParameters{T}(n_beads::Integer, temperature::Real) where {T<:AbstractFloat}
+    quantum_atoms::Vector{UInt}
+    function RingPolymerParameters{T}(
+        n_beads::Integer, temperature::Real,
+        quantum_atoms::Vector{<:Integer}) where {T<:AbstractFloat}
+
         ω_n = n_beads * temperature
-        new(n_beads, ω_n, get_spring_matrix(n_beads, ω_n), get_normal_mode_springs(n_beads, ω_n))
+        new(n_beads, ω_n, get_spring_matrix(n_beads, ω_n), get_normal_mode_springs(n_beads, ω_n), quantum_atoms)
     end
 end
 
-function RingPolymerParameters(n_beads::Integer, temperature::Real)
-    RingPolymerParameters{Float64}(n_beads, temperature)
+"""Constructor for choosing specific elements to be quantum."""
+function RingPolymerParameters{T}(n_beads::Integer, temperature::Real, atom_types::Vector{Symbol}, quantum_nuclei::Vector{Symbol}) where {T}
+    quantum_atoms = findall(in(quantum_nuclei), atom_types)
+    RingPolymerParameters{T}(n_beads, temperature, quantum_atoms)
+end
+
+"""Constructor for the case where all nuclei are quantum."""
+function RingPolymerParameters{T}(n_beads::Integer, temperature::Real, n_atoms::Integer) where {T}
+    RingPolymerParameters{T}(n_beads, temperature, collect(1:n_atoms))
 end
 
 """

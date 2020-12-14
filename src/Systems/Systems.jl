@@ -60,9 +60,13 @@ struct RingPolymerSystem{D, T<:AbstractFloat} <: AbstractSystem{D}
 end
 
 function RingPolymerSystem(atomic_parameters::AtomicParameters{T}, model::Models.Model, n_beads::Integer,
-    temperature::Real, n_DoF::Integer=3) where {T<:AbstractFloat}
+    temperature::Real, n_DoF::Integer=3; quantum_nuclei::Vector{Symbol}=Symbol[]) where {T<:AbstractFloat}
     electronics = [Electronics.ElectronicContainer{T}(model.n_states, n_DoF, atomic_parameters.n_atoms) for _=1:n_beads]
-    ring_polymer = Systems.RingPolymerParameters{T}(n_beads, temperature)
+    if isempty(quantum_nuclei)
+        ring_polymer = Systems.RingPolymerParameters{T}(n_beads, temperature, atomic_parameters.n_atoms)
+    else
+        ring_polymer = Systems.RingPolymerParameters{T}(n_beads, temperature, atomic_parameters.atom_types, quantum_nuclei)
+    end
     RingPolymerSystem{Classical, T}(n_DoF, temperature, atomic_parameters, model, electronics, ring_polymer, Classical())
 end
 
