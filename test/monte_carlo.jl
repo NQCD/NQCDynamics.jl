@@ -6,14 +6,15 @@ using StatsBase
 
 atoms = Atoms.AtomicParameters(Atoms.PeriodicCell(hcat(1)), fill(:H, 3))
 model = Models.Analytic.Harmonic(1.0, 1.0, 0.1)
-sys = System(atoms, model, 1; temperature=100u"K")
+
+Δ = Dict([(:H, 0.1)])
+sys = System{InitialConditions.MonteCarlo}(atoms, model, 100u"K", Δ, 1; passes=1000)
 
 @testset "propose_move!" begin
     Rᵢ = zeros(n_DoF(sys), n_atoms(sys))
     Rₚ = zero(Rᵢ)
-    Δ = Dict([(:H, 1.0)])
     @test Rᵢ == Rₚ
-    MetropolisHastings.propose_move!(sys, Rᵢ, Rₚ, Δ, n_DoF(sys), n_atoms(sys), AnalyticWeights([0]))
+    MetropolisHastings.propose_move!(sys, Rᵢ, Rₚ)
     @test Rᵢ != Rₚ
 end
 
@@ -27,13 +28,13 @@ end
 @testset "acceptance_probability" begin
     e1 = 0.0
     e2 = -0.001
-    @test MetropolisHastings.acceptance_probability(e2, e1, 1.0) == 1
+    @test MetropolisHastings.acceptance(e2, e1, 1.0) == 1
     e1 = 0.0
     e2 = 0.001
-    @test 1 > MetropolisHastings.acceptance_probability(e2, e1, 1.0) > 0
+    @test 1 > MetropolisHastings.acceptance(e2, e1, 1.0) > 0
     e1 = 0.0
     e2 = Inf
-    @test MetropolisHastings.acceptance_probability(e2, e1, 1.0) == 0
+    @test MetropolisHastings.acceptance(e2, e1, 1.0) == 0
 end
 
 @testset "apply_cell_boundaries!" begin
@@ -50,6 +51,6 @@ end
 end
 
 @testset "run_monte_carlo_sampling" begin
-    Δ = Dict([(:H, 1.0)])
-    run_monte_carlo_sampling(sys, zeros(1, 3), Δ; passes=5000)
+    R0 = zeros(n_DoF(sys), n_atoms(sys))
+    out = InitialConditions.run_monte_carlo_sampling(system, R0)
 end

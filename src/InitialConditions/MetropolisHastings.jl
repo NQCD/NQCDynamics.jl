@@ -16,7 +16,18 @@ using ....Models
 using ....Electronics
 
 export run_monte_carlo_sampling
+export MonteCarlo
 
+"""Parameters for MonteCarlo simulation"""
+mutable struct MonteCarlo{T<:AbstractFloat} <: Systems.DynamicsParameters
+    Eᵢ::T
+    Eₚ::T
+    Δ::Dict{Symbol, T}
+    steps::UInt
+    moveable_atoms::AnalyticWeights
+end
+
+"""Container for storing simulation quantities"""
 mutable struct MonteCarloOutput{T<:AbstractFloat}
     R::Vector{Matrix{T}}
     acceptance::T
@@ -28,40 +39,77 @@ mutable struct MonteCarloOutput{T<:AbstractFloat}
     end
 end
 
-function run_monte_carlo_sampling(system::System{Classical,T}, R0::Matrix{T}, Δ::Dict{Symbol,T};
-    passes::Real=10, fix::Vector{<:Integer}=Int[]) where {T}
-    
-    moveables = ones(n_atoms(system))
+"""Constructor for Monte-Carlo system"""
+function System{MonteCarlo}(
+    atomic_parameters::AtomicParameters{T},
+    model::Models.Model,
+    temperature::Unitful.Temperature{<:Real},
+    Δ::Dict{Symbol, T},
+    n_DoF::Integer=3;
+    passes::Real=10,
+    fix::Vector{<:Integer}=Int[]) where {T}
+
+    moveables = ones(atomic_parameters.n_atoms)
     moveables[fix] .= 0
-    frozen = AnalyticWeights(moveables)
+    moveable_atoms = AnalyticWeights(moveables)
 
-    Rᵢ = copy(R0)
+    steps = passes * atomic_parameters.n_atoms
+    monte_carlo = MonteCarlo{T}(0.0, 0.0, Δ, steps, moveable_atoms)
+
+    System{MonteCarlo, T}(n_DoF, austrip(temperature),
+        atomic_parameters, model, monte_carlo)
+end
+
+"""
+    run_monte_carlo_sampling(system::System{MonteCarlo}, R0)
+    
+Run the simulation defined by the MonteCarlo system.
+"""
+function run_monte_carlo_sampling(system::System{MonteCarlo}, R0)
+
+    Rᵢ = copy(R0) # Current positions
     Rₚ = zero(Rᵢ) # Proposed positions
-    energy = zeros(2)
-    energy[1] = Electronics.evaluate_potential(system.model, Rᵢ)
-    output = MonteCarloOutput{eltype(R0)}(size(Rᵢ), passes*n_atoms(system))
+    system.dynamics.Eᵢ = Electronics.evaluate_potential(system.model, Rᵢ)
+    output = MonteCarloOutput{eltype(R0)}(size(Rᵢ), system.dynamics.steps)
 
-    @showprogress 0.1 "Sampling... " for i=1:convert(Int, passes*n_atoms(system))
-        perform_monte_carlo_step!(system, Rᵢ, Rₚ, energy, Δ, output, i, frozen)
+    @showprogress 0.1 "Sampling... " for i=1:convert(Int, system.dynamics.steps)
+        perform_monte_carlo_step!(system, Rᵢ, Rₚ, output, i)
     end
-    output.acceptance /= passes*n_atoms(system)
+
+    output.acceptance /= system.dynamics.steps
     output
 end
 
-function perform_monte_carlo_step!(system::System{Classical, T}, Rᵢ::Matrix{T}, Rₚ::Matrix{T},
-    energy::Vector{T}, Δ::Dict{Symbol,T}, output::MonteCarloOutput{T}, i::Integer, frozen::AnalyticWeights) where {T<:AbstractFloat}
-    propose_move!(system, Rᵢ, Rₚ, Δ, n_DoF(system), n_atoms(system), frozen)
-    apply_cell_boundaries!(system.atomic_parameters.cell, Rₚ, n_atoms(system), n_DoF(system))
-    energy[2] = Electronics.evaluate_potential(system.model, Rₚ)
-    assess_proposal!(energy, Rₚ, Rᵢ, system.temperature, output)
-    write_output!(output, Rᵢ, energy[1], i)
+"""
+    perform_monte_carlo_step!(system::System{MonteCarlo}, Rᵢ::Matrix{T}, Rₚ::Matrix{T},
+    
+Perform a single step of the MetropolisHastings algorithm.
+"""
+function perform_monte_carlo_step!(system::System{MonteCarlo}, Rᵢ::Matrix{T}, Rₚ::Matrix{T},
+    output::MonteCarloOutput{T}, i::Integer) where {T<:AbstractFloat}
+    propose_move!(system, Rᵢ, Rₚ)
+    apply_cell_boundaries!(system, Rₚ)
+    system.dynamics.Eₚ = Electronics.evaluate_potential(system.model, Rₚ)
+    assess_proposal!(system, Rₚ, Rᵢ, output)
+    write_output!(output, Rᵢ, system.dynamics.Eᵢ, i)
 end
 
-function propose_move!(system::System{Classical, T}, Rᵢ::Matrix{T}, Rₚ::Matrix{T}, Δ::Dict{Symbol,T},
-    n_DoF::Integer, n_atoms::Integer, frozen::AnalyticWeights) where {T<:AbstractFloat}
+function propose_move!(system::System{MonteCarlo}, Rᵢ::Matrix{T}, Rₚ::Matrix{T}) where {T<:AbstractFloat}
     Rₚ .= Rᵢ
-    atom = sample(1:n_atoms, frozen)
-    Rₚ[:,atom] .+= (rand(n_DoF) .- 0.5) .* Δ[system.atomic_parameters.atom_types[atom]] / sqrt(n_DoF)
+    atom = sample(1:n_atoms(system), system.dynamics.moveable_atoms)
+    Rₚ[:,atom] .+= (rand(n_DoF(system)) .- 0.5) .* system.dynamics.Δ[system.atomic_parameters.atom_types[atom]] / sqrt(n_DoF(system))
+end
+
+function assess_proposal!(system::System{MonteCarlo}, Rₚ::Matrix{T}, Rᵢ::Matrix{T}, output::MonteCarloOutput{T}) where {T<:AbstractFloat}
+    if acceptance_probability(system) > rand()
+        system.dynamics.Eᵢ = system.dynamics.Eₚ
+        Rᵢ .= Rₚ
+        output.acceptance += 1
+    end
+end
+
+function apply_cell_boundaries!(system::System{MonteCarlo}, R::Matrix{<:AbstractFloat})
+    apply_cell_boundaries!(system.atomic_parameters.cell, R, n_atoms(system), n_DoF(system))
 end
 
 """
@@ -87,17 +135,10 @@ function apply_cell_boundaries!(cell::PeriodicCell, R::Matrix{<:AbstractFloat}, 
 end
 apply_cell_boundaries!(cell::InfiniteCell, R, n_atoms, n_DoF) = nothing
 
-function assess_proposal!(energy::Vector{T}, Rₚ::Matrix{T}, Rᵢ::Matrix{T}, temperature::T, output::MonteCarloOutput{T}) where {T<:AbstractFloat}
-    if acceptance_probability(energy[2], energy[1], temperature) > rand()
-        energy[1] = energy[2]
-        Rᵢ .= Rₚ
-        output.acceptance += 1
-    end
+function acceptance_probability(system::System{MonteCarlo})
+    acceptance(system.dynamics.Eₚ, system.dynamics.Eᵢ, system.temperature)
 end
-
-function acceptance_probability(energyₚ::T, energyᵢ::T, temperature::T) where {T<:AbstractFloat}
-    min(1, exp(-(energyₚ - energyᵢ)/temperature))
-end
+acceptance(Eₚ::T, Eᵢ::T, kT::T) where {T<:AbstractFloat} = min(1, exp(-(Eₚ - Eᵢ)/kT))
 
 function write_output!(output::MonteCarloOutput, Rᵢ::Matrix{T}, energy::T, i::Integer) where {T<:AbstractFloat}
     output.R[i] .= Rᵢ
