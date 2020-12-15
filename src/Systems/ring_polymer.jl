@@ -1,7 +1,14 @@
 using LinearAlgebra: Symmetric, SymTridiagonal
+using RecursiveArrayTools
 
+export RingPolymerArray
 export get_bead_masses
 export bead_iterator
+
+const RingPolymerArray{T, N} = ArrayPartition{T, NTuple{N, Matrix{T}}} where {T,N}
+function RingPolymerArray(A::Vector{Matrix{T}}) where {T}
+    RingPolymerArray{T, length(A)}(Tuple(A))
+end
 
 struct RingPolymerParameters{T<:AbstractFloat}
     n_beads::UInt

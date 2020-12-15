@@ -57,17 +57,28 @@ struct RingPolymerSystem{D, T<:AbstractFloat} <: AbstractSystem{D}
     electronics::Vector{Electronics.ElectronicContainer{T}}
     ring_polymer::RingPolymerParameters{T}
     dynamics::D
+    function RingPolymerSystem{D, T}(n_DoF::Integer, temperature::Real,
+        atomic_parameters::AtomicParameters{T}, model::Models.Model,
+        n_beads::Integer, quantum_nuclei::Vector{Symbol},
+        dynamics::D) where {T<:AbstractFloat, D<:DynamicsParameters}
+
+        electronics = [Electronics.ElectronicContainer{T}(model.n_states, n_DoF, atomic_parameters.n_atoms) for _=1:n_beads]
+        if isempty(quantum_nuclei)
+            ring_polymer = Systems.RingPolymerParameters{T}(n_beads, temperature, atomic_parameters.n_atoms)
+        else
+            ring_polymer = Systems.RingPolymerParameters{T}(n_beads, temperature, atomic_parameters.atom_types, quantum_nuclei)
+        end
+
+        new{D, T}(n_DoF, temperature, atomic_parameters, model, electronics, ring_polymer, dynamics)
+    end
 end
 
-function RingPolymerSystem(atomic_parameters::AtomicParameters{T}, model::Models.Model, n_beads::Integer,
-    temperature::Real, n_DoF::Integer=3; quantum_nuclei::Vector{Symbol}=Symbol[]) where {T<:AbstractFloat}
-    electronics = [Electronics.ElectronicContainer{T}(model.n_states, n_DoF, atomic_parameters.n_atoms) for _=1:n_beads]
-    if isempty(quantum_nuclei)
-        ring_polymer = Systems.RingPolymerParameters{T}(n_beads, temperature, atomic_parameters.n_atoms)
-    else
-        ring_polymer = Systems.RingPolymerParameters{T}(n_beads, temperature, atomic_parameters.atom_types, quantum_nuclei)
-    end
-    RingPolymerSystem{Classical, T}(n_DoF, temperature, atomic_parameters, model, electronics, ring_polymer, Classical())
+function RingPolymerSystem(atomic_parameters::AtomicParameters{T}, model::Models.Model,
+    n_beads::Integer, n_DoF::Integer=3;
+    temperature::Unitful.Temperature{<:Real}=300u"K",
+    quantum_nuclei::Vector{Symbol}=Symbol[]) where {T<:AbstractFloat}
+
+    RingPolymerSystem{Classical, T}(n_DoF, austrip(temperature), atomic_parameters, model, n_beads, quantum_nuclei, Classical())
 end
 
 n_atoms(system::AbstractSystem) = system.atomic_parameters.n_atoms
