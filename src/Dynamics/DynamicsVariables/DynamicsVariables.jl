@@ -1,5 +1,7 @@
 module DynamicsVariables
 
+using ....Systems
+using ....Electronics
 using RecursiveArrayTools
 using Unitful
 using UnitfulAtomic
@@ -20,5 +22,6 @@ abstract type RingPolymerDynamicalVariables{T} <: DynamicalVariables{T} end
 include("phasespace.jl")
 include("mapping_phasespace.jl")
 include("surface_hopping_phasespace.jl")
+include("classical_hamiltonians.jl")
 
 end
