@@ -133,7 +133,7 @@ function run_main_loop!(system::System{MonteCarlo}, Rᵢ::Matrix, Rₚ::Matrix, 
     @showprogress 0.1 "Sampling... " for i=1:convert(Int, system.dynamics.steps)
         propose_move!(system, Rᵢ, Rₚ)
         apply_cell_boundaries!(system, Rₚ)
-        assess_proposal!(system, Rₚ, Rᵢ, output, i)
+        assess_proposal!(system, Rᵢ, Rₚ, output, i)
     end
 end
 
