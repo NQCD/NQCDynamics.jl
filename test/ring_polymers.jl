@@ -25,3 +25,11 @@ S = system.ring_polymer.springs
 @test U'U ≈ I
 @test abs(det(U)) ≈ 1
 @test U'S*U ≈ diagm(λ)
+
+R = rand(3, 11, 10)
+R_original = copy(R)
+@test R == R_original
+transform_to_normal_modes!(system.ring_polymer, R, 3)
+@test !(R ≈ R_original)
+transform_from_normal_modes!(system.ring_polymer, R, 3)
+@test R ≈ R_original
