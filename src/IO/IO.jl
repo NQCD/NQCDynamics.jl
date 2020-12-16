@@ -21,7 +21,7 @@ function read_system(file::String)
 end
 
 function extract_parameters_and_positions(atoms::PyObject)
-    cell = Systems.PeriodicCell(atoms.cell.data, u"Å")
+    cell = Systems.PeriodicCell(atoms.cell.data', u"Å")
     atom_types = Symbol.(atoms.get_chemical_symbols())
     p = Atoms.AtomicParameters(cell, atom_types)
 

@@ -15,11 +15,11 @@ struct PeriodicCell{T} <: AbstractCell{T}
     periodicity::Vector{Bool}
 end
 
-function PeriodicCell(vectors::Matrix{T}, unit::Unitful.Units=u"bohr") where {T<:AbstractFloat}
+function PeriodicCell(vectors::AbstractMatrix{T}, unit::Unitful.Units=u"bohr") where {T<:AbstractFloat}
     PeriodicCell(vectors .* unit, [true, true, true]) 
 end
 
-function PeriodicCell(vectors::Matrix{T}, unit::Unitful.Units=u"bohr") where {T<:Integer}
+function PeriodicCell(vectors::AbstractMatrix{T}, unit::Unitful.Units=u"bohr") where {T<:Integer}
     PeriodicCell(vectors .* unit .* 1.0, [true, true, true]) 
 end
 

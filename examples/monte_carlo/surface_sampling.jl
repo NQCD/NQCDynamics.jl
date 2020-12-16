@@ -7,7 +7,7 @@ using Plots
 build = pyimport("ase.build")
 ase = pyimport("ase")
 
-slab = build.fcc111("Pd", size=(3,2,4), orthogonal=true)
+slab = build.fcc111("Pd", size=(3,2,3), orthogonal=true)
 build.add_adsorbate(slab, "H", 1.5, "ontop")
 build.add_adsorbate(slab, "H", 1.5, "bridge")
 slab.center(vacuum=10.0, axis=2)
