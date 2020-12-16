@@ -31,11 +31,17 @@ end
 
 function create_ase_atoms(atoms::AtomicParameters, R::Matrix{<:AbstractFloat}) 
     ase = pyimport("ase")
-    ase.Atoms(
+    if hasproperty(atoms.cell, :periodicity)
+        return ase.Atoms(
         positions=ustrip.(u"Å", R'u"bohr"),
         cell=ustrip.(u"Å", atoms.cell.vectors),
         symbols=string.(atoms.atom_types),
         pbc=atoms.cell.periodicity)
+    else
+        return ase.Atoms(
+            positions=ustrip.(u"Å", R'u"bohr"),
+            symbols=string.(atoms.atom_types))
+end
 end
 
 function write_trajectory(file_name::String, solution::DESolution, p::AtomicParameters)
