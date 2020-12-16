@@ -228,11 +228,9 @@ end
     apply_cell_boundaries!(system::System{MonteCarlo}, R::Matrix)
     
 Ensure the atom remains inside the simulation cell.
-
-Works only for cubic cells.
 """
 function apply_cell_boundaries!(system::System{MonteCarlo}, R::Matrix)
-    apply_cell_boundaries!(system.atomic_parameters.cell, R, n_atoms(system), n_DoF(system))
+    apply_cell_boundaries!(system.atomic_parameters.cell, R, n_atoms(system))
 end
 
 """
@@ -251,7 +249,7 @@ The modification by a factor of ``\\sqrt{N}`` is to convert to real space centro
 function apply_cell_boundaries!(system::RingPolymerSystem{MonteCarlo}, R::Array{T, 3}) where {T}
     transform_to_normal_modes!(system.ring_polymer, R, n_DoF(system))
     R[:,system.ring_polymer.quantum_atoms,1] ./= sqrt(n_beads(system))
-    @views apply_cell_boundaries!(system.atomic_parameters.cell, R[:,:,1], n_atoms(system), n_DoF(system))
+    @views apply_cell_boundaries!(system.atomic_parameters.cell, R[:,:,1], n_atoms(system))
     R[:,system.ring_polymer.quantum_atoms,1] .*= sqrt(n_beads(system))
     transform_from_normal_modes!(system.ring_polymer, R, n_DoF(system))
 end
@@ -260,31 +258,23 @@ end
     apply_cell_boundaries!(cell::PeriodicCell, R::Matrix, n_atoms::Integer, n_DoF::Integer)
     
 Apply simple periodic boundaries 
-
-This works for cubic cells only.
 """
-function apply_cell_boundaries!(cell::PeriodicCell, R::AbstractMatrix, n_atoms::Integer, n_DoF::Integer)
+function apply_cell_boundaries!(cell::PeriodicCell, R::AbstractMatrix, n_atoms::Integer)
     cell_vectors = austrip.(cell.vectors)
-    for i=1:n_atoms
-        for j=1:n_DoF # Loop ordering is very inefficient, don't need to check every time
-            if cell.periodicity[j] # If periodic in this dimension
-                if R[j,i] > cell_vectors[j,j]
-                    R[j,i] -= cell_vectors[j,j]
-                elseif R[j,i] < 0
-                    R[j,i] += cell_vectors[j,j]
-                end
-            end
-        end
+    @views for i=1:n_atoms
+        R[:,i] .= cell_vectors \ R[:,i]
+        R[:,i] .= mod1.(R[:,i], 1)
+        R[:,i] .= cell_vectors * R[:,i]
     end
 end
-apply_cell_boundaries!(::InfiniteCell, ::AbstractMatrix, ::Integer, ::Integer) = nothing
+apply_cell_boundaries!(::InfiniteCell, ::AbstractMatrix, ::Integer) = nothing
 
 """
     acceptance_probability(system::AbstractSystem{MonteCarlo})
 
 Return the Metropolis-Hastings acceptance probability.
 """
-function acceptance_probability(system::AbstractSystem{MonteCarlo})
+function acceptance_probability(system::System{MonteCarlo})
     acceptance_probability(system.dynamics.Eₚ, system.dynamics.Eᵢ, system.temperature)
 end
 function acceptance_probability(system::RingPolymerSystem{MonteCarlo})
