@@ -200,8 +200,13 @@ function propose_normal_mode_move!(system::RingPolymerSystem{MonteCarlo}, Rᵢ::
     transform_to_normal_modes!(system.ring_polymer, Rₚ, n_DoF(system))
     atom = sample(system.ring_polymer.quantum_atoms)
     mode = sample(2:n_beads(system)-1)
-    Rₚ[:, atom, mode] .+= randn(n_DoF(system)) .* sqrt(system.ring_polymer.ω_n / (2system.ring_polymer.normal_mode_springs[mode]*masses(system)[atom]))
+    @views sample_mode!(system.ring_polymer, masses(system)[atom], mode, Rₚ[:, atom, mode])
     transform_from_normal_modes!(system.ring_polymer, Rₚ, n_DoF(system))
+end
+
+function sample_mode!(ring_polymer::Systems.RingPolymerParameters, mass::AbstractFloat, mode::Integer, R::AbstractArray)
+    σ = sqrt(ring_polymer.ω_n / mass) / (ring_polymer.normal_mode_springs[mode] * mass)
+    rand!(Normal(0, σ), R)
 end
 
 """
