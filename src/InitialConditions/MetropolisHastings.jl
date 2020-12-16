@@ -282,6 +282,9 @@ Return the Metropolis-Hastings acceptance probability.
 function acceptance_probability(system::AbstractSystem{MonteCarlo})
     acceptance_probability(system.dynamics.Eₚ, system.dynamics.Eᵢ, system.temperature)
 end
+function acceptance_probability(system::RingPolymerSystem{MonteCarlo})
+    acceptance_probability(system.dynamics.Eₚ, system.dynamics.Eᵢ, system.temperature*n_beads(system))
+end
 acceptance_probability(Eₚ::T, Eᵢ::T, kT::T) where {T<:AbstractFloat} = min(1, exp(-(Eₚ - Eᵢ)/kT))
 
 """
