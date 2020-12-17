@@ -11,8 +11,6 @@ struct Phasespace{T} <: DynamicalVariables{T}
 end
 Phasespace(R::Matrix, P::Matrix) = Phasespace(ArrayPartition(R, P))
 
-const RingPolymerArray{T, N} = ArrayPartition{T, NTuple{N, Matrix{T}}} where {T,N}
-
 struct RingPolymerPhasespace{T,N} <: DynamicalVariables{T}
     x::ArrayPartition{T, Tuple{RingPolymerArray{T,N}, RingPolymerArray{T,N}}}
 end
