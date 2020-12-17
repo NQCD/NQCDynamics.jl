@@ -19,6 +19,7 @@ export IO
 
 include("InitialConditions/InitialConditions.jl")
 export InitialConditions
+export MonteCarlo
 
 
 end # module
