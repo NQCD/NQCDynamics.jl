@@ -5,17 +5,17 @@ using Plots
 using UnitfulAtomic
 using PeriodicTable
 using Random
+using Unitful
 
 atoms = Systems.AtomicParameters(Systems.InfiniteCell(), [:H, :C])
 model = Models.Analytic.Harmonic(austrip(elements[:H].atomic_mass), 1e-3, 10)
 # model = Models.Analytic.Free()
-n_beads = 10
-temperature = 1
-n_DoF = 1
-system = Systems.RingPolymerSystem(atoms, model, n_beads, 5e-4, n_DoF)
+beads = 10
+DoF = 1
+system = Systems.RingPolymerSystem(atoms, model, beads, DoF; temperature=100u"K")
 
-R = ArrayPartition([randn(n_DoF, 2) for i=1:n_beads]...)
-P = ArrayPartition([zeros(n_DoF, 2) for i=1:n_beads]...)
+R = cat([randn(DoF, 2) for i=1:beads]..., dims=3)
+P = cat([zeros(DoF, 2) for i=1:beads]..., dims=3)
 z = Dynamics.RingPolymerPhasespace(R, P)
 
 problem = ODEProblem(Dynamics.differential!, z, (0.0, 1e4), system)

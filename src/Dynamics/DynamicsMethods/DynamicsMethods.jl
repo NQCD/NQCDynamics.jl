@@ -40,12 +40,10 @@ function set_force!(du::DynamicalVariables, u::DynamicalVariables, p::RingPolyme
 end
 
 function apply_interbead_coupling!(du::DynamicalVariables, u::DynamicalVariables, p::RingPolymerSystem{T}) where {T}
-    dofs = n_DoF(p)*n_atoms(p)
-    atom_index = 1
-    for i=1:dofs
-        # Multiplication with the view of positions doesn't work due to a bug with the ArrayPartition
-        get_bead_momenta(du, i, dofs) .-= 2p.ring_polymer.springs * get_positions(u)[i:dofs:end] .* masses(p)[atom_index]
-        if i % n_DoF(p) == 0; atom_index += 1 end
+    for i=1:n_atoms(p)
+        for j=1:n_DoF(p)
+            get_momenta(du)[j,i,:] .-= 2p.ring_polymer.springs*get_positions(u)[j,i,:] .* masses(p)[i]
+        end
     end
 end
 
