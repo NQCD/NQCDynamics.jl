@@ -3,8 +3,6 @@ export get_positions
 export get_momenta
 
 export RingPolymerPhasespace
-export get_bead_positions
-export get_bead_momenta
 
 struct Phasespace{T} <: DynamicalVariables{T}
     x::ArrayPartition{T, Tuple{Matrix{T}, Matrix{T}}}
@@ -27,7 +25,3 @@ get_momenta(z::Union{RingPolymerPhasespace, Phasespace}) = z.x.x[2]
 """Get the positions for bead `i`"""
 get_positions(z::RingPolymerPhasespace, i::Integer) = @view get_positions(z)[:,:,i]
 get_momenta(z::RingPolymerPhasespace, i::Integer) = @view get_momenta(z)[:,:,i]
-
-"""Get the postions of all the beads for DoF `i`"""
-get_bead_positions(z::RingPolymerPhasespace, i::Integer, n_DoF::Integer) = @view get_positions(z)[i:n_DoF:end]
-get_bead_momenta(z::RingPolymerPhasespace, i::Integer, n_DoF::Integer) = @view get_momenta(z)[i:n_DoF:end]
