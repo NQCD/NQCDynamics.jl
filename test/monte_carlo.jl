@@ -79,16 +79,3 @@ end
     @test !(out.R[1] ≈ out.R[10])
     @test !(out.energy[1] ≈ out.energy[20])
 end
-
-beads = 10
-sys = RingPolymerSystem{MonteCarlo}(atoms, model, 1000u"K", beads, Δ, 1; passes=2000, quantum_nuclei=[:H])
-
-
-@testset "propose_move!" begin
-    Rᵢ = rand(1, n_atoms(sys), n_beads(sys))
-    Rₚ = copy(Rᵢ)
-    @test Rᵢ == Rₚ
-    MetropolisHastings.propose_centroid_move!(sys, Rᵢ, Rₚ)
-    @test Rᵢ != Rₚ
-end
-end
