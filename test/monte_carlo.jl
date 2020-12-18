@@ -2,9 +2,6 @@ using Test
 using NonadiabaticMolecularDynamics
 using NonadiabaticMolecularDynamics.InitialConditions
 using Unitful
-using StatsBase
-using RecursiveArrayTools
-using BenchmarkTools
 
 atoms = Atoms.AtomicParameters(Atoms.PeriodicCell(hcat(1)), [:H, :H, :C])
 model = Models.Analytic.Harmonic(1.0, 1.0, 0.0)

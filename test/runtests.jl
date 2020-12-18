@@ -1,10 +1,19 @@
 using Test
 using NonadiabaticMolecularDynamics
 
-include("model.jl")
-include("systems.jl")
-include("io/io.jl")
-include("dynamics.jl")
-include("ring_polymers.jl")
-include("dynamics/langevin.jl")
-include("monte_carlo.jl")
+const tests = [
+    "model"
+    "systems"
+    "io/io"
+    "dynamics"
+    "ring_polymers"
+    "dynamics/langevin"
+    "dynamics/mdef"
+    "monte_carlo"
+]
+
+for t in tests
+    @testset "Test $t" begin
+        include("$t.jl")
+    end
+end

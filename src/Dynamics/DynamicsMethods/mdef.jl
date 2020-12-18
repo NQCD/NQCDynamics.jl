@@ -2,6 +2,8 @@ using Random
 using LinearAlgebra
 
 export MDEF
+export random_force!
+export set_force!
 
 struct MDEF{T<:AbstractFloat} <: Systems.DynamicsParameters
     friction::Matrix{T}
@@ -29,7 +31,7 @@ end
 
 function random_force!(du, u::Phasespace, p::System{MDEF}, t)
     update_friction!(p.dynamics.friction)
-    du[n_DoF(p)*n_atoms(p)+1:end, n_DoF(p)*n_atoms(p)+1:end] .= p.dynamics.friction
+    du[n_DoF(p)*n_atoms(p)+1:end, n_DoF(p)*n_atoms(p)+1:end] .= p.dynamics.friction * sqrt(2p.temperature)
 end
 
 update_friction!(friction) = randn!(friction)
