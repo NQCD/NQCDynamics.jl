@@ -4,12 +4,12 @@ export get_momenta
 
 export RingPolymerPhasespace
 
-struct Phasespace{T} <: DynamicalVariables{T}
+mutable struct Phasespace{T} <: DynamicalVariables{T}
     x::ArrayPartition{T, Tuple{Matrix{T}, Matrix{T}}}
 end
 Phasespace(R::Matrix, P::Matrix) = Phasespace(ArrayPartition(R, P))
 
-struct RingPolymerPhasespace{T} <: DynamicalVariables{T}
+mutable struct RingPolymerPhasespace{T} <: DynamicalVariables{T}
     x::ArrayPartition{T, Tuple{Array{T,3}, Array{T,3}}}
 end
 RingPolymerPhasespace(R::Array{T, 3}, P::Array{T, 3}) where {T} = RingPolymerPhasespace(ArrayPartition(R, P))
