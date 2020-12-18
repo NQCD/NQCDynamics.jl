@@ -40,7 +40,7 @@ function set_force!(du::DynamicalVariables, u::DynamicalVariables, p::RingPolyme
 end
 
 function apply_interbead_coupling!(du::DynamicalVariables, u::DynamicalVariables, p::RingPolymerSystem{T}) where {T}
-    for i=1:n_atoms(p)
+    for i in p.ring_polymer.quantum_atoms
         for j=1:n_DoF(p)
             get_momenta(du)[j,i,:] .-= 2p.ring_polymer.springs*get_positions(u)[j,i,:] .* masses(p)[i]
         end
@@ -49,5 +49,7 @@ end
 
 include("langevin.jl")
 export Langevin
+include("mdef.jl")
+export MDEF
 
 end # module
