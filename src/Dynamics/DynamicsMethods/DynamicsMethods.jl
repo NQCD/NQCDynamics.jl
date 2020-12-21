@@ -50,4 +50,7 @@ end
 include("langevin.jl")
 export Langevin
 
+include("IESH_dynamics.jl")
+export IESH_dynamics
+
 end # module
