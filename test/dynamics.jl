@@ -10,6 +10,9 @@ using Unitful
     @test get_momenta(z) == P # check the momenta are extracted
     @test all(zero(z).x .== 0) # test zero function
     @test all(z.x .!= 0) # test that zero creates a copy and doesn't zero inplace
+    
+    @test get_flat_momenta(z) == get_momenta(z)[:]
+    @test get_flat_positions(z) == get_positions(z)[:]
 end
 
 # @testset "MappingPhasespace" begin
