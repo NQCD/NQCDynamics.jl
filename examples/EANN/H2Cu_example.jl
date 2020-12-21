@@ -17,7 +17,7 @@ p = Systems.System(atoms, model)
 positions_ang = copy(ustrip(auconvert.(u"Å", positions)))
 
 print("\nPositions: \n")
-print(positions_out)
+print(positions_ang)
 print("\nEnergy: \n")
 en = model.get_V0(positions_ang)
 print(en)
