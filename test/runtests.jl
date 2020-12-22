@@ -2,14 +2,15 @@ using Test
 using NonadiabaticMolecularDynamics
 
 const tests = [
-    "model"
-    "systems"
-    "io/io"
-    "dynamics"
+    "atoms"
+    "cells"
+    "calculators"
     "ring_polymers"
+    "monte_carlo"
+    "phasespace"
     "dynamics/langevin"
     "dynamics/mdef"
-    "monte_carlo"
+    "io/io"
 ]
 
 for t in tests
