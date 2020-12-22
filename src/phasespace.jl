@@ -1,10 +1,19 @@
+
+using RecursiveArrayTools
+using DiffEqBase
+
+export DynamicalVariables
 export Phasespace
+export RingPolymerPhasespace
 export get_positions
 export get_momenta
 export get_flat_positions
 export get_flat_momenta
 
-export RingPolymerPhasespace
+"""
+Abstract type for different kinds of systems.
+"""
+DynamicalVariables{T} = DEDataVector{T} where {T<:AbstractFloat}
 
 mutable struct Phasespace{T} <: DynamicalVariables{T}
     x::ArrayPartition{T, Tuple{Matrix{T}, Matrix{T}}}

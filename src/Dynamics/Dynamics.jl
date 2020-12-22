@@ -1,15 +1,14 @@
 module Dynamics
 
-using ..Electronics
-using ..Systems
+using ..NonadiabaticMolecularDynamics
 
-using Reexport
-using DiffEqBase
+abstract type Method end
 
-include("DynamicsVariables/DynamicsVariables.jl")
-@reexport using .DynamicsVariables
+include("classical.jl")
+include("langevin.jl")
+include("mdef.jl")
 
-include("DynamicsMethods/DynamicsMethods.jl")
-@reexport using .DynamicsMethods
+export motion!
+export random_force!
 
 end # module
