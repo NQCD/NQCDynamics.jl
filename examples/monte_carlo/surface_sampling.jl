@@ -12,15 +12,16 @@ build.add_adsorbate(slab, "H", 1.5, "ontop")
 build.add_adsorbate(slab, "H", 1.5, "bridge")
 slab.center(vacuum=10.0, axis=2)
 
-atoms, positions = extract_parameters_and_positions(slab)
-model = Models.PdH(atoms.atom_types, atoms.cell, 10.0)
+cell, atoms, positions = extract_parameters_and_positions(slab)
+calc = Calculators.PdH(atoms.types, cell, 10.0)
 
 Δ = Dict([(:Pd, 0.5), (:H, 0.5)])
-sys = RingPolymerSystem{MonteCarlo}(atoms, model, 30u"K", 10, Δ; passes=100, fix=collect(1:6), quantum_nuclei=[:H])
+monte_carlo = InitialConditions.MonteCarlo{Float64}(Δ, length(atoms), 100, collect(1:6))
+sim = RingPolymerSimulation(3, 100u"K", cell, atoms, calc, monte_carlo, 10, [:H])
 
 R = cat([positions for i=1:10]..., dims=3)
-output = InitialConditions.run_monte_carlo_sampling(sys, R)
+output = InitialConditions.run_monte_carlo_sampling(sim, R)
 
 @show output.acceptance
-write_trajectory("sampling.xyz", output.R, atoms)
+write_trajectory("sampling.xyz", cell, atoms, output.R)
 plot(output.energy)

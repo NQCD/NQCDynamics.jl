@@ -1,16 +1,11 @@
 using LinearAlgebra: Symmetric, SymTridiagonal
 using RecursiveArrayTools
 
-export RingPolymerArray
+export RingPolymerParameters
 export get_bead_masses
 export bead_iterator
 export transform_to_normal_modes!
 export transform_from_normal_modes!
-
-const RingPolymerArray{T, N} = ArrayPartition{T, NTuple{N, Matrix{T}}} where {T,N}
-function RingPolymerArray(A::Vector{Matrix{T}}) where {T}
-    RingPolymerArray{T, length(A)}(Tuple(A))
-end
 
 struct RingPolymerParameters{T<:AbstractFloat}
     n_beads::UInt
@@ -33,7 +28,7 @@ struct RingPolymerParameters{T<:AbstractFloat}
 end
 
 """Constructor for choosing specific elements to be quantum."""
-function RingPolymerParameters{T}(n_beads::Integer, temperature::Real, atom_types::Vector{Symbol}, quantum_nuclei::Vector{Symbol}) where {T}
+function RingPolymerParameters{T}(n_beads::Integer, temperature::Real, atom_types::AbstractVector{Symbol}, quantum_nuclei::Vector{Symbol}) where {T}
     quantum_atoms = findall(in(quantum_nuclei), atom_types)
     RingPolymerParameters{T}(n_beads, temperature, quantum_atoms)
 end
@@ -89,3 +84,6 @@ function transform_from_normal_modes!(p::RingPolymerParameters, R::Array{T,3}, D
         end
     end
 end
+
+Base.length(beads::RingPolymerParameters) = beads.n_beads
+Base.range(beads::RingPolymerParameters) = range(1; length=length(beads))
