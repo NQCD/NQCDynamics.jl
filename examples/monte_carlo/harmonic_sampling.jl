@@ -2,13 +2,17 @@ using NonadiabaticMolecularDynamics
 using Unitful
 using Plots
 
-atoms = Atoms.AtomicParameters(Atoms.InfiniteCell(), fill(:H, 5))
-model = Models.Harmonic(1, 1, 0.1)
+# atoms = Atoms.AtomicParameters(Atoms.InfiniteCell(), fill(:H, 5))
+atoms = Atoms{Float64}(fill(:H, 5))
+cell = InfiniteCell{Float64}()
+calc = Calculators.Harmonic()
+# model = Models.Harmonic(1, 1, 0.1)
 
 Δ = Dict([(:H, 0.3)])
-sys = System{MonteCarlo}(atoms, model, 300u"K", Δ, 1; passes=2000)
+monte_carlo = InitialConditions.MonteCarlo{Float64}(Δ, length(atoms), 1000, Int[])
+sim = Simulation(1, 300u"K", cell, atoms, calc, monte_carlo)
 
-output = InitialConditions.run_monte_carlo_sampling(sys, zeros(1, n_atoms(sys)))
+output = InitialConditions.run_monte_carlo_sampling(sim, zeros(1, length(sim.atoms)))
 
 @show output.acceptance
 plot(vcat(output.R...))

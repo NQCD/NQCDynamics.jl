@@ -1,6 +1,5 @@
 using Test
 using NonadiabaticMolecularDynamics
-using Unitful
 
 @testset "Phasespace" begin
     R = rand(3, 10)
@@ -14,28 +13,6 @@ using Unitful
     @test get_flat_momenta(z) == get_momenta(z)[:]
     @test get_flat_positions(z) == get_positions(z)[:]
 end
-
-# @testset "MappingPhasespace" begin
-#     R = rand(10)
-#     P = rand(10)
-#     z = MappingPhasespace(R, P, 2, 1)
-    
-#     @test get_positions(z) == R
-#     @test get_momenta(z) == P
-#     get_mapping_positions(z)
-#     get_mapping_momenta(z)
-# end
-
-# @testset "SurfaceHoppingPhasespace" begin
-#     R = rand(10)
-#     P = rand(10)
-#     z = SurfaceHoppingPhasespace(R, P, 2, 1)
-    
-#     @test get_positions(z) == R
-#     @test get_momenta(z) == P
-#     @test_nowarn get_density_matrix(z)
-#     @test_nowarn get_adiabatic_state(z)
-# end
 
 @testset "RingPolymerPhasespace" begin
     z = RingPolymerPhasespace(rand(3, 10), rand(3, 10), 20)

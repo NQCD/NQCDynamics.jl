@@ -17,25 +17,23 @@ using ProgressMeter
 using Unitful
 using UnitfulAtomic
 using Distributions
-using ....Systems
-using ....Atoms
-using ....Models
-using ....Electronics
-using ....Dynamics
+
+using ....Dynamics: Method
+using ....NonadiabaticMolecularDynamics
 
 export run_monte_carlo_sampling
 export MonteCarlo
 
 """Parameters for MonteCarlo simulation
 """
-mutable struct MonteCarlo{T<:AbstractFloat} <: Systems.DynamicsParameters
+mutable struct MonteCarlo{T} <: Method
     Eᵢ::T
     Eₚ::T
     Δ::Dict{Symbol, T}
     steps::UInt
     moveable_atoms::AnalyticWeights
     function MonteCarlo{T}(Δ::Dict{Symbol, T},
-        n_atoms::Real, passes::Real, fix::Vector{<:Integer}) where {T}
+        n_atoms::Real, passes::Real, fix::Vector{<:Integer}) where {T<:AbstractFloat}
 
         steps = n_atoms * passes
 
@@ -61,41 +59,41 @@ mutable struct MonteCarloOutput{T<:AbstractFloat,S}
 end
 MonteCarloOutput{T}(R0::S, length::Integer) where {T,S} = MonteCarloOutput{T,S}(R0, length)
 
-"""Constructor for Monte-Carlo system
-"""
-function System{MonteCarlo}(
-    atomic_parameters::AtomicParameters{T},
-    model::Models.Model,
-    temperature::Unitful.Temperature{<:Real},
-    Δ::Dict{Symbol, T},
-    n_DoF::Integer=3;
-    passes::Real=10,
-    fix::Vector{<:Integer}=Int[]) where {T}
+# """Constructor for Monte-Carlo system
+# """
+# function System{MonteCarlo}(
+#     atomic_parameters::AtomicParameters{T},
+#     model::Models.Model,
+#     temperature::Unitful.Temperature{<:Real},
+#     Δ::Dict{Symbol, T},
+#     n_DoF::Integer=3;
+#     passes::Real=10,
+#     fix::Vector{<:Integer}=Int[]) where {T}
 
-    monte_carlo = MonteCarlo{T}(Δ, atomic_parameters.n_atoms, passes, fix)
+#     monte_carlo = MonteCarlo{T}(Δ, atomic_parameters.n_atoms, passes, fix)
 
-    System{MonteCarlo, T}(n_DoF, austrip(temperature),
-        atomic_parameters, model, monte_carlo)
-end
+#     System{MonteCarlo, T}(n_DoF, austrip(temperature),
+#         atomic_parameters, model, monte_carlo)
+# end
 
-"""Constructor for the MonteCarlo RingPolymerSystem
-"""
-function RingPolymerSystem{MonteCarlo}(
-    atomic_parameters::AtomicParameters{T},
-    model::Models.Model,
-    temperature::Unitful.Temperature{<:Real},
-    n_beads::Integer,
-    Δ::Dict{Symbol, T},
-    n_DoF::Integer=3;
-    passes::Real=10,
-    fix::Vector{<:Integer}=Int[],
-    quantum_nuclei::Vector{Symbol}=Symbol[]) where {T<:AbstractFloat}
+# """Constructor for the MonteCarlo RingPolymerSystem
+# """
+# function RingPolymerSystem{MonteCarlo}(
+#     atomic_parameters::AtomicParameters{T},
+#     model::Models.Model,
+#     temperature::Unitful.Temperature{<:Real},
+#     n_beads::Integer,
+#     Δ::Dict{Symbol, T},
+#     n_DoF::Integer=3;
+#     passes::Real=10,
+#     fix::Vector{<:Integer}=Int[],
+#     quantum_nuclei::Vector{Symbol}=Symbol[]) where {T<:AbstractFloat}
 
-    monte_carlo = MonteCarlo{T}(Δ, atomic_parameters.n_atoms, passes, fix)
+#     monte_carlo = MonteCarlo{T}(Δ, atomic_parameters.n_atoms, passes, fix)
 
-    RingPolymerSystem{MonteCarlo, T}(n_DoF, austrip(temperature),
-        atomic_parameters, model, n_beads, quantum_nuclei, monte_carlo)
-end
+#     RingPolymerSystem{MonteCarlo, T}(n_DoF, austrip(temperature),
+#         atomic_parameters, model, n_beads, quantum_nuclei, monte_carlo)
+# end
 
 """
     Configuration{T} = Union{Matrix{T}, Array{T, 3}}
@@ -111,16 +109,16 @@ const Configuration{T} = Union{Matrix{T}, Array{T, 3}}
     
 Run the simulation defined by the MonteCarlo system.
 """
-function run_monte_carlo_sampling(system::AbstractSystem{MonteCarlo}, R0::Configuration{T}) where {T}
+function run_monte_carlo_sampling(sim::AbstractSimulation{<:MonteCarlo}, R0::Configuration{T}) where {T}
 
     Rᵢ = copy(R0) # Current positions
     Rₚ = zero(Rᵢ) # Proposed positions
-    system.dynamics.Eᵢ = evaluate_configurational_energy(system, Rᵢ)
-    output = MonteCarloOutput{T}(Rᵢ, system.dynamics.steps)
+    sim.method.Eᵢ = evaluate_configurational_energy(sim, Rᵢ)
+    output = MonteCarloOutput{T}(Rᵢ, sim.method.steps)
 
-    run_main_loop!(system, Rᵢ, Rₚ, output)
+    run_main_loop!(sim, Rᵢ, Rₚ, output)
 
-    output.acceptance /= system.dynamics.steps
+    output.acceptance /= sim.method.steps
     output
 end
 
@@ -129,25 +127,27 @@ end
     
 Main loop for classical systems.
 """
-function run_main_loop!(system::System{MonteCarlo}, Rᵢ::Matrix, Rₚ::Matrix, output::MonteCarloOutput)
-    @showprogress 0.1 "Sampling... " for i=1:convert(Int, system.dynamics.steps)
-        propose_move!(system, Rᵢ, Rₚ)
-        apply_cell_boundaries!(system, Rₚ)
-        assess_proposal!(system, Rᵢ, Rₚ, output, i)
+function run_main_loop!(sim::Simulation{<:MonteCarlo}, Rᵢ::Matrix, Rₚ::Matrix, output::MonteCarloOutput)
+    @showprogress 0.1 "Sampling... " for i=1:convert(Int, sim.method.steps)
+        propose_move!(sim, Rᵢ, Rₚ)
+        apply_cell_boundaries!(sim, Rₚ)
+        assess_proposal!(sim, Rᵢ, Rₚ, output, i)
     end
 end
 
 """Main loop for ring polymer systems.
 """
-function run_main_loop!(system::RingPolymerSystem{MonteCarlo}, Rᵢ::Array{T,3}, Rₚ::Array{T,3},
+function run_main_loop!(sim::RingPolymerSimulation{<:MonteCarlo}, Rᵢ::Array{T,3}, Rₚ::Array{T,3},
     output::MonteCarloOutput) where {T}
-    @showprogress 0.1 "Sampling... " for i=1:n_beads(system):convert(Int, system.dynamics.steps)
-        propose_centroid_move!(system, Rᵢ, Rₚ)
-        apply_cell_boundaries!(system, Rₚ)
-        assess_proposal!(system, Rᵢ, Rₚ, output, i)
-        for j=1:n_beads(system)-1
-            propose_normal_mode_move!(system, Rᵢ, Rₚ)
-            assess_proposal!(system, Rᵢ, Rₚ, output, i+j)
+    @showprogress 0.1 "Sampling... " for i=1:length(sim.beads):convert(Int, sim.method.steps)
+        if !all(sim.method.moveable_atoms .== 0.0)
+            propose_centroid_move!(sim, Rᵢ, Rₚ)
+            apply_cell_boundaries!(sim, Rₚ)
+        end
+        assess_proposal!(sim, Rᵢ, Rₚ, output, i)
+        for j=1:length(sim.beads)-1
+            propose_normal_mode_move!(sim, Rᵢ, Rₚ)
+            assess_proposal!(sim, Rᵢ, Rₚ, output, i+j)
         end
     end
 end
@@ -157,10 +157,10 @@ end
     
 Propose simple cartesian move for a single atom.
 """
-function propose_move!(system::System{MonteCarlo}, Rᵢ::Matrix{T}, Rₚ::Matrix{T}) where {T<:AbstractFloat}
+function propose_move!(sim::Simulation{MonteCarlo{T}}, Rᵢ::Matrix{T}, Rₚ::Matrix{T}) where {T<:AbstractFloat}
     Rₚ .= Rᵢ
-    atom = sample(1:n_atoms(system), system.dynamics.moveable_atoms)
-    apply_random_perturbation!(system, Rₚ, atom)
+    atom = sample(range(sim.atoms), sim.method.moveable_atoms)
+    apply_random_perturbation!(sim, Rₚ, atom)
 end
 
 """
@@ -168,17 +168,17 @@ end
     
 Propose a move for the ring polymer centroid for one atom.
 """
-function propose_centroid_move!(system::RingPolymerSystem{MonteCarlo}, Rᵢ::Array{T, 3}, Rₚ::Array{T, 3}) where {T<:AbstractFloat}
+function propose_centroid_move!(sim::RingPolymerSimulation{<:MonteCarlo}, Rᵢ::Array{T, 3}, Rₚ::Array{T, 3}) where {T<:AbstractFloat}
     Rₚ .= Rᵢ
-    transform_to_normal_modes!(system.ring_polymer, Rₚ, n_DoF(system))
-    atom = sample(1:n_atoms(system), system.dynamics.moveable_atoms)
-    @views apply_random_perturbation!(system, Rₚ[:,:,1], atom) # Perturb the centroid mode
-    @views if atom ∉ system.ring_polymer.quantum_atoms # Ensure replicas are indentical if not quantum
-        for i=2:n_beads(system)
+    transform_to_normal_modes!(sim.beads, Rₚ, sim.DoFs)
+    atom = sample(range(sim.atoms), sim.method.moveable_atoms)
+    @views apply_random_perturbation!(sim, Rₚ[:,:,1], atom) # Perturb the centroid mode
+    @views if atom ∉ sim.beads.quantum_atoms # Ensure replicas are indentical if not quantum
+        for i=2:length(sim.beads)
             Rₚ[:, atom, i] .= Rₚ[:, atom, 1]
         end
     end
-    transform_from_normal_modes!(system.ring_polymer, Rₚ, n_DoF(system))
+    transform_from_normal_modes!(sim.beads, Rₚ, sim.DoFs)
 end
 
 """
@@ -186,8 +186,8 @@ end
     
 Randomly perturb the xyz coordinates of a single atom.
 """
-function apply_random_perturbation!(system::AbstractSystem{MonteCarlo}, R::AbstractMatrix, atom::Integer)
-    R[:, atom] .+= (rand(n_DoF(system)) .- 0.5) .* system.dynamics.Δ[system.atomic_parameters.atom_types[atom]] / sqrt(n_DoF(system))
+function apply_random_perturbation!(sim::AbstractSimulation{<:MonteCarlo}, R::AbstractMatrix, atom::Integer)
+    R[:, atom] .+= (rand(sim.DoFs) .- 0.5) .* sim.method.Δ[sim.atoms.types[atom]] / sqrt(sim.DoFs)
 end
 
 """
@@ -195,17 +195,17 @@ end
     
 Propose a move for a single normal mode for a single atom.
 """
-function propose_normal_mode_move!(system::RingPolymerSystem{MonteCarlo}, Rᵢ::Array{T, 3}, Rₚ::Array{T, 3}) where {T}
+function propose_normal_mode_move!(sim::RingPolymerSimulation{<:MonteCarlo}, Rᵢ::Array{T, 3}, Rₚ::Array{T, 3}) where {T}
     Rₚ .= Rᵢ
-    transform_to_normal_modes!(system.ring_polymer, Rₚ, n_DoF(system))
-    atom = sample(system.ring_polymer.quantum_atoms)
-    mode = sample(2:n_beads(system)-1)
-    @views sample_mode!(system.ring_polymer, masses(system)[atom], mode, Rₚ[:, atom, mode])
-    transform_from_normal_modes!(system.ring_polymer, Rₚ, n_DoF(system))
+    transform_to_normal_modes!(sim.beads, Rₚ, sim.DoFs)
+    atom = sample(sim.beads.quantum_atoms)
+    mode = sample(2:length(sim.beads))
+    @views sample_mode!(sim.beads, sim.atoms.masses[atom], mode, Rₚ[:, atom, mode])
+    transform_from_normal_modes!(sim.beads, Rₚ, sim.DoFs)
 end
 
-function sample_mode!(ring_polymer::Systems.RingPolymerParameters, mass::AbstractFloat, mode::Integer, R::AbstractArray)
-    σ = sqrt(ring_polymer.ω_n / mass) / (ring_polymer.normal_mode_springs[mode] * mass)
+function sample_mode!(beads::RingPolymerParameters, mass::AbstractFloat, mode::Integer, R::AbstractArray)
+    σ = sqrt(beads.ω_n / mass) / (beads.normal_mode_springs[mode] * mass)
     rand!(Normal(0, σ), R)
 end
 
@@ -214,14 +214,14 @@ end
     
 Update the energy, check for acceptance, and update the output. 
 """
-function assess_proposal!(system::AbstractSystem{MonteCarlo}, Rᵢ, Rₚ, output, i)
-    system.dynamics.Eₚ = evaluate_configurational_energy(system, Rₚ)
-    if acceptance_probability(system) > rand()
-        system.dynamics.Eᵢ = system.dynamics.Eₚ
+function assess_proposal!(sim::AbstractSimulation{<:MonteCarlo}, Rᵢ, Rₚ, output, i)
+    sim.method.Eₚ = evaluate_configurational_energy(sim, Rₚ)
+    if acceptance_probability(sim) > rand()
+        sim.method.Eᵢ = sim.method.Eₚ
         Rᵢ .= Rₚ
         output.acceptance += 1
     end
-    write_output!(output, Rᵢ, system.dynamics.Eᵢ, i)
+    write_output!(output, Rᵢ, sim.method.Eᵢ, i)
 end
 
 """
@@ -229,8 +229,8 @@ end
     
 Ensure the atom remains inside the simulation cell.
 """
-function apply_cell_boundaries!(system::System{MonteCarlo}, R::Matrix)
-    apply_cell_boundaries!(system.atomic_parameters.cell, R, n_atoms(system))
+function apply_cell_boundaries!(sim::Simulation{<:MonteCarlo}, R::Matrix)
+    apply_cell_boundaries!(sim.cell, R, length(sim.atoms))
 end
 
 """
@@ -246,12 +246,12 @@ not yet done.
 
 The modification by a factor of ``\\sqrt{N}`` is to convert to real space centroid. 
 """
-function apply_cell_boundaries!(system::RingPolymerSystem{MonteCarlo}, R::Array{T, 3}) where {T}
-    transform_to_normal_modes!(system.ring_polymer, R, n_DoF(system))
-    R[:,system.ring_polymer.quantum_atoms,1] ./= sqrt(n_beads(system))
-    @views apply_cell_boundaries!(system.atomic_parameters.cell, R[:,:,1], n_atoms(system))
-    R[:,system.ring_polymer.quantum_atoms,1] .*= sqrt(n_beads(system))
-    transform_from_normal_modes!(system.ring_polymer, R, n_DoF(system))
+function apply_cell_boundaries!(sim::RingPolymerSimulation{<:MonteCarlo}, R::Array{T, 3}) where {T}
+    transform_to_normal_modes!(sim.beads, R, sim.DoFs)
+    R[:,sim.beads.quantum_atoms,1] ./= sqrt(length(sim.beads))
+    @views apply_cell_boundaries!(sim.cell, R[:,:,1], length(sim.atoms))
+    R[:,sim.beads.quantum_atoms,1] .*= sqrt(length(sim.beads))
+    transform_from_normal_modes!(sim.beads, R, sim.DoFs)
 end
 
 """
@@ -260,11 +260,10 @@ end
 Apply simple periodic boundaries 
 """
 function apply_cell_boundaries!(cell::PeriodicCell, R::AbstractMatrix, n_atoms::Integer)
-    cell_vectors = austrip.(cell.vectors)
     @views for i=1:n_atoms
-        R[:,i] .= cell_vectors \ R[:,i]
+        R[:,i] .= cell.vectors \ R[:,i]
         R[:,i] .= mod1.(R[:,i], 1)
-        R[:,i] .= cell_vectors * R[:,i]
+        R[:,i] .= cell.vectors * R[:,i]
     end
 end
 apply_cell_boundaries!(::InfiniteCell, ::AbstractMatrix, ::Integer) = nothing
@@ -274,11 +273,11 @@ apply_cell_boundaries!(::InfiniteCell, ::AbstractMatrix, ::Integer) = nothing
 
 Return the Metropolis-Hastings acceptance probability.
 """
-function acceptance_probability(system::System{MonteCarlo})
-    acceptance_probability(system.dynamics.Eₚ, system.dynamics.Eᵢ, system.temperature)
+function acceptance_probability(sim::Simulation{<:MonteCarlo})
+    acceptance_probability(sim.method.Eₚ, sim.method.Eᵢ, sim.temperature)
 end
-function acceptance_probability(system::RingPolymerSystem{MonteCarlo})
-    acceptance_probability(system.dynamics.Eₚ, system.dynamics.Eᵢ, system.temperature*n_beads(system))
+function acceptance_probability(sim::RingPolymerSimulation{<:MonteCarlo})
+    acceptance_probability(sim.method.Eₚ, sim.method.Eᵢ, sim.beads.ω_n)
 end
 acceptance_probability(Eₚ::T, Eᵢ::T, kT::T) where {T<:AbstractFloat} = min(1, exp(-(Eₚ - Eᵢ)/kT))
 
