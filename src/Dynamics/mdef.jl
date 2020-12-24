@@ -12,7 +12,8 @@ struct MDEF{T<:AbstractFloat} <: Method
 end
 
 function set_force!(du::Phasespace, u::Phasespace, sim::Simulation{<:MDEF})
-    get_momenta(du) .= -Calculators.evaluate_derivative(sim.calculator, get_positions(u))
+    Calculators.evaluate_derivative!(sim.calculator, get_positions(u))
+    get_momenta(du) .= -sim.calculator.derivative
 
     update_friction!(sim.method.friction)
     mul!(sim.method.drag, sim.method.friction, get_flat_momenta(u))
