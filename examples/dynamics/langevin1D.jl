@@ -5,8 +5,8 @@ using Unitful
 
 atoms = Atoms{Float64}([:H, :H])
 cell = InfiniteCell{Float64}()
-calc = Calculators.Harmonic()
-sim = Simulation(1, 300u"K", cell, atoms, calc, Dynamics.Langevin(1))
+model = Models.Harmonic()
+sim = Simulation(1, 300u"K", cell, atoms, model, Dynamics.Langevin(1))
 
 z = Dynamics.Phasespace(zeros(1, length(atoms)), zeros(1, length(atoms)))
 
