@@ -2,19 +2,19 @@ export PdH
 
 using LinearAlgebra
 using Unitful
-using FiniteDifferences
+using FiniteDiff
 
 """
 Ciufo, R.A., Henkelman, G. Embedded atom method potential for hydrogen on palladium surfaces. J Mol Model 26, 336 (2020).
 """
-struct PdH <: Model
+struct PdH <: AdiabaticModel
 
     n_states::UInt
-    get_V0::Function
-    get_D0::Function
+    potential!::Function
+    derivative!::Function
 
     # a0 = 3.89 Å
-    function PdH(atom_types::Vector{Symbol}, cell::Atoms.AbstractCell, cutoff::AbstractFloat)
+    function PdH(atom_types::AbstractVector{Symbol}, cell::AbstractCell, cutoff::AbstractFloat)
 
         # Iyad Hijazi, Yang Zhang & Robert Fuller (2018) A simple embeddedatom potential for Pd-H alloys, Molecular Simulation, 44:17, 1371-1379
         # Table 1
@@ -82,7 +82,7 @@ struct PdH <: Model
             end
         end
         
-        function get_V0(R)
+        function potential!(V, R)
             pairs = get_pairs(R, cutoff, cell)
             E = 0.0
             densities = zeros(length(atom_types))
@@ -103,13 +103,12 @@ struct PdH <: Model
                     E += Fₕ(densities[i])
                 end
             end
-            austrip(E*u"eV")
+            V .= austrip(E*u"eV")
         end
         
-        # get_D0(R) = ForwardDiff.gradient(get_V0, R) # ForwardDiff autodiff, error with NeighbourLists
-        # get_D0(R) = get_V0'(R) # Zygote autodiff, crashes
-        get_D0(R) = grad(central_fdm(5, 1), get_V0, R)[1] # First derivative, 5th order
+        potential(x) = potential!([0.0], x)[1]
+        derivative!(D, R) = FiniteDiff.finite_difference_gradient!(D, potential, R)
 
-        new(1, get_V0, get_D0)
+        new(1, potential!, derivative!)
     end
 end

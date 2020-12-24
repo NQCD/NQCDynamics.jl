@@ -7,6 +7,8 @@ include("cells.jl")
 include("ring_polymer.jl")
 include("phasespace.jl")
 
+include("Models/Models.jl")
+export Models
 include("Calculators/Calculators.jl")
 export Calculators
 

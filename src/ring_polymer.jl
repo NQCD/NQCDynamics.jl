@@ -2,8 +2,6 @@ using LinearAlgebra: Symmetric, SymTridiagonal
 using RecursiveArrayTools
 
 export RingPolymerParameters
-export get_bead_masses
-export bead_iterator
 export transform_to_normal_modes!
 export transform_from_normal_modes!
 

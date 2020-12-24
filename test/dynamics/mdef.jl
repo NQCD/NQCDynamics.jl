@@ -7,7 +7,7 @@ using DifferentialEquations
 atoms = Atoms{Float64}([:H, :C])
 cell = InfiniteCell{Float64}()
 mdef = Dynamics.MDEF{Float64}(length(atoms), 3)
-sim = Simulation(3, 10u"K", cell, atoms, Calculators.Free(), mdef)
+sim = Simulation(3, 10u"K", cell, atoms, Models.Free(), mdef)
 
 R = zeros(sim.DoFs, length(sim.atoms)) 
 P = zeros(sim.DoFs, length(sim.atoms)) 

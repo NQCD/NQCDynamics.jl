@@ -1,21 +1,14 @@
 export evaluate_configurational_energy
 export get_spring_energy
-export get_potential_energy
 
 function evaluate_configurational_energy(sim::Simulation, R::Matrix)
-    Calculators.evaluate_potential(sim.calculator, R)
+    Calculators.evaluate_potential!(sim.calculator, R)
+    sim.calculator.potential[1]
 end
 
 function evaluate_configurational_energy(sim::RingPolymerSimulation, R::Array{T, 3}) where {T}
-    get_spring_energy(sim, R) + get_potential_energy(sim, R)
-end
-
-function get_potential_energy(sim::RingPolymerSimulation, R::Array{T, 3}) where {T}
-    V = 0.0
-    @views for i=1:length(sim.beads)
-        V += Calculators.evaluate_potential(sim.calculator, R[:,:,i])
-    end
-    V
+    Calculators.evaluate_potential!(sim.calculator, R)
+    get_spring_energy(sim, R) + sum(sim.calculator.potential)[1]
 end
 
 """
