@@ -6,11 +6,11 @@ using StatsBase
 
 atoms = Atoms{Float64}([:H, :H, :C])
 cell = PeriodicCell(hcat(1))
-calc = Calculators.Harmonic()
+model = Models.Harmonic()
 
 Δ = Dict([(:H, 0.1), (:C, 0.1)])
 monte_carlo = MonteCarlo{Float64}(Δ, length(atoms), 100, Int[])
-sim = Simulation(1, 100u"K", cell, atoms, calc, monte_carlo)
+sim = Simulation(1, 100u"K", cell, atoms, model, monte_carlo)
 
 @testset "propose_move!" begin
     Rᵢ = zeros(sim.DoFs, length(sim.atoms))
@@ -82,7 +82,7 @@ end
 
 @testset "propose_centroid_move!" begin
     monte_carlo = MonteCarlo{Float64}(Δ, length(atoms), 100, [1])
-    sim = RingPolymerSimulation(1, 100u"K", cell, atoms, calc, monte_carlo, 10, [:H])
+    sim = RingPolymerSimulation(1, 100u"K", cell, atoms, model, monte_carlo, 10, [:H])
     Rᵢ = randn(3, length(sim.atoms), 10)
     Rₚ = copy(Rᵢ)
     MetropolisHastings.propose_centroid_move!(sim, Rᵢ, Rₚ)

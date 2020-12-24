@@ -1,4 +1,5 @@
-using ..Calculators: AbstractCalculator
+using .Calculators: AbstractCalculator, Calculator
+using .Models: Model
 using Unitful
 using UnitfulAtomic
 
@@ -17,14 +18,15 @@ struct Simulation{M, S, T<:AbstractFloat} <: AbstractSimulation{M}
     calculator::AbstractCalculator
     method::M
     function Simulation(DoFs::Integer, temperature::Real, cell::AbstractCell{T},
-            atoms::Atoms{S,T}, calc::AbstractCalculator, method::M) where {M,S,T}
+            atoms::Atoms{S,T}, model::Model, method::M) where {M,S,T}
+        calc = Calculator(model, DoFs, length(atoms), T)
         new{M,S,T}(DoFs, temperature, cell, atoms, calc, method)
     end
 end
 
 function Simulation(DoFs::Integer, temperature::Unitful.Temperature, cell::AbstractCell{T},
-        atoms::Atoms{S,T}, calc::AbstractCalculator, method::M) where {M,S,T}
-    Simulation(DoFs, austrip(temperature), cell, atoms, calc, method)
+        atoms::Atoms{S,T}, model::Model, method::M) where {M,S,T}
+    Simulation(DoFs, austrip(temperature), cell, atoms, model, method)
 end
 
 struct RingPolymerSimulation{M, S, T<:AbstractFloat} <: AbstractSimulation{M}
@@ -36,7 +38,7 @@ struct RingPolymerSimulation{M, S, T<:AbstractFloat} <: AbstractSimulation{M}
     method::M
     beads::RingPolymerParameters{T}
     function RingPolymerSimulation(DoFs::Integer, temperature::Real, cell::AbstractCell{T},
-            atoms::Atoms{S,T}, calc::AbstractCalculator, method::M,
+            atoms::Atoms{S,T}, model::Model, method::M,
             n_beads::Integer, quantum_nuclei::Vector{Symbol}=Symbol[]) where {M,S,T}
             
         if isempty(quantum_nuclei)
@@ -45,12 +47,13 @@ struct RingPolymerSimulation{M, S, T<:AbstractFloat} <: AbstractSimulation{M}
             beads = RingPolymerParameters{T}(n_beads, temperature, atoms.types, quantum_nuclei)
         end
         
+        calc = Calculator(model, DoFs, length(atoms), n_beads, T)
         new{M,S,T}(DoFs, temperature, cell, atoms, calc, method, beads)
     end
 end
 
 function RingPolymerSimulation(DoFs::Integer, temperature::Unitful.Temperature, cell::AbstractCell{T},
-        atoms::Atoms{S,T}, calc::AbstractCalculator, method::M,
+        atoms::Atoms{S,T}, model::Model, method::M,
         n_beads::Integer, quantum_nuclei::Vector{Symbol}=Symbol[]) where {M,S,T}
-    RingPolymerSimulation(DoFs, austrip(temperature), cell, atoms, calc, method, n_beads, quantum_nuclei)
+    RingPolymerSimulation(DoFs, austrip(temperature), cell, atoms, model, method, n_beads, quantum_nuclei)
 end
