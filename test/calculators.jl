@@ -1,19 +1,45 @@
 using Test
-using LinearAlgebra
 using NonadiabaticMolecularDynamics
+using NonadiabaticMolecularDynamics.Models
 using NonadiabaticMolecularDynamics.Calculators
 
-cell = PeriodicCell(Matrix(I,3,3))
-calc = PdH([:Pd, :H], cell, 10.0)
+@testset "Adiabatic" begin
+    model = Models.Free()
+    @test Calculators.AdiabaticCalculator{Float64}(model, 3, 5) isa Calculators.AdiabaticCalculator
+    @test Calculators.RingPolymerAdiabaticCalculator{Float64}(model, 3, 5, 10) isa Calculators.RingPolymerAdiabaticCalculator
 
-R = rand(3, 2)
-@test evaluate_potential(calc, R) isa AbstractFloat
-@test evaluate_derivative(calc, R) isa Matrix
+    calc = Calculators.AdiabaticCalculator{Float64}(model, 3, 5) 
+    Calculators.evaluate_potential!(calc, rand(3, 5))
+    Calculators.evaluate_derivative!(calc, rand(3, 5))
 
-calc = Free()
-@test evaluate_potential(calc, R) == 0.0
-@test evaluate_derivative(calc, R) == zeros(3, 2)
+    calc = Calculators.RingPolymerAdiabaticCalculator{Float64}(model, 3, 5, 10) 
+    Calculators.evaluate_potential!(calc, rand(3, 5, 10))
+    Calculators.evaluate_derivative!(calc, rand(3, 5, 10))
+end
 
-calc = Harmonic()
-@test evaluate_potential(calc, R) == sum(R.^2)/2
-@test evaluate_derivative(calc, R) == R
+@testset "Diabatic" begin
+    model = Models.DoubleWell()
+    @test Calculators.DiabaticCalculator{Float64}(model, 3, 5) isa Calculators.DiabaticCalculator
+    @test Calculators.RingPolymerDiabaticCalculator{Float64}(model, 3, 5, 10) isa Calculators.RingPolymerDiabaticCalculator
+
+    calc = Calculators.DiabaticCalculator{Float64}(model, 1, 1) 
+    Calculators.evaluate_potential!(calc, rand(1, 1))
+    Calculators.evaluate_derivative!(calc, rand(1, 1))
+    Calculators.eigen!(calc)
+    Calculators.transform_derivative!(calc)
+    
+    calc = Calculators.RingPolymerDiabaticCalculator{Float64}(model, 1, 1, 10)
+    Calculators.evaluate_potential!(calc, rand(1, 1, 10))
+    Calculators.evaluate_derivative!(calc, rand(1, 1, 10))
+    Calculators.eigen!(calc)
+    Calculators.transform_derivative!(calc)
+end
+
+@testset "General constructors" begin
+    model = Models.DoubleWell()
+    @test Calculators.Calculator(model, 1, 1) isa Calculators.DiabaticCalculator
+    @test Calculators.Calculator(model, 1, 1, 2) isa Calculators.RingPolymerDiabaticCalculator
+    model = Models.Free()
+    @test Calculators.Calculator(model, 1, 1) isa Calculators.AdiabaticCalculator
+    @test Calculators.Calculator(model, 1, 1, 2) isa Calculators.RingPolymerAdiabaticCalculator
+end

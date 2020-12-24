@@ -14,10 +14,10 @@ rp = RingPolymerParameters{Float64}(10, 1.0, 10)
 
 atoms = Atoms{Float64}(vcat(fill(:H, 10), :O))
 cell = InfiniteCell{Float64}()
-calc = Calculators.Free()
-sim = RingPolymerSimulation(3, 1.0, cell, atoms, calc, Dynamics.Classical(), 10)
+model = Models.Free()
+sim = RingPolymerSimulation(3, 1.0, cell, atoms, model, Dynamics.Classical(), 10)
 @test sim.beads.quantum_atoms == collect(1:11)
-sim = RingPolymerSimulation(3, 1.0, cell, atoms, calc, Dynamics.Classical(), 10, [:H])
+sim = RingPolymerSimulation(3, 1.0, cell, atoms, model, Dynamics.Classical(), 10, [:H])
 @test sim.beads.quantum_atoms == collect(1:10)
 
 U = sim.beads.U
