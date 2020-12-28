@@ -13,7 +13,7 @@ export get_flat_momenta
 """
 Abstract type for different kinds of systems.
 """
-DynamicalVariables{T} = DEDataVector{T} where {T<:AbstractFloat}
+abstract type DynamicalVariables{T<:AbstractFloat} <: DEDataVector{T} end
 
 mutable struct Phasespace{T} <: DynamicalVariables{T}
     x::ArrayPartition{T, Tuple{Matrix{T}, Matrix{T}}}
@@ -31,8 +31,8 @@ function RingPolymerPhasespace(R::Matrix, P::Matrix, n_beads::Integer)
     RingPolymerPhasespace(R, P)
 end
 
-get_positions(z::Union{RingPolymerPhasespace, Phasespace}) = z.x.x[1]
-get_momenta(z::Union{RingPolymerPhasespace, Phasespace}) = z.x.x[2]
+get_positions(z::DynamicalVariables) = z.x.x[1]
+get_momenta(z::DynamicalVariables) = z.x.x[2]
 
 get_flat_positions(z::Phasespace) = @view z[1:length(z)÷2]
 get_flat_momenta(z::Phasespace) = @view z[length(z)÷2+1:end]
