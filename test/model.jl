@@ -1,6 +1,7 @@
 using Test
 using NonadiabaticMolecularDynamics
 using NonadiabaticMolecularDynamics.Models
+using LinearAlgebra
 
 R = rand(3, 10)
 
@@ -14,6 +15,27 @@ end
     model = Free()
     model.potential!([0.0], R)
     model.derivative!(zero(R), R)
+end
+
+@testset "DoubleWell" begin
+    R = rand(1,1)
+    model = DoubleWell()
+    model.potential!(Hermitian(zeros(model.n_states, model.n_states)), R)
+    model.derivative!([Hermitian(zeros(model.n_states, model.n_states))]', R)
+end
+
+@testset "TullyModelOne" begin
+    R = rand(1,1)
+    model = TullyModelOne()
+    model.potential!(Hermitian(zeros(model.n_states, model.n_states)), R)
+    model.derivative!([Hermitian(zeros(model.n_states, model.n_states))]', R)
+end
+
+@testset "TullyModelTwo" begin
+    R = rand(1,1)
+    model = TullyModelTwo()
+    model.potential!(Hermitian(zeros(model.n_states, model.n_states)), R)
+    model.derivative!([Hermitian(zeros(model.n_states, model.n_states))]', R)
 end
 
 @testset "PdH" begin
