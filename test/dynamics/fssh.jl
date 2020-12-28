@@ -13,13 +13,13 @@ du = zero(u)
 
 @test Dynamics.get_density_matrix(u) ≈ Complex.([1 0; 0 0])
 
-@time Dynamics.motion!(du, u, sim, 0.0)
+Dynamics.motion!(du, u, sim, 0.0)
 
 Dynamics.evaluate_nonadiabatic_coupling!(sim)
 @test sim.method.nonadiabatic_coupling ≈ -sim.method.nonadiabatic_coupling'
 
 problem = ODEProblem(Dynamics.motion!, u, (0.0, 1.0), sim)
-integrator = init(problem, Tsit5(), callback=Dynamics.rpsh_callback)
+integrator = init(problem, Tsit5(), callback=Dynamics.fssh_callback)
 Dynamics.update_hopping_probability!(integrator)
 
 @testset "select_new_state" begin
