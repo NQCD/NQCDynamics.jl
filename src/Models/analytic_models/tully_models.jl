@@ -26,7 +26,7 @@ struct TullyModelOne <: DiabaticModel
         function derivative!(derivative::AbstractMatrix{<:Hermitian}, R::AbstractMatrix)
             q = R[1]
             derivative[1][1,1] = A * B * exp(-B * abs(q))
-            derivative[1][2,2] = -D[1][1,1]
+            derivative[1][2,2] = -derivative[1][1,1]
             derivative[1].data[1,2] = -2 * C * D * q * exp(-D*q^2)
         end
 
