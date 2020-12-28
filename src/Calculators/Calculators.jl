@@ -94,9 +94,14 @@ end
 
 function eigen!(calc::DiabaticCalculator)
     eig = eigen(calc.potential)
+    @views for i=1:length(eig.values)
+        if eig.vectors[:,i]'calc.eigenvectors[:,i] < 0
+            calc.eigenvectors[:,i] .= -eig.vectors[:,i]
+        else
+            calc.eigenvectors[:,i] .= eig.vectors[:,i]
+        end
+    end
     calc.eigenvalues .= eig.values
-    calc.eigenvectors .= eig.vectors
-
 end
 
 function eigen!(calc::RingPolymerDiabaticCalculator)

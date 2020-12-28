@@ -17,6 +17,7 @@ const tests = [
     "phasespace"
     "dynamics/langevin"
     "dynamics/mdef"
+    "dynamics/fssh"
     "io/io"
     "model"
 ]
