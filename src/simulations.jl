@@ -29,6 +29,12 @@ function Simulation(DoFs::Integer, temperature::Unitful.Temperature, cell::Abstr
     Simulation(DoFs, austrip(temperature), cell, atoms, model, method)
 end
 
+function Simulation(atoms::Atoms{S,T}, model::Model, method::M;
+        DoFs::Integer=3, temperature::Unitful.Temperature=0u"K",
+        cell::AbstractCell{T}=InfiniteCell{T}()) where {M,S,T}
+    Simulation(DoFs, temperature, cell, atoms, model, method)
+end
+
 struct RingPolymerSimulation{M, S, T<:AbstractFloat} <: AbstractSimulation{M}
     DoFs::UInt8
     temperature::T

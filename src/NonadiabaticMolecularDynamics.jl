@@ -17,6 +17,8 @@ include("classical_hamiltonians.jl")
 
 include("Dynamics/Dynamics.jl")
 export Dynamics
+using .Dynamics: SurfaceHoppingPhasespace
+export SurfaceHoppingPhasespace
 include("InitialConditions/InitialConditions.jl")
 export InitialConditions
 
