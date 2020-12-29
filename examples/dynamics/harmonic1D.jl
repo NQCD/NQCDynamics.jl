@@ -1,5 +1,4 @@
 using NonadiabaticMolecularDynamics
-using DifferentialEquations
 using Plots
 using Random
 
@@ -10,6 +9,5 @@ sim = Simulation(1, 1, cell, atoms, model, Dynamics.Classical())
 
 z = Phasespace(randn(1, length(atoms)), randn(1, length(atoms)))
 
-problem = ODEProblem(Dynamics.motion!, z, (0.0, 1e3), sim)
-solution = solve(problem)
+solution = Dynamics.run_trajectory(z, (0.0, 1e3), sim)
 plot(solution, vars=range(atoms))

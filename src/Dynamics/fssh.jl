@@ -1,7 +1,3 @@
-using DiffEqBase: DiscreteCallback, get_proposed_dt, get_du
-using OrdinaryDiffEq: ODEIntegrator
-using RecursiveArrayTools: ArrayPartition
-
 export SurfaceHoppingPhasespace
 export FSSH
 export fssh_callback
@@ -40,6 +36,10 @@ function SurfaceHoppingPhasespace(R::Matrix{T}, P::Matrix{T}, n_states::Integer,
 end
 
 get_density_matrix(z::SurfaceHoppingPhasespace) = z.x.x[3]
+
+function run_trajectory(u0::SurfaceHoppingPhasespace, tspan::Tuple, sim::AbstractSimulation{<:FSSH})
+    solve(ODEProblem(motion!, u0, tspan, sim; callback=fssh_callback), Tsit5())
+end
 
 function motion!(du::SurfaceHoppingPhasespace, u::SurfaceHoppingPhasespace, sim::Simulation{<:FSSH}, t)
     set_velocity!(du, u, sim)
@@ -94,9 +94,9 @@ function set_density_matrix_derivative!(du::SurfaceHoppingPhasespace, u::Surface
     get_density_matrix(du) .= -im*(V*σ - σ*V)
 end
 
-condition(u, t, integrator::ODEIntegrator) = true
+condition(u, t, integrator::DiffEqBase.DEIntegrator) = true
 
-function affect!(integrator::ODEIntegrator)
+function affect!(integrator::DiffEqBase.DEIntegrator)
     update_hopping_probability!(integrator)
     
     new_state = select_new_state(integrator.p.method.hopping_probability, integrator.u.state)
@@ -108,7 +108,7 @@ function affect!(integrator::ODEIntegrator)
     end
 end
 
-function update_hopping_probability!(integrator::ODEIntegrator)
+function update_hopping_probability!(integrator::DiffEqBase.DEIntegrator)
     sim = integrator.p
     coupling = sim.method.nonadiabatic_coupling
     velocity = get_positions(get_du(integrator))
@@ -142,7 +142,7 @@ function select_new_state(probability::Vector{T}, current_state::Integer)::UInt 
     0 # Return 0 if no hop is desired
 end
 
-function calculate_rescaling_constant!(integrator::ODEIntegrator, new_state)::Bool
+function calculate_rescaling_constant!(integrator::DiffEqBase.DEIntegrator, new_state)::Bool
     sim = integrator.p
     old_state = integrator.u.state
     velocity = get_positions(get_du(integrator))
@@ -171,7 +171,7 @@ function calculate_potential_energy_change(eigenvalues::Vector, new_state::Integ
     eigenvalues[new_state] - eigenvalues[current_state]
 end
 
-function execute_hop!(integrator::ODEIntegrator, new_state::Integer)
+function execute_hop!(integrator::DiffEqBase.DEIntegrator, new_state::Integer)
     for i in range(integrator.p.atoms)
         coupling = [integrator.p.method.nonadiabatic_coupling[j,i][new_state, integrator.u.state] for j=1:integrator.p.DoFs]
         get_momenta(integrator.u)[:,i] .-= integrator.p.method.momentum_rescale[i] .* coupling
