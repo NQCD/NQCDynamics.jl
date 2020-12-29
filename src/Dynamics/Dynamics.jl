@@ -23,6 +23,10 @@ export motion!
 export random_force!
 
 using ..NonadiabaticMolecularDynamics
+using DiffEqBase
+using StochasticDiffEq
+using OrdinaryDiffEq
+using RecursiveArrayTools: ArrayPartition
 
 """
 Each type of dynamics subtypes `Method` which is passed to
@@ -49,6 +53,10 @@ Similarly to [`Dynamics.motion!`](@ref), this function is directly passed
 to an `SDEProblem` to integrate stochastic dynamics.
 """
 function random_force! end
+
+function run_trajectory(u0::DynamicalVariables, tspan::Tuple, sim::AbstractSimulation)
+    solve(ODEProblem(motion!, u0, tspan, sim), Tsit5())
+end
 
 include("classical.jl")
 include("langevin.jl")

@@ -2,12 +2,6 @@ using Test
 using NonadiabaticMolecularDynamics
 using Aqua
 
-Aqua.test_ambiguities(NonadiabaticMolecularDynamics)
-Aqua.test_unbound_args(NonadiabaticMolecularDynamics)
-Aqua.test_undefined_exports(NonadiabaticMolecularDynamics)
-Aqua.test_stale_deps(NonadiabaticMolecularDynamics, ignore=[:DifferentialEquations])
-Aqua.test_project_toml_formatting(NonadiabaticMolecularDynamics)
-
 const tests = [
     "atoms"
     "cells"
@@ -27,3 +21,9 @@ for t in tests
         include("$t.jl")
     end
 end
+
+Aqua.test_ambiguities(NonadiabaticMolecularDynamics)
+Aqua.test_unbound_args(NonadiabaticMolecularDynamics)
+Aqua.test_undefined_exports(NonadiabaticMolecularDynamics)
+Aqua.test_stale_deps(NonadiabaticMolecularDynamics, ignore=[:Documenter])
+Aqua.test_project_toml_formatting(NonadiabaticMolecularDynamics)

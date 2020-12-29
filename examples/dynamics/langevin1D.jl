@@ -1,5 +1,4 @@
 using NonadiabaticMolecularDynamics
-using DifferentialEquations
 using Plots
 using Unitful
 
@@ -10,6 +9,5 @@ sim = Simulation(1, 300u"K", cell, atoms, model, Dynamics.Langevin(1))
 
 z = Dynamics.Phasespace(zeros(1, length(atoms)), zeros(1, length(atoms)))
 
-problem = SDEProblem(Dynamics.motion!, Dynamics.random_force!, z, (0.0, 50), sim)
-solution = solve(problem, EM(), dt=1e-2)
+solution = Dynamics.run_trajectory(z, (0.0, 50.0), sim)
 plot(solution, vars=range(atoms))
