@@ -2,19 +2,19 @@ export PdH
 
 using LinearAlgebra
 using Unitful
-using FiniteDifferences
+using FiniteDiff
 
 """
 Ciufo, R.A., Henkelman, G. Embedded atom method potential for hydrogen on palladium surfaces. J Mol Model 26, 336 (2020).
 """
-struct PdH <: Model
+struct PdH <: AdiabaticModel
 
     n_states::UInt
-    get_V0::Function
-    get_D0::Function
+    potential!::Function
+    derivative!::Function
 
     # a0 = 3.89 Å
-    function PdH(atom_types::Vector{Symbol}, cell::Atoms.AbstractCell, cutoff::AbstractFloat)
+    function PdH(atom_types::AbstractVector{Symbol}, cell::AbstractCell, cutoff::AbstractFloat)
 
         # Iyad Hijazi, Yang Zhang & Robert Fuller (2018) A simple embeddedatom potential for Pd-H alloys, Molecular Simulation, 44:17, 1371-1379
         # Table 1
@@ -51,6 +51,7 @@ struct PdH <: Model
         # Unit in angstrom and eV. assuming this is necessary
         rₑ = 2*1.37 # Metallic radius*2 https://en.wikipedia.org/wiki/Atomic_radii_of_the_elements_(data_page)
         Ω = 4/3π * rₑ^3 # Atomic volume
+        fₑ = Ec / Ω
         
         ########################
         # This has to be checked
@@ -58,7 +59,6 @@ struct PdH <: Model
         ########################
         F(ρ) = -2.5
         F_Pd(ρ) = F(ρₑ) * (1 - η*log(ρ/ρₑ)) * (ρ/ρₑ)^η
-        fₑ = Ec / Ω
         ρ_Pd(r) = fₑ * exp(-χ * (r - rₑ))
 
         ϕ_PdPd(r) = -Φ * (1 + δ*(r/rₑ - 1)) * exp(-β_PdPd*(r/rₑ-1))
@@ -69,8 +69,6 @@ struct PdH <: Model
         ρₕ(r) = Cₕ * exp(-δₕ * r)
 
         ϕ_PdH(r) = D_PdH * (1 - exp(-α_PdH*(r - r₀PdH)))^2 - D_PdH
-        
-        sum_all_except(a, i) = sum(a[1:end .!= i])
         
         function ϕ(r, i, j)
             if atom_types[i] == atom_types[j]
@@ -84,7 +82,7 @@ struct PdH <: Model
             end
         end
         
-        function get_V0(R)
+        function potential!(V, R)
             pairs = get_pairs(R, cutoff, cell)
             E = 0.0
             densities = zeros(length(atom_types))
@@ -105,13 +103,12 @@ struct PdH <: Model
                     E += Fₕ(densities[i])
                 end
             end
-            austrip(E*u"eV")
+            V .= austrip(E*u"eV")
         end
         
-        # get_D0(R) = ForwardDiff.gradient(get_V0, R) # ForwardDiff autodiff, error with NeighbourLists
-        # get_D0(R) = get_V0'(R) # Zygote autodiff, crashes
-        get_D0(R) = grad(central_fdm(5, 1), get_V0, R)[1] # First derivative, 5th order
+        potential(x) = potential!([0.0], x)[1]
+        derivative!(D, R) = FiniteDiff.finite_difference_gradient!(D, potential, R)
 
-        new(1, get_V0, get_D0)
+        new(1, potential!, derivative!)
     end
 end
