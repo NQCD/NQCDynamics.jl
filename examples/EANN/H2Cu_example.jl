@@ -12,7 +12,7 @@ println("Positions:")
 println(positions) 
 
 println("Energy:")
-V = zeros(1, 1)
+V = [0.0]
 model.potential!(V, positions)
 println(V)
 

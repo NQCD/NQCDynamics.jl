@@ -6,7 +6,7 @@ input_f = model_path * "/Ag.xyz"
 cell, atoms, positions = read_system(input_f)
 
 println("Initialize...")
-model = Models.EannH2AgModel(model_path, atoms)
+model = Models.EANN_H₂Ag(model_path, atoms)
 
 println("Positions:")
 println(positions)
