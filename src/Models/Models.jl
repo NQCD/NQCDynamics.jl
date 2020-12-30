@@ -30,6 +30,8 @@ include("analytic_models/harmonic.jl")
 include("analytic_models/double_well.jl")
 include("analytic_models/tully_models.jl")
 include("EAM/PdH.jl")
+include("EANN/EANN_H2Cu.jl")
+include("EANN/EANN_H2Ag.jl")
 
 include("plot.jl")
 end # module
