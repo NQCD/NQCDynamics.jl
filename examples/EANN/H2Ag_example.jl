@@ -11,17 +11,16 @@ input_f = model_path * "/Ag.xyz"
 atoms, positions = read_system(input_f)
 model = EannH2AgModel(model_path, atoms)
 p = Systems.System(atoms, model)
-positions_ang = copy(ustrip(auconvert.(u"Å", positions)))
 
 println("Initialize...")
 EANN_H2Ag.initialize_H2Ag_pes(model_path)
 println("Positions:")
-println(positions_ang)
+println(positions)
 println("Energy:")
-en = model.get_V0(positions_ang)
+en = model.get_V0(positions)
 println(en)
 println("Forces:")
-f = model.get_D0(positions_ang)
+f = model.get_D0(positions)
 println(f)
 
 
