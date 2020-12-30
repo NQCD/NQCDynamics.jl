@@ -1,26 +1,22 @@
-
-#push!(LOAD_PATH, pwd())
+using NonadiabaticMolecularDynamics
 using NonadiabaticMolecularDynamics.IO
-using NonadiabaticMolecularDynamics.Systems
-using NonadiabaticMolecularDynamics.Models.EANN_H2Ag
-using Unitful
-using UnitfulAtomic
 
 model_path = "/Users/wojciechstark/Desktop/ML-model-repository-master/H2_on_Ag111/h2ag111pes"
 input_f = model_path * "/Ag.xyz"
-atoms, positions = read_system(input_f)
-model = EannH2AgModel(model_path, atoms)
-p = Systems.System(atoms, model)
+cell, atoms, positions = read_system(input_f)
 
 println("Initialize...")
-EANN_H2Ag.initialize_H2Ag_pes(model_path)
+model = Models.EannH2AgModel(model_path, atoms)
+
 println("Positions:")
 println(positions)
+
 println("Energy:")
-en = model.get_V0(positions)
-println(en)
+V = [0.0]
+model.potential!(V, positions)
+println(V)
+
 println("Forces:")
-f = model.get_D0(positions)
-println(f)
-
-
+D = zero(positions)
+model.derivative!(D, positions)
+println(D)

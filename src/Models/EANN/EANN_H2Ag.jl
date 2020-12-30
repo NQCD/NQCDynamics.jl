@@ -1,37 +1,39 @@
-
-module EANN_H2Ag
-
 export EannH2AgModel
-
-using NonadiabaticMolecularDynamics.Atoms
-using NonadiabaticMolecularDynamics.Models
 
 """
 J. Phys. Chem. Lett. 2019, 10, 4962−4967
 J. Phys. Chem. C 2020, 124, 186−195
 """
 
-struct EannH2AgModel <: Models.Model
+struct EannH2AgModel <: AdiabaticModel
 
     n_states::UInt
-    get_V0::Function
-    get_D0::Function
+    potential!::Function
+    derivative!::Function
 
-    function EannH2AgModel(path::String, atoms::AtomicParameters)
+    function EannH2AgModel(path::String, atoms::Atoms)
 
-        function get_V0(R)
-            n_atoms = atoms.n_atoms % Int
-            res = get_H2Ag_pes_output(path, R, n_atoms, 0)
-            return res
+        n_atoms = convert(Int, length(atoms))
+        
+        initialize_H2Ag_pes(path)
+
+        function potential!(V::Vector, R::AbstractMatrix)
+            coordinates_ang = copy(ustrip(auconvert.(u"Å", R))) # converts coordinates into Angstrom
+            cd(path) do
+                V_temp = zeros(1, 1)
+                calculate_H2Ag_pes_potential!(n_atoms, coordinates_ang, V_temp)
+                V .= V_temp[1]
+            end
         end
         
-        function get_D0(R)::Array{Float64} # Vector
-            n_atoms = atoms.n_atoms % Int
-            res = get_H2Ag_pes_output(path, R, n_atoms, 1)
-            return res
+        function derivative!(D::AbstractMatrix, R::AbstractMatrix)
+            coordinates_ang = copy(ustrip(auconvert.(u"Å", R))) # converts coordinates into Angstrom
+            cd(path) do
+                calculate_H2Ag_pes_forces!(n_atoms, coordinates_ang, D)
+            end
         end
         
-        new(1, get_V0, get_D0)
+        new(1, potential!, derivative!)
     end
 end
 
@@ -42,7 +44,7 @@ function initialize_H2Ag_pes(lib_path::String)
     end
 end
 
-function calculate_H2Ag_pes_potential!(n_atoms::Int64, coordinates::Array{Float64}, energy::Array{Float64})
+function calculate_H2Ag_pes_potential!(n_atoms::Int64, coordinates::Matrix{Float64}, energy::Matrix{Float64})
     # EANN PES: get energy and force from EANN to vars: energy and force
     ccall((:pot0_, "nn.dylib")
     ,Cvoid
@@ -53,7 +55,7 @@ function calculate_H2Ag_pes_potential!(n_atoms::Int64, coordinates::Array{Float6
     , n_atoms, coordinates, energy)
 end
 
-function calculate_H2Ag_pes_forces!(n_atoms::Int64, coordinates::Array{Float64}, force::Array{Float64})
+function calculate_H2Ag_pes_forces!(n_atoms::Int64, coordinates::Matrix{Float64}, force::Matrix{Float64})
     # EANN PES: get energy and force from EANN to vars: energy and force
     ccall((:dpeshon_, "nn.dylib")
     ,Cvoid
@@ -63,25 +65,3 @@ function calculate_H2Ag_pes_forces!(n_atoms::Int64, coordinates::Array{Float64},
     )
     , n_atoms, coordinates, force)
 end
-
-function get_H2Ag_pes_output(lib_path::String, coordinates::Array{Float64}, n_atoms::Int64, force_incl::Int64=1)
-    
-    cd(lib_path) do
-        dim_atom = 3 # number of coordinates
-        n_force=n_atoms #-n_constraint # number of forces to calculate (number of unconstrained atoms)
-        force=zeros(Float64, dim_atom, n_force) # forces array
-        energy=zeros(Float64, 1, 1) # energy value (in 1x1 array because this specific fortran function requires an array not a value)
-        coordinates_ang = copy(ustrip(auconvert.(u"Å", coordinates))) # converts coordinates into Angstrom
-
-        if force_incl == 1
-            calculate_H2Ag_pes_forces!(n_atoms, coordinates_ang, force)
-            return force
-        else
-            calculate_H2Ag_pes_potential!(n_atoms, coordinates_ang, energy)
-            return energy
-        end
-    end
-end
-
-
-end # module
