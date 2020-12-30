@@ -70,7 +70,8 @@ function get_H2Cu_pes_output(lib_path::String, coordinates::Array{Float64}, n_at
         n_force=n_atoms-n_constraint # number of forces to calculate (number of unconstrained atoms)
         force=zeros(Float64, dim_atom, n_force) # forces array
         energy=zeros(Float64, 1, 1) # energy value (in 1x1 array because this specific fortran function requires an array not a value)
-        
+        coordinates_ang = copy(ustrip(auconvert.(u"Å", coordinates))) # converts coordinates into Angstrom
+
         calculate_H2Cu_pes!(coordinates, energy, force, coordinates_type, force_incl)
 
         if force_incl == 1
