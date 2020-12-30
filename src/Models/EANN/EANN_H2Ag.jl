@@ -20,9 +20,7 @@ struct EannH2AgModel <: AdiabaticModel
         function potential!(V::Vector, R::AbstractMatrix)
             coordinates_ang = copy(ustrip(auconvert.(u"Å", R))) # converts coordinates into Angstrom
             cd(path) do
-                V_temp = zeros(1, 1)
-                calculate_H2Ag_pes_potential!(n_atoms, coordinates_ang, V_temp)
-                V .= V_temp[1]
+                calculate_H2Ag_pes_potential!(n_atoms, coordinates_ang, reshape(V, (1,1)))
             end
         end
         
