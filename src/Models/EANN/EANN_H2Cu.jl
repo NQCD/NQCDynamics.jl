@@ -18,7 +18,7 @@ struct EANN_H₂Cu <: AdiabaticModel
 
         n_atoms = convert(Int, length(atoms))
 
-        function potential!(V::AbstractVector, R::AbstractMatrix)
+        function potential!(V::AbstractMatrix, R::AbstractMatrix)
             V .= get_H2Cu_pes_output(path, R, n_atoms, 0, 0, 0)
         end
         
@@ -67,7 +67,7 @@ function get_H2Cu_pes_output(lib_path::String, coordinates::Array{Float64}, n_at
         energy=zeros(Float64, 1, 1) # energy value (in 1x1 array because this specific fortran function requires an array not a value)
         coordinates_ang = copy(ustrip(auconvert.(u"Å", coordinates))) # converts coordinates into Angstrom
 
-        calculate_H2Cu_pes!(coordinates, energy, force, coordinates_type, force_incl)
+        calculate_H2Cu_pes!(coordinates_ang, energy, force, coordinates_type, force_incl)
 
         if force_incl == 1
             return force
