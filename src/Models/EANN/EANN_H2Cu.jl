@@ -1,9 +1,4 @@
-module EANN_H2Cu
-
-export EannH2CuModel
-
-using ..Atoms
-using ..Models
+export EANN_H₂Cu
 
 """
 Lingjun Zhu, Yaolong Zhang, Liang Zhang, Xueyao Zhou and Bin Jiang
@@ -11,27 +6,27 @@ Unified and transferable description of dynamics of H2 dissociative adsorption o
 Phys. Chem. Chem. Phys., 2020, 22, 13958--13964
 """
 
-struct EannH2CuModel <: Models.Model
+struct EANN_H₂Cu <: AdiabaticModel
 
     n_states::UInt
-    get_V0::Function
-    get_D0::Function
+    potential!::Function
+    derivative!::Function
 
-    function EannH2CuModel(path::String, atoms::AtomicParameters)
+    function EANN_H₂Cu(path::String, atoms::Atoms)
 
-        function get_V0(R)
-            n_atoms = atoms.n_atoms % Int
-            res = get_H2Cu_pes_output(path, R, n_atoms, 0, 0, 0)
-            return res
+        initialize_H2Cu_pes(path)
+
+        n_atoms = convert(Int, length(atoms))
+
+        function potential!(V::AbstractVector, R::AbstractMatrix)
+            V .= get_H2Cu_pes_output(path, R, n_atoms, 0, 0, 0)
         end
         
-        function get_D0(R)::Array{Float64} # Vector
-            n_atoms = atoms.n_atoms % Int
-            res = get_H2Cu_pes_output(path, R, n_atoms, 0, 1, 0)
-            return res
+        function derivative!(D::AbstractMatrix, R::AbstractMatrix)
+            D .= get_H2Cu_pes_output(path, R, n_atoms, 0, 1, 0)
         end
         
-        new(1, get_V0, get_D0)
+        new(1, potential!, derivative!)
     end
 end
 
@@ -81,4 +76,3 @@ function get_H2Cu_pes_output(lib_path::String, coordinates::Array{Float64}, n_at
         end
     end
 end
-end 
