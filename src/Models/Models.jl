@@ -23,4 +23,6 @@ include("Analytic/Analytic.jl")
 using .Analytic
 include("ML/ML.jl")
 include("EAM/PdH.jl")
+include("EANN/EANN_H2Cu.jl")
+include("EANN/EANN_H2Ag.jl")
 end # module
