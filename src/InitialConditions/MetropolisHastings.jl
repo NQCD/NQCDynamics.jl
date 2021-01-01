@@ -130,7 +130,7 @@ Main loop for classical systems.
 function run_main_loop!(sim::Simulation{<:MonteCarlo}, Rᵢ::Matrix, Rₚ::Matrix, output::MonteCarloOutput)
     @showprogress 0.1 "Sampling... " for i=1:convert(Int, sim.method.steps)
         propose_move!(sim, Rᵢ, Rₚ)
-        apply_cell_boundaries!(sim, Rₚ)
+        apply_cell_boundaries!(sim.cell, Rₚ)
         assess_proposal!(sim, Rᵢ, Rₚ, output, i)
     end
 end
@@ -142,7 +142,7 @@ function run_main_loop!(sim::RingPolymerSimulation{<:MonteCarlo}, Rᵢ::Array{T,
     @showprogress 0.1 "Sampling... " for i=1:length(sim.beads):convert(Int, sim.method.steps)
         if !all(sim.method.moveable_atoms .== 0.0)
             propose_centroid_move!(sim, Rᵢ, Rₚ)
-            apply_cell_boundaries!(sim, Rₚ)
+            apply_cell_boundaries!(sim.cell, Rₚ, sim.beads)
         end
         assess_proposal!(sim, Rᵢ, Rₚ, output, i)
         for j=1:length(sim.beads)-1
@@ -223,50 +223,6 @@ function assess_proposal!(sim::AbstractSimulation{<:MonteCarlo}, Rᵢ, Rₚ, out
     end
     write_output!(output, Rᵢ, sim.method.Eᵢ, i)
 end
-
-"""
-    apply_cell_boundaries!(system::System{MonteCarlo}, R::Matrix)
-    
-Ensure the atom remains inside the simulation cell.
-"""
-function apply_cell_boundaries!(sim::Simulation{<:MonteCarlo}, R::Matrix)
-    apply_cell_boundaries!(sim.cell, R, length(sim.atoms))
-end
-
-"""
-    apply_cell_boundaries!(system::RingPolymerSystem{MonteCarlo}, R::Array{T, 3}) where {T}
-    
-Apply cell boundaries to the ring polymer system.
-
-This converts to normal mode coordinates and restricts only the centroid.
-This means that replicas can exit the cell but the centroid cannot.
-The reasoning for this is to avoid complications in the computation of the spring potential.
-Proper treatment would require accounting for the periodic cell in this function which I have
-not yet done.
-
-The modification by a factor of ``\\sqrt{N}`` is to convert to real space centroid. 
-"""
-function apply_cell_boundaries!(sim::RingPolymerSimulation{<:MonteCarlo}, R::Array{T, 3}) where {T}
-    transform_to_normal_modes!(sim.beads, R, sim.DoFs)
-    R[:,sim.beads.quantum_atoms,1] ./= sqrt(length(sim.beads))
-    @views apply_cell_boundaries!(sim.cell, R[:,:,1], length(sim.atoms))
-    R[:,sim.beads.quantum_atoms,1] .*= sqrt(length(sim.beads))
-    transform_from_normal_modes!(sim.beads, R, sim.DoFs)
-end
-
-"""
-    apply_cell_boundaries!(cell::PeriodicCell, R::Matrix, n_atoms::Integer, n_DoF::Integer)
-    
-Apply simple periodic boundaries 
-"""
-function apply_cell_boundaries!(cell::PeriodicCell, R::AbstractMatrix, n_atoms::Integer)
-    @views for i=1:n_atoms
-        R[:,i] .= cell.vectors \ R[:,i]
-        R[:,i] .= mod1.(R[:,i], 1)
-        R[:,i] .= cell.vectors * R[:,i]
-    end
-end
-apply_cell_boundaries!(::InfiniteCell, ::AbstractMatrix, ::Integer) = nothing
 
 """
     acceptance_probability(system::AbstractSystem{MonteCarlo})
