@@ -170,7 +170,7 @@ Propose a move for the ring polymer centroid for one atom.
 """
 function propose_centroid_move!(sim::RingPolymerSimulation{<:MonteCarlo}, Rᵢ::Array{T, 3}, Rₚ::Array{T, 3}) where {T<:AbstractFloat}
     Rₚ .= Rᵢ
-    transform_to_normal_modes!(sim.beads, Rₚ, sim.DoFs)
+    transform_to_normal_modes!(sim.beads, Rₚ)
     atom = sample(range(sim.atoms), sim.method.moveable_atoms)
     @views apply_random_perturbation!(sim, Rₚ[:,:,1], atom) # Perturb the centroid mode
     @views if atom ∉ sim.beads.quantum_atoms # Ensure replicas are indentical if not quantum
@@ -178,7 +178,7 @@ function propose_centroid_move!(sim::RingPolymerSimulation{<:MonteCarlo}, Rᵢ::
             Rₚ[:, atom, i] .= Rₚ[:, atom, 1]
         end
     end
-    transform_from_normal_modes!(sim.beads, Rₚ, sim.DoFs)
+    transform_from_normal_modes!(sim.beads, Rₚ)
 end
 
 """
@@ -197,11 +197,11 @@ Propose a move for a single normal mode for a single atom.
 """
 function propose_normal_mode_move!(sim::RingPolymerSimulation{<:MonteCarlo}, Rᵢ::Array{T, 3}, Rₚ::Array{T, 3}) where {T}
     Rₚ .= Rᵢ
-    transform_to_normal_modes!(sim.beads, Rₚ, sim.DoFs)
+    transform_to_normal_modes!(sim.beads, Rₚ)
     atom = sample(sim.beads.quantum_atoms)
     mode = sample(2:length(sim.beads))
     @views sample_mode!(sim.beads, sim.atoms.masses[atom], mode, Rₚ[:, atom, mode])
-    transform_from_normal_modes!(sim.beads, Rₚ, sim.DoFs)
+    transform_from_normal_modes!(sim.beads, Rₚ)
 end
 
 function sample_mode!(beads::RingPolymerParameters, mass::AbstractFloat, mode::Integer, R::AbstractArray)
