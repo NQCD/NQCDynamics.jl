@@ -59,42 +59,6 @@ mutable struct MonteCarloOutput{T<:AbstractFloat,S}
 end
 MonteCarloOutput{T}(R0::S, length::Integer) where {T,S} = MonteCarloOutput{T,S}(R0, length)
 
-# """Constructor for Monte-Carlo system
-# """
-# function System{MonteCarlo}(
-#     atomic_parameters::AtomicParameters{T},
-#     model::Models.Model,
-#     temperature::Unitful.Temperature{<:Real},
-#     Δ::Dict{Symbol, T},
-#     n_DoF::Integer=3;
-#     passes::Real=10,
-#     fix::Vector{<:Integer}=Int[]) where {T}
-
-#     monte_carlo = MonteCarlo{T}(Δ, atomic_parameters.n_atoms, passes, fix)
-
-#     System{MonteCarlo, T}(n_DoF, austrip(temperature),
-#         atomic_parameters, model, monte_carlo)
-# end
-
-# """Constructor for the MonteCarlo RingPolymerSystem
-# """
-# function RingPolymerSystem{MonteCarlo}(
-#     atomic_parameters::AtomicParameters{T},
-#     model::Models.Model,
-#     temperature::Unitful.Temperature{<:Real},
-#     n_beads::Integer,
-#     Δ::Dict{Symbol, T},
-#     n_DoF::Integer=3;
-#     passes::Real=10,
-#     fix::Vector{<:Integer}=Int[],
-#     quantum_nuclei::Vector{Symbol}=Symbol[]) where {T<:AbstractFloat}
-
-#     monte_carlo = MonteCarlo{T}(Δ, atomic_parameters.n_atoms, passes, fix)
-
-#     RingPolymerSystem{MonteCarlo, T}(n_DoF, austrip(temperature),
-#         atomic_parameters, model, n_beads, quantum_nuclei, monte_carlo)
-# end
-
 """
     Configuration{T} = Union{Matrix{T}, Array{T, 3}}
 
