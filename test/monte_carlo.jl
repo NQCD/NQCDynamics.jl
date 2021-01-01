@@ -58,21 +58,6 @@ end
     @test MetropolisHastings.acceptance_probability(e2, e1, 1.0) == 0
 end
 
-@testset "apply_cell_boundaries!" begin
-    cell = PeriodicCell([1 0 0; 0 1 0; 0 0 1])
-    n_atoms = 4
-    R = rand(3, n_atoms)
-    A = copy(R)
-    MetropolisHastings.apply_cell_boundaries!(cell, A, n_atoms)
-    @test R == A # Check unchanged when inside cell
-    A += 2rand(3, n_atoms) # Move atoms out of cell
-    MetropolisHastings.apply_cell_boundaries!(cell, A, n_atoms)
-    @test all(0 .<= A .<= 1) # Check they're all back in
-    A -= 2rand(3, n_atoms) # Move atoms out of cell
-    MetropolisHastings.apply_cell_boundaries!(cell, A, n_atoms)
-    @test all(0 .<= A .<= 1) # Check they're all back in
-end
-
 @testset "run_monte_carlo_sampling" begin
     R0 = rand(sim.DoFs, length(sim.atoms))
     out = InitialConditions.run_monte_carlo_sampling(sim, R0)
@@ -88,8 +73,8 @@ end
     MetropolisHastings.propose_centroid_move!(sim, Rᵢ, Rₚ)
     @test mean(Rₚ[:,1,:]) ≈ mean(Rᵢ[:,1,:]) # Check fixed atom does not move
     
-    transform_to_normal_modes!(sim.beads, Rₚ, sim.DoFs)
-    transform_to_normal_modes!(sim.beads, Rᵢ, sim.DoFs)
+    transform_to_normal_modes!(sim.beads, Rₚ)
+    transform_to_normal_modes!(sim.beads, Rᵢ)
     @test !(Rₚ[:,:,1] ≈ Rᵢ[:,:,1]) # Test centroid has moved
     @test Rₚ[:,1:2,2:end] ≈ Rᵢ[:,1:2,2:end] # Test only centroid moves for quantum atoms
 end

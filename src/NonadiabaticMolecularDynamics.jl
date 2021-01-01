@@ -3,8 +3,8 @@ module NonadiabaticMolecularDynamics
 using Reexport
 
 include("atoms.jl")
-include("cells.jl")
 include("ring_polymer.jl")
+include("cells.jl")
 include("phasespace.jl")
 
 include("Models/Models.jl")
