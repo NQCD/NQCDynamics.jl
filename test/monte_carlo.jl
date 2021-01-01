@@ -16,7 +16,7 @@ sim = Simulation(1, 100u"K", cell, atoms, model, monte_carlo)
     Rᵢ = zeros(sim.DoFs, length(sim.atoms))
     Rₚ = zero(Rᵢ)
     @test Rᵢ == Rₚ
-    MetropolisHastings.propose_move!(sim, Rᵢ, Rₚ)
+    MetropolisHastings.propose_move!(sim, monte_carlo, Rᵢ, Rₚ)
     @test Rᵢ != Rₚ
 end
 
@@ -25,18 +25,18 @@ end
     Rₚ = zero(Rᵢ)
     # Accept the move
     sim.method.Eᵢ = 1
-    output = MetropolisHastings.MonteCarloOutput{Float64}(Rᵢ, 1)
-    MetropolisHastings.assess_proposal!(sim, Rᵢ, Rₚ, output, 1)
+    output = MetropolisHastings.MonteCarloOutput{Float64}(Rᵢ, monte_carlo)
+    MetropolisHastings.assess_proposal!(sim, monte_carlo, Rᵢ, Rₚ, output, 1)
     @test output.R[1] == Rₚ
     # Reject the move
     sim.method.Eᵢ = -1
-    MetropolisHastings.assess_proposal!(sim, Rᵢ, Rₚ, output, 1)
+    MetropolisHastings.assess_proposal!(sim, monte_carlo, Rᵢ, Rₚ, output, 1)
     @test output.R[1] == Rᵢ
 end
 
 @testset "write_output!" begin
     Rₚ = fill(0.1, sim.DoFs, length(sim.atoms))
-    output = InitialConditions.MetropolisHastings.MonteCarloOutput{Float64}(Rₚ, 20)
+    output = InitialConditions.MetropolisHastings.MonteCarloOutput{Float64}(Rₚ, monte_carlo)
     MetropolisHastings.write_output!(output, Rₚ, 1.0, 10)
     Rₚ .+= 1
     MetropolisHastings.write_output!(output, Rₚ, 1.1, 11)
@@ -60,17 +60,17 @@ end
 
 @testset "run_monte_carlo_sampling" begin
     R0 = rand(sim.DoFs, length(sim.atoms))
-    out = InitialConditions.run_monte_carlo_sampling(sim, R0)
+    out = InitialConditions.run_monte_carlo_sampling(sim, monte_carlo, R0)
     @test !(out.R[1] ≈ out.R[10])
     @test !(out.energy[1] ≈ out.energy[20])
 end
 
 @testset "propose_centroid_move!" begin
-    monte_carlo = MonteCarlo{Float64}(Δ, length(atoms), 100, [1])
+    monte_carlo = PathIntegralMonteCarlo{Float64}(Δ, length(atoms), 100, [1], 1.0, 10)
     sim = RingPolymerSimulation(1, 100u"K", cell, atoms, model, monte_carlo, 10, [:H])
     Rᵢ = randn(3, length(sim.atoms), 10)
     Rₚ = copy(Rᵢ)
-    MetropolisHastings.propose_centroid_move!(sim, Rᵢ, Rₚ)
+    MetropolisHastings.propose_centroid_move!(sim, monte_carlo, Rᵢ, Rₚ)
     @test mean(Rₚ[:,1,:]) ≈ mean(Rᵢ[:,1,:]) # Check fixed atom does not move
     
     transform_to_normal_modes!(sim.beads, Rₚ)
