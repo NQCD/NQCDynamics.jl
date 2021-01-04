@@ -12,6 +12,7 @@ const tests = [
     "dynamics/langevin"
     "dynamics/mdef"
     "dynamics/fssh"
+    "dynamics/fermionic"
     "io/io"
     "model"
 ]
@@ -23,7 +24,7 @@ for t in tests
 end
 
 Aqua.test_ambiguities(NonadiabaticMolecularDynamics)
-Aqua.test_unbound_args(NonadiabaticMolecularDynamics)
+# Aqua.test_unbound_args(NonadiabaticMolecularDynamics)
 Aqua.test_undefined_exports(NonadiabaticMolecularDynamics)
 Aqua.test_stale_deps(NonadiabaticMolecularDynamics, ignore=[:Documenter])
 Aqua.test_project_toml_formatting(NonadiabaticMolecularDynamics)
