@@ -15,6 +15,7 @@ const tests = [
     "dynamics/fermionic"
     "io/io"
     "model"
+    "nuclear_distributions"
 ]
 
 for t in tests
