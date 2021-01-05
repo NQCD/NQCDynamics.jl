@@ -27,3 +27,8 @@ function random_force!(du, u::Phasespace, sim::Simulation{<:MDEF}, t)
 end
 
 update_friction!(friction) = randn!(friction)
+
+function create_problem(u0::Phasespace, tspan::Tuple, sim::Simulation{<:MDEF})
+    SDEProblem(motion!, random_force!, u0, tspan, sim)
+end
+select_algorithm(::AbstractSimulation{<:MDEF}) = SOSRA()

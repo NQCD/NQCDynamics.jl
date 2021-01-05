@@ -5,9 +5,10 @@ struct Langevin{T<:AbstractFloat} <: Method
 end
 Langevin(η::Integer) = Langevin{Float64}(η)
 
-function run_trajectory(u0::Phasespace, tspan::Tuple, sim::Simulation{<:Langevin})
-    solve(SDEProblem(motion!, random_force!, u0, tspan, sim), SOSRA())
+function create_problem(u0::Phasespace, tspan::Tuple, sim::Simulation{<:Langevin})
+    SDEProblem(motion!, random_force!, u0, tspan, sim)
 end
+select_algorithm(::AbstractSimulation{<:Langevin}) = SOSRA()
 
 function set_force!(du::Phasespace, u::Phasespace, sim::Simulation{<:Langevin})
     Calculators.evaluate_derivative!(sim.calculator, get_positions(u))
