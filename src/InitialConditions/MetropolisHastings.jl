@@ -18,7 +18,6 @@ using Unitful
 using UnitfulAtomic
 using Distributions
 
-using ....Dynamics: Method
 using ....NonadiabaticMolecularDynamics
 
 export run_monte_carlo_sampling
