@@ -4,7 +4,7 @@ using PyCall
 using PeriodicTable
 using ....Atoms
 using ..Models
-
+using UnitfulAtomic
 export SchNetPackModel
 export initialize_MLmodel
 export torch_load
@@ -23,18 +23,24 @@ struct SchNetPackModel <: Models.Model
     get_D0::Function
 
     function SchNetPackModel(path::String, atoms::AtomicParameters)
-        model, model_args, force_mask = initialize_MLmodel(path, atoms)
+        model, model_args, ML_units = initialize_MLmodel(path, atoms)
         input = Dict{String, PyObject}()
-        #the schnet update only needs to be done once for energy and forces.
-        #for eft separately
+        energy_unit = austrip(1*uparse(ML_units["energy"]))
+        R_unit = 1/austrip(1*uparse(ML_units["R"]))
+        force_unit = energy_unit*R_unit
+        #TODO Check EFT unit
+        EFT_unit = energy_unit/R_unit/R_unit
+
+        #Comment/TODO: the schnet update only needs to be done once for energy and is not needed for the forces.
+        #for eft the schnet update needs to be done as less atoms are needed
         function get_V0(R::AbstractVector)
-            update_schnet_input!(input, atoms, R, model_args)
-            model(input)["energy"].detach().numpy()[1,1]
+            update_schnet_input!(input, atoms, (R*R_unit), model_args)
+            model(input)["energy"].detach().numpy()[1,1]*energy_unit
         end
 
         function get_D0(R::AbstractVector)::Vector
-            update_schnet_input!(input, atoms, R, model_args)
-            -model(input)["forces"].detach().numpy()[1,:,:]'[:]
+            update_schnet_input!(input, atoms, (R/(austrip(1*uparse(ML_units["R"])))), model_args)
+            -model(input)["forces"].detach().numpy()[1,:,:]'[:]*force_unit
         end
         
         new(1, get_V0, get_D0)
@@ -81,10 +87,11 @@ function get_metadata(path::String, model_args::PyObject, atoms::Vector{Symbol})
     else
         println("Attention! No units found in the data set. Atomic units are used.")
         ML_units = Dict()
-        ML_units["energy"] = "H"
-        ML_units["forces"] = "H/Bohr"
-        ML_units["EFT"] = "a.u."
-        ML_units["R"] = "Bohr"
+        ML_units["energy"] = "Eₕ"
+        ML_units["forces"] = "Eₕ/a₀"
+        #TODO check EFT units
+        ML_units["EFT"] = "Eₕ/a₀/a₀"
+        ML_units["R"] = "a₀"
     end
     return ML_units
 end
