@@ -11,7 +11,7 @@ model = SchNetPackModel(model_path, atoms)
 
 p = Systems.System(atoms, model)
 
-tspan = (0.0, 20000.0)
+tspan = (0.0, 2.0)
 problem = ODEProblem(Dynamics.differential!, phasespace, tspan, p)
 solution = solve(problem)
 

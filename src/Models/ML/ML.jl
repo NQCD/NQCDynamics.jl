@@ -45,12 +45,12 @@ function initialize_MLmodel(path::String, atoms::AtomicParameters)
     model = torch_load(path)
     model_args = get_param_model(path)
     #get metadata
-    #force_mask = get_metadata(path, model_args, atoms.atom_types)
+    ML_units = get_metadata(path, model_args, atoms.atom_types)
     force_mask = false
     #global for now
     model_args.atomic_charges = [elements[type].number for type in atoms.atom_types]
     model_args.pbc = atoms.cell.periodicity
-    return model, model_args, force_mask
+    return model, model_args, ML_units
 end
 
 function torch_load(path::String)
@@ -76,17 +76,17 @@ end
 function get_metadata(path::String, model_args::PyObject, atoms::Vector{Symbol})
     spk = pyimport("schnetpack")
     dataset = spk.data.AtomsData(string(joinpath(path,model_args.datapath)),collect_triples=model_args=="wacsf")
-
-    if in("force_mask",keys(dataset.get_metadata()))
-        index = length(dataset.get_metadata("force_mask_index")) - length(atoms) 
-        if index <= 0
-            return dataset.get_metadata("force_mask_index")
-        else 
-            return dataset.get_metadata("force_mask_index")[index:length(dataset.get_metadata("force_mask_index"))]
-        end
+    if in("units",keys(dataset.get_metadata()))
+        ML_units = dataset.get_metadata("units")
     else
-        return force_mask
+        println("Attention! No units found in the data set. Atomic units are used.")
+        ML_units = Dict()
+        ML_units["energy"] = "H"
+        ML_units["forces"] = "H/Bohr"
+        ML_units["EFT"] = "a.u."
+        ML_units["R"] = "Bohr"
     end
+    return ML_units
 end
 
 function get_properties(model_path, atoms, args...)
