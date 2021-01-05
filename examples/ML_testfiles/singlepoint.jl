@@ -3,13 +3,16 @@ using NonadiabaticMolecularDynamics.Models.ML
 using PyCall
 ase = pyimport("ase")
 model_path = "examples/ML_testfiles"
-atoms, phasespace = read_system("examples/ML_testfiles/H2.xyz")
+atoms, phasespace = 
+read_system("examples/ML_testfiles/H2.xyz")
 model = SchNetPackModel(model_path, atoms)
 # model 1 : H2 in gas pahse
 R = ase.io.read(joinpath(model_path,"H2.xyz")).get_positions()
 R= reshape(R,length(R))
 energy = model.get_V0(R)
+forces = model.get_D0(R)
 print(energy)
+print(forces)
 
 
 # model 1 : H2 in gas pahse
