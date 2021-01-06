@@ -10,10 +10,12 @@ using ..NonadiabaticMolecularDynamics
 export Model
 export AdiabaticModel
 export DiabaticModel
+export FrictionModel
 
 abstract type Model end
 abstract type AdiabaticModel <: Model end
 abstract type DiabaticModel <: Model end
+abstract type FrictionModel <: Model end
 
 """
     get_pairs(R::AbstractMatrix, cutoff::AbstractFloat, cell::AbstractCell)
@@ -27,8 +29,12 @@ end
 
 include("analytic_models/free.jl")
 include("analytic_models/harmonic.jl")
+
 include("analytic_models/double_well.jl")
 include("analytic_models/tully_models.jl")
+
+include("analytic_models/friction_harmonic.jl")
+
 include("EAM/PdH.jl")
 include("EANN/EANN_H2Cu.jl")
 include("EANN/EANN_H2Ag.jl")

@@ -6,6 +6,7 @@ using ..Models
 abstract type AbstractCalculator{M<:Model} end
 abstract type AbstractAdiabaticCalculator{M<:AdiabaticModel} <: AbstractCalculator{M} end
 abstract type AbstractDiabaticCalculator{M<:DiabaticModel} <: AbstractCalculator{M} end
+abstract type AbstractFrictionCalculator{M<:FrictionModel} <: AbstractCalculator{M} end
 
 struct AdiabaticCalculator{T,M} <: AbstractAdiabaticCalculator{M}
     model::M
@@ -16,7 +17,7 @@ struct AdiabaticCalculator{T,M} <: AbstractAdiabaticCalculator{M}
     end
 end
 
-mutable struct RingPolymerAdiabaticCalculator{T,M} <: AbstractAdiabaticCalculator{M}
+struct RingPolymerAdiabaticCalculator{T,M} <: AbstractAdiabaticCalculator{M}
     model::M
     potential::Vector{Vector{T}}
     derivative::Array{T,3}
@@ -42,7 +43,7 @@ struct DiabaticCalculator{T,M} <: AbstractDiabaticCalculator{M}
     end
 end
 
-mutable struct RingPolymerDiabaticCalculator{T,M} <: AbstractDiabaticCalculator{M}
+struct RingPolymerDiabaticCalculator{T,M} <: AbstractDiabaticCalculator{M}
     model::M
     potential::Vector{Hermitian{T}}
     derivative::Array{Hermitian{T},3}
@@ -59,11 +60,24 @@ mutable struct RingPolymerDiabaticCalculator{T,M} <: AbstractDiabaticCalculator{
     end
 end
 
+struct FrictionCalculator{T,M} <: AbstractFrictionCalculator{M}
+    model::M
+    potential::Vector{T}
+    derivative::Matrix{T}
+    friction::Matrix{T}
+    function FrictionCalculator{T}(model::M, DoFs::Integer, atoms::Integer) where {T,M<:Model}
+        new{T,M}(model, [0.0], zeros(DoFs, atoms), zeros(DoFs*atoms, DoFs*atoms))
+    end
+end
+
 function Calculator(model::DiabaticModel, DoFs::Integer, atoms::Integer, T::Type=Float64)
     DiabaticCalculator{T}(model, DoFs, atoms)
 end
 function Calculator(model::AdiabaticModel, DoFs::Integer, atoms::Integer, T::Type=Float64)
     AdiabaticCalculator{T}(model, DoFs, atoms)
+end
+function Calculator(model::FrictionModel, DoFs::Integer, atoms::Integer, T::Type=Float64)
+    FrictionCalculator{T}(model, DoFs, atoms)
 end
 function Calculator(model::DiabaticModel, DoFs::Integer, atoms::Integer, beads::Integer, T::Type=Float64)
     RingPolymerDiabaticCalculator{T}(model, DoFs, atoms, beads)
@@ -90,6 +104,10 @@ function evaluate_derivative!(calc::AbstractCalculator, R::AbstractArray{T,3}) w
     @views for i in axes(R, 3)
         calc.model.derivative!(calc.derivative[:,:,i], R[:,:,i])
     end
+end
+
+function evaluate_friction!(calc::AbstractFrictionCalculator, R::AbstractMatrix{T}) where {T}
+    calc.model.friction!(calc.friction, R)
 end
 
 function eigen!(calc::DiabaticCalculator)
