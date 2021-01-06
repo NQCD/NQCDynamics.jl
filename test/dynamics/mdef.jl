@@ -1,7 +1,6 @@
 using Test
 using NonadiabaticMolecularDynamics
 using Unitful
-using DifferentialEquations
 
 @test Dynamics.MDEF{Float64}(10, 3) isa Dynamics.MDEF
 atoms = Atoms{Float64}([:H, :C])
@@ -25,5 +24,4 @@ Dynamics.set_force!(du, u, sim)
     @test all(blank[n÷2+1:end, n÷2+1:end] .!= 0)
 end
 
-prob = SDEProblem(Dynamics.motion!, Dynamics.random_force!, u, (0.0, 1.0), sim; noise_rate_prototype=zeros(n, n))
 sol = Dynamics.run_trajectory(u, (0.0, 1.0), sim)
