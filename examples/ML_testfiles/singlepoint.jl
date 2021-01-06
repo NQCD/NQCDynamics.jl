@@ -17,8 +17,8 @@ model.derivative!(D, positions)
 display(D)
 
 # model 1 : H2 in gas pahse
-cell2, atoms2, phasespace2 = read_system("examples/ML_testfiles/H2_Cu(100).xyz")
-model2 = SchNetPackModel(model_path, cell2, atoms2)
+cell, atoms, positions = read_system("examples/ML_testfiles/H2_Cu(100).xyz")
+model = SchNetPackModel(model_path, cell, atoms)
 
 V = [0.0]
 model.potential!(V, positions)
