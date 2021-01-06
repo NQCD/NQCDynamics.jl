@@ -87,27 +87,27 @@ function Calculator(model::AdiabaticModel, DoFs::Integer, atoms::Integer, beads:
 end
 
 function evaluate_potential!(calc::AbstractCalculator, R::AbstractMatrix{T}) where {T}
-    calc.model.potential!(calc.potential, R)
+    Models.potential!(calc.model, calc.potential, R)
 end
 
 function evaluate_potential!(calc::AbstractCalculator, R::AbstractArray{T,3}) where {T}
     @views for i in axes(R, 3)
-        calc.model.potential!(calc.potential[i], R[:,:,i])
+        Models.potential!(calc.model, calc.potential[i], R[:,:,i])
     end
 end
 
 function evaluate_derivative!(calc::AbstractCalculator, R::AbstractMatrix{T}) where {T}
-    calc.model.derivative!(calc.derivative, R)
+    Models.derivative!(calc.model, calc.derivative, R)
 end
 
 function evaluate_derivative!(calc::AbstractCalculator, R::AbstractArray{T,3}) where {T}
     @views for i in axes(R, 3)
-        calc.model.derivative!(calc.derivative[:,:,i], R[:,:,i])
+        Models.derivative!(calc.model, calc.derivative[:,:,i], R[:,:,i])
     end
 end
 
 function evaluate_friction!(calc::AbstractFrictionCalculator, R::AbstractMatrix{T}) where {T}
-    calc.model.friction!(calc.friction, R)
+    Models.friction!(calc.model, calc.friction, R)
 end
 
 function eigen!(calc::DiabaticCalculator)
