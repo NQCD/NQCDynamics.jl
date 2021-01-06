@@ -29,6 +29,7 @@ struct EANN_H₂Cu <: AdiabaticModel
             cd(path) do
                 calculate_H2Cu_pes!(coordinates_ang, zeros(1,1), D, 0, 1)
             end
+            D .*= -1
         end
         
         new(1, potential!, derivative!)

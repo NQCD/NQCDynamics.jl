@@ -29,6 +29,7 @@ struct EANN_H₂Ag <: FrictionModel
             cd(path) do
                 calculate_H2Ag_pes_forces!(n_atoms, coordinates_ang, D)
             end
+            D .*= -1
         end
 
         function friction!(F::AbstractMatrix, R::AbstractMatrix)
@@ -55,7 +56,6 @@ function calculate_H2Ag_pes_potential!(n_atoms::Int64, coordinates::Matrix{Float
         Cvoid,
         (Ref{Int64}, Ref{Float64}, Ptr{Float64}),
         n_atoms, coordinates, energy)
-    return energy
 end
 
 function calculate_H2Ag_pes_forces!(n_atoms::Int64, coordinates::Matrix{Float64}, force::Matrix{Float64})
@@ -64,7 +64,6 @@ function calculate_H2Ag_pes_forces!(n_atoms::Int64, coordinates::Matrix{Float64}
         Cvoid,
         (Ref{Int64}, Ref{Float64}, Ptr{Float64}),
         n_atoms, coordinates, force)
-    return -force
 end
 
 function calculate_H2Ag_friction_tensor!(coordinates::AbstractMatrix, friction::AbstractMatrix)
@@ -73,5 +72,4 @@ function calculate_H2Ag_friction_tensor!(coordinates::AbstractMatrix, friction::
         Cvoid,
         (Ref{Float64}, Ptr{Float64}),
         coordinates, friction)
-    return friction
 end

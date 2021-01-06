@@ -28,6 +28,7 @@ struct EANN_NOAu <: FrictionModel
             cd(path) do
                 calculate_force_NOAu_pes!(coordinates_ang, zeros(1,1), D)
             end
+            D .*= -1
         end
 
         function friction!(F::AbstractMatrix, R::AbstractMatrix)
@@ -61,7 +62,6 @@ function calculate_energy_NOAu_pes!(coordinates::Array{Float64}, energy::Array{F
         Cvoid,
         (Ref{Float64}, Ptr{Float64}),
         coordinates, energy)
-    return energy
 end
 
 function calculate_force_NOAu_pes!(coordinates::Array{Float64}, energy::Array{Float64}, force::Array{Float64})
@@ -70,7 +70,6 @@ function calculate_force_NOAu_pes!(coordinates::Array{Float64}, energy::Array{Fl
         Cvoid,
         (Ref{Float64}, Ptr{Float64}, Ptr{Float64}),
         coordinates, energy, force)
-    return -force
 end
 
 function calculate_NOAu_friction_tensor!(coordinates::AbstractMatrix, friction::AbstractMatrix)
@@ -79,5 +78,4 @@ function calculate_NOAu_friction_tensor!(coordinates::AbstractMatrix, friction::
         Cvoid,
         (Ref{Float64}, Ptr{Float64}),
         coordinates, friction)
-    return friction
 end
