@@ -55,12 +55,21 @@ to an `SDEProblem` to integrate stochastic dynamics.
 function random_force! end
 
 function run_trajectory(u0::DynamicalVariables, tspan::Tuple, sim::AbstractSimulation)
-    solve(ODEProblem(motion!, u0, tspan, sim), Tsit5())
+    solve(create_problem(u0, tspan, sim), select_algorithm(sim))
 end
+
+function create_problem(u0::DynamicalVariables, tspan::Tuple, sim::AbstractSimulation)
+    ODEProblem(motion!, u0, tspan, sim)
+end
+
+select_algorithm(::AbstractSimulation) = Tsit5()
 
 include("classical.jl")
 include("langevin.jl")
 include("mdef.jl")
 include("fssh.jl")
+include("fermionic_ring_polymer.jl")
+
+include("ensembles.jl")
 
 end # module

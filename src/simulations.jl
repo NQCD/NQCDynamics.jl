@@ -63,3 +63,9 @@ function RingPolymerSimulation(DoFs::Integer, temperature::Unitful.Temperature, 
         n_beads::Integer, quantum_nuclei::Vector{Symbol}=Symbol[]) where {M,S,T}
     RingPolymerSimulation(DoFs, austrip(temperature), cell, atoms, model, method, n_beads, quantum_nuclei)
 end
+
+function RingPolymerSimulation(atoms::Atoms{S,T}, model::Model, method::M, n_beads::Integer;
+        DoFs::Integer=3, temperature::Unitful.Temperature=0u"K",
+        cell::AbstractCell{T}=InfiniteCell{T}(), quantum_nuclei::Vector{Symbol}=Symbol[]) where {M,S,T}
+    RingPolymerSimulation(DoFs, austrip(temperature), cell, atoms, model, method, n_beads, quantum_nuclei)
+end

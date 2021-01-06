@@ -15,9 +15,9 @@ model = Models.PdH(atoms.types, cell, 10.0)
 
 Δ = Dict([(:Pd, 0.5), (:H, 1.0)])
 monte_carlo = InitialConditions.MonteCarlo{Float64}(Δ, length(atoms), 2000, [1])
-sim = Simulation(3, 300u"K", cell, atoms, model, monte_carlo)
+sim = Simulation(atoms, model, Dynamics.Classical(); temperature=300u"K", cell=cell)
 
-output = InitialConditions.run_monte_carlo_sampling(sim, positions)
+output = InitialConditions.run_monte_carlo_sampling(sim, monte_carlo, positions)
 
 @show output.acceptance
 write_trajectory("sampling.xyz", cell, atoms, output.R)

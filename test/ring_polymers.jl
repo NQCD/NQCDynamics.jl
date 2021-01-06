@@ -30,7 +30,7 @@ S = sim.beads.springs
 R = rand(3, 11, 10)
 R_original = copy(R)
 @test R == R_original
-transform_to_normal_modes!(sim.beads, R, 3)
+transform_to_normal_modes!(sim.beads, R)
 @test !(R ≈ R_original)
-transform_from_normal_modes!(sim.beads, R, 3)
+transform_from_normal_modes!(sim.beads, R)
 @test R ≈ R_original
