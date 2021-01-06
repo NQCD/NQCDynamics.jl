@@ -1,24 +1,17 @@
-using Unitful
-using PyCall
-using ....Atoms
 
 const torch = PyNULL() # Julia torch module
 
-export update_schnet_input!
+function update_schnet_input!(schnet_inputs::Dict, periodic_cell::PeriodicCell, atoms::Atoms, R::AbstractMatrix, model_args::PyObject, ML_units::Dict)
 
-# pushfirst!(PyVector(pyimport("sys")."path"),"")
-
-function update_schnet_input!(schnet_inputs::Dict, p::AtomicParameters, R::AbstractVector, model_args::PyObject)
-
-    cell = ustrip.(u"Å", p.cell.vectors)
-    positions = reshape(R, (p.n_atoms, 3))
+    cell = ustrip.(auconvert.(u"Å", periodic_cell.vectors))
+    positions = ustrip.(auconvert.(uparse(ML_units["R"]), R'))
     # We might want to get Julia versions of these, also we should remove the if statement.
     if model_args.environment_provider == "simple"
-        nbh_idx, offsets = py"get_simple_environment"(p.n_atoms,p.atom_types,positions,model_args.pbc,cell,model_args)
+        nbh_idx, offsets = py"get_simple_environment"(length(atoms), atoms.types, positions, model_args.pbc, cell, model_args)
     elseif model_args.environment_provider == "ase"
-        nbh_idx,offsets = py"get_ase_environment"(p.n_atoms,p.atom_types,positions,model_args.pbc,cell,model_args)
+        nbh_idx,offsets = py"get_ase_environment"(length(atoms), atoms.types, positions, model_args.pbc, cell, model_args)
     elseif model_args.environment_provider == "torch"
-        nbh_idx,offsets = py"get_torch_environment"(p.n_atoms,model_args.atomic_charges,positions,model_args.pbc,cell,model_args)
+        nbh_idx,offsets = py"get_torch_environment"(length(atoms), model_args.atomic_charges, positions, model_args.pbc, cell, model_args)
     end
     # Some of these will not change and do not need to be updated every time.
     schnet_inputs["_atomic_numbers"] =  torch.LongTensor(model_args.atomic_charges).unsqueeze(0).to(model_args.device)
