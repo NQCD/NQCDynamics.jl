@@ -5,9 +5,8 @@ using DifferentialEquations
 
 @test Dynamics.MDEF{Float64}(10, 3) isa Dynamics.MDEF
 atoms = Atoms{Float64}([:H, :C])
-cell = InfiniteCell{Float64}()
-mdef = Dynamics.MDEF{Float64}(length(atoms), 3)
-sim = Simulation(3, 10u"K", cell, atoms, Models.Free(), mdef)
+mdef = Dynamics.MDEF{Float64}(length(atoms), 1)
+sim = Simulation(atoms, Models.FrictionHarmonic(), mdef; temperature=10u"K", DoFs=1)
 
 R = zeros(sim.DoFs, length(sim.atoms)) 
 P = zeros(sim.DoFs, length(sim.atoms)) 
@@ -27,4 +26,4 @@ Dynamics.set_force!(du, u, sim)
 end
 
 prob = SDEProblem(Dynamics.motion!, Dynamics.random_force!, u, (0.0, 1.0), sim; noise_rate_prototype=zeros(n, n))
-sol = solve(prob)
+sol = Dynamics.run_trajectory(u, (0.0, 1.0), sim)
