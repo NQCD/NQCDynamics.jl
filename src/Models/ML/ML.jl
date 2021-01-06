@@ -15,33 +15,28 @@ ase = pyimport("ase")
 include("ML_descriptor.jl")
 
 struct SchNetPackModel <: AdiabaticModel
+    cell::PeriodicCell
+    atoms::Atoms
+    input::Dict{String, PyObject}
+    model_args::PyObject
+    ML_units::Dict{Any, Any}
+    model::PyObject
+end
 
-    n_states::UInt
-    potential!::Function
-    derivative!::Function
+function SchNetPackModel(path::String, cell::PeriodicCell, atoms::Atoms)
+    model, model_args, ML_units = initialize_MLmodel(path, cell, atoms)
+    input = Dict{String, PyObject}()
+    SchNetPackModel(cell, atoms, input, model_args, ML_units, model)
+end
 
-    function SchNetPackModel(path::String, cell::PeriodicCell, atoms::Atoms)
-        model, model_args, ML_units = initialize_MLmodel(path, cell, atoms)
+function Models.potential!(model::SchNetPackModel, V::AbstractVector, R::AbstractMatrix)
+    update_schnet_input!(model.input, model.cell, model.atoms, R, model.model_args, model.ML_units)
+    V .= austrip.(model.model(model.input)["energy"].detach().numpy()[1] .* uparse(model.ML_units["energy"]))
+end
 
-        input = Dict{String, PyObject}()
-
-        #TODO Check EFT unit
-        # EFT_unit = energy_unit/R_unit/R_unit
-
-        #Comment/TODO: the schnet update only needs to be done once for energy and is not needed for the forces.
-        #for eft the schnet update needs to be done as less atoms are needed
-        function potential!(V::AbstractVector, R::AbstractMatrix)
-            update_schnet_input!(input, cell, atoms, R, model_args, ML_units)
-            V .= austrip.(model(input)["energy"].detach().numpy()[1] .* uparse(ML_units["energy"]))
-        end
-
-        function derivative!(D::AbstractMatrix, R::AbstractMatrix)
-            update_schnet_input!(input, cell, atoms, R, model_args, ML_units)
-            D .= austrip.(-model(input)["forces"].detach().numpy()[1,:,:]' .* uparse(ML_units["forces"]))
-        end
-        
-        new(1, potential!, derivative!)
-    end
+function Models.derivative!(model::SchNetPackModel, D::AbstractMatrix, R::AbstractMatrix)
+    update_schnet_input!(model.input, model.cell, model.atoms, R, model.model_args, model.ML_units)
+    D .= austrip.(-model.model(model.input)["forces"].detach().numpy()[1,:,:]' .* uparse(model.ML_units["forces"]))
 end
 
 function initialize_MLmodel(path::String, cell::PeriodicCell, atoms::Atoms)
