@@ -3,13 +3,7 @@ export Free
 """
 A model that has zero external potential everywhere.
 """
-struct Free <: AdiabaticModel
+struct Free <: AdiabaticModel end
 
-    n_states::UInt
-    potential!::Function
-    derivative!::Function
-    
-    clearit!(out, x) = fill!(out, 0.0)
-
-    Free() = new(1, clearit!, clearit!)
-end
+potential!(::Free, out::Vector, ::AbstractMatrix) = out .= 0
+derivative!(::Free, out::AbstractMatrix, ::AbstractMatrix) = out .= 0
