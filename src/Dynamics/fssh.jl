@@ -37,8 +37,8 @@ end
 
 get_density_matrix(z::SurfaceHoppingPhasespace) = z.x.x[3]
 
-function run_trajectory(u0::SurfaceHoppingPhasespace, tspan::Tuple, sim::AbstractSimulation{<:FSSH})
-    solve(ODEProblem(motion!, u0, tspan, sim; callback=fssh_callback), Tsit5())
+function create_problem(u0::SurfaceHoppingPhasespace, tspan::Tuple, sim::AbstractSimulation{<:FSSH})
+    ODEProblem(motion!, u0, tspan, sim; callback=fssh_callback)
 end
 
 function motion!(du::SurfaceHoppingPhasespace, u::SurfaceHoppingPhasespace, sim::Simulation{<:FSSH}, t)

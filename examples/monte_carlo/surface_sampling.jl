@@ -15,12 +15,12 @@ slab.center(vacuum=10.0, axis=2)
 cell, atoms, positions = extract_parameters_and_positions(slab)
 model = Models.PdH(atoms.types, cell, 10.0)
 
-Δ = Dict([(:Pd, 0.5), (:H, 0.5)])
-monte_carlo = InitialConditions.MonteCarlo{Float64}(Δ, length(atoms), 100, collect(1:6))
-sim = RingPolymerSimulation(3, 100u"K", cell, atoms, model, monte_carlo, 10, [:H])
+Δ = Dict([(:Pd, 0.5), (:H, 1.0)])
+monte_carlo = InitialConditions.PathIntegralMonteCarlo{Float64}(Δ, length(atoms), 100, collect(1:6), 1.0, 10)
+sim = RingPolymerSimulation(atoms, model, Dynamics.Classical(), 10; quantum_nuclei=[:H], temperature=100u"K", cell=cell)
 
 R = cat([positions for i=1:10]..., dims=3)
-output = InitialConditions.run_monte_carlo_sampling(sim, R)
+output = InitialConditions.run_monte_carlo_sampling(sim, monte_carlo, R)
 
 @show output.acceptance
 write_trajectory("sampling.xyz", cell, atoms, output.R)

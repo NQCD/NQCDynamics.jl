@@ -67,17 +67,17 @@ function get_normal_mode_transformation(n::Int)::Matrix
     (real(a) + imag(a)) / sqrt(n)
 end
 
-function transform_to_normal_modes!(p::RingPolymerParameters, R::Array{T,3}, DoF::Integer) where {T}
+function transform_to_normal_modes!(p::RingPolymerParameters, R::Array{T,3}) where {T}
     @views for i in p.quantum_atoms
-        for j=1:DoF
+        for j in axes(R, 1)
             R[j,i,:] .= p.U'R[j,i,:]
         end
     end
 end
 
-function transform_from_normal_modes!(p::RingPolymerParameters, R::Array{T,3}, DoF::Integer) where {T}
+function transform_from_normal_modes!(p::RingPolymerParameters, R::Array{T,3}) where {T}
     @views for i in p.quantum_atoms
-        for j=1:DoF
+        for j in axes(R, 1)
             R[j,i,:] .= p.U*R[j,i,:]
         end
     end
