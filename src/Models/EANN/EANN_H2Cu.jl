@@ -38,20 +38,20 @@ end
 function initialize_H2Cu_pes(lib_path::String)
     cd(lib_path) do
         # EANN PES: call init_pes function
-        ccall((:init_pes_, "nn.dylib"), Cvoid, ())
+        ccall((:init_pes_, "h2cu_pes.dylib"), Cvoid, ())
     end
 end
 
 function deallocate_H2Cu_pes(lib_path::String)
     cd(lib_path) do
         # EANN PES: call deallocate_all function
-        ccall((:deallocate_all_, "nn.dylib"), Cvoid, ())
+        ccall((:deallocate_all_, "h2cu_pes.dylib"), Cvoid, ())
     end
 end
 
 function calculate_H2Cu_pes!(coordinates::Array{Float64}, energy::Array{Float64}, force::Array{Float64}, coordinates_type::Int64=0, force_incl::Int64=1)
     # EANN PES: get energy and force from EANN to vars: energy and force
-    ccall((:eann_out_, "nn.dylib"),
+    ccall((:eann_out_, "h2cu_pes.dylib"),
         Cvoid,
         (Ref{Int64}, Ref{Int64}, Ref{Float64}, Ptr{Float64}, Ptr{Float64}),
         coordinates_type, force_incl, coordinates, energy, force)

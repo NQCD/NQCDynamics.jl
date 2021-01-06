@@ -14,6 +14,7 @@ export DiabaticModel
 abstract type Model end
 abstract type AdiabaticModel <: Model end
 abstract type DiabaticModel <: Model end
+abstract type FrictionModel <: Model end
 
 """
     get_pairs(R::AbstractMatrix, cutoff::AbstractFloat, cell::AbstractCell)
@@ -32,6 +33,7 @@ include("analytic_models/tully_models.jl")
 include("EAM/PdH.jl")
 include("EANN/EANN_H2Cu.jl")
 include("EANN/EANN_H2Ag.jl")
+include("EANN/EANN_NOAu.jl")
 
 include("plot.jl")
 end # module
