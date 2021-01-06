@@ -12,6 +12,10 @@ export AdiabaticModel
 export DiabaticModel
 export FrictionModel
 
+export potential!
+export derivative!
+export friction!
+
 abstract type Model end
 abstract type AdiabaticModel <: Model end
 abstract type DiabaticModel <: Model end
@@ -27,11 +31,16 @@ function get_pairs(R::AbstractMatrix, cutoff::AbstractFloat, cell::AbstractCell)
     PairList(Q, cutoff, austrip.(cell.vectors'), cell.periodicity) # Construct the list of neighbours
 end
 
+function potential! end
+function derivative! end
+function friction! end
+
 include("analytic_models/free.jl")
 include("analytic_models/harmonic.jl")
 
 include("analytic_models/double_well.jl")
 include("analytic_models/tully_models.jl")
+include("analytic_models/scattering_anderson_holstein.jl")
 
 include("analytic_models/friction_harmonic.jl")
 
