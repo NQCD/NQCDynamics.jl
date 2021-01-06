@@ -2,60 +2,56 @@ module ML
 
 using PyCall
 using PeriodicTable
-using ....Atoms
+using ....NonadiabaticMolecularDynamics
 using ..Models
 using UnitfulAtomic
+using Unitful
+
 export SchNetPackModel
-export initialize_MLmodel
-export torch_load
-export getmetadata
-export get_param_model
-export check_atoms
+
 np = pyimport("numpy")
 ase = pyimport("ase")
 
 include("ML_descriptor.jl")
 
-struct SchNetPackModel <: Models.Model
+struct SchNetPackModel <: AdiabaticModel
 
     n_states::UInt
-    get_V0::Function
-    get_D0::Function
+    potential!::Function
+    derivative!::Function
 
-    function SchNetPackModel(path::String, atoms::AtomicParameters)
-        model, model_args, ML_units = initialize_MLmodel(path, atoms)
+    function SchNetPackModel(path::String, cell::PeriodicCell, atoms::Atoms)
+        model, model_args, ML_units = initialize_MLmodel(path, cell, atoms)
+
         input = Dict{String, PyObject}()
-        energy_unit = austrip(1*uparse(ML_units["energy"]))
-        R_unit = 1/austrip(1*uparse(ML_units["R"]))
-        force_unit = energy_unit*R_unit
+
         #TODO Check EFT unit
-        EFT_unit = energy_unit/R_unit/R_unit
+        # EFT_unit = energy_unit/R_unit/R_unit
 
         #Comment/TODO: the schnet update only needs to be done once for energy and is not needed for the forces.
         #for eft the schnet update needs to be done as less atoms are needed
-        function get_V0(R::AbstractVector)
-            update_schnet_input!(input, atoms, (R*R_unit), model_args)
-            model(input)["energy"].detach().numpy()[1,1]*energy_unit
+        function potential!(V::AbstractVector, R::AbstractMatrix)
+            update_schnet_input!(input, cell, atoms, R, model_args, ML_units)
+            V .= austrip.(model(input)["energy"].detach().numpy()[1] .* uparse(ML_units["energy"]))
         end
 
-        function get_D0(R::AbstractVector)::Vector
-            update_schnet_input!(input, atoms, (R/(austrip(1*uparse(ML_units["R"])))), model_args)
-            -model(input)["forces"].detach().numpy()[1,:,:]'[:]*force_unit
+        function derivative!(D::AbstractMatrix, R::AbstractMatrix)
+            update_schnet_input!(input, cell, atoms, R, model_args, ML_units)
+            D .= austrip.(-model(input)["forces"].detach().numpy()[1,:,:]' .* uparse(ML_units["forces"]))
         end
         
-        new(1, get_V0, get_D0)
+        new(1, potential!, derivative!)
     end
 end
 
-function initialize_MLmodel(path::String, atoms::AtomicParameters)
+function initialize_MLmodel(path::String, cell::PeriodicCell, atoms::Atoms)
     model = torch_load(path)
     model_args = get_param_model(path)
     #get metadata
-    ML_units = get_metadata(path, model_args, atoms.atom_types)
+    ML_units = get_metadata(path, model_args)
     force_mask = false
-    #global for now
-    model_args.atomic_charges = [elements[type].number for type in atoms.atom_types]
-    model_args.pbc = atoms.cell.periodicity
+    model_args.atomic_charges = [elements[type].number for type in atoms.types]
+    model_args.pbc = cell.periodicity
     return model, model_args, ML_units
 end
 
@@ -77,9 +73,7 @@ function get_param_model(path::String)
     return model_args #, environment_provider
 end
 
-# This function is not type stable. force_mask can be either Bool or Vector
-# This should be removed
-function get_metadata(path::String, model_args::PyObject, atoms::Vector{Symbol})
+function get_metadata(path::String, model_args::PyObject)
     spk = pyimport("schnetpack")
     dataset = spk.data.AtomsData(string(joinpath(path,model_args.datapath)),collect_triples=model_args=="wacsf")
     if in("units",keys(dataset.get_metadata()))
