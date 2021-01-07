@@ -3,42 +3,34 @@ export EANN_NOAu
 """
 ...
 """
-
 struct EANN_NOAu <: FrictionModel
-
-    n_states::UInt
-    potential!::Function
-    derivative!::Function
-    friction!::Function
-
+    path::String
+    n_atoms::Int
     function EANN_NOAu(path::String, atoms::Atoms)
-
         initialize_NOAu_pes(path)
-        n_atoms = convert(Int, length(atoms))
+        new(path, length(atoms))
+    end
+end
 
-        function potential!(V::AbstractVector, R::AbstractMatrix)
-            coordinates_ang = copy(ustrip(auconvert.(u"Å", R)))
-            cd(path) do
-                calculate_energy_NOAu_pes!(coordinates_ang, reshape(V, (1,1)))
-            end
-        end
-        
-        function derivative!(D::AbstractMatrix, R::AbstractMatrix)
-            coordinates_ang = copy(ustrip(auconvert.(u"Å", R)))
-            cd(path) do
-                calculate_force_NOAu_pes!(coordinates_ang, zeros(1,1), D)
-            end
-            D .*= -1
-        end
+function potential!(model::EANN_NOAu, V::AbstractVector, R::AbstractMatrix)
+    coordinates_ang = copy(ustrip(auconvert.(u"Å", R)))
+    cd(model.path) do
+        calculate_energy_NOAu_pes!(coordinates_ang, reshape(V, (1,1)))
+    end
+end
 
-        function friction!(F::AbstractMatrix, R::AbstractMatrix)
-            #coordinates_ang = copy(ustrip(auconvert.(u"Å", R)))
-            cd(path) do
-                calculate_NOAu_friction_tensor!(R, F)
-            end
-        end
-        
-        new(1, potential!, derivative!, friction!)
+function derivative!(model::EANN_NOAu, D::AbstractMatrix, R::AbstractMatrix)
+    coordinates_ang = copy(ustrip(auconvert.(u"Å", R)))
+    cd(model.path) do
+        calculate_force_NOAu_pes!(coordinates_ang, zeros(1,1), D)
+    end
+    D .*= -1
+end
+
+function friction!(model::EANN_NOAu, F::AbstractMatrix, R::AbstractMatrix)
+    #coordinates_ang = copy(ustrip(auconvert.(u"Å", R)))
+    cd(model.path) do
+        calculate_NOAu_friction_tensor!(R, F)
     end
 end
 

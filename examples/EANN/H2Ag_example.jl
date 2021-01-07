@@ -13,10 +13,10 @@ println(positions)
 
 println("Energy:")
 V = [0.0]
-model.potential!(V, positions)
+Models.potential!(model, V, positions)
 println(V)
 
 println("Forces:")
 D = zero(positions)
-model.derivative!(D, positions)
+Models.derivative!(model, D, positions)
 println(D)

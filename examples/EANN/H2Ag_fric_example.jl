@@ -20,7 +20,7 @@ open(input_f) do file
                 coor[i,1]=parse(Float64, m[i+1])
             end
             coor_friction = copy(transpose(coor))
-            model.friction!(friction, coor_friction)
+            Models.friction!(model, friction, coor_friction)
             println(friction)
         end
     end
