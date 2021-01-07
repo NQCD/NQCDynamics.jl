@@ -5,35 +5,28 @@ Lingjun Zhu, Yaolong Zhang, Liang Zhang, Xueyao Zhou and Bin Jiang
 Unified and transferable description of dynamics of H2 dissociative adsorption on multiple copper surfaces via machine learning.
 Phys. Chem. Chem. Phys., 2020, 22, 13958--13964
 """
-
 struct EANN_H₂Cu <: AdiabaticModel
-
-    n_states::UInt
-    potential!::Function
-    derivative!::Function
-
-    function EANN_H₂Cu(path::String, atoms::Atoms)
-
+    path::String
+    n_atoms::Int
+    function EANN_H₂Ag(path::String, atoms::Atoms)
         initialize_H2Cu_pes(path)
-        n_atoms = convert(Int, length(atoms))
-
-        function potential!(V::AbstractVector, R::AbstractMatrix)
-            coordinates_ang = copy(ustrip(auconvert.(u"Å", R)))
-            cd(path) do
-                calculate_H2Cu_pes!(coordinates_ang, reshape(V, (1,1)), zero(R), 0, 0)
-            end
-        end
-        
-        function derivative!(D::AbstractMatrix, R::AbstractMatrix)
-            coordinates_ang = copy(ustrip(auconvert.(u"Å", R)))
-            cd(path) do
-                calculate_H2Cu_pes!(coordinates_ang, zeros(1,1), D, 0, 1)
-            end
-            D .*= -1
-        end
-        
-        new(1, potential!, derivative!)
+        new(path, length(atoms))
     end
+end
+
+function potential!(model::EANN_H₂Cu, V::AbstractVector, R::AbstractMatrix)
+    coordinates_ang = copy(ustrip(auconvert.(u"Å", R)))
+    cd(model.path) do
+        calculate_H2Cu_pes!(coordinates_ang, reshape(V, (1,1)), zero(R), 0, 0)
+    end
+end
+
+function derivative!(model::EANN_H₂Cu, D::AbstractMatrix, R::AbstractMatrix)
+    coordinates_ang = copy(ustrip(auconvert.(u"Å", R)))
+    cd(model.path) do
+        calculate_H2Cu_pes!(coordinates_ang, zeros(1,1), D, 0, 1)
+    end
+    D .*= -1
 end
 
 function initialize_H2Cu_pes(lib_path::String)
