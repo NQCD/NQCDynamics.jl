@@ -12,3 +12,7 @@ makedocs(sitename="NonadiabaticMolecularDynamics.jl",
             "initial_conditions/initial_conditions.md"
         ]
     ])
+
+deploydocs(
+    repo = "github.com/USER_NAME/PACKAGE_NAME.jl.git",
+)
