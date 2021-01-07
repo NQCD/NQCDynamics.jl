@@ -2,7 +2,7 @@
     "aggregation_mode": "sum",
     "batch_size": 16,
     "checkpoint_interval": 1,
-    "contributions": null,
+    "contributions": true,
     "cuda": false,
     "cutoff": 10.0,
     "cutoff_function": "cosine",
