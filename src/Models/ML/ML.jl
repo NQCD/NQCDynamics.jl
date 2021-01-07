@@ -9,9 +9,6 @@ using Unitful
 
 export SchNetPackModel
 
-np = pyimport("numpy")
-ase = pyimport("ase")
-
 include("ML_descriptor.jl")
 
 struct SchNetPackModel <: AdiabaticModel
