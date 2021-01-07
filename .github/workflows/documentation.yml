@@ -10,7 +10,7 @@ on:
     tags: '*'
   pull_request:
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+# A workflow run is made up of one or more jobs
 jobs:
   # This workflow contains a single job called "build"
   build:
