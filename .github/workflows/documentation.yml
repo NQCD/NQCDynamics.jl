@@ -23,8 +23,9 @@ jobs:
       - uses: actions/checkout@v2
       - uses: julia-actions/setup-julia@latest
       # Runs a single command using the runners shell
-      - name: Install dependencies
+      - name: Install torch
         run: pip install torch
+      - name: Install dependencies
         run: julia --project=docs/ -e 'using Pkg; Pkg.develop(PackageSpec(path=pwd())); Pkg.instantiate()'
       - name: Build and deploy
         env:
