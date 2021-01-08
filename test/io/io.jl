@@ -1,4 +1,7 @@
 using Test
 using NonadiabaticMolecularDynamics.IO
 
-@test_nowarn read_system("test/io/slab.xyz")
+cell, atoms, R = read_system("io/slab.xyz")
+@test size(R)[1] == 3
+@test atoms isa Atoms
+@test cell isa PeriodicCell

@@ -1,42 +1,42 @@
-using Unitful
-using PyCall
-using ....Atoms
 
 const torch = PyNULL() # Julia torch module
 
-export update_schnet_input!
+function update_schnet_input!(schnet_inputs::Dict, periodic_cell::PeriodicCell, atoms::Atoms, R::AbstractMatrix, model_args::PyObject, ML_units::Dict)
 
-# pushfirst!(PyVector(pyimport("sys")."path"),"")
-
-function update_schnet_input!(schnet_inputs::Dict, p::AtomicParameters, R::AbstractVector, model_args::PyObject)
-
-    cell = ustrip.(u"Å", p.cell.vectors)
-    positions = reshape(R, (p.n_atoms, 3))
-
+    cell = ustrip.(auconvert.(u"Å", periodic_cell.vectors))
+    positions = ustrip.(auconvert.(uparse(ML_units["R"]), R'))
     # We might want to get Julia versions of these, also we should remove the if statement.
     if model_args.environment_provider == "simple"
-        nbh_idx, offsets = py"get_simple_environment"(p.n_atoms,p.atom_types,positions,model_args.pbc,cell,model_args)
+        nbh_idx, offsets = py"get_simple_environment"(length(atoms), atoms.types, positions, model_args.pbc, cell, model_args)
     elseif model_args.environment_provider == "ase"
-        nbh_idx,offsets = py"get_ase_environment"(p.n_atoms,p.atom_types,positions,model_args.pbc,cell,model_args)
+        nbh_idx,offsets = py"get_ase_environment"(length(atoms), atoms.types, positions, model_args.pbc, cell, model_args)
     elseif model_args.environment_provider == "torch"
-        nbh_idx,offsets = py"get_torch_environment"(p.n_atoms,model_args.atomic_charges,positions,model_args.pbc,cell,model_args)
+        nbh_idx,offsets = py"get_torch_environment"(length(atoms), model_args.atomic_charges, positions, model_args.pbc, cell, model_args)
     end
-    
     # Some of these will not change and do not need to be updated every time.
     schnet_inputs["_atomic_numbers"] =  torch.LongTensor(model_args.atomic_charges).unsqueeze(0).to(model_args.device)
-    schnet_inputs["_atom_mask"] = torch.ones_like(schnet_inputs["_atomic_numbers"]).float()
+    if model_args.contributions == true
+        #manual for 2 atoms
+        #TODO update if we ever use larger molecules 
+        schnet_inputs["_atom_mask"] = torch.zeros_like(schnet_inputs["_atomic_numbers"]).float()
+        schnet_inputs["_atom_mask"][0,2].fill_(1.0)
+        schnet_inputs["_atom_mask"][0,1].fill_(1.0)
+        schnet_inputs["_atom_mask"].unsqueeze(0).to(model_args.device)
+    else
+        schnet_inputs["_atom_mask"] = torch.ones_like(schnet_inputs["_atomic_numbers"]).float().unsqueeze(0).to(model_args.device)
+    end
     schnet_inputs["_positions"] = torch.FloatTensor(positions).unsqueeze(0).to(model_args.device)
     mask = torch.FloatTensor(nbh_idx) >= 0
     schnet_inputs["_neighbor_mask"] = mask.float().unsqueeze(0).to(model_args.device)
     schnet_inputs["_neighbors"] = (torch.LongTensor(nbh_idx) * mask.long()).unsqueeze(0).to(model_args.device)
     schnet_inputs["_cell"] = torch.FloatTensor(cell).unsqueeze(0).to(model_args.device)
-    schnet_inputs["_cell_offset"] = torch.FloatTensor(offsets).unsqueeze(0).to(model_args.device)
-
+    schnet_inputs["_cell_offset"] = torch.FloatTensor(offsets).unsqueeze(0).to(model_args.device).contiguous()
     schnet_inputs
 end
 
+
 function __init__()
-    copy!(torch, pyimport("torch"))
+    copy!(torch, pyimport_conda("torch", "torch"))
     py"""
     import schnetpack as spk
     from schnetpack import Properties
@@ -68,9 +68,11 @@ function __init__()
 
     def get_ase_environment(n_atoms, species_, positions_,pbc_array,cell_,model_args):
         cutoff = model_args.cutoff
-
+        atoms=ase.Atoms(species_,np.array(positions_))
+        atoms.set_cell(cell_)
+        atoms.set_pbc(pbc_array)
         idx_i, idx_j, idx_S = ase.neighborlist.neighbor_list(
-            "ijS", ase.Atoms(species_,positions_), cutoff, self_interaction=False
+            "ijS", atoms, cutoff, self_interaction=False
         )
         if idx_i.shape[0] > 0:
             uidx, n_nbh = np.unique(idx_i, return_counts=True)
