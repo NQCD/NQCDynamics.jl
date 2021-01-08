@@ -7,19 +7,19 @@ function select(νᵢJᵢ,Eᵢ,)
    # DIATOM A IS TREATED SEMICLASSICALLY
    #CALCULATE TURNING POINTS (done in the semiclassical quantization procedure.)
    enj=(νᵢ+0.5)*f*ħ   #desired vibrational energy
-   μ = calc_reduced_mass()
-   limits, enj, AL, AM, ptest = INITEBK!(νᵢ,Jᵢ,V_ref,enj)  #Gives rmin and rmax
+
+   limits, enj, AL, AM, ptest = initialize_ebk!(νᵢ,Jᵢ,V_ref,enj)  #Gives rmin and rmax, +parameters for ebk
 
    # SELECT INITIAL RELATIVE COORDINATE AND MOMENTUM.
 
-      #1. Generate random number
    converged = false
    while converged=false
+      #1. Generate random number
       random = rand(1)
       #2. Calculate bond length, r
       r=rmin+(rmax-rmin)*random
       #3. Calculate V(r)
-      H,T,V = system.calc_energy(diatomic,bondlength=r)
+      H,T,V = diatomic.calc_energy(bondlength=r)
       SUMM=enj-DUM/r^2-VDUM
       if (SUMM<=0.0)
          SUMM=0.0
@@ -41,7 +41,7 @@ function select(νᵢJᵢ,Eᵢ,)
    # ANGULAR MOMENTUM.  DIATOM LIES ALONG THE X-AXIS.
    # THEN RANDOMLY ROTATE THE CARTESIAN COORDINATES AND
    # MOMENTA IN THE CENTER OF MASS FRAME.
-   HOMOQP!(r,PR,AL,AM,μ,AI)
+   set_positions_momenta!(r,PR,AL,AM,μ,AI)
 
    #CALCULATE ANGULAR MOMENTUM, MOMENT OF INERTIA TENSOR,
    # ANGULAR VELOCITY, AND ROTATIONAL ENERGY
@@ -49,7 +49,8 @@ function select(νᵢJᵢ,Eᵢ,)
 
 end
 
-function INITEBK!(νᵢ,Jᵢ,V_ref,enj)
+function initialize_ebk!(νᵢ,Jᵢ,V_ref,enj)
+   #Prior name: INITEBK
    #    INITIALIZE PARAMETERS FOR AN OSCILLATOR WITH GIVEN
    #    QUANTUM NUMBERS n AND J BY SEMICLASSICAL EBK QUANTIZATION
 
@@ -60,12 +61,12 @@ function INITEBK!(νᵢ,Jᵢ,V_ref,enj)
    
    #  SOLVE FOR enj BY FIXED POINT APPROACH
    # i.e keep adjusting till you get vi requested
-   DUM=1.0
+   diff=1.0
    i=0
-   while (abs(DUM)>1.0e-6)
+   while (abs(diff)>1.0e-6)
        n,J,limits = calc_NJ(enj,AM,V_ref)
-       DUM=νᵢ-n
-       enj=enj+DUM*HNU
+       diff=νᵢ-n
+       enj=enj+diff*HNU
        i=i+1
        if (i>1000)
            break
@@ -81,8 +82,8 @@ function INITEBK!(νᵢ,Jᵢ,V_ref,enj)
 end
 
 
-function HOMOQP!(r,PR,AL,AM,μ,A)
-
+function set_positions_momenta!(r,PR,AL,AM,μ,A)
+   #Prior name: HOMOQP
    # SET CARTESIAN COORDINATES AND MOMENTA
    #Q positions, P momenta, r bondlength ?, μ reduced mass
 
@@ -138,16 +139,109 @@ function HOMOQP!(r,PR,AL,AM,μ,A)
    WZ=-AM(3)/A(3)
    call ANGVEL(2)
 
-
-   
-      # RANDOMLY ROTATE THE DIATOM ABOUT ITS CENTER OF MASS BY
-      # EULER'S ANGLES.  CENTER OF MASS COORDINATES QQ AND MOMENTA
-      # PP ARE PASSED FROM SUBROUTINES CENMAS AND ANGVEL THROUGH
-      # COMMON BLOCK WASTE.
-      call ROTATE(2)
+   # RANDOMLY ROTATE THE DIATOM ABOUT ITS CENTER OF MASS BY
+   # EULER'S ANGLES.  CENTER OF MASS COORDINATES QQ AND MOMENTA
+   # PP ARE PASSED FROM SUBROUTINES CENMAS AND ANGVEL THROUGH
+   # COMMON BLOCK WASTE.
+   call ROTATE(2)
 
    # CALCULATE ANGULAR MOMENTUM AND COMPONENTS.
    call ROTN(AM,EROT,2)
+end
+
+
+#Set rotational / angular momenta from selected rotational state
+
+function ROTN(AM,EROT)
+
+   # C         CALCULATE ANGULAR MOMENTUM, MOMENT OF INERTIA TENSOR,
+   # C         ANGULAR VELOCITY, AND ROTATIONAL ENERGY
+
+   # C         CALCULATE ANGULAR MOMENTUM.  THE CENTER OF MASS COORDINATES
+   # C         QQ AND MOMENTA PP COME FROM SUBROUTINE CENMAS THROUGH COMMON
+   # C         BLOCK WASTE.
+   if (NAM.EQ.0) THEN
+      AM(1)=0.0D0
+      AM(2)=0.0D0
+      AM(3)=0.0D0
+      AM(4)=0.0D0
+      EROT=0.0D0
+      if (N.EQ.1) RETURN
+      do I=1,2
+         J=L(I)
+         J3=3*J
+         J2=J3-1
+         J1=J2-1
+         AM(1)=AM(1)+(QQ(J2)*PP(J3)-QQ(J3)*PP(J2))
+         AM(2)=AM(2)+(QQ(J3)*PP(J1)-QQ(J1)*PP(J3))
+         AM(3)=AM(3)+(QQ(J1)*PP(J2)-QQ(J2)*PP(J1))
+      end
+      AM(4)=SQRT(AM(1)**2+AM(2)**2+AM(3)**2)
+      
+      AIXX=0.0D0
+      do I=1,2
+         J=3*L(I)+1
+         SR=0.0D0
+         do K=1,3
+               SR=SR+QQ(J-K)**2
+         end
+         AIXX=AIXX+SR*W(L(I))
+
+      EROT=AM(4)**2/AIXX/2.0D0/C1
+      RETURN
+      end
+   end
+   #         CALCULATE THE MOMENT OF INERTIA TENSOR
+   AIXX=0.0D0
+   AIYY=0.0D0
+   AIZZ=0.0D0
+   AIXY=0.0D0
+   AIXZ=0.0D0
+   AIYZ=0.0D0
+   do I=1,2
+      J=L(I)
+      J3=3*J
+      J2=J3-1
+      J1=J2-1
+      AIXX=AIXX+W(J)*(QQ(J2)**2+QQ(J3)**2)
+      AIYY=AIYY+W(J)*(QQ(J1)**2+QQ(J3)**2)
+      AIZZ=AIZZ+W(J)*(QQ(J1)**2+QQ(J2)**2)
+      AIXY=AIXY+W(J)*QQ(J1)*QQ(J2)
+      AIXZ=AIXZ+W(J)*QQ(J1)*QQ(J3)
+      AIYZ=AIYZ+W(J)*QQ(J2)*QQ(J3)
+   end
+   DET=AIXX*(AIYY*AIZZ-AIYZ*AIYZ)-AIXY*(AIXY*AIZZ+AIYZ*AIXZ)-
+   *AIXZ*(AIXY*AIYZ+AIYY*AIXZ)
+   #
+   #         CALCULATE INVERSE OF THE INERTIA TENSOR
+   #
+   if (ABS(DET).GE.0.01D0) THEN
+      UXX=(AIYY*AIZZ-AIYZ*AIYZ)/DET
+      UXY=(AIXY*AIZZ+AIXZ*AIYZ)/DET
+      UXZ=(AIXY*AIYZ+AIXZ*AIYY)/DET
+      UYY=(AIXX*AIZZ-AIXZ*AIXZ)/DET
+      UYZ=(AIXX*AIYZ+AIXZ*AIXY)/DET
+      UZZ=(AIXX*AIYY-AIXY*AIXY)/DET
+      #     CALCULATE ANGULAR VELOCITIES
+      WX=UXX*AM(1)+UXY*AM(2)+UXZ*AM(3)
+      WY=UXY*AM(1)+UYY*AM(2)+UYZ*AM(3)
+      WZ=UXZ*AM(1)+UYZ*AM(2)+UZZ*AM(3)
+   else
+      #    CALCULATE ROTATIONAL ENERGY
+      AIXX=0.0D0
+      do I=1,2
+         J=3*L(I)+1
+         SR=0.0D0
+         do K=1,3
+               SR=SR+QQ(J-K)**2
+         end
+         AIXX=AIXX+SR*W(L(I))
+      end
+      EROT=AM(4)**2/AIXX/2.0D0/C1
+      RETURN
+   end
+   EROT=(WX*AM(1)+WY*AM(2)+WZ*AM(3))/2.0D0/C1
+   RETURN
 end
 
  #Randomly rotate diatomic around COM, rotate momenta accordingly
@@ -190,38 +284,7 @@ function orient(system,R::positions, P :: momenta)
    end
 end
 
-#Sets translational momenta for COM
-#For now this is fixed input parameter
-#currently a mess not sure what im doing
 
-function translate(system,positions,v,ei,θᵢ)
-   #ei is user defined incidence translation energy
-   #theta_i is user defined incidence angle
-   masses=system.get_masses()
 
-   com,μ = calc_COM(system)  
 
-   com_v=[0,0,-sqrt(2*ei/μ)] #straight down
-
-   com_v=[0,com_v[2]*cos(θᵢ)-com_v[3]*sin(θᵢ),com_v[2]*sin(θᵢ)-com_v[3]*cos(θᵢ)] #rotate by θᵢ
-   
-   v[1,:] += com_v
-   v[2,:] += com_v
-
-   return v
-end
-
- #Displace diatomic to specified height
- 
-function height(system,R :: positions,H :: height)
-   #todo: allow any surface plane by allowing user defining orthogonal vector to surface plane
-   COM,μ = calc_COM(system)
-
-   COM[2] = height_original
-
-   displacement = height - height_original
-
-   positions(2,:) += displacement
-
-end
 
