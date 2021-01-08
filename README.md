@@ -1,4 +1,7 @@
 # NonadiabaticMolecularDynamics.jl
+
+[![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://maurergroup.github.io/NonadiabaticMolecularDynamics.jl/dev/)
+
 Designing initial conditions for computer experiments
 
 **TODO**

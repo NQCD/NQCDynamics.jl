@@ -1,18 +1,15 @@
 using NonadiabaticMolecularDynamics.IO
-using NonadiabaticMolecularDynamics.Dynamics
-using NonadiabaticMolecularDynamics.Models.ML
-using NonadiabaticMolecularDynamics.Systems
-using DifferentialEquations
+using NonadiabaticMolecularDynamics
 
 model_path = "examples/ML_testfiles"
 
-atoms, phasespace = read_system("examples/ML_testfiles/H2.xyz")
-model = SchNetPackModel(model_path, atoms)
+cell, atoms, positions = read_system("examples/ML_testfiles/H2.xyz")
+model = Models.SchNetPackModel(model_path, cell, atoms)
 
-p = Systems.System(atoms, model)
+sim = Simulation(atoms, model, Dynamics.Classical(); cell=cell)
+z = Phasespace(positions, zero(positions))
 
-tspan = (0.0, 20000.0)
-problem = ODEProblem(Dynamics.differential!, phasespace, tspan, p)
-solution = solve(problem)
+tspan = (0.0, 1000.0)
+@time solution = Dynamics.run_trajectory(z, tspan, sim)
 
-write_trajectory("trajectory.xyz", solution, atoms)
+write_trajectory("trajectory.xyz", cell, atoms, get_positions.(solution.u))
