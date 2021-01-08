@@ -1,3 +1,6 @@
+
+#MAIN ROUTINE
+#USES EVERYTHING
 function select(νᵢJᵢ,Eᵢ,)
    # think nthta is chosen mj but we dont choose it
    #f is vibrational frequency
@@ -45,10 +48,13 @@ function select(νᵢJᵢ,Eᵢ,)
 
    #CALCULATE ANGULAR MOMENTUM, MOMENT OF INERTIA TENSOR,
    # ANGULAR VELOCITY, AND ROTATIONAL ENERGY
-   ROTN!(AM,EROTA)
+   calc_ROTN!(AM,EROTA)
 
 end
 
+
+#USES calc_NJ
+#BASICALLY READY FOR TESTING
 function initialize_ebk!(νᵢ,Jᵢ,V_ref,enj)
    #Prior name: INITEBK
    #    INITIALIZE PARAMETERS FOR AN OSCILLATOR WITH GIVEN
@@ -81,7 +87,8 @@ function initialize_ebk!(νᵢ,Jᵢ,V_ref,enj)
    return limits, enj, AL, AM, ptest
 end
 
-
+#USES calc_com, ANGVEL, orient, calc_ROTN
+#NEEDS WORK
 function set_positions_momenta!(r,PR,AL,AM,μ,A)
    #Prior name: HOMOQP
    # SET CARTESIAN COORDINATES AND MOMENTA
@@ -122,7 +129,7 @@ function set_positions_momenta!(r,PR,AL,AM,μ,A)
       AM(2)=0.0D0
    end
    #  CALCULATE CENTER OF MASS COORDIANTES QQ AND MOMENTA PP
-   call CENMAS(WT,QCM,VCM,2)
+   call calc_com(WT,QCM,VCM,2)
    #  MOVE PP ARRAY TO P ARRAY AND QQ ARRAY TO Q ARRAY
    for I=1:2
       J=3*L(I)+1
@@ -143,16 +150,17 @@ function set_positions_momenta!(r,PR,AL,AM,μ,A)
    # EULER'S ANGLES.  CENTER OF MASS COORDINATES QQ AND MOMENTA
    # PP ARE PASSED FROM SUBROUTINES CENMAS AND ANGVEL THROUGH
    # COMMON BLOCK WASTE.
-   call ROTATE(2)
+   call orient(2)
 
    # CALCULATE ANGULAR MOMENTUM AND COMPONENTS.
-   call ROTN(AM,EROT,2)
+   call calc_ROTN(AM,EROT,2)
 end
 
 
 #Set rotational / angular momenta from selected rotational state
-
-function ROTN(AM,EROT)
+#NEEDS WORK
+function calc_ROTN(AM,EROT)
+   #Prior name = ROTN
 
    # C         CALCULATE ANGULAR MOMENTUM, MOMENT OF INERTIA TENSOR,
    # C         ANGULAR VELOCITY, AND ROTATIONAL ENERGY
@@ -166,7 +174,7 @@ function ROTN(AM,EROT)
       AM(3)=0.0D0
       AM(4)=0.0D0
       EROT=0.0D0
-      if (N.EQ.1) RETURN
+
       do I=1,2
          J=L(I)
          J3=3*J
@@ -183,13 +191,12 @@ function ROTN(AM,EROT)
          J=3*L(I)+1
          SR=0.0D0
          do K=1,3
-               SR=SR+QQ(J-K)**2
+            SR=SR+QQ(J-K)**2
          end
          AIXX=AIXX+SR*W(L(I))
-
-      EROT=AM(4)**2/AIXX/2.0D0/C1
-      RETURN
       end
+      EROT=AM(4)**2/AIXX/2.0D0/C1
+      return
    end
    #         CALCULATE THE MOMENT OF INERTIA TENSOR
    AIXX=0.0D0
@@ -246,7 +253,6 @@ end
 
  #Randomly rotate diatomic around COM, rotate momenta accordingly
  #In future allow specific range of angles to be selected e.g 0-60 degrees
- 
 function orient(system,R::positions, P :: momenta)
  
    θ = cos^-1(2*rand1-1)
@@ -286,5 +292,21 @@ end
 
 
 
-
+function ANGVEL(N)
+   # C         SUBTRACT OFF THE ANGULAR VELOCITY
+   # C
+   do I=1,N
+      J=L(I)
+      J3=3*J
+      J2=J3-1
+      J1=J2-1
+      P(J1)=P(J1)-(QQ(J3)*WY-QQ(J2)*WZ)*W(J)
+      P(J2)=P(J2)-(QQ(J1)*WZ-QQ(J3)*WX)*W(J)
+      P(J3)=P(J3)-(QQ(J2)*WX-QQ(J1)*WY)*W(J)
+      PP(J1)=P(J1)
+      PP(J2)=P(J2)
+      PP(J3)=P(J3)
+   end
+   return
+end
 
