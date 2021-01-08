@@ -1,8 +1,31 @@
+"""
+    Calculators
+
+This module exists to bridge the gap between the `Models` and the `Dynamics`.
+
+Here we provide functions and types for evaluating and storing quantities obtained from the
+`Models`.
+In addition any further manipulation of those quantities, such as computing eigenvalues,
+is included here.
+
+This module is largely needed to facilitate seemless integration of both ring polymer and
+classical dynamics, using the same models and functions for both.
+Specific ring polymer types are provided that have the extra fields and methods needed
+to evaluate the quantities for each bead. 
+"""
 module Calculators
 
 using LinearAlgebra
 using ..Models
 
+"""
+    AbstractCalculator{M<:Model}
+
+Top-level type for all calculators.
+
+Each concrete calculator contains the `Model` and the fields to store the quantities
+obtained from the model.
+"""
 abstract type AbstractCalculator{M<:Model} end
 abstract type AbstractAdiabaticCalculator{M<:AdiabaticModel} <: AbstractCalculator{M} end
 abstract type AbstractDiabaticCalculator{M<:DiabaticModel} <: AbstractCalculator{M} end
