@@ -8,7 +8,7 @@ Phys. Chem. Chem. Phys., 2020, 22, 13958--13964
 struct EANN_H₂Cu <: AdiabaticModel
     path::String
     n_atoms::Int
-    function EANN_H₂Ag(path::String, atoms::Atoms)
+    function EANN_H₂Cu(path::String, atoms::Atoms)
         initialize_H2Cu_pes(path)
         new(path, length(atoms))
     end
