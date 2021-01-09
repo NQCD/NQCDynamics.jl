@@ -1,22 +1,38 @@
-function calc_COM(R :: positions)
+using LinearAlgebra
+
+function calculate_centre_of_mass(R::Matrix, atoms::Atoms)
     #calculate centre of mass from diatomic coordinates
 
 
-    return COM
 end
 
-function calc_COM_momenta(P :: momenta)
+function calculate_centre_of_mass_momenta(P::Matrix, atoms::Atoms)
 
-    return COM_P
 end
 
-function calc_diatomic_energy(bondlength=R)
-    # wrapper function to calc diatomic potential and kinetic energy
-    # with bondlength R and height from surface Z
-    height = 9 #large enough to minimize interaction, small enough to be in training
-                #space
+"""
+    calculate_diatomic_energy!(sim::Simulation, bond_length::T; height::T=10.0,
+                               normal_vector::Vector{T}=[0.0, 0.0, 1.0]) where {T}
 
-    return H, T, V
+Returns potential energy of diatomic with `bond_length` at `height` from surface.
+
+Orients molecule parallel to the surface at the specified height, the surface is assumed
+to intersect the origin.
+This requires that the model implicitly provides the surface, or works fine without one.
+"""
+function calculate_diatomic_energy(sim::Simulation, bond_length::T;
+                                   height::T=10.0,
+                                   normal_vector::Vector{T}=[0.0, 0.0, 1.0]) where {T}
+    #=
+    This first line only needs to be calculated once for the system so it can be moved
+    outside the function and passed as an argument.
+    =#
+    orthogonals = nullspace(reshape(normal_vector, 1, :)) # Plane parallel to surface
+    R = normal_vector .* height .+ orthogonals .* bond_length/2
+
+    Calculators.evaluate_potential!(sim.calculator, R)
+
+    sim.calculator.potential[1]
 end
 
 function diatomic_reduced_mass()
