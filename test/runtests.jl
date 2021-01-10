@@ -13,6 +13,7 @@ const tests = [
     "dynamics/fssh"
     "dynamics/fermionic"
     "dynamics/ensembles"
+    "dynamics/nrpmd"
     "io/io"
     "model"
     "nuclear_distributions"
