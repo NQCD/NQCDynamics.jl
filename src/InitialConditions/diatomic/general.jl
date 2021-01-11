@@ -126,10 +126,9 @@ function calculate_quantum(R::Vector{T},P::Vector{T},Evib,AM,V_ref)
     n=n-0.5
  
     n,J,limits
- end
+end
 
-
- #Set rotational / angular momenta from selected rotational state
+#Set rotational / angular momenta from selected rotational state
 #NEEDS WORK
 function calculate_ROTN(AM,EROT)
     #Prior name = ROTN
@@ -140,13 +139,11 @@ function calculate_ROTN(AM,EROT)
     # C         CALCULATE ANGULAR MOMENTUM.  THE CENTER OF MASS COORDINATES
     # C         QQ AND MOMENTA PP COME FROM SUBROUTINE CENMAS THROUGH COMMON
     # C         BLOCK WASTE.
-    if (NAM.EQ.0) THEN
-       AM(1)=0.0D0
-       AM(2)=0.0D0
-       AM(3)=0.0D0
-       AM(4)=0.0D0
-       EROT=0.0D0
- 
+
+    #reminder: QQ , PP are pos, momenta for COM. W(N) are atom masses i think.
+    #AM = angular momentum, C1 C2 etc are unit conversions.
+
+    if (NAM=0) 
        do I=1,2
           J=L(I)
           J3=3*J
@@ -156,27 +153,22 @@ function calculate_ROTN(AM,EROT)
           AM(2)=AM(2)+(QQ(J3)*PP(J1)-QQ(J1)*PP(J3))
           AM(3)=AM(3)+(QQ(J1)*PP(J2)-QQ(J2)*PP(J1))
        end
-       AM(4)=SQRT(AM(1)**2+AM(2)**2+AM(3)**2)
+       AM(4)=sqrt(AM(1)**2+AM(2)**2+AM(3)**2)
        
-       AIXX=0.0D0
+       AIXX=0.0
        do I=1,2
           J=3*L(I)+1
-          SR=0.0D0
+          SR=0.0
           do K=1,3
              SR=SR+QQ(J-K)**2
           end
           AIXX=AIXX+SR*W(L(I))
        end
-       EROT=AM(4)**2/AIXX/2.0D0/C1
+       EROT=AM(4)^2/AIXX/2
        return
     end
     #         CALCULATE THE MOMENT OF INERTIA TENSOR
-    AIXX=0.0D0
-    AIYY=0.0D0
-    AIZZ=0.0D0
-    AIXY=0.0D0
-    AIXZ=0.0D0
-    AIYZ=0.0D0
+
     do I=1,2
        J=L(I)
        J3=3*J
@@ -194,7 +186,7 @@ function calculate_ROTN(AM,EROT)
     #
     #         CALCULATE INVERSE OF THE INERTIA TENSOR
     #
-    if (ABS(DET).GE.0.01D0) THEN
+    if (ABS(DET)>=0.01)
        UXX=(AIYY*AIZZ-AIYZ*AIYZ)/DET
        UXY=(AIXY*AIZZ+AIXZ*AIYZ)/DET
        UXZ=(AIXY*AIYZ+AIXZ*AIYY)/DET
@@ -207,18 +199,18 @@ function calculate_ROTN(AM,EROT)
        WZ=UXZ*AM(1)+UYZ*AM(2)+UZZ*AM(3)
     else
        #    CALCULATE ROTATIONAL ENERGY
-       AIXX=0.0D0
+       AIXX=0.0
        do I=1,2
           J=3*L(I)+1
-          SR=0.0D0
+          SR=0.0
           do K=1,3
-                SR=SR+QQ(J-K)**2
+                SR=SR+QQ(J-K)^2
           end
           AIXX=AIXX+SR*W(L(I))
        end
-       EROT=AM(4)**2/AIXX/2.0D0/C1
+       EROT=AM(4)^2/AIXX/2
        RETURN
     end
-    EROT=(WX*AM(1)+WY*AM(2)+WZ*AM(3))/2.0D0/C1
+    EROT=(WX*AM(1)+WY*AM(2)+WZ*AM(3))/2
     RETURN
- end
+end
