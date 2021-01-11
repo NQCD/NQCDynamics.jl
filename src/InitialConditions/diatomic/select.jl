@@ -72,6 +72,5 @@ function ANGVEL(N)
       PP(J2)=P(J2)
       PP(J3)=P(J3)
    end
-   return
 end
 

@@ -7,7 +7,7 @@ function initialize_ebk!(νᵢ,Jᵢ,V_ref,Evib)
  
     μ = calc_μ(atoms)
     HNU=Evib/(νᵢ+0.5)
-    AM=√((Jᵢ*(Jᵢ+1)))
+    AM=sqrt((Jᵢ*(Jᵢ+1)))
     AL=AM*ħ
     
     #  SOLVE FOR Evib BY FIXED POINT APPROACH
@@ -28,7 +28,7 @@ function initialize_ebk!(νᵢ,Jᵢ,V_ref,Evib)
  
     limits[1]=limits[1]+0.001
     limits[2]=limits[2]-0.001
-    ptest=√(0.0001*2.0*μ*Evib)
+    ptest=sqrt(0.0001*2.0*μ*Evib)
  
-    return limits, Evib, AL, AM, ptest
+    limits, Evib, AL, AM, ptest
  end
