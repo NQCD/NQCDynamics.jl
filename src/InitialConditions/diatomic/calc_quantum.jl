@@ -1,4 +1,4 @@
-function calc_nJ(R::Vector{T},P::Vector{T},enj,AM,V_ref)
+function calc_nJ(R::Vector{T},P::Vector{T},Evib,AM,V_ref)
     using FastGaussQuadrature
     #    CALCULATE VIBRATIONAL AND ROTATIONAL QUANTUM NUMBERS FOR
     #    A PRODUCT DIATOM
@@ -8,7 +8,7 @@ function calc_nJ(R::Vector{T},P::Vector{T},enj,AM,V_ref)
  
     n=0
     J=0.5*(-1+√(1+4*AM^2))
-    μ = diatomic_reduced_mass()
+    μ = calc_μ()
     #    FIND THE VIBRATIONAL QUANTUM NUMBER n, USING AN INVERSION
     #    OF THE SEMICLASSICAL RYDBERG-KLEIN-REES (RKR) APPROACH.
     #
@@ -20,21 +20,21 @@ function calc_nJ(R::Vector{T},P::Vector{T},enj,AM,V_ref)
     T1=R[2,1]-R[1,1]
     RO=√(T1^2+T2^2+T3^2)
  
-    H,T,V = diatomic.calc_energy(bondlength=R0)
+    H,T,V = calculate_diatomic_energy(bondlength=R0)
     VEFF=V-V_ref+0.5*AM^2*ħ^2/(μ*RO^2)
  
     # DETERMINE BOUNDARIES OF THE SEMICLASSICAL INTEGRAL
-    while VEFF<enj & RZ<50.0
+    while VEFF<Evib & RZ<50.0
         RZ=RZ+0.001
-        H,T,V = diatomic.calc_energy(bondlength=RZ)
+        H,T,V = calculate_diatomic_energy(bondlength=RZ)
         VEFF=V-V_ref+0.5*AM^2*ħ^2/(μ*RZ^2)
     end
     rmax=RZ
  
     RZ=R0
-    while VEFF<enj
+    while VEFF<Evib
        RZ=RZ-0.001
-       H,T,V = diatomc.calc_energy(bondlength=RZ)
+       H,T,V = calculate_diatomic_energy(bondlength=RZ)
        VEFF=V-V_ref+0.5*AM^2*ħ^2/(μ*RZ^2)
     end
     rmin=RZ
@@ -48,10 +48,10 @@ function calc_nJ(R::Vector{T},P::Vector{T},enj,AM,V_ref)
     ΔR=(rmax-rmin)/50
     for i=1:n_nodes
        R0 = rmin+(ΔR*(i-1))
-       H,T,V = diatomic.calc_energy(bondlength=R0)
+       H,T,V = calculate_diatomic_energy(bondlength=R0)
        VEFF=(V-V_ref)+0.5*AM^2*ħ^2/(μ*RZ^2)
-       if (enj>VEFF)
-          ASUM=ASUM+weights[i]*√(enj-VEFF)
+       if (Evib>VEFF)
+          ASUM=ASUM+weights[i]*√(Evib-VEFF)
        end
     end
  
