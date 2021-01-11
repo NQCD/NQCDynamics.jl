@@ -55,6 +55,7 @@ function calc_force_constant(sim::Simulation, bond_length::T;
                                 height::T=10.0,
                                 normal_vector::Vector{T}=[0.0, 0.0, 1.0]) where {T}
     using Statistics
+    #Force constant (f) calcuulated from V(x) = 1/2 * f * x^2
 
     bond_lengths = collect(0.5:0.01:4.0)
     V = Vector(size(bond_lengths))
@@ -63,7 +64,7 @@ function calc_force_constant(sim::Simulation, bond_length::T;
         V[i] = calculate_diatomic_energy(bond_length=bond_lengths[i])
     end
 
-    f = Statistics.mean(V / bond_lengths^2)
+    f = Statistics.mean(V / bond_lengths^2) * 2
     f
     end
 end
