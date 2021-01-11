@@ -39,16 +39,32 @@ function calc_μ(atoms::Atoms)
     #calc reduced mass (μ)
     m = atoms.masses
     μ = m[1]*m[2]/(m[1]+m[2])
-    return μ
+    μ
 end
 
-function calc_force_constant(R::Matrix,atoms::Atoms)
-
-    return f
+function calc_bond_length(R::Matrix)
+    #get bond length of diatomic
+    T3=R[2,3]-R[1,3]
+    T2=R[2,2]-R[1,2]
+    T1=R[2,1]-R[1,1]
+    RO=sqrt(T1^2+T2^2+T3^2)
+    R0
 end
-# #generate large seed for all random number generation. Should be able to rerun with seed
 
-# function gen_seed()
+function calc_force_constant(sim::Simulation, bond_length::T;
+                                height::T=10.0,
+                                normal_vector::Vector{T}=[0.0, 0.0, 1.0]) where {T}
+    using Statistics
 
-#     return seed
-# end
+    bond_lengths = collect(0.5:0.01:4.0)
+    V = Vector(size(bond_lengths))
+
+    for i in range(size(bond_lengths))
+        V[i] = calculate_diatomic_energy(bond_length=bond_lengths[i])
+    end
+
+    f = Statistics.mean(V / bond_lengths^2)
+    f
+    end
+end
+
