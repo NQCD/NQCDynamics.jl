@@ -1,15 +1,5 @@
 using LinearAlgebra
 
-function calculate_centre_of_mass(R::Matrix, atoms::Atoms)
-    #calculate centre of mass from diatomic coordinates
-
-
-end
-
-function calculate_centre_of_mass_momenta(P::Matrix, atoms::Atoms)
-
-end
-
 """
     calculate_diatomic_energy!(sim::Simulation, bond_length::T; height::T=10.0,
                                normal_vector::Vector{T}=[0.0, 0.0, 1.0]) where {T}
@@ -35,16 +25,30 @@ function calculate_diatomic_energy(sim::Simulation, bond_length::T;
     sim.calculator.potential[1]
 end
 
-function diatomic_reduced_mass()
-    #calc reduced mass (μ)
-    
+function calc_COM(R::Matrix, P::Matrix, atoms::Atoms)
+    #calculate centre of mass (COM_R) from diatomic coordinates (R)
+    #calculates centre of mass momenta (COM_R) from diatomic momenta (P)
+    #COM_R = vector, COM_P = vector
+    m = atoms.masses
+    COM_R = (R[0,:]*m[0]+R[1,:]*m[1])/m[0]+m[1]
+    COM_P = (P[0,:]*m[0]+P[1,:]*m[1])/m[0]+m[1]
+    return COM_R, COM_P
+end
 
+function calc_μ(atoms::Atoms)
+    #calc reduced mass (μ)
+    m = atoms.masses
+    μ = m[1]*m[2]/(m[1]+m[2])
     return μ
 end
 
-#generate large seed for all random number generation. Should be able to rerun with seed
+function calc_force_constant(R::Matrix,atoms::Atoms)
 
-function gen_seed()
-
-    return seed
+    return f
 end
+# #generate large seed for all random number generation. Should be able to rerun with seed
+
+# function gen_seed()
+
+#     return seed
+# end
