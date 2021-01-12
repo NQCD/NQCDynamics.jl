@@ -37,20 +37,20 @@ end
 function initialize_NOAu_pes(lib_path::String)
     cd(lib_path) do
         # EANN PES: call init_pes function
-        ccall((:init_pes_EFT_, "NOAu111_pes.dylib"), Cvoid, ())
+        ccall((:init_pes_eft_, "NOAu111_pes.dylib"), Cvoid, ())
     end
 end
 
 function deallocate_NOAu_pes(lib_path::String)
     cd(lib_path) do
         # EANN PES: call deallocate_all function
-        ccall((:deallocate_all_EFT_, "NOAu111_pes.dylib"), Cvoid, ())
+        ccall((:deallocate_all_eft_, "NOAu111_pes.dylib"), Cvoid, ())
     end
 end
 
 function calculate_energy_NOAu_pes!(coordinates::Array{Float64}, energy::Array{Float64})
     # EANN PES: get energy and force from EANN to vars: energy and force
-    ccall((:get_energy_EFT_, "NOAu111_pes.dylib"),
+    ccall((:get_energy_eft_, "NOAu111_pes.dylib"),
         Cvoid,
         (Ref{Float64}, Ptr{Float64}),
         coordinates, energy)
@@ -58,7 +58,7 @@ end
 
 function calculate_force_NOAu_pes!(coordinates::Array{Float64}, energy::Array{Float64}, force::Array{Float64})
     # EANN PES: get energy and force from EANN to vars: energy and force
-    ccall((:get_force_EFT_, "NOAu111_pes.dylib"),
+    ccall((:get_force_eft_, "NOAu111_pes.dylib"),
         Cvoid,
         (Ref{Float64}, Ptr{Float64}, Ptr{Float64}),
         coordinates, energy, force)
@@ -66,7 +66,7 @@ end
 
 function calculate_NOAu_friction_tensor!(coordinates::AbstractMatrix, friction::AbstractMatrix)
     # EANN PES: calculate friction tensor
-    ccall((:get_tensor_EFT_, "NOAu111_pes.dylib"),
+    ccall((:get_tensor_eft_, "NOAu111_pes.dylib"),
         Cvoid,
         (Ref{Float64}, Ptr{Float64}),
         coordinates, friction)
