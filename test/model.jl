@@ -2,19 +2,44 @@ using Test
 using NonadiabaticMolecularDynamics
 using NonadiabaticMolecularDynamics.Models
 using LinearAlgebra
+using FiniteDiff
+
+function finite_difference_gradient(model, R)
+    function f(x)
+        out = [0.0]
+        potential!(model, out, x)
+        out[1]
+    end
+    FiniteDiff.finite_difference_gradient(f, R)
+end
 
 R = rand(3, 10)
 
 @testset "Harmonic" begin
     model = Harmonic()
     potential!(model, [0.0], R)
-    derivative!(model, zero(R), R)
+    D = zero(R)
+    derivative!(model, D, R)
+    @test finite_difference_gradient(model, R) ≈ D
+end
+
+@testset "DiatomicHarmonic" begin
+    model = DiatomicHarmonic()
+    R = rand(3, 2)
+    V = [0.0]
+    potential!(model, V, R)
+
+    D = zero(R)
+    derivative!(model, D, R)
+    @test finite_difference_gradient(model, R) ≈ D
 end
 
 @testset "Free" begin
     model = Free()
     potential!(model, [0.0], R)
-    derivative!(model, zero(R), R)
+    D = zero(R)
+    derivative!(model, D, R)
+    @test finite_difference_gradient(model, R) ≈ D
 end
 
 @testset "DoubleWell" begin
@@ -42,7 +67,11 @@ end
     R = rand(1,3)
     model = FrictionHarmonic()
     potential!(model, [0.0], R)
-    derivative!(model, zero(R), R)
+
+    D = zero(R)
+    derivative!(model, D, R)
+    @test finite_difference_gradient(model, R) ≈ D
+
     friction!(model, zero(R), R)
 end
 
@@ -60,12 +89,5 @@ end
     D = zero(R)
     potential!(model, V, R)
     derivative!(model, D, R)
-    h = 1e-4
-    V1 = [0.0]
-    for i=1:length(R)
-        R[i] += h
-        potential!(model, V1, R)
-        @test D[i] ≈ (V1 - V)[1] / h rtol=1e-1
-        R[i] -= h
-    end
+    @test finite_difference_gradient(model, R) ≈ D
 end
