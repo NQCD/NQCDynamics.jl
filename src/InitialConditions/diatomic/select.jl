@@ -95,7 +95,7 @@ end
 function ANGVEL(N)
    # C         SUBTRACT OFF THE ANGULAR VELOCITY
    # C
-   do I=1,N
+   for I=1:N
       J=L(I)
       J3=3*J
       J2=J3-1
