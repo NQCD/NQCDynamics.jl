@@ -1,5 +1,6 @@
 using LinearAlgebra
-
+using FastGaussQuadrature
+using Statistics
 """
     calculate_diatomic_energy!(sim::Simulation, bond_length::T; height::T=10.0,
                                normal_vector::Vector{T}=[0.0, 0.0, 1.0]) where {T}
@@ -54,7 +55,7 @@ end
 function calculate_force_constant(sim::Simulation, bond_length::T;
                                 height::T=10.0,
                                 normal_vector::Vector{T}=[0.0, 0.0, 1.0]) where {T}
-    using Statistics
+
     #Force constant (f) calcuulated from V(x) = 1/2 * f * x^2
 
     bond_lengths = collect(0.5:0.01:4.0)
@@ -66,11 +67,10 @@ function calculate_force_constant(sim::Simulation, bond_length::T;
 
     f = Statistics.mean(V / bond_lengths^2) * 2
     f
-    end
 end
 
 function calculate_quantum(R::Vector{T},P::Vector{T},Evib,AM,V_ref)
-    using FastGaussQuadrature
+
     #    CALCULATE VIBRATIONAL AND ROTATIONAL QUANTUM NUMBERS FOR
     #    A PRODUCT DIATOM
  
@@ -144,7 +144,7 @@ function calculate_ROTN(AM,EROT)
     #AM = angular momentum, C1 C2 etc are unit conversions.
 
     if (NAM=0) 
-       do I=1,2
+       for I=1:2
           J=L(I)
           J3=3*J
           J2=J3-1
@@ -153,14 +153,14 @@ function calculate_ROTN(AM,EROT)
           AM(2)=AM(2)+(QQ(J3)*PP(J1)-QQ(J1)*PP(J3))
           AM(3)=AM(3)+(QQ(J1)*PP(J2)-QQ(J2)*PP(J1))
        end
-       AM(4)=sqrt(AM(1)**2+AM(2)**2+AM(3)**2)
+       AM(4)=sqrt(AM(1)^2+AM(2)^2+AM(3)^2)
        
        AIXX=0.0
-       do I=1,2
+       for I=1:2
           J=3*L(I)+1
           SR=0.0
-          do K=1,3
-             SR=SR+QQ(J-K)**2
+          for K=1:3
+             SR=SR+QQ(J-K)^2
           end
           AIXX=AIXX+SR*W(L(I))
        end
@@ -169,20 +169,20 @@ function calculate_ROTN(AM,EROT)
     end
     #         CALCULATE THE MOMENT OF INERTIA TENSOR
 
-    do I=1,2
+    for I=1:2
        J=L(I)
        J3=3*J
        J2=J3-1
        J1=J2-1
-       AIXX=AIXX+W(J)*(QQ(J2)**2+QQ(J3)**2)
-       AIYY=AIYY+W(J)*(QQ(J1)**2+QQ(J3)**2)
-       AIZZ=AIZZ+W(J)*(QQ(J1)**2+QQ(J2)**2)
+       AIXX=AIXX+W(J)*(QQ(J2)^2+QQ(J3)^2)
+       AIYY=AIYY+W(J)*(QQ(J1)^2+QQ(J3)^2)
+       AIZZ=AIZZ+W(J)*(QQ(J1)^2+QQ(J2)^2)
        AIXY=AIXY+W(J)*QQ(J1)*QQ(J2)
        AIXZ=AIXZ+W(J)*QQ(J1)*QQ(J3)
        AIYZ=AIYZ+W(J)*QQ(J2)*QQ(J3)
     end
     DET=AIXX*(AIYY*AIZZ-AIYZ*AIYZ)-AIXY*(AIXY*AIZZ+AIYZ*AIXZ)-
-    *AIXZ*(AIXY*AIYZ+AIYY*AIXZ)
+    AIXZ*(AIXY*AIYZ+AIYY*AIXZ)
     #
     #         CALCULATE INVERSE OF THE INERTIA TENSOR
     #
@@ -200,10 +200,10 @@ function calculate_ROTN(AM,EROT)
     else
        #    CALCULATE ROTATIONAL ENERGY
        AIXX=0.0
-       do I=1,2
+       for I=1:2
           J=3*L(I)+1
           SR=0.0
-          do K=1,3
+          for K=1:3
                 SR=SR+QQ(J-K)^2
           end
           AIXX=AIXX+SR*W(L(I))

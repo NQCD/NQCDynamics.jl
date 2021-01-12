@@ -29,7 +29,7 @@ function set_positions_momenta!(r,PR,AL,AM,μ,A)
 
    # SET INERTIA ARRAYS.  CHOOSE Y AND Z ANGULAR MOMENTUM COMPONENTS
    A(1)=1.0D+20
-   A(2)=μ*r**2
+   A(2)=μ*r^2
    A(3)=A(2)
    DUM=2π*random
    AM(1)=0.0D0
@@ -55,16 +55,16 @@ function set_positions_momenta!(r,PR,AL,AM,μ,A)
    WX=0.0
    WY=-AM(2)/A(2)
    WZ=-AM(3)/A(3)
-   call ANGVEL(2)
+   ANGVEL(2)
 
    # RANDOMLY ROTATE THE DIATOM ABOUT ITS CENTER OF MASS BY
    # EULER'S ANGLES.  CENTER OF MASS COORDINATES QQ AND MOMENTA
    # PP ARE PASSED FROM SUBROUTINES CENMAS AND ANGVEL THROUGH
    # COMMON BLOCK WASTE.
-   call orient(2)
+   orient(2)
 
    # CALCULATE ANGULAR MOMENTUM AND COMPONENTS.
-   call calc_ROTN(AM,EROT,2)
+   calculate_ROTN(AM,EROT,2)
 end
 
  #Randomly rotate diatomic around COM, rotate momenta accordingly
