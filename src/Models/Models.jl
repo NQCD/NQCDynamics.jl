@@ -114,6 +114,7 @@ end
 
 include("analytic_models/free.jl")
 include("analytic_models/harmonic.jl")
+include("analytic_models/diatomic_harmonic.jl")
 
 include("analytic_models/double_well.jl")
 include("analytic_models/tully_models.jl")
