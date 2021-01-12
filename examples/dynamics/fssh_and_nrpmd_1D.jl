@@ -14,7 +14,7 @@ plot(solution.t, [real(Dynamics.get_density_matrix(u)[1,1]) for u in solution.u]
 plot!(solution.t, [real(Dynamics.get_density_matrix(u)[2,2]) for u in solution.u], label="σ[2,2]")
 plot!(solution.t, [u.state for u in solution.u].-1, label="current surface")
 
-nrpmd_sim = RingPolymerSimulation(atoms, Models.TullyModelOne(), Dynamics.NRPMD(), 1; DoFs=1)
+nrpmd_sim = RingPolymerSimulation(atoms, Models.TullyModelOne(), Dynamics.NRPMD{Float64}(2), 1; DoFs=1)
 nrpmd_z = Dynamics.RingPolymerMappingPhasespace(R, P, 1, 2, 1)
 
 nrpmd_solution = Dynamics.run_trajectory(nrpmd_z, (0.0, 2500.0), nrpmd_sim)
