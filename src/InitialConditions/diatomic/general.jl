@@ -88,21 +88,21 @@ function calculate_quantum(R::Vector{T},P::Vector{T},Evib,AM,V_ref)
     R_in = calculate_bond_length(R)
  
     H,T,V = calculate_diatomic_energy(bondlength=R_in)
-    VEFF=V-V_ref+0.5*AM^2*ħ^2/(μ*RO^2)
+    Veff=V-V_ref+0.5*AM^2*ħ^2/(μ*RO^2)
  
     # DETERMINE BOUNDARIES OF THE SEMICLASSICAL INTEGRAL
-    while VEFF<Evib & RZ<50.0
+    while Veff<Evib & RZ<50.0
        RZ=RZ+0.001
        H,T,V = calculate_diatomic_energy(bondlength=RZ)
-       VEFF=V-V_ref+0.5*AM^2*ħ^2/(μ*RZ^2)
+       Veff=V-V_ref+0.5*AM^2*ħ^2/(μ*RZ^2)
     end
     rmax=RZ
  
     RZ=R_in
-    while VEFF<Evib
+    while Veff<Evib
        RZ=RZ-0.001
        H,T,V = calculate_diatomic_energy(bondlength=RZ)
-       VEFF=V-V_ref+0.5*AM^2*ħ^2/(μ*RZ^2)
+       Veff=V-V_ref+0.5*AM^2*ħ^2/(μ*RZ^2)
     end
     rmin=RZ
     limts = [rmin,rmax]
@@ -116,9 +116,9 @@ function calculate_quantum(R::Vector{T},P::Vector{T},Evib,AM,V_ref)
     for i=1:n_nodes
        R0 = rmin+(ΔR*(i-1))
        H,T,V = calculate_diatomic_energy(bondlength=R0)
-       VEFF=(V-V_ref)+0.5*AM^2*ħ^2/(μ*RZ^2)
-       if (Evib>VEFF)
-          ASUM=ASUM+weights[i]*sqrt(Evib-VEFF)
+       Veff=(V-V_ref)+0.5*AM^2*ħ^2/(μ*RZ^2)
+       if (Evib>Veff)
+          ASUM=ASUM+weights[i]*sqrt(Evib-Veff)
        end
     end
  
