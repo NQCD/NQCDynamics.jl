@@ -7,7 +7,13 @@ export get_population
 
 Nonadiabatic ring polymer molecular dynamics
 """
-struct NRPMD <: Method end
+struct NRPMD{T} <: Method
+    temp_q::Vector{T}
+    temp_p::Vector{T}
+    function NRPMD{T}(n_states::Integer) where {T}
+        new{T}(zeros(n_states), zeros(n_states))
+    end
+end
 
 """
     RingPolymerMappingPhasespace{T} <: DynamicalVariables{T}
@@ -65,7 +71,12 @@ function set_force!(du::RingPolymerMappingPhasespace, u::RingPolymerMappingPhase
         for j in range(sim.atoms)
             for k=1:sim.DoFs
                 D = sim.calculator.derivative[k,j,i]
-                get_momenta(du)[k,j,i] = -(qmap'D*qmap + pmap'D*pmap - tr(D))/2
+                mul!(sim.method.temp_q, D, qmap)
+                mul!(sim.method.temp_p, D, pmap)
+                get_momenta(du)[k,j,i] = dot(qmap, sim.method.temp_q)
+                get_momenta(du)[k,j,i] += dot(pmap, sim.method.temp_p)
+                get_momenta(du)[k,j,i] -= tr(D)
+                get_momenta(du)[k,j,i] /= -2
             end
         end
     end
@@ -77,8 +88,9 @@ function set_mapping_force!(du::RingPolymerMappingPhasespace,
     Calculators.evaluate_potential!(sim.calculator, get_positions(u))
     for i in range(sim.beads)
         V = sim.calculator.potential[i]
-        get_mapping_positions(du, i) .= V * get_mapping_momenta(u, i)
-        get_mapping_momenta(du, i) .= -V * get_mapping_positions(u, i)
+        mul!(get_mapping_positions(du, i), V, get_mapping_momenta(u, i))
+        mul!(get_mapping_momenta(du, i), V, get_mapping_positions(u, i))
+        get_mapping_momenta(du, i) .*= -1
     end
 end
 

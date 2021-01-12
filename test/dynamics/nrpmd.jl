@@ -1,9 +1,9 @@
 using Test
 using NonadiabaticMolecularDynamics
 
-@test Dynamics.NRPMD() isa Dynamics.NRPMD
+@test Dynamics.NRPMD{Float64}(10) isa Dynamics.NRPMD
 atoms = Atoms{Float64}([:H])
-sim = RingPolymerSimulation(atoms, Models.DoubleWell(), Dynamics.NRPMD(), 10; DoFs=1)
+sim = RingPolymerSimulation(atoms, Models.DoubleWell(), Dynamics.NRPMD{Float64}(2), 10; DoFs=1)
 
 R = zeros(sim.DoFs, length(sim.atoms), length(sim.beads)) 
 P = rand(sim.DoFs, length(sim.atoms), length(sim.beads)) 
