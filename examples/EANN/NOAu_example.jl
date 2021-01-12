@@ -12,8 +12,7 @@ println("Positions:")
 println(positions) 
 
 println("Energy:")
-V = [0.0]
-Models.potential!(model, V, positions)
+V = [0.0]Models.potential!(model, V, positions)
 println(V)
 
 println("Forces:")
