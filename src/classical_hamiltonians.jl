@@ -1,5 +1,16 @@
+export evaluate_hamiltonian
 export evaluate_configurational_energy
 export get_spring_energy
+
+function evaluate_hamiltonian(sim::Simulation, u::DynamicalVariables)
+    k = evaluate_kinetic_energy(sim, get_momenta(u))
+    e = evaluate_configurational_energy(sim, get_positions(u))
+    k + e
+end
+
+function evaluate_kinetic_energy(sim::Simulation, P::Matrix)
+    sum(P.^2 ./ 2sim.atoms.masses')
+end
 
 function evaluate_configurational_energy(sim::Simulation, R::Matrix)
     Calculators.evaluate_potential!(sim.calculator, R)
