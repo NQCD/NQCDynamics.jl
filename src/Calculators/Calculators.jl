@@ -135,20 +135,24 @@ end
 
 function eigen!(calc::DiabaticCalculator)
     eig = eigen(calc.potential)
-    @views for i=1:length(eig.values)
-        if eig.vectors[:,i]'calc.eigenvectors[:,i] < 0
-            calc.eigenvectors[:,i] .= -eig.vectors[:,i]
-        else
-            calc.eigenvectors[:,i] .= eig.vectors[:,i]
-        end
-    end
-    calc.eigenvalues .= eig.values
+    correct_phase!(eig, calc.eigenvectors)
+    copyto!(calc.eigenvectors, eig.vectors)
+    copyto!(calc.eigenvalues, eig.values)
 end
 
 function eigen!(calc::RingPolymerDiabaticCalculator)
     eigs = eigen.(calc.potential)
+    correct_phase!.(eigs, calc.eigenvectors)
     calc.eigenvalues .= [eig.values for eig in eigs]
     calc.eigenvectors .= [eig.vectors for eig in eigs]
+end
+
+function correct_phase!(eig::Eigen, old_eigenvectors::Matrix)
+    @views for i=1:length(eig.values)
+        if dot(eig.vectors[:,i], old_eigenvectors[:,i]) < 0
+            eig.vectors[:,i] .*= -1
+        end
+    end
 end
 
 function transform_derivative!(calc::DiabaticCalculator)
