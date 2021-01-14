@@ -3,6 +3,7 @@ export PdH
 using LinearAlgebra
 using Unitful
 using FiniteDiff
+using ForwardDiff
 
 """
 Ciufo, R.A., Henkelman, G. Embedded atom method potential for hydrogen on palladium surfaces. J Mol Model 26, 336 (2020).
@@ -76,61 +77,64 @@ function PdH(atom_types::AbstractVector{Symbol}, cell::PeriodicCell, cutoff::Rea
 
     PdH(χ, Φ, δ, β_PdPd, η, ρₑ, Ec, Dₕₕ, αₕₕ, βₕₕ, Cₕ, δₕ, r₀ₕₕ, ϵₕ, aₕ, bₕ, cₕ, dₕ, D_PdH, α_PdH, r₀PdH, rₑ, Ω, fₑ, atom_types, cell, cutoff)
 end
+
+########################
+# This has to be checked
+# They never say what it is
+########################
+F(ρ) = -2.5
+F_Pd(ρ, ρₑ, η) = F(ρₑ) * (1 - η*log(ρ/ρₑ)) * (ρ/ρₑ)^η
+
+ρ_Pd(r, fₑ, χ, rₑ) = fₑ * exp(-χ * (r - rₑ))
+
+ϕ_PdPd(r, Φ, δ, rₑ, β_PdPd) = -Φ * (1 + δ*(r/rₑ - 1)) * exp(-β_PdPd*(r/rₑ-1))
+
+ϕₕₕ(r, Dₕₕ, βₕₕ, αₕₕ, r₀ₕₕ) = Dₕₕ * (βₕₕ * exp(-αₕₕ * (r - r₀ₕₕ)) - αₕₕ * exp(-βₕₕ * (r - r₀ₕₕ)))
+
+Fₕ(ρ, aₕ, bₕ, cₕ, dₕ, ϵₕ) = -cₕ * (1/(2+dₕ)*(ρ+ϵₕ)^(2+dₕ) - (aₕ+bₕ)/(1+dₕ)*(ρ+ϵₕ)^(1+dₕ) + (aₕ*bₕ)/dₕ*(ρ+ϵₕ)^dₕ)
+
+ρₕ(r, Cₕ, δₕ) = Cₕ * exp(-δₕ * r)
+
+ϕ_PdH(r, D_PdH, α_PdH, r₀PdH) = D_PdH * (1 - exp(-α_PdH*(r - r₀PdH)))^2 - D_PdH
         
 function potential!(model::PdH, V::AbstractVector, R::AbstractMatrix)
-    ########################
-    # This has to be checked
-    # They never say what it is
-    ########################
-    F(ρ) = -2.5
-    F_Pd(ρ) = F(ρₑ) * (1 - model.η*log(ρ/model.ρₑ)) * (ρ/model.ρₑ)^model.η
-    ρ_Pd(r) = model.fₑ * exp(-model.χ * (r - model.rₑ))
-
-    ϕ_PdPd(r) = -model.Φ * (1 + model.δ*(r/model.rₑ - 1)) * exp(-model.β_PdPd*(r/model.rₑ-1))
-    
-    ϕₕₕ(r) = model.Dₕₕ * (model.βₕₕ * exp(-model.αₕₕ * (r - model.r₀ₕₕ)) - model.αₕₕ * exp(-model.βₕₕ * (r - model.r₀ₕₕ)))
-    
-    Fₕ(ρ) = -model.cₕ * (1/(2+model.dₕ)*(ρ+model.ϵₕ)^(2+model.dₕ) - (model.aₕ+model.bₕ)/(1+model.dₕ)*(ρ+model.ϵₕ)^(1+model.dₕ) + (model.aₕ*model.bₕ)/model.dₕ*(ρ+model.ϵₕ)^model.dₕ)
-    ρₕ(r) = model.Cₕ * exp(-model.δₕ * r)
-
-    ϕ_PdH(r) = model.D_PdH * (1 - exp(-model.α_PdH*(r - model.r₀PdH)))^2 - model.D_PdH
         
     function ϕ(r, i, j)
         if model.atom_types[i] == model.atom_types[j]
             if model.atom_types[i] == :Pd # Both Pd
-                return ϕ_PdPd(r)
+                return ϕ_PdPd(r, model.Φ, model.δ, model.rₑ, model.β_PdPd)
             else # Both H
-                return ϕₕₕ(r)
+                return ϕₕₕ(r, model.Dₕₕ, model.βₕₕ, model.αₕₕ, model.r₀ₕₕ)
             end
         else # One each
-            return ϕ_PdH(r)
+            return ϕ_PdH(r, model.D_PdH, model.α_PdH, model.r₀PdH)
         end
     end
         
     pairs = get_pairs(R, model.cutoff, model.cell)
     E = 0.0
-    densities = zeros(length(model.atom_types))
+    densities = zeros(eltype(R), length(model.atom_types))
     for (i, j, R) in NeighbourLists.pairs(pairs)
-        r = ustrip(u"Å", norm(R)u"bohr") # Convert distance to Å
+        r = ustrip(auconvert(u"Å", norm(R))) # Convert distance to Å
         if model.atom_types[j] == :Pd
-            densities[i] += ρ_Pd(r)
+            densities[i] += ρ_Pd(r, model.fₑ, model.χ, model.rₑ)
         else
-            densities[i] += ρₕ(r)
+            densities[i] += ρₕ(r, model.Cₕ, model.δₕ)
         end
         E += ϕ(r, i, j)/2
     end
     
     for i=1:length(model.atom_types)
         if model.atom_types[i] == :Pd
-            E += F_Pd(densities[i])
+            E += F_Pd(densities[i], model.ρₑ, model.η)
         else
-            E += Fₕ(densities[i])
+            E += Fₕ(densities[i], model.aₕ, model.bₕ, model.cₕ, model.dₕ, model.ϵₕ)
         end
     end
     V .= austrip(E*u"eV")
 end
-        
+
 function derivative!(model::PdH, D::AbstractMatrix, R::AbstractMatrix)
-    potential(x) = potential!(model, [0.0], x)[1]
-    FiniteDiff.finite_difference_gradient!(D, potential, R)
+    potential(x) = potential!(model, zeros(eltype(x), 1), x)[1]
+    D .= ForwardDiff.gradient(potential, R)
 end

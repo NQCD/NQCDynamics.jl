@@ -103,6 +103,6 @@ end
 end
 
 @testset "PdH" begin
-    model = PdH([:Pd, :Pd, :H], PeriodicCell([10 0 0; 0 10 0; 0 0 10]), 10.0)
+    model = PdH([:Pd, :Pd, :H], PeriodicCell([1 0 0; 0 1 0; 0 0 1]), 1.0)
     test_model(model, 3, 3)
 end
