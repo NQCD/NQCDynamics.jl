@@ -107,9 +107,9 @@ function friction! end
     
 Use NeighbourLists to calculate the neighbour list.
 """
-function get_pairs(R::AbstractMatrix, cutoff::AbstractFloat, cell::AbstractCell)
+function get_pairs(R::AbstractMatrix, cutoff::AbstractFloat, cell::PeriodicCell)
     Q = copy(reinterpret(SVector{size(R)[1], eltype(R)}, vec(R))) # Convert array to vector of SVectors
-    PairList(Q, cutoff, austrip.(cell.vectors'), cell.periodicity) # Construct the list of neighbours
+    PairList(Q, cutoff, cell.vectors', cell.periodicity) # Construct the list of neighbours
 end
 
 include("analytic_models/free.jl")
