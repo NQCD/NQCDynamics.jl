@@ -54,8 +54,8 @@ to an `SDEProblem` to integrate stochastic dynamics.
 """
 function random_force! end
 
-function run_trajectory(u0::DynamicalVariables, tspan::Tuple, sim::AbstractSimulation)
-    solve(create_problem(u0, tspan, sim), select_algorithm(sim))
+function run_trajectory(u0::DynamicalVariables, tspan::Tuple, sim::AbstractSimulation; kwargs...)
+    solve(create_problem(u0, tspan, sim), select_algorithm(sim); kwargs...)
 end
 
 function create_problem(u0::DynamicalVariables, tspan::Tuple, sim::AbstractSimulation)
