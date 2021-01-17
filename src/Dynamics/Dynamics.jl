@@ -70,6 +70,7 @@ include("classical.jl")
 include("langevin.jl")
 include("mdef.jl")
 include("fssh.jl")
+include("iesh.jl")
 include("fermionic_ring_polymer.jl")
 include("nrpmd.jl")
 
