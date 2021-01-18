@@ -126,8 +126,7 @@ include("analytic_models/friction_harmonic.jl")
 include("EAM/PdH.jl")
 include("EANN/EANN_H2Cu.jl")
 include("EANN/EANN_H2Ag.jl")
-include("ML/ML.jl")
-@reexport using .ML
+include("julip.jl")
 
 include("plot.jl")
 end # module
