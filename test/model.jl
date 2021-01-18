@@ -106,3 +106,13 @@ end
     model = PdH([:Pd, :Pd, :H], PeriodicCell([1 0 0; 0 1 0; 0 0 1]), 1.0)
     test_model(model, 3, 3)
 end
+
+@testset "JuLIP" begin
+    using JuLIP
+    atoms = NonadiabaticMolecularDynamics.Atoms{Float64}([:H, :H])
+    x = [1.0 0 0]
+    y = [0 1.0 0]
+    z = [0 0 1.0]
+    model = JuLIPModel(atoms, PeriodicCell(vcat(x,y,z)), StillingerWeber())
+    test_model(model, 3, 2)
+end
