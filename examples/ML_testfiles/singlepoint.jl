@@ -1,4 +1,4 @@
-using NonadiabaticMolecularDynamics.IO
+using NonadiabaticMolecularDynamics
 using NonadiabaticMolecularDynamics.Models
 using PyCall
 ase = pyimport("ase")
