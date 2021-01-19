@@ -1,7 +1,9 @@
 using Test
-using NonadiabaticMolecularDynamics.IO
+using NonadiabaticMolecularDynamics
+using PyCall
 
-cell, atoms, R = read_system("io/slab.xyz")
+path = joinpath(dirname(pathof(NonadiabaticMolecularDynamics)), "../test")
+cell, atoms, R = read_system(joinpath(path, "io", "slab.xyz"))
 @test size(R)[1] == 3
 @test atoms isa Atoms
 @test cell isa PeriodicCell
