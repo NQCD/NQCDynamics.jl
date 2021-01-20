@@ -13,7 +13,7 @@ using RecipesBase
         derivative[i] = D[1]
     end
 
-    xlabel --> "r /a₀"
+    xguide --> "r /a₀"
 
     @series begin
         label := "V(r) /Eₕ"
@@ -37,8 +37,8 @@ end
     end
 
     legend --> false
-    xlabel --> "r /a₀"
-    ylabel --> "V(r) /Eₕ"
+    xguide --> "r /a₀"
+    yguide --> "V(r) /Eₕ"
 
     @series begin
         linecolor := :black
