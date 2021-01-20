@@ -1,13 +1,7 @@
-module IO
 
-using PyCall
+using .PyCall
 using Unitful
 using UnitfulAtomic
-using ..NonadiabaticMolecularDynamics
-# using ..Atoms
-# using ..Systems
-# using ..Dynamics
-# using DiffEqBase
 
 export read_system
 export write_trajectory
@@ -22,7 +16,7 @@ function read_system(file::String)
 end
 
 function extract_parameters_and_positions(ase_atoms::PyObject)
-    cell = PeriodicCell{Float64}(austrip.(ase_atoms.cell.data'u"Å"), ase_atoms.pbc)
+    cell = PeriodicCell{Float64}(austrip.(ase_atoms.cell.array'u"Å"), ase_atoms.pbc)
     atom_types = Symbol.(ase_atoms.get_chemical_symbols())
     positions = austrip.(ase_atoms.get_positions()'u"Å")
 
@@ -86,5 +80,3 @@ end
 
 #     ase.io.write(file_name, trajectory)
 # end
-
-end # module
