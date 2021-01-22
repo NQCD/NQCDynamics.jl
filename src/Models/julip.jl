@@ -19,14 +19,14 @@ struct JuLIPModel{T} <: AdiabaticModel
 end
 
 function potential!(model::JuLIPModel, V::AbstractVector, R::AbstractMatrix)
-    JuLIP.set_positions!(model.atoms, R)
-    V .= JuLIP.energy(model.atoms)
+    JuLIP.set_positions!(model.atoms, ustrip.(auconvert.(u"Å", R)))
+    V .= austrip(JuLIP.energy(model.atoms)u"eV")
 end
 
 function derivative!(model::JuLIPModel, D::AbstractMatrix, R::AbstractMatrix)
-    JuLIP.set_positions!(model.atoms, R)
+    JuLIP.set_positions!(model.atoms, ustrip.(auconvert.(u"Å", R)))
     f = JuLIP.forces(model.atoms)
     for i=1:length(f)
-        D[:,i] .= -f[i]
+        D[:,i] .= -austrip.(f[i]u"eV/Å")
     end
 end
