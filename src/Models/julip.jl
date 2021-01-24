@@ -4,7 +4,7 @@ using StaticArrays
 
 export JuLIPModel
 
-struct JuLIPModel{T,A<:NamedTuple,B<:NamedTuple} <: AdiabaticModel
+mutable struct JuLIPModel{T,A<:NamedTuple,B<:NamedTuple} <: AdiabaticModel
     atoms::JuLIP.Atoms{T}
     tmp::A
     tmp_d::B
@@ -29,12 +29,26 @@ end
 
 function potential!(model::JuLIPModel, V::AbstractVector, R::AbstractMatrix)
     JuLIP.set_positions!(model.atoms, au_to_ang.(R))
-    V[1] = JuLIP.energy!(model.tmp, model.atoms.calc, model.atoms)
+    try
+        V[1] = JuLIP.energy!(model.tmp, model.atoms.calc, model.atoms)
+    catch e
+        if e isa BoundsError
+            model.tmp = JuLIP.alloc_temp(model.atoms.calc, model.atoms)
+            V[1] = JuLIP.energy!(model.tmp, model.atoms.calc, model.atoms)
+        end
+    end
     V[1] = eV_to_au(V[1])
 end
 
 function derivative!(model::JuLIPModel, D::AbstractMatrix, R::AbstractMatrix)
     JuLIP.set_positions!(model.atoms, au_to_ang.(R))
-    JuLIP.forces!(JuLIP.vecs(D), model.tmp_d, model.atoms.calc, model.atoms)
+    try
+        JuLIP.forces!(JuLIP.vecs(D), model.tmp_d, model.atoms.calc, model.atoms)
+    catch e
+        if e isa BoundsError
+            model.tmp_d = JuLIP.alloc_temp_d(model.atoms.calc, model.atoms)
+            JuLIP.forces!(JuLIP.vecs(D), model.tmp_d, model.atoms.calc, model.atoms)
+        end
+    end
     D .= -eV_per_ang_to_au.(D)
 end
