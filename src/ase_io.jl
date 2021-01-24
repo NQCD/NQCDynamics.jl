@@ -16,7 +16,12 @@ function read_system(file::String)
 end
 
 function extract_parameters_and_positions(ase_atoms::PyObject)
-    cell = PeriodicCell{Float64}(austrip.(ase_atoms.cell.array'u"Å"), ase_atoms.pbc)
+    if all(ase_atoms.cell.array .== 0)
+        cell = InfiniteCell()
+    else
+        cell = PeriodicCell{Float64}(austrip.(ase_atoms.cell.array'u"Å"), ase_atoms.pbc)
+    end
+
     atom_types = Symbol.(ase_atoms.get_chemical_symbols())
     positions = austrip.(ase_atoms.get_positions()'u"Å")
 
