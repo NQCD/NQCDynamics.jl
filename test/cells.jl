@@ -33,4 +33,4 @@ set_periodicity!(a, [true, true, false])
 @test a.periodicity == [true, true, false]
 
 # InfiniteCell
-@test InfiniteCell{Float64}() isa InfiniteCell
+@test InfiniteCell() isa InfiniteCell
