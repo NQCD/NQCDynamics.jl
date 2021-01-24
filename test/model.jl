@@ -105,9 +105,9 @@ end
 @testset "JuLIP" begin
     import JuLIP
     atoms = NonadiabaticMolecularDynamics.Atoms{Float64}([:H, :H])
-    x = [1.0 0 0]
-    y = [0 1.0 0]
-    z = [0 0 1.0]
+    x = [10.0 0 0]
+    y = [0 10.0 0]
+    z = [0 0 10.0]
     model = JuLIPModel(atoms, PeriodicCell(vcat(x,y,z)), JuLIP.StillingerWeber())
     test_model(model, 3, 2)
 end
