@@ -1,32 +1,40 @@
 import .JuLIP
 using PeriodicTable
+using StaticArrays
 
 export JuLIPModel
 
-struct JuLIPModel{T} <: AdiabaticModel
+struct JuLIPModel{T,A<:NamedTuple,B<:NamedTuple} <: AdiabaticModel
     atoms::JuLIP.Atoms{T}
+    tmp::A
+    tmp_d::B
     function JuLIPModel(atoms::NonadiabaticMolecularDynamics.Atoms{N,T}, cell::PeriodicCell,
                         calculator::JuLIP.AbstractCalculator) where {N,T}
+
         jatoms = JuLIP.Atoms{T}(;
             X=zeros(3,length(atoms)),
-            M=ustrip.(auconvert.(u"u", atoms.masses)),
+            P=zeros(3,length(atoms)),
+            M=au_to_u.(atoms.masses),
             Z=JuLIP.AtomicNumber.([elements[t].number for t in atoms.types]),
-            cell=cell.vectors',
+            cell=au_to_ang.(cell.vectors'),
             pbc=cell.periodicity,
             calc=calculator)
-        new{T}(jatoms)
+
+        tmp = JuLIP.alloc_temp(calculator, jatoms)
+        tmp_d = JuLIP.alloc_temp_d(calculator, jatoms)
+
+        new{T,typeof(tmp),typeof(tmp_d)}(jatoms, tmp, tmp_d)
     end
 end
 
 function potential!(model::JuLIPModel, V::AbstractVector, R::AbstractMatrix)
-    JuLIP.set_positions!(model.atoms, ustrip.(auconvert.(u"Å", R)))
-    V .= austrip(JuLIP.energy(model.atoms)u"eV")
+    JuLIP.set_positions!(model.atoms, au_to_ang.(R))
+    V[1] = JuLIP.energy!(model.tmp, model.atoms.calc, model.atoms)
+    V[1] = eV_to_au(V[1])
 end
 
 function derivative!(model::JuLIPModel, D::AbstractMatrix, R::AbstractMatrix)
-    JuLIP.set_positions!(model.atoms, ustrip.(auconvert.(u"Å", R)))
-    f = JuLIP.forces(model.atoms)
-    for i=1:length(f)
-        D[:,i] .= -austrip.(f[i]u"eV/Å")
-    end
+    JuLIP.set_positions!(model.atoms, au_to_ang.(R))
+    JuLIP.forces!(JuLIP.vecs(D), model.tmp_d, model.atoms.calc, model.atoms)
+    D .= -eV_per_ang_to_au.(D)
 end
