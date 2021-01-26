@@ -7,6 +7,7 @@ perform PIMC to sample the normal modes.
 using NonadiabaticMolecularDynamics
 using Unitful
 using Plots
+using PyCall
 
 model = Models.Free()
 atoms = Atoms{Float64}([:H])
