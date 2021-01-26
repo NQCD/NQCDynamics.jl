@@ -1,8 +1,9 @@
 using NonadiabaticMolecularDynamics
-using NonadiabaticMolecularDynamics.IO
 using PyCall
+using ASE
 using Unitful
 using Plots
+import JuLIP
 
 build = pyimport("ase.build")
 ase = pyimport("ase")
@@ -13,7 +14,7 @@ build.add_adsorbate(slab, "H", 1.5, "bridge")
 slab.center(vacuum=10.0, axis=2)
 
 cell, atoms, positions = extract_parameters_and_positions(slab)
-model = Models.PdH(atoms.types, cell, 10.0)
+model = Models.JuLIPModel(atoms, cell, JuLIP.Potentials.EAM("examples/monte_carlo/PdH_hijazi.eam.alloy"))
 
 Δ = Dict([(:Pd, 0.5), (:H, 1.0)])
 monte_carlo = InitialConditions.PathIntegralMonteCarlo{Float64}(Δ, length(atoms), 100, collect(1:6), 1.0, 10)
