@@ -76,17 +76,24 @@ end
 """
 mutable struct MonteCarloOutput{T<:AbstractFloat,S}
     R::Vector{S}
-    acceptance::T
+    acceptance::Dict{Symbol, T}
+    total_moves::Dict{Symbol, UInt}
     energy::Vector{T}
-    function MonteCarloOutput{T,S}(R0::S) where {T,S}
+    function MonteCarloOutput(R0::S, atoms::Atoms{N,T}) where {N,T,S}
         output = typeof(R0)[]
+        acceptance = Dict{Symbol, T}()
+        total_moves = Dict{Symbol, UInt}()
+        for element in atoms.types
+            acceptance[element] = 0.0
+            total_moves[element] = 0
+        end
         energy = T[]
-        new(output, 0.0, energy)
+        new{T,S}(output, acceptance, total_moves, energy)
     end
 end
-function MonteCarloOutput{T}(R0::S) where {T,S}
-    MonteCarloOutput{T,S}(R0)
-end
+# function MonteCarloOutput(R0::S, atoms::Atoms{N,T}) where {N,T,S}
+#     MonteCarloOutput{T,S}(R0, atoms)
+# end
 
 """
     Configuration{T} = Union{Matrix{T}, Array{T, 3}}
@@ -107,11 +114,13 @@ function run_monte_carlo_sampling(sim::AbstractSimulation, monte::MonteCarloPara
     Rᵢ = copy(R0) # Current positions
     Rₚ = zero(Rᵢ) # Proposed positions
     monte.Eᵢ = evaluate_configurational_energy(sim, Rᵢ)
-    output = MonteCarloOutput{T}(Rᵢ)
+    output = MonteCarloOutput(Rᵢ, sim.atoms)
 
     run_main_loop!(sim, monte, Rᵢ, Rₚ, output)
 
-    output.acceptance /= length(output.R)
+    for key in keys(output.acceptance)
+        output.acceptance[key] /= output.total_moves[key]
+    end
     output
 end
 
@@ -122,9 +131,10 @@ Main loop for classical systems.
 """
 function run_main_loop!(sim::Simulation, monte::MonteCarlo, Rᵢ::Matrix, Rₚ::Matrix, output::MonteCarloOutput)
     @showprogress 0.1 "Sampling... " for i=1:convert(Int, monte.steps)
-        propose_move!(sim, monte, Rᵢ, Rₚ)
+        atom = sample(range(sim.atoms), monte.moveable_atoms)
+        propose_move!(sim, monte, Rᵢ, Rₚ, atom)
         apply_cell_boundaries!(sim.cell, Rₚ)
-        assess_proposal!(sim, monte, Rᵢ, Rₚ, output)
+        assess_proposal!(sim, monte, Rᵢ, Rₚ, output, atom)
     end
 end
 
@@ -137,21 +147,21 @@ function run_main_loop!(sim::RingPolymerSimulation, monte::PathIntegralMonteCarl
             atom = sample(range(sim.atoms), monte.moveable_atoms)
             propose_centroid_move!(sim, monte, Rᵢ, Rₚ, atom)
             apply_cell_boundaries!(sim.cell, Rₚ, sim.beads)
-            assess_proposal!(sim, monte, Rᵢ, Rₚ, output)
+            assess_proposal!(sim, monte, Rᵢ, Rₚ, output, atom)
             if atom ∈ sim.beads.quantum_atoms
                 for j=1:monte.pass_length
                     propose_normal_mode_move!(sim, monte, Rᵢ, Rₚ, atom)
-                    assess_proposal!(sim, monte, Rᵢ, Rₚ, output)
+                    assess_proposal!(sim, monte, Rᵢ, Rₚ, output, atom)
                 end
             end
         else
             atom = sample(sim.beads.quantum_atoms)
             for j=1:monte.pass_length
                 propose_normal_mode_move!(sim, monte, Rᵢ, Rₚ, atom)
-                assess_proposal!(sim, monte, Rᵢ, Rₚ, output)
+                assess_proposal!(sim, monte, Rᵢ, Rₚ, output, atom)
             end
         end
-        assess_proposal!(sim, monte, Rᵢ, Rₚ, output)
+        assess_proposal!(sim, monte, Rᵢ, Rₚ, output, atom)
     end
 end
 
@@ -160,9 +170,8 @@ end
     
 Propose simple cartesian move for a single atom.
 """
-function propose_move!(sim::Simulation, monte::MonteCarlo, Rᵢ::Matrix, Rₚ::Matrix)
+function propose_move!(sim::Simulation, monte::MonteCarlo, Rᵢ::Matrix, Rₚ::Matrix, atom::Integer)
     Rₚ .= Rᵢ
-    atom = sample(range(sim.atoms), monte.moveable_atoms)
     apply_random_perturbation!(sim.atoms, monte, Rₚ, atom, sim.DoFs)
 end
 
@@ -217,12 +226,13 @@ end
     
 Update the energy, check for acceptance, and update the output. 
 """
-function assess_proposal!(sim::AbstractSimulation, monte::MonteCarloParameters, Rᵢ, Rₚ, output)
+function assess_proposal!(sim::AbstractSimulation, monte::MonteCarloParameters, Rᵢ, Rₚ, output, atom::Integer)
     monte.Eₚ = evaluate_configurational_energy(sim, Rₚ)
+    output.total_moves[sim.atoms.types[atom]] += 1
     if acceptance_probability(sim, monte) > rand()
         monte.Eᵢ = monte.Eₚ
         Rᵢ .= Rₚ
-        output.acceptance += 1
+        output.acceptance[sim.atoms.types[atom]] += 1
     end
     write_output!(output, Rᵢ, monte.Eᵢ)
 end
@@ -246,10 +256,8 @@ acceptance_probability(Eₚ::T, Eᵢ::T, kT::T) where {T<:AbstractFloat} = min(1
 Store the current configuration and associated energy.
 """
 function write_output!(output::MonteCarloOutput, Rᵢ::Configuration, energy::AbstractFloat)
-    # output.R[i] .= Rᵢ
     push!(output.R, copy(Rᵢ))
     push!(output.energy, copy(energy))
-    # output.energy[i] = energy
 end
 
 end # module

@@ -16,7 +16,7 @@ sim = Simulation(1, 100u"K", cell, atoms, model, monte_carlo)
     Rᵢ = zeros(sim.DoFs, length(sim.atoms))
     Rₚ = zero(Rᵢ)
     @test Rᵢ == Rₚ
-    MetropolisHastings.propose_move!(sim, monte_carlo, Rᵢ, Rₚ)
+    MetropolisHastings.propose_move!(sim, monte_carlo, Rᵢ, Rₚ, 1)
     @test Rᵢ != Rₚ
 end
 
@@ -25,18 +25,18 @@ end
     Rₚ = zero(Rᵢ)
     # Accept the move
     sim.method.Eᵢ = 1
-    output = MetropolisHastings.MonteCarloOutput{Float64}(Rᵢ)
-    MetropolisHastings.assess_proposal!(sim, monte_carlo, Rᵢ, Rₚ, output)
+    output = MetropolisHastings.MonteCarloOutput(Rᵢ, sim.atoms)
+    MetropolisHastings.assess_proposal!(sim, monte_carlo, Rᵢ, Rₚ, output, 1)
     @test output.R[1] == Rₚ
     # Reject the move
     sim.method.Eᵢ = -1
-    MetropolisHastings.assess_proposal!(sim, monte_carlo, Rᵢ, Rₚ, output)
+    MetropolisHastings.assess_proposal!(sim, monte_carlo, Rᵢ, Rₚ, output, 1)
     @test output.R[1] == Rᵢ
 end
 
 @testset "write_output!" begin
     Rₚ = fill(0.1, sim.DoFs, length(sim.atoms))
-    output = InitialConditions.MetropolisHastings.MonteCarloOutput{Float64}(Rₚ)
+    output = InitialConditions.MetropolisHastings.MonteCarloOutput(Rₚ, sim.atoms)
     MetropolisHastings.write_output!(output, Rₚ, 1.0)
     Rₚ .+= 1
     MetropolisHastings.write_output!(output, Rₚ, 1.1)
