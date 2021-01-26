@@ -25,25 +25,25 @@ end
     Rₚ = zero(Rᵢ)
     # Accept the move
     sim.method.Eᵢ = 1
-    output = MetropolisHastings.MonteCarloOutput{Float64}(Rᵢ, monte_carlo)
-    MetropolisHastings.assess_proposal!(sim, monte_carlo, Rᵢ, Rₚ, output, 1)
+    output = MetropolisHastings.MonteCarloOutput{Float64}(Rᵢ)
+    MetropolisHastings.assess_proposal!(sim, monte_carlo, Rᵢ, Rₚ, output)
     @test output.R[1] == Rₚ
     # Reject the move
     sim.method.Eᵢ = -1
-    MetropolisHastings.assess_proposal!(sim, monte_carlo, Rᵢ, Rₚ, output, 1)
+    MetropolisHastings.assess_proposal!(sim, monte_carlo, Rᵢ, Rₚ, output)
     @test output.R[1] == Rᵢ
 end
 
 @testset "write_output!" begin
     Rₚ = fill(0.1, sim.DoFs, length(sim.atoms))
-    output = InitialConditions.MetropolisHastings.MonteCarloOutput{Float64}(Rₚ, monte_carlo)
-    MetropolisHastings.write_output!(output, Rₚ, 1.0, 10)
+    output = InitialConditions.MetropolisHastings.MonteCarloOutput{Float64}(Rₚ)
+    MetropolisHastings.write_output!(output, Rₚ, 1.0)
     Rₚ .+= 1
-    MetropolisHastings.write_output!(output, Rₚ, 1.1, 11)
-    @test all(output.R[10] .== 0.1)
-    @test output.energy[10] == 1.0
-    @test all(output.R[11] .== 1.1)
-    @test output.energy[11] == 1.1
+    MetropolisHastings.write_output!(output, Rₚ, 1.1)
+    @test all(output.R[1] .== 0.1)
+    @test output.energy[1] == 1.0
+    @test all(output.R[2] .== 1.1)
+    @test output.energy[2] == 1.1
 end
 
 @testset "acceptance_probability" begin
@@ -70,7 +70,7 @@ end
     sim = RingPolymerSimulation(1, 100u"K", cell, atoms, model, monte_carlo, 10, [:H])
     Rᵢ = randn(3, length(sim.atoms), 10)
     Rₚ = copy(Rᵢ)
-    MetropolisHastings.propose_centroid_move!(sim, monte_carlo, Rᵢ, Rₚ)
+    MetropolisHastings.propose_centroid_move!(sim, monte_carlo, Rᵢ, Rₚ, 2)
     @test mean(Rₚ[:,1,:]) ≈ mean(Rᵢ[:,1,:]) # Check fixed atom does not move
     
     transform_to_normal_modes!(sim.beads, Rₚ)
