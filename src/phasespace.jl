@@ -15,16 +15,14 @@ Abstract type for different kinds of systems.
 """
 abstract type DynamicalVariables{T<:AbstractFloat} <: DEDataVector{T} end
 
-mutable struct Phasespace{T} <: DynamicalVariables{T}
-    x::ArrayPartition{T, Tuple{Matrix{T}, Matrix{T}}}
+mutable struct Phasespace{T,N} <: DynamicalVariables{T}
+    x::ArrayPartition{T, Tuple{Array{T,N}, Array{T,N}}}
 end
 Phasespace(R::Matrix, P::Matrix) = Phasespace(ArrayPartition(R, P))
 Phasespace(R::Matrix) = Phasespace(R, R)
 
-mutable struct RingPolymerPhasespace{T} <: DynamicalVariables{T}
-    x::ArrayPartition{T, Tuple{Array{T,3}, Array{T,3}}}
-end
-RingPolymerPhasespace(R::Array{T, 3}, P::Array{T, 3}) where {T} = RingPolymerPhasespace(ArrayPartition(R, P))
+const RingPolymerPhasespace{T} = Phasespace{T,3}
+RingPolymerPhasespace(R::Array{T, 3}, P::Array{T, 3}) where {T} = Phasespace{T,3}(ArrayPartition(R, P))
 function RingPolymerPhasespace(R::Matrix, P::Matrix, n_beads::Integer)
     R = cat([R for i=1:n_beads]..., dims=3)
     P = cat([P for i=1:n_beads]..., dims=3)

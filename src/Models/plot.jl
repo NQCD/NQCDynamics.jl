@@ -1,73 +1,52 @@
-export plot_diabats
-export plot_adiabats
-export plot_coupling
-export plot_eigenvalues
+using LinearAlgebra
+using RecipesBase
 
-using Plots
-
-"""
-    plot_diabats(model::Model, domain::Tuple, points::Integer=75)
-
-Plot the diagonal elements of the potential energy matrix.
-"""
-function plot_diabats(model::Model, domain::Tuple, points::Integer=75)
-    x = range(domain..., length=points)
-    V = model.get_potential.(x)
-    V0 = model.get_V0.(x)
-    n_states = size(V[1])[1]
-    p = plot(legend=false)
-    for i=1:n_states
-        y = [a[i, i] for a in V] .+ V0
-        plot!(x, y)
+@recipe function f(x, model::AdiabaticModel)
+    V = [0.0]
+    D = hcat(0.0)
+    potential = zeros(size(x))
+    derivative = zeros(size(x))
+    for i=1:length(x)
+        potential!(model, V, hcat(x[i]))
+        derivative!(model, D, hcat(x[i]))
+        potential[i] = V[1]
+        derivative[i] = D[1]
     end
-    return p
+
+    xguide --> "r /a₀"
+
+    @series begin
+        label := "V(r) /Eₕ"
+        x, potential
+    end
+
+    @series begin
+        label := "dV(r)dr /Eₕ/a₀"
+        x, derivative
+    end
 end
 
-"""
-    plot_adiabats(model::Model, domain::Tuple, points::Integer=75)
-
-Plot the eigenvalues of the potential energy matrix.
-"""
-function plot_adiabats(model::Model, domain::Tuple, points::Integer=75)
-    x = range(domain..., length=points)
-    V = model.get_potential.(x)
-    V0 = model.get_V0.(x)
-    vals = eigvals.(V)
-    n_states = length(vals[1])
-    p = plot(legend=false)
-    for i=1:n_states
-        y = [a[i] for a in vals] .+ V0
-        plot!(x, y)
+@recipe function f(x, model::DiabaticModel)
+    V = Hermitian(zeros(model.n_states, model.n_states))
+    eigs = zeros(length(x), model.n_states)
+    diabats = zeros(length(x), model.n_states)
+    for i=1:length(x)
+        potential!(model, V, hcat(x[i]))
+        eigs[i,:] .= eigvals(V)
+        diabats[i,:] .= diag(V)
     end
-    return p
-end
 
-"""
-    plot_coupling(model::Model, domain::Tuple, points::Integer=75)
+    legend --> false
+    xguide --> "r /a₀"
+    yguide --> "V(r) /Eₕ"
 
-Plot the off-diagonal elements of the potential energy matrix.
-"""
-function plot_coupling(model::Model, domain::Tuple, points::Integer=75)
-    x = range(domain..., length=points)
-    V = model.get_potential.(x)
-    n_states = size(V[1])[1]
-    p = plot(legend=false)
-    for i=1:n_states
-        for j=i+1:n_states
-            y = [a[i, j] for a in V]
-            plot!(x, y, linestyle=:dash)
-        end
+    @series begin
+        linecolor := :black
+        x, eigs
     end
-    return p
-end
 
-"""
-    plot_eigenvalues(model::Model, R::Real)
-
-Plot the eigenvalues of the potential energy matrix at a single point
-"""
-function plot_eigenvalues(model::Model, R::Real)
-    V = model.get_potential(R)
-    V0 = model.get_V0(R)
-    plot(V0 .+ eigvals(V), legend=false)
+    @series begin
+        linecolor := :red
+        x, diabats
+    end
 end

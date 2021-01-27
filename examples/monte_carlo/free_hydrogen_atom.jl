@@ -5,9 +5,9 @@ Here we have a single hydrogen atom fixed in place and
 perform PIMC to sample the normal modes.
 =#
 using NonadiabaticMolecularDynamics
-using NonadiabaticMolecularDynamics.IO
 using Unitful
 using Plots
+using PyCall
 
 model = Models.Free()
 atoms = Atoms{Float64}([:H])
@@ -22,5 +22,5 @@ R = cat([positions for i=1:beads]..., dims=3) # Copy coordinates for every bead
 output = InitialConditions.run_monte_carlo_sampling(sim, monte_carlo, R)
 
 @show output.acceptance
-write_trajectory("sampling.xyz", InfiniteCell{Float64}(), atoms, output.R)
+write_trajectory("sampling.xyz", InfiniteCell(), atoms, output.R)
 plot(output.energy)

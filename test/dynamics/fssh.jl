@@ -1,6 +1,6 @@
 using Test
 using NonadiabaticMolecularDynamics
-using DifferentialEquations
+using OrdinaryDiffEq
 
 @test Dynamics.FSSH{Float64}(3, 3, 2) isa Dynamics.FSSH
 atoms = Atoms{Float64}([:H])

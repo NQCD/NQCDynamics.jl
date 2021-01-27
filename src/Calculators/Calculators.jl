@@ -1,8 +1,31 @@
+"""
+    Calculators
+
+This module exists to bridge the gap between the `Models` and the `Dynamics`.
+
+Here we provide functions and types for evaluating and storing quantities obtained from the
+`Models`.
+In addition any further manipulation of those quantities, such as computing eigenvalues,
+is included here.
+
+This module is largely needed to facilitate seemless integration of both ring polymer and
+classical dynamics, using the same models and functions for both.
+Specific ring polymer types are provided that have the extra fields and methods needed
+to evaluate the quantities for each bead. 
+"""
 module Calculators
 
 using LinearAlgebra
 using ..Models
 
+"""
+    AbstractCalculator{M<:Model}
+
+Top-level type for all calculators.
+
+Each concrete calculator contains the `Model` and the fields to store the quantities
+obtained from the model.
+"""
 abstract type AbstractCalculator{M<:Model} end
 abstract type AbstractAdiabaticCalculator{M<:AdiabaticModel} <: AbstractCalculator{M} end
 abstract type AbstractDiabaticCalculator{M<:DiabaticModel} <: AbstractCalculator{M} end
@@ -112,20 +135,24 @@ end
 
 function eigen!(calc::DiabaticCalculator)
     eig = eigen(calc.potential)
-    @views for i=1:length(eig.values)
-        if eig.vectors[:,i]'calc.eigenvectors[:,i] < 0
-            calc.eigenvectors[:,i] .= -eig.vectors[:,i]
-        else
-            calc.eigenvectors[:,i] .= eig.vectors[:,i]
-        end
-    end
-    calc.eigenvalues .= eig.values
+    correct_phase!(eig, calc.eigenvectors)
+    copyto!(calc.eigenvectors, eig.vectors)
+    copyto!(calc.eigenvalues, eig.values)
 end
 
 function eigen!(calc::RingPolymerDiabaticCalculator)
     eigs = eigen.(calc.potential)
+    correct_phase!.(eigs, calc.eigenvectors)
     calc.eigenvalues .= [eig.values for eig in eigs]
     calc.eigenvectors .= [eig.vectors for eig in eigs]
+end
+
+function correct_phase!(eig::Eigen, old_eigenvectors::Matrix)
+    @views for i=1:length(eig.values)
+        if dot(eig.vectors[:,i], old_eigenvectors[:,i]) < 0
+            eig.vectors[:,i] .*= -1
+        end
+    end
 end
 
 function transform_derivative!(calc::DiabaticCalculator)

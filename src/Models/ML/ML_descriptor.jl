@@ -36,7 +36,7 @@ end
 
 
 function __init__()
-    copy!(torch, pyimport("torch"))
+    copy!(torch, pyimport_conda("torch", "torch"))
     py"""
     import schnetpack as spk
     from schnetpack import Properties

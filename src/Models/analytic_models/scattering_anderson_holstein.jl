@@ -87,9 +87,9 @@ end
 Elementwise position derivative of the above `potential!`
 """
 function derivative!(model::ScatteringAndersonHolstein, D::AbstractMatrix{<:Hermitian}, R::AbstractArray)
-    dV0dr(q) = -2*model.D_0*model.a0*(exp(-model.a0*q)-exp(-2*model.a0*q))
-    dV_imagedr(q) = -(model.C_1^2+q^2+2*model.D_1*q)/(model.C_1^2 + q^2)^2
-    dV1dr(q) = -1.0*(dV_imagedr(q) -model.a1*model.A_1*exp(-model.a1*q))
+    dV0dr(q) = 2*model.D_0*model.a0*(exp(-model.a0*q)-exp(-2*model.a0*q))
+    dV_imagedr(q) = 2*model.D_1*q/(model.C_1^2 + q^2)^2
+    dV1dr(q) = dV_imagedr(q) -model.a1*model.A_1*exp(-model.a1*q)
     dγ2dr(q) = -(model.Bg*exp((model.shift+q)/model.Cg))/(model.Cg*(1+exp((model.shift+q)/model.Cg))^2)
 
     D[1][1,1] = dV0dr(R[1])
