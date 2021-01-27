@@ -7,7 +7,7 @@ abstract type AbstractMDEF <: Method end
 
 struct MDEF{T<:AbstractFloat} <: AbstractMDEF
     drag::Vector{T}
-    function MDEF{T}(atoms::Integer, DoF::Integer) where {T}
+    function MDEF{T}(atoms::Integer; DoF::Integer=3) where {T}
         new(zeros(DoF*atoms))
     end
 end
@@ -15,7 +15,7 @@ end
 struct TwoTemperatureMDEF{T<:AbstractFloat} <: AbstractMDEF
     drag::Vector{T}
     temperature::Function
-    function TwoTemperatureMDEF{T}(atoms::Integer, DoF::Integer, temperature::Function) where {T}
+    function TwoTemperatureMDEF{T}(atoms::Integer, temperature::Function; DoF::Integer=3) where {T}
         new(zeros(DoF*atoms), temperature)
     end
 end
@@ -23,7 +23,7 @@ end
 function set_force!(du::Phasespace, u::Phasespace, sim::Simulation{<:AbstractMDEF})
     Calculators.evaluate_derivative!(sim.calculator, get_positions(u))
     get_momenta(du) .= -sim.calculator.derivative
-
+    
     Calculators.evaluate_friction!(sim.calculator, get_positions(u))
     mul!(sim.method.drag, sim.calculator.friction, get_flat_momenta(u))
     
@@ -31,8 +31,8 @@ function set_force!(du::Phasespace, u::Phasespace, sim::Simulation{<:AbstractMDE
 end
 
 function random_force!(du, u::Phasespace, sim::Simulation{<:AbstractMDEF}, t)
-    Calculators.evaluate_friction!(sim.calculator, get_positions(u))
-    du[sim.DoFs*length(sim.atoms)+1:end, sim.DoFs*length(sim.atoms)+1:end] .= sim.calculator.friction * sqrt(2 * get_temperature(sim, t))
+    #Calculators.evaluate_friction!(sim.calculator, get_positions(u))
+    du[sim.DoFs*length(sim.atoms)+1:end, sim.DoFs*length(sim.atoms)+1:end] .= 0 #sim.calculator.friction * sqrt(2 * get_temperature(sim, t))
 end
 
 get_temperature(sim::Simulation{<:MDEF}, ::AbstractFloat) = sim.temperature

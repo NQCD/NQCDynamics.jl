@@ -26,3 +26,6 @@ au_to_eV_per_ang(x) = auconvertstrip(u"eV/Å", x)
 
 u_to_au(x) = austrip(x*u"u")
 au_to_u(x) = auconvertstrip(u"u", x)
+
+ps_inv_to_au(x) = austrip(x*u"1/ps")
+au_to_ps_inv(x) = auconvertstrip(u"1/ps", x)
