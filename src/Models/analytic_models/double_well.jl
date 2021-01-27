@@ -17,20 +17,19 @@ function potential!(model::DoubleWell, V::Hermitian, R::AbstractMatrix)
 
     V0(R) = 0.5 * model.mass * model.ω^2 * R^2
 
+    V₀ = V0(R[1])
     v = sqrt(2)*model.γ*R[1] # Access only R[1] as this is a 1D model
-    V[1,1] = v
-    V[2,2] = -v
+    V[1,1] = V₀ + v
+    V[2,2] = V₀ - v
     V.data[1,2] = model.Δ/2 # Sets both off-diagonals as V is Hermitian
-
-    V += I*V0(R[1])
 end
 
 function derivative!(model::DoubleWell, D::AbstractMatrix{<:Hermitian}, R::AbstractMatrix)
 
     D0(R) = model.mass * model.ω^2 * R
 
+    D₀ = D0(R[1])
     v = sqrt(2)*model.γ
-    D[1][1,1] = v
-    D[1][2,2] = -v
-    D[1] += I*D0(R[1])
+    D[1][1,1] = D₀ + v
+    D[1][2,2] = D₀ - v
 end

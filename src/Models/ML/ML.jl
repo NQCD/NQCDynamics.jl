@@ -1,16 +1,8 @@
-module ML
 
-using PyCall
+using .PyCall
 using PeriodicTable
-using ....NonadiabaticMolecularDynamics
-using ..Models
-using UnitfulAtomic
-using Unitful
 
 export SchNetPackModel
-
-np = pyimport("numpy")
-ase = pyimport("ase")
 
 include("ML_descriptor.jl")
 
@@ -98,5 +90,3 @@ function get_properties(model_path, atoms, args...)
 
     return (energy,forces)
 end
-
-end # module

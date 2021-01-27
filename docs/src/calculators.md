@@ -1,0 +1,6 @@
+# Calculators
+
+
+```@autodocs
+Modules=[Calculators]
+```

@@ -4,16 +4,16 @@ export InfiniteCell
 export set_periodicity!
 export apply_cell_boundaries!
 
-abstract type AbstractCell{T<:AbstractFloat} end
+abstract type AbstractCell end
 
-struct InfiniteCell{T} <: AbstractCell{T} end
+struct InfiniteCell <: AbstractCell end
 
 """
-    PeriodicCell{T} <: AbstractCell{T}
+    PeriodicCell{T<:AbstractFloat} <: AbstractCell
 
 Optionally periodic cell
 """
-struct PeriodicCell{T} <: AbstractCell{T}
+struct PeriodicCell{T<:AbstractFloat} <: AbstractCell
     vectors::Matrix{T}
     inverse::Matrix{T}
     periodicity::Vector{Bool}
