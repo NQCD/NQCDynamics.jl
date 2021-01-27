@@ -1,5 +1,5 @@
 using NonadiabaticMolecularDynamics
-using NonadiabaticMolecularDynamics.IO
+using PyCall
 
 model_path = "/Users/wojciechstark/Desktop/H2_on_Cu/1_h2cu_pes"
 input_f = model_path * "/H2Cu_example.xyz"
