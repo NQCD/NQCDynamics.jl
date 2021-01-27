@@ -13,22 +13,23 @@ struct EANN_NOAu <: FrictionModel
 end
 
 function potential!(model::EANN_NOAu, V::AbstractVector, R::AbstractMatrix)
-    coordinates_ang = copy(ustrip(auconvert.(u"Å", R)))
+    coordinates_ang = au_to_ang.(R)
     cd(model.path) do
         calculate_energy_NOAu_pes!(coordinates_ang, reshape(V, (1,1)))
     end
+    V[1] = eV_to_au(V[1])
 end
 
 function derivative!(model::EANN_NOAu, D::AbstractMatrix, R::AbstractMatrix)
-    coordinates_ang = copy(ustrip(auconvert.(u"Å", R)))
+    coordinates_ang = au_to_ang.(R)
     cd(model.path) do
         calculate_force_NOAu_pes!(coordinates_ang, zeros(1,1), D)
     end
-    D .*= -1
+    D .= -eV_per_ang_to_au.(D)
 end
 
 function friction!(model::EANN_NOAu, F::AbstractMatrix, R::AbstractMatrix)
-    #coordinates_ang = copy(ustrip(auconvert.(u"Å", R)))
+    #coordinates_ang = au_to_ang.(R)
     cd(model.path) do
         calculate_NOAu_friction_tensor!(R, F)
     end

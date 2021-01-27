@@ -1,5 +1,5 @@
 using NonadiabaticMolecularDynamics
-using NonadiabaticMolecularDynamics.IO
+using PyCall
 
 model_path = "/Users/wojciechstark/Desktop/ML-model-repository-master/NO_on_Au111"
 input_f = model_path * "/NOAu_example.xyz"

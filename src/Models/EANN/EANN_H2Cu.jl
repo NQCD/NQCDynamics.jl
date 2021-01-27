@@ -15,18 +15,19 @@ struct EANN_H₂Cu <: AdiabaticModel
 end
 
 function potential!(model::EANN_H₂Cu, V::AbstractVector, R::AbstractMatrix)
-    coordinates_ang = copy(ustrip(auconvert.(u"Å", R)))
+    coordinates_ang = au_to_ang.(R)
     cd(model.path) do
         calculate_H2Cu_pes!(coordinates_ang, reshape(V, (1,1)), zero(R), 0, 0)
     end
+    V[1] = eV_to_au(V[1])
 end
 
 function derivative!(model::EANN_H₂Cu, D::AbstractMatrix, R::AbstractMatrix)
-    coordinates_ang = copy(ustrip(auconvert.(u"Å", R)))
+    coordinates_ang = au_to_ang.(R)
     cd(model.path) do
         calculate_H2Cu_pes!(coordinates_ang, zeros(1,1), D, 0, 1)
     end
-    D .*= -1
+    D .= -eV_per_ang_to_au.(D)
 end
 
 function initialize_H2Cu_pes(lib_path::String)

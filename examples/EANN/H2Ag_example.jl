@@ -1,5 +1,5 @@
 using NonadiabaticMolecularDynamics
-using NonadiabaticMolecularDynamics.IO
+using PyCall
 
 model_path = "/Users/wojciechstark/Desktop/ML-model-repository-master/H2_on_Ag111/h2ag111pes"
 input_f = model_path * "/Ag.xyz"
