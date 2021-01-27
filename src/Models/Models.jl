@@ -40,6 +40,8 @@ If an appropriate type is not already available, a new abstract subtype should b
 """
 abstract type Model end
 
+Base.broadcastable(model::Model) = Ref(model)
+
 """
     AdiabaticModel <: Model
 
@@ -119,6 +121,18 @@ include("EANN/EANN_H2Ag.jl")
 function __init__()
     @require PyCall="438e738f-606a-5dbb-bf0a-cddfbfd45ab0" @eval include("ML/ML.jl")
     @require JuLIP="945c410c-986d-556a-acb1-167a618e0462" @eval include("julip.jl")
+end
+
+function energy(model::AdiabaticModel, R::AbstractMatrix)
+    energy = [0.0]
+    potential!(model, energy, R)
+    energy[1]
+end
+
+function forces(model::AdiabaticModel, R::AbstractMatrix)
+    forces = zero(R)
+    derivative!(model, forces, R)
+    -forces
 end
 
 include("plot.jl")
