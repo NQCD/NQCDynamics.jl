@@ -4,35 +4,42 @@ export EANN_H₂Ag
 J. Phys. Chem. Lett. 2019, 10, 4962−4967
 J. Phys. Chem. C 2020, 124, 186−195
 """
-struct EANN_H₂Ag <: FrictionModel
+struct EANN_H₂Ag{S,T} <: FrictionModel
     path::String
-    n_atoms::Int
-    function EANN_H₂Ag(path::String, atoms::Atoms)
+    atoms::Atoms{S,T}
+    h2indices::Vector{UInt}
+    function EANN_H₂Ag(path::String, atoms::Atoms{S,T}) where {S,T}
         initialize_H2Ag_pes(path)
-        new(path, length(atoms))
+        h2indices = findall(atoms.types .== :H)
+        @assert h2indices == [1, 2]
+        new{S,T}(path, atoms, h2indices)
     end
 end
 
 function potential!(model::EANN_H₂Ag, V::AbstractVector, R::AbstractMatrix)
-    coordinates_ang = copy(ustrip(auconvert.(u"Å", R)))
+    coordinates_ang = au_to_ang.(R)
     cd(model.path) do
-        calculate_H2Ag_pes_potential!(model.n_atoms, coordinates_ang, reshape(V, (1,1)))
+        calculate_H2Ag_pes_potential!(length(model.atoms), coordinates_ang, reshape(V, (1,1)))
     end
+    V[1] = eV_to_au(V[1])
 end
 
 function derivative!(model::EANN_H₂Ag, D::AbstractMatrix, R::AbstractMatrix)
-    coordinates_ang = copy(ustrip(auconvert.(u"Å", R)))
+    coordinates_ang = au_to_ang.(R)
     cd(model.path) do
-        calculate_H2Ag_pes_forces!(model.n_atoms, coordinates_ang, D)
+        calculate_H2Ag_pes_forces!(length(model.atoms), coordinates_ang, D)
     end
-    D .*= -1
+    D .= -eV_per_ang_to_au.(D)
 end
 
 function friction!(model::EANN_H₂Ag, F::AbstractMatrix, R::AbstractMatrix)
-    #coordinates_ang = copy(ustrip(auconvert.(u"Å", R)))
+    coordinates_ang = au_to_ang.(R[:,model.h2indices])
+    F_h = F[1:6,1:6]
     cd(model.path) do
-        calculate_H2Ag_friction_tensor!(R, F)
+        calculate_H2Ag_friction_tensor!(coordinates_ang, F_h)
     end
+    F[1:6,1:6] .= model.atoms.masses[1] .* F_h
+    F .= ps_inv_to_au(F)
 end
 
 function initialize_H2Ag_pes(lib_path::String)
