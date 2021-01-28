@@ -3,12 +3,10 @@ using PyCall
 using DelimitedFiles
 using Unitful
 using UnitfulAtomic
-#using Plots
+using Plots
 
 vel_0 = zeros(18,3)
 ps = 98.22694788464062
-fs = 0.09822694788464063
-
 model_path = "/Users/wojciechstark/Desktop/h2ag_dyn_files"
 input = model_path * "/start.xyz"
 velo_path = model_path * "/init.200"
@@ -24,15 +22,14 @@ vel_0[1,:] .*= atoms.masses
 vel_0[2,:] .*= atoms.masses
 
 println("Initialize...")
+cb, vals = Dynamics.create_energy_saving_callback()
 model = Models.EANN_H₂Ag(model_path, atoms)
 sim = Simulation(atoms, model, Dynamics.MDEF{Float64}(length(atoms)); temperature=0u"K", cell=cell)
 z = Phasespace(positions, vel_0)
+tspan = (0.0, austrip(1u"ps"))
+dt = austrip(0.05u"fs")
 
-tspan = (0.0, austrip(1u"fs"))
-dt = austrip(0.05u"ps")
-
-#@time solution, e_pot = Dynamics.run_trajectory(z, tspan, sim, dt)
-@time solution = Dynamics.run_trajectory(z, tspan, sim)
+@time solution = Dynamics.run_trajectory(z, tspan, sim; callback=cb, adaptive=false, dt=dt)
 
 write_trajectory("trajectory.xyz", cell, atoms, get_positions.(solution.u))
-#plot(solution.t, e_pot)
+plot(solution.t, vals.saveval)
