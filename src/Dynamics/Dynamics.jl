@@ -27,6 +27,7 @@ using DiffEqBase
 using StochasticDiffEq
 using OrdinaryDiffEq
 using RecursiveArrayTools: ArrayPartition
+using UnitfulAtomic
 
 """
 Each type of dynamics subtypes `Method` which is passed to
@@ -55,7 +56,8 @@ to an `SDEProblem` to integrate stochastic dynamics.
 function random_force! end
 
 function run_trajectory(u0::DynamicalVariables, tspan::Tuple, sim::AbstractSimulation; kwargs...)
-    solve(create_problem(u0, tspan, sim), select_algorithm(sim); kwargs...)
+    stripped_kwargs = austrip_kwargs(;kwargs...)
+    solve(create_problem(u0, austrip.(tspan), sim), select_algorithm(sim); stripped_kwargs...)
 end
 
 function create_problem(u0::DynamicalVariables, tspan::Tuple, sim::AbstractSimulation)
@@ -72,5 +74,6 @@ include("fermionic_ring_polymer.jl")
 include("nrpmd.jl")
 
 include("ensembles.jl")
+include("callbacks.jl")
 
 end # module

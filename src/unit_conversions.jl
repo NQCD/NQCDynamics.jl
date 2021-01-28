@@ -16,6 +16,8 @@ export au_to_u
 export ps_inv_to_au
 export au_to_ps_inv
 
+export austrip_kwargs
+
 auconvertstrip(u::Unitful.Units, x::Number) = ustrip(auconvert(u, x))
 
 ang_to_au(x) = austrip(x*u"Å")
@@ -32,3 +34,15 @@ au_to_u(x) = auconvertstrip(u"u", x)
 
 ps_inv_to_au(x) = austrip(x*u"1/ps")
 au_to_ps_inv(x) = auconvertstrip(u"1/ps", x)
+
+function austrip_kwargs(;kwargs...)
+    stripped_kwargs = Dict{Symbol,Any}()
+    for (key, val) in kwargs
+        if val isa Unitful.Quantity
+            stripped_kwargs[key] = austrip(val)
+        else
+            stripped_kwargs[key] = val
+        end
+    end
+    stripped_kwargs
+end
