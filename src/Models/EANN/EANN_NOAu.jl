@@ -29,9 +29,9 @@ function derivative!(model::EANN_NOAu, D::AbstractMatrix, R::AbstractMatrix)
 end
 
 function friction!(model::EANN_NOAu, F::AbstractMatrix, R::AbstractMatrix)
-    #coordinates_ang = au_to_ang.(R)
+    coordinates_ang = au_to_ang.(R)
     cd(model.path) do
-        calculate_NOAu_friction_tensor!(R, F)
+        calculate_NOAu_friction_tensor!(coordinates_ang, F)
     end
 end
 

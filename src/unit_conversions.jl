@@ -13,6 +13,9 @@ export au_to_eV_per_ang
 export u_to_au
 export au_to_u
 
+export ps_inv_to_au
+export au_to_ps_inv
+
 auconvertstrip(u::Unitful.Units, x::Number) = ustrip(auconvert(u, x))
 
 ang_to_au(x) = austrip(x*u"Å")

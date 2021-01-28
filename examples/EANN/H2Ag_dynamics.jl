@@ -2,7 +2,8 @@ using NonadiabaticMolecularDynamics
 using PyCall
 using DelimitedFiles
 using Unitful
-using Plots
+using UnitfulAtomic
+#using Plots
 
 vel_0 = zeros(18,3)
 ps = 98.22694788464062
@@ -27,7 +28,7 @@ model = Models.EANN_H₂Ag(model_path, atoms)
 sim = Simulation(atoms, model, Dynamics.MDEF{Float64}(length(atoms)); temperature=0u"K", cell=cell)
 z = Phasespace(positions, vel_0)
 
-tspan = (0.0, austrip(10u"fs"))
+tspan = (0.0, austrip(1u"fs"))
 dt = austrip(0.05u"ps")
 
 #@time solution, e_pot = Dynamics.run_trajectory(z, tspan, sim, dt)
