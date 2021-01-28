@@ -8,17 +8,21 @@ cell, atoms, positions = read_system(input_f)
 println("Initialize...")
 model = Models.EANN_NOAu(model_path, atoms)
 
-println("Positions:")
-println(positions) 
-
 println("Energy:")
-V = [0.0]Models.potential!(model, V, positions)
+V = [0.0]
+Models.potential!(model, V, positions)
 println(V)
 
 println("Forces:")
-D = zero(positions)
+D = zero(copy(transpose(positions)))
+println(D)
 Models.derivative!(model, D, positions)
 println(D)
+
+println("Friction")
+F = zeros(6,6)
+Models.friction!(model, F, positions)
+print(F)
 
 println("Deallocate...")
 Models.deallocate_NOAu_pes(model_path)

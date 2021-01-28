@@ -39,7 +39,7 @@ function friction!(model::EANN_H₂Ag, F::AbstractMatrix, R::AbstractMatrix)
         calculate_H2Ag_friction_tensor!(coordinates_ang, F_h)
     end
     F[1:6,1:6] .= model.atoms.masses[1] .* F_h
-    F .= ps_inv_to_au(F)
+    F .= ps_inv_to_au.(F)
 end
 
 function initialize_H2Ag_pes(lib_path::String)
