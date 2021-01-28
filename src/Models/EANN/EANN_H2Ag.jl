@@ -29,7 +29,7 @@ function derivative!(model::EANN_H₂Ag, D::AbstractMatrix, R::AbstractMatrix)
     cd(model.path) do
         calculate_H2Ag_pes_forces!(length(model.atoms), coordinates_ang, D)
     end
-    D .= -eV_per_ang_to_au.(D)
+    D .= eV_per_ang_to_au.(D)
 end
 
 function friction!(model::EANN_H₂Ag, F::AbstractMatrix, R::AbstractMatrix)
