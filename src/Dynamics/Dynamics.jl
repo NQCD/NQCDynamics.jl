@@ -27,7 +27,6 @@ using DiffEqBase
 using StochasticDiffEq
 using OrdinaryDiffEq
 using RecursiveArrayTools: ArrayPartition
-using DiffEqCallbacks
 
 """
 Each type of dynamics subtypes `Method` which is passed to
@@ -59,19 +58,6 @@ function run_trajectory(u0::DynamicalVariables, tspan::Tuple, sim::AbstractSimul
     solve(create_problem(u0, tspan, sim), select_algorithm(sim); kwargs...)
 end
 
-function run_trajectory(u0::DynamicalVariables, tspan::Tuple, sim::AbstractSimulation, dt::Float64)
-    saved_values = SavedValues(Float64, Float64)
-    function save_func(u, t, integrator)
-        ev = [0.0]
-        pos = copy(get_positions(u))
-        Models.potential!(sim.calculator.model, ev, pos)
-        return ev[1]
-    end
-    call_back = SavingCallback(save_func, saved_values)
-
-    solve(create_problem(u0, tspan, sim), select_algorithm(sim),dt=dt, callback=call_back, adaptive=false), saved_values.saveval
-end
-
 function create_problem(u0::DynamicalVariables, tspan::Tuple, sim::AbstractSimulation)
     ODEProblem(motion!, u0, tspan, sim)
 end
@@ -86,5 +72,6 @@ include("fermionic_ring_polymer.jl")
 include("nrpmd.jl")
 
 include("ensembles.jl")
+include("callbacks.jl")
 
 end # module
