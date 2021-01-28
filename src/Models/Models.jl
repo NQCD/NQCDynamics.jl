@@ -115,6 +115,8 @@ include("analytic_models/1D_scattering.jl")
 
 include("analytic_models/friction_harmonic.jl")
 
+include("analytic_models/subotnik_A.jl")
+
 include("EANN/EANN_H2Cu.jl")
 include("EANN/EANN_H2Ag.jl")
 include("EANN/EANN_NOAu.jl")

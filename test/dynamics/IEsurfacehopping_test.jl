@@ -24,53 +24,45 @@ state = 1
 
 
 # 1a) Define adiabatic model, fom Model/scattering_anderson_holsteins.jl
-model = Models.ScatteringAndersonHolstein(N=n_states, a0=1, Bg=B_na, 
-Cg=1, alpha=-5.0, beta=.5)
+#model = Models.ScatteringAndersonHolstein(N=n_states, a0=1, Bg=B_na, 
+#Cg=1, alpha=-5.0, beta=.5)
+model = Models.Subotnik_A()
 
 
 # 1b) Initialize atomic parameters, i.e. moving atoms, of which there is one
-atoms = Atoms{Float64}([:H])
-#atoms = fill(:Au,(n_states+2))
-#atoms[1] = :C
-#atoms[2] = :O
+#atoms = Atoms{Float64}([:H])
 
 #1c define the dynamics that will be used
 # defined in main/Dynamics/iesh.jl
 #IESH{T}(DoFs::Integer, atoms::Integer, states::Integer)
-#dynam = Dynamics.IESH{Float64}(1, 1, n_states+2,step)
-dynam = Dynamics.IESH{Float64}(1, 1, n_states+2)
+#dynam = Dynamics.IESH{Float64}(1, 1, n_states+2)
 
 # Initialize the simulation problem
 # Simulation is defined in main/simulations.jl
-#sim = Simulation(atoms, Models.TullyModelOne(), Dynamics.IESH{Float64}(1, 1, 2); DoFs=1)
-sim = Simulation(atoms, Models.TullyModelOne(), dynam; DoFs=1)
+#sim = Simulation(atoms, Models.TullyModelOne(), dynam; DoFs=1)
 
 #calculate momentum
-r = fill(x, sim.DoFs, length(sim.atoms)) 
-p = fill(vinit*atoms.masses[1], sim.DoFs, length(sim.atoms))
+#r = fill(x, sim.DoFs, length(sim.atoms)) 
+#p = fill(vinit*atoms.masses[1], sim.DoFs, length(sim.atoms))
 
-#r = fill(-5.0, sim.DoFs, length(sim.atoms)) 
-#p = fill(8.9, sim.DoFs, length(sim.atoms)) 
 # intial state
 #k = rand(1:n_states+2)
-k = 1
+#k = 1
 #Initialize the surface hopping phasespace
 # postions, momenta, density matrix, state
 # ../../Dynamics/iesh.jl
-z = SurfaceHoppingPhasespace(r,p, n_states+2, k)
+#z = SurfaceHoppingPhasespace(r,p, n_states+2, k)
 #display(k)
-#z = SurfaceHoppingPhasespace(R, P, 2, 1)
-
-solution = Dynamics.run_trajectory(z, (0.0, 2500.0), sim)
 
 #../../Dynamics/iesh.jl
 # Solution of Differentiall equations and propagation
 #solution = Dynamics.run_trajectory(z, (0.0, 1000), sim, dt=step)
-#solution = Dynamics.run_trajectory(z, (0.0, 1000), sim)
+#solution = Dynamics.run_trajectory(z, (0.0, 2500.0), sim)
+
 
 #a =plot(solution.t, [real(Dynamics.get_positions(u)[1,1]) for u in solution.u], label="r")
-plot(solution.t, [real(Dynamics.get_density_matrix(u)[1,1]) for u in solution.u], label="σ[1,1]", marker =2)
-plot!(solution.t, [real(Dynamics.get_density_matrix(u)[2,2]) for u in solution.u], label="σ[2,2]", marker =2)
-plot!(solution.t, [u.state for u in solution.u].-1, label="current surface")
+#plot(solution.t, [real(Dynamics.get_density_matrix(u)[1,1]) for u in solution.u], label="σ[1,1]", marker =2)
+#plot!(solution.t, [real(Dynamics.get_density_matrix(u)[2,2]) for u in solution.u], label="σ[2,2]", marker =2)
+#plot!(solution.t, [u.state for u in solution.u].-1, label="current surface")
 #display(plot(a))
 #display(plot(b))
