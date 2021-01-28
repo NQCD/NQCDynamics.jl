@@ -17,5 +17,7 @@ struct Atoms{S,T<:AbstractFloat}
     end
 end
 
+Atoms(atom_types::Vector{Symbol}) = Atoms{Float64}(atom_types)
+
 Base.length(::Atoms{S}) where {S} = S
 Base.range(::Atoms{S}) where {S} = range(1; length=S)
