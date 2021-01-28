@@ -124,13 +124,13 @@ function __init__()
     @require JuLIP="945c410c-986d-556a-acb1-167a618e0462" @eval include("julip.jl")
 end
 
-function energy(model::AdiabaticModel, R::AbstractMatrix)
+function energy(model::Union{AdiabaticModel, FrictionModel}, R::AbstractMatrix)
     energy = [0.0]
     potential!(model, energy, R)
     energy[1]
 end
 
-function forces(model::AdiabaticModel, R::AbstractMatrix)
+function forces(model::Union{AdiabaticModel, FrictionModel}, R::AbstractMatrix)
     forces = zero(R)
     derivative!(model, forces, R)
     -forces
