@@ -72,5 +72,6 @@ include("fermionic_ring_polymer.jl")
 include("nrpmd.jl")
 
 include("ensembles.jl")
+include("callbacks.jl")
 
 end # module
