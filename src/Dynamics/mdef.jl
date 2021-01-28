@@ -26,13 +26,16 @@ function set_force!(du::Phasespace, u::Phasespace, sim::Simulation{<:AbstractMDE
     
     Calculators.evaluate_friction!(sim.calculator, get_positions(u))
     mul!(sim.method.drag, sim.calculator.friction, get_flat_momenta(u))
+
+    drag = reshape(sim.method.drag, sim.DoFs, length(sim.atoms))
     
-    get_flat_momenta(du) .-= sim.method.drag
+    get_momenta(du) .-= drag ./ sim.atoms.masses'
 end
 
 function random_force!(du, u::Phasespace, sim::Simulation{<:AbstractMDEF}, t)
-    #Calculators.evaluate_friction!(sim.calculator, get_positions(u))
-    du[sim.DoFs*length(sim.atoms)+1:end, sim.DoFs*length(sim.atoms)+1:end] .= 0 #sim.calculator.friction * sqrt(2 * get_temperature(sim, t))
+    Calculators.evaluate_friction!(sim.calculator, get_positions(u))
+    slice = sim.DoFs*length(sim.atoms)+1
+    du[slice:end, slice:end] .= sqrt.(sim.calculator.friction .* 2 .* get_temperature(sim, t))
 end
 
 get_temperature(sim::Simulation{<:MDEF}, ::AbstractFloat) = sim.temperature
