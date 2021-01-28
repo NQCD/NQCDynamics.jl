@@ -5,6 +5,7 @@ const tests = [
     "atoms"
     "cells"
     "calculators"
+    "simulations"
     "ring_polymers"
     "monte_carlo"
     "phasespace"
