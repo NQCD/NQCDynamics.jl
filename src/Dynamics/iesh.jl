@@ -145,12 +145,12 @@ function update_hopping_probability!(integrator::DiffEqBase.DEIntegrator)
             for i=1:length(sim.atoms)
                 for j=1:sim.DoFs
                     sim.method.hopping_probability[m] += 2velocity[j,i]*real(σ[m,s]/σ[s,s])*coupling[j,i][s,m] * dt
-                    println(velocity[j,i]," ", real(σ[m,s]/σ[s,s])," ",coupling[j,i][s,m]," ", dt)
+                    
                 end
             end
         end
     end
-    println(clamp!(sim.method.hopping_probability, 0, 1))
+    
     clamp!(sim.method.hopping_probability, 0, 1) # Restrict probabilities between 0 and 1
     cumsum!(sim.method.hopping_probability, sim.method.hopping_probability)
 end
@@ -167,6 +167,12 @@ function select_new_state(probability::Vector{T}, current_state::Integer)::UInt 
     0 # Return 0 if no hop is desired
 end
 
+# Calculate if hop frustrated
+# This includes a momentum rescaling (IESH paper of Shenvi et al. expresses it in terms of velocity)
+# I believe (also according to Subotnic&Miao JCP 150 2019) that this is the same.
+# In any case, it's used to conserve energy. Reini remarked that we might not want it 
+# eventually, but I'm leaving it for now.
+# It should be related to: HammesSchifferTully_JChemPhys_101_4657_1994
 function calculate_rescaling_constant!(integrator::DiffEqBase.DEIntegrator, new_state)::Bool
     sim = integrator.p
     old_state = integrator.u.state
@@ -176,6 +182,8 @@ function calculate_rescaling_constant!(integrator::DiffEqBase.DEIntegrator, new_
     
     a = zeros(length(sim.atoms))
     b = zero(a)
+    # view: treats data structure from array as another array
+    #': conjucated transposition (adjoint)
     @views for i in range(sim.atoms)
         coupling = [sim.method.nonadiabatic_coupling[j,i][new_state, old_state] for j=1:sim.DoFs]
         a[i] = coupling'coupling / sim.atoms.masses[i]
@@ -192,6 +200,7 @@ function calculate_rescaling_constant!(integrator::DiffEqBase.DEIntegrator, new_
     end
 end
 
+# This does to update_electronics above.
 function calculate_potential_energy_change(eigenvalues::Vector, new_state::Integer, current_state::Integer)
     eigenvalues[new_state] - eigenvalues[current_state]
 end
