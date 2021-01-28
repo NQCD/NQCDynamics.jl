@@ -13,6 +13,9 @@ export au_to_eV_per_ang
 export u_to_au
 export au_to_u
 
+export ps_inv_to_au
+export au_to_ps_inv
+
 export austrip_kwargs
 
 auconvertstrip(u::Unitful.Units, x::Number) = ustrip(auconvert(u, x))
@@ -28,6 +31,9 @@ au_to_eV_per_ang(x) = auconvertstrip(u"eV/Å", x)
 
 u_to_au(x) = austrip(x*u"u")
 au_to_u(x) = auconvertstrip(u"u", x)
+
+ps_inv_to_au(x) = austrip(x*u"1/ps")
+au_to_ps_inv(x) = auconvertstrip(u"1/ps", x)
 
 function austrip_kwargs(;kwargs...)
     stripped_kwargs = Dict{Symbol,Any}()

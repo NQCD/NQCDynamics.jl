@@ -7,7 +7,7 @@ abstract type AbstractMDEF <: Method end
 
 struct MDEF{T<:AbstractFloat} <: AbstractMDEF
     drag::Vector{T}
-    function MDEF{T}(atoms::Integer, DoF::Integer) where {T}
+    function MDEF{T}(atoms::Integer; DoF::Integer=3) where {T}
         new(zeros(DoF*atoms))
     end
 end
@@ -15,7 +15,7 @@ end
 struct TwoTemperatureMDEF{T<:AbstractFloat} <: AbstractMDEF
     drag::Vector{T}
     temperature::Function
-    function TwoTemperatureMDEF{T}(atoms::Integer, DoF::Integer, temperature::Function) where {T}
+    function TwoTemperatureMDEF{T}(atoms::Integer, temperature::Function; DoF::Integer=3) where {T}
         new(zeros(DoF*atoms), temperature)
     end
 end
@@ -23,16 +23,18 @@ end
 function set_force!(du::Phasespace, u::Phasespace, sim::Simulation{<:AbstractMDEF})
     Calculators.evaluate_derivative!(sim.calculator, get_positions(u))
     get_momenta(du) .= -sim.calculator.derivative
-
+    
     Calculators.evaluate_friction!(sim.calculator, get_positions(u))
     mul!(sim.method.drag, sim.calculator.friction, get_flat_momenta(u))
+
+    drag = reshape(sim.method.drag, sim.DoFs, length(sim.atoms))
     
-    get_flat_momenta(du) .-= sim.method.drag
+    get_momenta(du) .-= drag ./ sim.atoms.masses'
 end
 
 function random_force!(du, u::Phasespace, sim::Simulation{<:AbstractMDEF}, t)
-    Calculators.evaluate_friction!(sim.calculator, get_positions(u))
-    du[sim.DoFs*length(sim.atoms)+1:end, sim.DoFs*length(sim.atoms)+1:end] .= sim.calculator.friction * sqrt(2 * get_temperature(sim, t))
+    slice = sim.DoFs*length(sim.atoms)+1
+    du[slice:end, slice:end] .= sqrt.(sim.calculator.friction .* 2 .* get_temperature(sim, t))
 end
 
 get_temperature(sim::Simulation{<:MDEF}, ::AbstractFloat) = sim.temperature
@@ -42,4 +44,4 @@ function create_problem(u0::Phasespace, tspan::Tuple, sim::Simulation{<:Abstract
     n = sim.DoFs * length(sim.atoms) * 2
     SDEProblem(motion!, random_force!, u0, tspan, sim; noise_rate_prototype=zeros(n,n))
 end
-select_algorithm(::AbstractSimulation{<:MDEF}) = LambaEM()
+select_algorithm(::AbstractSimulation{<:MDEF}) = SRA()
