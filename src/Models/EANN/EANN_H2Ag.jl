@@ -8,37 +8,44 @@ struct EANN_H₂Ag{S,T} <: FrictionModel
     path::String
     atoms::Atoms{S,T}
     h2indices::Vector{UInt}
+    tmp_coordinates::Matrix{T}
+    tmp_friction_coordinates::Matrix{T}
+    tmp_friction::Matrix{T}
+    tmp_energy::Matrix{T}
     function EANN_H₂Ag(path::String, atoms::Atoms{S,T}) where {S,T}
         initialize_H2Ag_pes(path)
         h2indices = findall(atoms.types .== :H)
         @assert h2indices == [1, 2]
-        new{S,T}(path, atoms, h2indices)
+        new{S,T}(path, atoms, h2indices,
+                 zeros(3, length(atoms)),
+                 zeros(3, 2),
+                 zeros(6, 6),
+                 zeros(1, 1))
     end
 end
 
 function potential!(model::EANN_H₂Ag, V::AbstractVector, R::AbstractMatrix)
-    coordinates_ang = au_to_ang.(R)
+    model.tmp_coordinates .= au_to_ang.(R)
     cd(model.path) do
-        calculate_H2Ag_pes_potential!(length(model.atoms), coordinates_ang, reshape(V, (1,1)))
+        calculate_H2Ag_pes_potential!(length(model.atoms), model.tmp_coordinates, model.tmp_energy)
     end
-    V[1] = eV_to_au(V[1])
+    V[1] = eV_to_au(model.tmp_energy[1])
 end
 
 function derivative!(model::EANN_H₂Ag, D::AbstractMatrix, R::AbstractMatrix)
-    coordinates_ang = au_to_ang.(R)
+    model.tmp_coordinates .= au_to_ang.(R)
     cd(model.path) do
-        calculate_H2Ag_pes_forces!(length(model.atoms), coordinates_ang, D)
+        calculate_H2Ag_pes_forces!(length(model.atoms), model.tmp_coordinates, D)
     end
     D .= eV_per_ang_to_au.(D)
 end
 
 function friction!(model::EANN_H₂Ag, F::AbstractMatrix, R::AbstractMatrix)
-    coordinates_ang = au_to_ang.(R[:,model.h2indices])
-    F_h = F[1:6,1:6]
+    @views model.tmp_friction_coordinates .= au_to_ang.(R[:,model.h2indices])
     cd(model.path) do
-        calculate_H2Ag_friction_tensor!(coordinates_ang, F_h)
+        calculate_H2Ag_friction_tensor!(model.tmp_friction_coordinates, model.tmp_friction)
     end
-    F[1:6,1:6] .= model.atoms.masses[1] .* F_h
+    F[1:6,1:6] .= model.atoms.masses[1] .* model.tmp_friction
     F .= ps_inv_to_au.(F)
 end
 
