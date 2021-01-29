@@ -1,5 +1,6 @@
 push!(LOAD_PATH, pwd())
 using NonadiabaticMolecularDynamics
+using LinearAlgebra: Hermitian
 using Unitful
 using Revise
 using Random
@@ -26,8 +27,16 @@ state = 1
 # 1a) Define adiabatic model, fom Model/scattering_anderson_holsteins.jl
 #model = Models.ScatteringAndersonHolstein(N=n_states, a0=1, Bg=B_na, 
 #Cg=1, alpha=-5.0, beta=.5)
+#model = Models.TullyModelOne()
 model = Models.Subotnik_A()
+R = rand(1,1)
+V = Hermitian(zeros(2,2))
+Models.potential!(model,V,R)
 
+points = [u for u in -10:0.1:30]
+#So, I have no idea what the flying fuck plot is dong, but it is certainly not 
+#doing what I want it to.
+plot(points,model)
 
 # 1b) Initialize atomic parameters, i.e. moving atoms, of which there is one
 #atoms = Atoms{Float64}([:H])
@@ -40,7 +49,7 @@ model = Models.Subotnik_A()
 # Initialize the simulation problem
 # Simulation is defined in main/simulations.jl
 #sim = Simulation(atoms, Models.TullyModelOne(), dynam; DoFs=1)
-
+#sim = Simulation(atoms, model, dynam; DoFs=1)
 #calculate momentum
 #r = fill(x, sim.DoFs, length(sim.atoms)) 
 #p = fill(vinit*atoms.masses[1], sim.DoFs, length(sim.atoms))
@@ -57,6 +66,7 @@ model = Models.Subotnik_A()
 #../../Dynamics/iesh.jl
 # Solution of Differentiall equations and propagation
 #solution = Dynamics.run_trajectory(z, (0.0, 1000), sim, dt=step)
+# Problem is presumably in updat_electronics
 #solution = Dynamics.run_trajectory(z, (0.0, 2500.0), sim)
 
 
