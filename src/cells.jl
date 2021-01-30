@@ -1,8 +1,14 @@
+using LinearAlgebra: norm
+using Distances: evaluate, PeriodicEuclidean
+
 export AbstractCell
 export PeriodicCell
 export InfiniteCell
 export set_periodicity!
 export apply_cell_boundaries!
+export evaluate_periodic_distance
+
+const periodic_distance = PeriodicEuclidean([1, 1, 1])
 
 abstract type AbstractCell end
 
@@ -64,3 +70,7 @@ function apply_cell_boundaries!(cell::PeriodicCell, R::AbstractArray{T,3}, beads
     transform_from_normal_modes!(beads, R)
 end
 apply_cell_boundaries!(::InfiniteCell, ::AbstractArray{T,3}, ::RingPolymerParameters) where {T} = nothing
+
+function evaluate_periodic_distance(cell::PeriodicCell, r1::AbstractVector, r2::AbstractVector)
+    evaluate(periodic_distance, cell.inverse*r1, cell.inverse*r2)
+end
