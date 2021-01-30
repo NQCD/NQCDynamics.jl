@@ -34,3 +34,15 @@ set_periodicity!(a, [true, true, false])
 
 # InfiniteCell
 @test InfiniteCell() isa InfiniteCell
+
+@testset "evaluate_periodic_distance" begin
+    cell = PeriodicCell([1 0 0; 0 1 0; 0 0 1])
+    r1 = [0.1, 0.1, 0.1]
+    r2 = [0.9, 0.9, 0.9]
+    @test sqrt(3*0.2^2) ≈ evaluate_periodic_distance(cell, r1, r2)
+    @test sqrt(3*0.2^2) ≈ evaluate_periodic_distance(cell, r2, r1)
+    r1 = [0.4, 0.4, 0.4]
+    r2 = [0.6, 0.6, 0.6]
+    @test sqrt(3*0.2^2) ≈ evaluate_periodic_distance(cell, r1, r2)
+    @test sqrt(3*0.2^2) ≈ evaluate_periodic_distance(cell, r2, r1)
+end
