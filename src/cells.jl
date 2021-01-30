@@ -37,7 +37,7 @@ end
 function apply_cell_boundaries!(cell::PeriodicCell, R::AbstractMatrix)
     @views for i in axes(R, 2) # atoms
         R[:,i] .= cell.inverse * R[:,i]
-        R[:,i] .= mod1.(R[:,i], 1)
+        R[:,i] .= mod.(R[:,i], 1)
         R[:,i] .= cell.vectors * R[:,i]
     end
 end
