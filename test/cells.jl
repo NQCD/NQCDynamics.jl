@@ -14,6 +14,7 @@ a = PeriodicCell([x y z])
 @test a.inverse == a.vectors
 @test a.tmp_vector1 == [0, 0, 0]
 @test a.tmp_vector2 == [0, 0, 0]
+@test a.tmp_bools == [false, false, false]
 
 @testset "apply_cell_boundaries!" begin
     cell = PeriodicCell([1 0 0; 0 1 0; 0 0 1])
@@ -47,4 +48,14 @@ set_periodicity!(a, [true, true, false])
     r2 = [0.6, 0.6, 0.6]
     @test sqrt(3*0.2^2) ≈ evaluate_periodic_distance(cell, r1, r2)
     @test sqrt(3*0.2^2) ≈ evaluate_periodic_distance(cell, r2, r1)
+end
+
+@testset "check_atoms_in_cell" begin
+    cell = PeriodicCell([1 0 0; 0 1 0; 0 0 1])
+    R = rand(3, 10)
+    @test check_atoms_in_cell(cell, R) # All atoms inside cell
+    R[3, 5] += 1
+    @test !check_atoms_in_cell(cell, R) # Some atoms not inside cell
+    R[3, 5] -= 2
+    @test !check_atoms_in_cell(cell, R) # Some atoms not inside cell
 end

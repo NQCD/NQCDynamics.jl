@@ -7,6 +7,7 @@ export InfiniteCell
 export set_periodicity!
 export apply_cell_boundaries!
 export evaluate_periodic_distance
+export check_atoms_in_cell
 
 const periodic_distance = PeriodicEuclidean([1, 1, 1])
 
@@ -25,9 +26,10 @@ struct PeriodicCell{T<:AbstractFloat} <: AbstractCell
     periodicity::Vector{Bool}
     tmp_vector1::Vector{T}
     tmp_vector2::Vector{T}
+    tmp_bools::Vector{Bool}
     function PeriodicCell{T}(vectors::Matrix, periodicity::Vector{Bool}) where {T}
         new(vectors, inv(vectors), periodicity,
-            zeros(size(vectors)[1]), zeros(size(vectors)[1]))
+            zeros(size(vectors)[1]), zeros(size(vectors)[1]), zeros(Bool, size(vectors)[1]))
     end
 end
 
@@ -73,6 +75,20 @@ function apply_cell_boundaries!(cell::PeriodicCell, R::AbstractArray{T,3}, beads
     transform_from_normal_modes!(beads, R)
 end
 apply_cell_boundaries!(::InfiniteCell, ::AbstractArray{T,3}, ::RingPolymerParameters) where {T} = nothing
+
+"""
+    check_atoms_in_cell(cell::PeriodicCell, R::AbstractMatrix)::Bool
+
+True if all atoms are inside the cell, false otherwise.
+"""
+function check_atoms_in_cell(cell::PeriodicCell, R::AbstractMatrix)::Bool
+    @views for i in axes(R, 2) # atoms
+        mul!(cell.tmp_vector1, cell.inverse, R[:,i])
+        @. cell.tmp_bools = (cell.tmp_vector1 > 1) | (cell.tmp_vector1 < 0)
+        any(cell.tmp_bools) && return false
+    end
+    true
+end
 
 function evaluate_periodic_distance(cell::PeriodicCell, r1::AbstractVector, r2::AbstractVector)
     mul!(cell.tmp_vector1, cell.inverse, r1)
