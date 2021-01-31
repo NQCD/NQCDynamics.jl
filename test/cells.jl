@@ -12,6 +12,8 @@ z = [0.0, 0.0, 1.0]
 a = PeriodicCell([x y z])
 @test a isa PeriodicCell
 @test a.inverse == a.vectors
+@test a.tmp_vector1 == [0, 0, 0]
+@test a.tmp_vector2 == [0, 0, 0]
 
 @testset "apply_cell_boundaries!" begin
     cell = PeriodicCell([1 0 0; 0 1 0; 0 0 1])
