@@ -50,7 +50,7 @@ function potential!(model::Subotnik_A, V::Hermitian, R::AbstractMatrix)
     V_0(r) = (model.m*model.om^2*r^2)/2.0
     # Loweer energy potential well
     V_1(r) = (model.m*model.om^2*(r-model.g)^2)/2.0 + model.DG
-    println(R[1]," " , V_0(R[1]), " ", V_1(R[1]))
+    #println(R[1]," " , V_0(R[1]), " ", V_1(R[1]))
     # weighted metal-molecule coupling between the diabates
     G(r)=model.G1*(model.G0 + (model.K*(r - model.d)^2)/(1.0 + model.K*(r -model.d)^2))
     
@@ -61,6 +61,7 @@ function potential!(model::Subotnik_A, V::Hermitian, R::AbstractMatrix)
     V[2,2] = V_1(R[1])
     V.data[1,2] = G(R[1])
     V.data[2,1] = G(R[1])
+
 end
 
 """
