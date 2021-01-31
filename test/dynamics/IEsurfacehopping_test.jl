@@ -32,10 +32,23 @@ model = Models.Subotnik_A()
 R = rand(1,1)
 V = Hermitian(zeros(2,2))
 Models.potential!(model,V,R)
+println(V)
 
 points = [u for u in -10:0.1:30]
-#So, I have no idea what the flying fuck plot is dong, but it is certainly not 
-#doing what I want it to.
+
+p1 = zeros(size(points))
+p2 = zeros(size(points))
+
+for i=1:length(points)
+    R = zeros(1,1)
+    R[1] = points[i]
+    Models.potential!(model,V,R)
+    p1[i] = V[1,1]
+    p2[i] = V[2,2]
+    #println(V)
+
+end
+
 plot(points,model)
 
 # 1b) Initialize atomic parameters, i.e. moving atoms, of which there is one
