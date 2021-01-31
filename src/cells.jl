@@ -1,4 +1,4 @@
-using LinearAlgebra: norm
+using LinearAlgebra: norm, mul!
 using Distances: evaluate, PeriodicEuclidean
 
 export AbstractCell
@@ -23,8 +23,11 @@ struct PeriodicCell{T<:AbstractFloat} <: AbstractCell
     vectors::Matrix{T}
     inverse::Matrix{T}
     periodicity::Vector{Bool}
+    tmp_vector1::Vector{T}
+    tmp_vector2::Vector{T}
     function PeriodicCell{T}(vectors::Matrix, periodicity::Vector{Bool}) where {T}
-        new(vectors, inv(vectors), periodicity)
+        new(vectors, inv(vectors), periodicity,
+            zeros(size(vectors)[1]), zeros(size(vectors)[1]))
     end
 end
 
@@ -42,9 +45,9 @@ end
 
 function apply_cell_boundaries!(cell::PeriodicCell, R::AbstractMatrix)
     @views for i in axes(R, 2) # atoms
-        R[:,i] .= cell.inverse * R[:,i]
-        R[:,i] .= mod.(R[:,i], 1)
-        R[:,i] .= cell.vectors * R[:,i]
+        mul!(cell.tmp_vector1, cell.inverse, R[:,i])
+        cell.tmp_vector1 .= mod.(cell.tmp_vector1, 1)
+        mul!(R[:,i], cell.vectors, cell.tmp_vector1)
     end
 end
 apply_cell_boundaries!(::InfiniteCell, ::AbstractMatrix) = nothing
@@ -72,5 +75,7 @@ end
 apply_cell_boundaries!(::InfiniteCell, ::AbstractArray{T,3}, ::RingPolymerParameters) where {T} = nothing
 
 function evaluate_periodic_distance(cell::PeriodicCell, r1::AbstractVector, r2::AbstractVector)
-    evaluate(periodic_distance, cell.inverse*r1, cell.inverse*r2)
+    mul!(cell.tmp_vector1, cell.inverse, r1)
+    mul!(cell.tmp_vector2, cell.inverse, r2)
+    evaluate(periodic_distance, cell.tmp_vector1, cell.tmp_vector2)
 end
