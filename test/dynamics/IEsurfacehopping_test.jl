@@ -1,6 +1,6 @@
 push!(LOAD_PATH, pwd())
 using NonadiabaticMolecularDynamics
-using LinearAlgebra: Hermitian
+using LinearAlgebra
 using Unitful
 using Revise
 using Random
@@ -38,18 +38,25 @@ points = [u for u in -10:0.1:30]
 
 p1 = zeros(size(points))
 p2 = zeros(size(points))
+eigs = zeros(length(points),model.n_states)
+diabats = zeros(length(points),model.n_states)
 
+# Okay, I still need to figure out how to plot the adiabatic states here.
 for i=1:length(points)
-    R = zeros(1,1)
-    R[1] = points[i]
-    Models.potential!(model,V,R)
+    p = zeros(1,1)
+    p[1] = points[i]
+    Models.potential!(model,V,p)
     p1[i] = V[1,1]
     p2[i] = V[2,2]
-    #println(V)
-
+    eigs[i,:] .=eigvals(V)
+    diabats[i,:] .= diag(V)
 end
+plot(points,p1, label="V1")
+plot!(points,p2, label="V2")
+plot!(points,eigs, label="eigs")
+plot!(points,diabats, label="diabats")
 
-plot(points,model)
+#plot(points,model)
 
 # 1b) Initialize atomic parameters, i.e. moving atoms, of which there is one
 #atoms = Atoms{Float64}([:H])

@@ -55,7 +55,7 @@ function potential!(model::Subotnik_A, V::Hermitian, R::AbstractMatrix)
     G(r)=model.G1*(model.G0 + (model.K*(r - model.d)^2)/(1.0 + model.K*(r -model.d)^2))
     
     
-    V = Hermitian(zeros(2,2))
+    #V = Hermitian(zeros(2,2))
     # Set up the Hamiltonian
     V[1,1] = V_0(R[1])
     V[2,2] = V_1(R[1])
