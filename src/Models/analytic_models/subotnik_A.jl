@@ -67,13 +67,15 @@ end
 """
 Elementwise position derivative of the above potential
 """
-function derivative!(model::Subotnik_A,D::AbstractMatrix{<:Hermitian}, R::AbstractArray)
-    dV0dr(r) = model.m*model.om^2*r
-    dV1dr(r) = model.m*model.om^2*(r-model.g)
-    dGdr(r)  = model.G1((2*model.K*(r-model.d)*(1+K*(r-model.d)^2)-2*model.K^2*(r-model.d)^2)/
-                         (1+model.K*(r-model.d)^2)^2)
-    D[1][1,1] = dV0dr([R[1]])
-    D[1][2,2] = dV1dr([R[1]])
-    D[1][1,2] = dGdr([R[1]])
-    D[1][2,1] = dGdr([R[1]])
+function derivative!(model::Subotnik_A, derivative::AbstractMatrix{<:Hermitian}, R::AbstractMatrix)
+    
+    q = R[1]
+    derivative[1][1,1] = model.m*model.om^2*q
+    derivative[1][2,2] =model.m*model.om^2*(q-model.g)
+    derivative[1].data[1,2] = model.G1*((2*model.K*(q-model.d)*(1+model.K*(q-model.d)^2)-2*model.K^2*(q-model.d)^2)/
+    (1+model.K*(q-model.d)^2)^2)
+
+    derivative[1].data[2,1] = model.G1*((2*model.K*(q-model.d)*(1+model.K*(q-model.d)^2)-2*model.K^2*(q-model.d)^2)/
+    (1+model.K*(q-model.d)^2)^2)
+    
 end
