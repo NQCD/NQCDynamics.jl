@@ -3,7 +3,7 @@ using NonadiabaticMolecularDynamics
 using LinearAlgebra
 using Unitful
 using Revise
-using Random
+using Random, Distributions
 using Plots
 
 # IESH should proceed by the following steps:
@@ -22,6 +22,7 @@ mass = 1.5 # atomic mass#
 B_na = 1.0 # parameter that defines nonadiabatic coupling strength
 n_DOF = 1
 state = 1
+trajes = 200
 
 
 # 1a) Define adiabatic model, fom Model/scattering_anderson_holsteins.jl
@@ -88,48 +89,80 @@ dynam = Dynamics.IESH{Float64}(1, 1, n_states+2)
 #sim = Simulation(atoms, Models.TullyModelOne(), dynam; DoFs=1)
 sim = Simulation(atoms, model, dynam; DoFs=1)
 #calculate momentum
-r = fill(-10.0, sim.DoFs, length(sim.atoms)) 
-p = fill(vinit*atoms.masses[1], sim.DoFs, length(sim.atoms))
 
-# intial state
-#k = rand(1:n_states+2)
-k = 1
-#Initialize the surface hopping phasespace
-# postions, momenta, density matrix, state
-# ../../Dynamics/iesh.jl
-z = SurfaceHoppingPhasespace(r,p, n_states+2, k)
-#display(k)
 
-#../../Dynamics/iesh.jl
-# Solution of Differentiall equations and propagation, step needs to be implemented
-#solution = Dynamics.run_trajectory(z, (0.0, 1000), sim, dt=step)
-# 
-solution = Dynamics.run_trajectory(z, (0.0, 7500.0), sim)
+#Do dynamics
+Random.seed!(13)
+σ =sqrt(0.00095/atoms.masses[1])
+μ=0.0
+d1 = Normal(μ,σ)
+d2 = Normal(0,5.)
+pall=rand(d1,trajes)
+rall=rand(d2,trajes)
 
-r1 = zeros(length(solution))
-r1 = [real(Dynamics.get_positions(u)[1,1]) for u in solution.u]
-eigs = zeros(length(solution),model.n_states)
-p1 = zeros(size(solution))
-V = Hermitian(zeros(2,2))
-for i=1:length(solution)
-    p = zeros(1,1)
-    p[1] = r1[i]
-    Models.potential!(model,V,p)
+for i=1:trajes
+    fi = open("myfile_$i.txt", "w")
+    write(fi, "step, r (a.u.), energy (a.u.), p (a.u.), state\n")
+    p = fill(pall[i]*atoms.masses[1], sim.DoFs, length(sim.atoms))
+    r = fill(rall[i], sim.DoFs, length(sim.atoms)) 
+    println(p)
+
+    #r = fill(-10., sim.DoFs, length(sim.atoms)) 
+    p = fill(vinit*atoms.masses[1], sim.DoFs, length(sim.atoms))
+    println(p)
+
+    # intial state
+    #k = rand(1:n_states+2)
+    k = 1
+    #Initialize the surface hopping phasespace
+    # postions, momenta, density matrix, state
+    # ../../Dynamics/iesh.jl
+    z = SurfaceHoppingPhasespace(r,p, n_states+2, k)
+
+    #display(k)
+
+    #../../Dynamics/iesh.jl
+    # Solution of Differentiall equations and propagation, step needs to be implemented
+    #solution = Dynamics.run_trajectory(z, (0.0, 1000), sim, dt=step)
+    # 
+    solution = Dynamics.run_trajectory(z, (0.0, 15000.0), sim)
+
+
+    r1 = zeros(length(solution))
+    istate = zeros(length(solution))
+    r1 = [real(Dynamics.get_positions(u)[1,1]) for u in solution.u]
+    p2 = [real(Dynamics.get_momenta(u)[1,1]) for u in solution.u]
+    istate = [real(Dynamics.get_density_matrix(u)[1,1]) for u in solution.u]
+    eigs = zeros(length(solution),model.n_states)
+    p1 = zeros(size(solution))
+    V = Hermitian(zeros(2,2))
+    for j=1:length(solution)
+        p = zeros(1,1)
+        p[1] = r1[j]
+        Models.potential!(model,V,p)
 #    p1[i] = V[1,1]
 #    p2[i] = V[2,2]
 #    p3[i] = V[1,2]/0.0001
-    eigs[i,:] .=eigvals(V)
-    p1[i] = eigs[i,1]
-end
-
-# for definitiion of u. and 
-plo=plot([real(Dynamics.get_positions(u)[1,1]) for u in solution.u], [u.state for u in solution.u].-1, label="current surface", marker =2)
-plot!(r1, eigs[:,1]*100, label="Energy *100 (a.u.)", marker =2)
+        eigs[j,:] .=eigvals(V)
+        p1[j] = eigs[j,1]
+        rrr = r1[j]
+        ppp = p1[j]
+        pppp = p2[j]
+        sss = istate[j]
+       write(fi, "$j $rrr $ppp $pppp $sss\n")
+    end
+    close(fi)
+    
+    # for definitiion of u. and 
+    a=plot([real(Dynamics.get_positions(u)[1,1]) for u in solution.u], [u.state for u in solution.u].-1, label="current surface", marker =2)
+    plot!(r1, eigs[:,1]*100, label="Energy *100 (a.u.)", marker =2)
 #plot(solution.t, [real(Dynamics.get_density_matrix(u)[1,1]) for u in solution.u], label="σ[1,1]", marker =2)
 #plot!(solution.t, [real(Dynamics.get_density_matrix(u)[2,2]) for u in solution.u], label="σ[2,2]", marker =2)
 #plot!(solution.t, [u.state for u in solution.u].-1, label="current surface")
-xlabel!("x")
-ylabel!("Energy (a.u.)")
-savefig(plo,"traj_subA.png")
-#display(plot(a))
+    xlabel!("x")
+    ylabel!("Energy (a.u.)")
+    display(plot(a))
+end
+#savefig(plo,"traj_subA.png")
+
 #display(plot(b))Plots
