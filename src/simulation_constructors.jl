@@ -2,7 +2,7 @@
 Simulation(atoms::Atoms, model::Model; kwargs...) =
     Simulation{Classical}(atoms, model; kwargs...)
 
-Simulation{Classical}(atoms::Atoms, model::Model, kwargs...) =
+Simulation{Classical}(atoms::Atoms, model::Model; kwargs...) =
     Simulation(atoms, model, Classical(); kwargs...)
 
 RingPolymerSimulation{Classical}(atoms::Atoms, model::Model, n_beads::Integer; kwargs...) =
