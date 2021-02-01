@@ -145,7 +145,6 @@ function update_hopping_probability!(integrator::DiffEqBase.DEIntegrator)
             for i=1:length(sim.atoms)
                 for j=1:sim.DoFs
                     sim.method.hopping_probability[m] += 2velocity[j,i]*real(σ[m,s]/σ[s,s])*coupling[j,i][s,m] * dt
-                    
                 end
             end
         end
@@ -191,13 +190,13 @@ function calculate_rescaling_constant!(integrator::DiffEqBase.DEIntegrator, new_
     end
     
     discriminant = b.^2 .- 2a.*c
-    if any(discriminant .< 0)
-        return false
-    else
-        root = sqrt.(discriminant)
-        integrator.p.method.momentum_rescale .= min.(abs.((b .+ root) ./ a), abs.((b .- root) ./ a))
-        return true
-    end
+    #if any(discriminant .< 0)
+    #    return false
+    #else
+        #root = sqrt.(discriminant)
+        #integrator.p.method.momentum_rescale .= min.(abs.((b .+ root) ./ a), abs.((b .- root) ./ a))
+    return true
+    #end
 end
 
 # This does to update_electronics above.
