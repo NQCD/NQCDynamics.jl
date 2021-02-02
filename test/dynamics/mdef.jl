@@ -2,14 +2,14 @@ using Test
 using NonadiabaticMolecularDynamics
 using Unitful
 
-@test Dynamics.MDEF{Float64}(10, 3) isa Dynamics.MDEF
-@test Dynamics.TwoTemperatureMDEF{Float64}(10, 3, x->exp(-x)) isa Dynamics.TwoTemperatureMDEF
-atoms = Atoms{Float64}([:H, :C])
-mdef = Dynamics.MDEF{Float64}(length(atoms), 1)
-sim = Simulation(atoms, Models.FrictionHarmonic(), mdef; temperature=10u"K", DoFs=1)
+@test Dynamics.MDEF{Float64}(10) isa Dynamics.MDEF
+@test Dynamics.TwoTemperatureMDEF{Float64}(10, x->exp(-x)) isa Dynamics.TwoTemperatureMDEF
+atoms = Atoms([:H, :C])
+mdef = Dynamics.MDEF{Float64}(length(atoms))
+sim = Simulation(atoms, Models.FrictionHarmonic(), mdef; temperature=10u"K", DoFs=3)
 
 R = zeros(sim.DoFs, length(sim.atoms)) 
-P = zeros(sim.DoFs, length(sim.atoms)) 
+P = randn(sim.DoFs, length(sim.atoms)) 
 u = Phasespace(R, P)
 du = zero(u)
 

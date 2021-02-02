@@ -16,5 +16,7 @@ function set_force!(du::Phasespace, u::Phasespace, sim::Simulation{<:Langevin})
 end
 
 function random_force!(du::Phasespace, u::Phasespace, sim::Simulation{<:Langevin}, t)
-    get_momenta(du) .= sqrt.(2sim.method.η * sim.temperature  .* sim.atoms.masses')
+    for i=1:sim.DoFs
+        get_momenta(du)[i,:] .= sqrt.(2sim.method.η * sim.temperature  .* sim.atoms.masses)
+    end
 end
