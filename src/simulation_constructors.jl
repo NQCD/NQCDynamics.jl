@@ -18,4 +18,4 @@ Simulation{Langevin}(atoms::Atoms{S,T}, model::Model; η=1, kwargs...) where {S,
     Simulation(atoms, model, Langevin{T}(η); kwargs...)
 
 Simulation{FSSH}(atoms::Atoms{S,T}, model::Model; DoFs=3, kwargs...) where {S,T} =
-    Simulation(atoms, model, FSSH{T}(DoFs, length(atoms), model.n_states); kwargs...)
+    Simulation(atoms, model, FSSH{T}(DoFs, length(atoms), model.n_states); DoFs=DoFs, kwargs...)
