@@ -3,6 +3,20 @@ export IESH
 export IESH_callback
 using Revise
 
+"""This module controles how IESH is executed. For a description of IESH, see e.g.
+Roy, Shenvi, Tully, J. Chem. Phys. 130, 174716 (2009) and 
+Shenvi, Roy,  Tully,J. Chem. Phys. 130, 174107 (2009).
+It first needs to be initialized, e.g.
+dynam = Dynamics.IESH{Float64}(DoFs, atoms, n_states)
+After setting up the simulation (e.g. sim = Simulation(atoms, model, dynam; DoFs=1)),
+for a single trajectory, the Phasespace is set up inside this module:
+z = SurfaceHoppingPhasespace(r,p, n_states+2, k)  
+and the trajectory can be run with:
+solution = Dynamics.run_trajectory(z, (0.0, 15000.0), sim)
+The latter calls back to DifferentialEquations, but the callback of DifferentialEquations
+with the hopping between surfaces is handled here.
+"""
+
 struct IESH{T} <: Method
     nonadiabatic_coupling::Matrix{Matrix{T}}
     density_propagator::Matrix{Complex{T}}
@@ -34,7 +48,6 @@ end
 function SurfaceHoppingPhasespace(R::Matrix{T}, P::Matrix{T}, n_states::Integer, state::Integer) where {T}
     σ = zeros(Complex{T}, n_states, n_states)
     σ[state, state] = 1
-#    println(σ)
     SurfaceHoppingPhasespace(R, P, σ, state)
 end
 
