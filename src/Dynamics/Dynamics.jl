@@ -28,6 +28,7 @@ using StochasticDiffEq
 using OrdinaryDiffEq
 using RecursiveArrayTools: ArrayPartition
 using UnitfulAtomic
+using DocStringExtensions
 
 """
 Each type of dynamics subtypes `Method` which is passed to

@@ -19,5 +19,5 @@ output = InitialConditions.run_monte_carlo_sampling(sim, monte_carlo, zeros(1, l
 # @show output.acceptance
 # plot(vcat(output.R...))
 
-d = PhasespaceDistribution(output.R, boltzmann, (1,1)) # final argument is size 
+d = PhasespaceDistribution(boltzmann, output.R, (1,1)) # final argument is size 
 display(rand(d))

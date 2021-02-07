@@ -1,30 +1,29 @@
 
-export PositionDistribution
-export PhasespaceDistribution
+export DynamicalDistribution
 
 using Random: AbstractRNG, rand!
 using Distributions
 
-struct PhasespaceVariate <: VariateForm end
+struct DynamicalVariate <: VariateForm end
 
-struct PhasespaceDistribution{R,P,S} <: Sampleable{PhasespaceVariate,Continuous}
+struct DynamicalDistribution{V,R,S} <: Sampleable{DynamicalVariate,Continuous}
+    velocities::V
     positions::R
-    momenta::P
     size::NTuple{S,Int}
 end
 
-Base.eltype(s::PhasespaceDistribution{<:Sampleable,P}) where {P} = eltype(s.positions)
-Base.eltype(s::PhasespaceDistribution{<:AbstractArray,P} where {P}) = eltype(s.positions[1])
-Base.size(s::PhasespaceDistribution) = s.size
+Base.eltype(s::DynamicalDistribution{<:Sampleable,R}) where {R} = eltype(s.velocities)
+Base.eltype(s::DynamicalDistribution{<:AbstractArray,R} where {R}) = eltype(s.velocities[1])
+Base.size(s::DynamicalDistribution) = s.size
 
-function Distributions.rand(rng::AbstractRNG, s::Sampleable{PhasespaceVariate})
+function Distributions.rand(rng::AbstractRNG, s::Sampleable{DynamicalVariate})
     Distributions._rand!(rng, s, [Array{eltype(s)}(undef, size(s)) for i=1:2])
 end
 
-function Distributions._rand!(rng::AbstractRNG, s::PhasespaceDistribution, x::Vector{<:Array})
+function Distributions._rand!(rng::AbstractRNG, s::DynamicalDistribution, x::Vector{<:Array})
     i = rand(rng, 1:length(s.positions))
-    x[1] .= select_item(s.positions, i, s.size)
-    x[2] .= select_item(s.momenta, i, s.size)
+    x[1] .= select_item(s.velocities, i, s.size)
+    x[2] .= select_item(s.positions, i, s.size)
     x
 end
 
