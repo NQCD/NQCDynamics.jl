@@ -1,7 +1,7 @@
 export run_ensemble
 using ..InitialConditions
 
-function run_ensemble(distribution::PhasespaceDistribution,
+function run_ensemble(distribution::DynamicalDistribution,
                       tspan::Tuple, sim::AbstractSimulation;
                       output_func=(sol,i)->(sol,false),
                       reduction = (u,data,I)->(append!(u,data),false),
@@ -17,22 +17,22 @@ function run_ensemble(distribution::PhasespaceDistribution,
     solve(ensemble_problem, select_algorithm(sim); kwargs...)
 end
 
-function get_problem_function(sim::AbstractSimulation, distribution::PhasespaceDistribution, state::Integer)
+function get_problem_function(sim::AbstractSimulation, distribution::DynamicalDistribution, state::Integer)
     prob_func(prob, i, repeat) = remake(prob, u0=select_u0(sim, distribution, state))
 end
 
-function select_u0(::Simulation{<:Classical}, distribution::PhasespaceDistribution, ::Integer)
-    Phasespace(rand(distribution)...)
+function select_u0(::Simulation{<:Classical}, distribution::DynamicalDistribution, ::Integer)
+    ArrayPartition(rand(distribution)...)
 end
 
-function select_u0(::RingPolymerSimulation{<:Classical}, distribution::PhasespaceDistribution, ::Integer)
-    RingPolymerPhasespace(rand(distribution)...)
+function select_u0(::RingPolymerSimulation{<:Classical}, distribution::DynamicalDistribution, ::Integer)
+    RingPolymerClassicalDynamicals(rand(distribution)...)
 end
 
-function select_u0(sim::Simulation{<:FSSH}, distribution::PhasespaceDistribution, state::Integer)
-    SurfaceHoppingPhasespace(rand(distribution)..., sim.calculator.model.n_states, state)
+function select_u0(sim::Simulation{<:FSSH}, distribution::DynamicalDistribution, state::Integer)
+    SurfaceHoppingDynamicals(rand(distribution)..., sim.calculator.model.n_states, state)
 end
 
-function select_u0(sim::RingPolymerSimulation{<:NRPMD}, distribution::PhasespaceDistribution, state::Integer)
-    RingPolymerMappingPhasespace(rand(distribution)..., sim.calculator.model.n_states, state)
+function select_u0(sim::RingPolymerSimulation{<:NRPMD}, distribution::DynamicalDistribution, state::Integer)
+    RingPolymerMappingDynamicals(rand(distribution)..., sim.calculator.model.n_states, state)
 end
