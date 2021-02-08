@@ -67,6 +67,8 @@ end
 
 select_algorithm(::AbstractSimulation) = Tsit5()
 
+include("mdef_baoab.jl")
+
 include("classical.jl")
 include("langevin.jl")
 include("mdef.jl")
