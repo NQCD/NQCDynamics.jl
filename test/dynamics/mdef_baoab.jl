@@ -1,7 +1,7 @@
 using Test
+using NonadiabaticMolecularDynamics
 using StochasticDiffEq
 using LinearAlgebra
-using RecursiveArrayTools
 using DiffEqNoiseProcess
 
 u0 = zeros(2,2)
@@ -16,7 +16,7 @@ function g(u,p,t)
 end
 
 ff_harmonic = DynamicalSDEFunction(f1_harmonic,f2_harmonic,g)
-prob = DynamicalSDEProblem(ff_harmonic,g,v0,u0,(0.0,5.0))
+prob = DynamicalSDEProblem(ff_harmonic,g,v0,u0,(0.0,50.0))
 
 sol1 = solve(prob,MDEF_BAOAB();dt=1/10,save_noise=true)
 
@@ -29,7 +29,7 @@ function g_iip(du,u,p,t)
     du.x[2] .= σ
 end
 
-prob = DynamicalSDEProblem(f1_harmonic_iip,f2_harmonic_iip,g_iip,v0,u0,(0.0,5.0);
+prob = DynamicalSDEProblem(f1_harmonic_iip,f2_harmonic_iip,g_iip,v0,u0,(0.0,50.0);
                            noise=NoiseWrapper(sol1.W))
 
 sol2 = solve(prob,MDEF_BAOAB();dt=1/10)

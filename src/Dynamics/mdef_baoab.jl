@@ -19,6 +19,8 @@ struct MDEF_BAOABCache{uType,uTypeFlat,uEltypeNoUnits,rateNoiseType,compoundType
     dutmp::uType
     k::uType
     flatdutmp::uTypeFlat
+    tmp1::uTypeFlat
+    tmp2::uTypeFlat
     gtmp::compoundType
     noise::rateNoiseType
     half::uEltypeNoUnits
@@ -36,15 +38,17 @@ function alg_cache(alg::MDEF_BAOAB,prob,u,ΔW,ΔZ,p,rate_prototype,noise_rate_pr
     utmp = zero(u.x[2])
     k = zero(rate_prototype.x[1])
     flatdutmp = zero(dutmp[:])
+    tmp1 = zero(flatdutmp)
+    tmp2 = zero(flatdutmp)
 
     gtmp = ArrayPartition(zeros(length(utmp), length(utmp)), zeros(length(utmp)))
-    noise = zero(rate_prototype.x[1])
+    noise = zero(rate_prototype.x[1][:])
 
     half = uEltypeNoUnits(1//2)
     c1 = zeros(length(utmp), length(utmp))
     c2 = zero(c1)
 
-    MDEF_BAOABCache(utmp, dutmp, k, flatdutmp, gtmp, noise, half, c1, c2)
+    MDEF_BAOABCache(utmp, dutmp, k, flatdutmp, tmp1, tmp2, gtmp, noise, half, c1, c2)
 end
 
 function initialize!(integrator, cache::MDEF_BAOABConstantCache)
@@ -81,8 +85,8 @@ end
     clamp!(γ, 0, Inf)
     c1 = diagm(exp.(-γ.*dt))
     c2 = diagm(sqrt.(1 .- diag(c1).^2))
-    noise = σ.*W.dW
-    du3 = c*c1*c'*du2[:] + c*c2*c'*noise[:]
+    noise = σ.*W.dW[:]
+    du3 = c*c1*c'*du2[:] + c*c2*c'*noise
     du3 = reshape(du3, size(du2))
 
     # A
@@ -97,7 +101,7 @@ end
 
 @muladd function perform_step!(integrator,cache::MDEF_BAOABCache,f=integrator.f)
     @unpack t,dt,uprev,u,p,W = integrator
-    @unpack utmp, dutmp, k, flatdutmp, gtmp, noise, half, c1, c2 = cache
+    @unpack utmp, dutmp, k, flatdutmp, tmp1, tmp2, gtmp, noise, half, c1, c2 = cache
     du1 = uprev.x[1]
     u1 = uprev.x[2]
 
@@ -110,7 +114,9 @@ end
     # O
     integrator.g(gtmp,utmp,p,t+dt*half)
     Λ = gtmp.x[1]
-    σ = gtmp.x[2][1]
+    σ = gtmp.x[2]
+    @.. noise = σ*W.dW[:]
+
     γ, c = eigen(Λ)
     clamp!(γ, 0, Inf)
     d = diagind(c1)
@@ -118,9 +124,19 @@ end
         c1[i] = exp(-γ[j]*dt)
         c2[i] = sqrt(1 - c1[i]^2)
     end
-    @.. noise = σ*W.dW
-    flatdutmp .= c*c1*c'*dutmp[:] + c*c2*c'*noise[:]
-    dutmp .= reshape(flatdutmp, size(dutmp))
+
+    # equivalent to: flatdutmp .= c*c1*c'dutmp[:] + c*c2*c'noise
+    copyto!(flatdutmp, dutmp)
+    mul!(tmp1, transpose(c), flatdutmp)
+    mul!(tmp2, c1, tmp1)
+    mul!(flatdutmp, c, tmp2)
+    
+    mul!(tmp1, transpose(c), noise)
+    mul!(tmp2, c2, tmp1)
+    mul!(tmp1, c, tmp2)
+
+    @.. flatdutmp += tmp1
+    copyto!(dutmp, flatdutmp)
 
     # A
     @.. u.x[2] = utmp + half*dt*dutmp
