@@ -46,7 +46,8 @@ end
 
 include("classical.jl")
 # include("langevin.jl")
-# include("mdef.jl")
+include("mdef_baoab.jl")
+include("mdef.jl")
 include("fssh.jl")
 include("fermionic.jl")
 include("nrpmd.jl")
