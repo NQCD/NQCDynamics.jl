@@ -9,7 +9,7 @@ struct FermionicBath{T<:AbstractFloat} <: Method
     end
 end
 
-function NonadiabaticMolecularDynamics.evaluate_configurational_energy(sim::RingPolymerSimulation{<:FermionicBath}, R::Array{T, 3}) where {T}
+function NonadiabaticMolecularDynamics.evaluate_potential_energy(sim::RingPolymerSimulation{<:FermionicBath}, R::Array{T, 3}) where {T}
     Calculators.evaluate_potential!(sim.calculator, R)
     get_spring_energy(sim, R) + sum(sim.calculator.potential)[1] + get_bath_energy(sim, R)
 end

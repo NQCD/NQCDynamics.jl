@@ -5,24 +5,12 @@ using Unitful
 @test Dynamics.MDEF{Float64}(10) isa Dynamics.MDEF
 @test Dynamics.TwoTemperatureMDEF{Float64}(10, x->exp(-x)) isa Dynamics.TwoTemperatureMDEF
 atoms = Atoms([:H, :C])
-mdef = Dynamics.MDEF{Float64}(length(atoms))
-sim = Simulation(atoms, Models.FrictionHarmonic(), mdef; temperature=10u"K", DoFs=3)
+sim = Simulation{MDEF}(atoms, Models.FrictionHarmonic(); temperature=10u"K", DoFs=1)
 
-R = zeros(sim.DoFs, length(sim.atoms)) 
-P = randn(sim.DoFs, length(sim.atoms)) 
-u = Phasespace(R, P)
+v = zeros(sim.DoFs, length(sim.atoms)) 
+r = rand(sim.DoFs, length(sim.atoms)) 
+u = ClassicalDynamicals(v, r)
 du = zero(u)
 
-n = sim.DoFs*length(sim.atoms)*2
-Dynamics.set_force!(du, u, sim)
-
-@testset "random_force!" begin
-    # Test that only the bottom left of the matrix is filled
-    blank = zeros(n, n)
-    Dynamics.random_force!(blank, u, sim, 1.0)
-    @test all(blank[1:end, 1:n÷2] .== 0)
-    @test all(blank[1:n÷2, 1:end] .== 0)
-    @test all(blank[n÷2+1:end, n÷2+1:end] .!= 0)
-end
-
-sol = Dynamics.run_trajectory(u, (0.0, 1.0), sim)
+sol = Dynamics.run_trajectory(u, (0.0, 100.0), sim; dt=1)
+@test sol.u[1] ≈ u.x

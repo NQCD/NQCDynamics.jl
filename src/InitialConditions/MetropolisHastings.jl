@@ -113,7 +113,7 @@ function run_monte_carlo_sampling(sim::AbstractSimulation, monte::MonteCarloPara
 
     Rᵢ = copy(R0) # Current positions
     Rₚ = zero(Rᵢ) # Proposed positions
-    monte.Eᵢ = evaluate_configurational_energy(sim, Rᵢ)
+    monte.Eᵢ = evaluate_potential_energy(sim, Rᵢ)
     output = MonteCarloOutput(Rᵢ, sim.atoms)
 
     run_main_loop!(sim, monte, Rᵢ, Rₚ, output)
@@ -227,7 +227,7 @@ end
 Update the energy, check for acceptance, and update the output. 
 """
 function assess_proposal!(sim::AbstractSimulation, monte::MonteCarloParameters, Rᵢ, Rₚ, output, atom::Integer)
-    monte.Eₚ = evaluate_configurational_energy(sim, Rₚ)
+    monte.Eₚ = evaluate_potential_energy(sim, Rₚ)
     output.total_moves[sim.atoms.types[atom]] += 1
     if acceptance_probability(sim, monte) > rand()
         monte.Eᵢ = monte.Eₚ
