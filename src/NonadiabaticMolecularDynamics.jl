@@ -2,13 +2,14 @@ module NonadiabaticMolecularDynamics
 
 using Reexport
 using Requires
+using DocStringExtensions
 
 include("unit_conversions.jl")
 
 include("atoms.jl")
 include("ring_polymer.jl")
 include("cells.jl")
-include("phasespace.jl")
+include("dynamical_variables.jl")
 
 include("Models/Models.jl")
 export Models

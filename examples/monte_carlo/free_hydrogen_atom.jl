@@ -15,7 +15,7 @@ atoms = Atoms{Float64}([:H])
 Δ = Dict([(:H, 1.0)]) # This is for the centroid mode and does nothing here as the centroid is fixed.
 beads = 10
 monte_carlo = InitialConditions.PathIntegralMonteCarlo{Float64}(Δ, length(atoms), 300, [1], 0.5, beads)
-sim = RingPolymerSimulation(atoms, model, Dynamics.Classical(), beads; temperature=30u"K")
+sim = RingPolymerSimulation{Classical}(atoms, model, beads; temperature=30u"K")
 
 positions = reshape(zeros(3), 3, 1) # Create zero coordinates
 R = cat([positions for i=1:beads]..., dims=3) # Copy coordinates for every bead

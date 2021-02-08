@@ -28,6 +28,7 @@ using StochasticDiffEq
 using OrdinaryDiffEq
 using RecursiveArrayTools: ArrayPartition
 using UnitfulAtomic
+using DocStringExtensions
 
 """
 Each type of dynamics subtypes `Method` which is passed to
@@ -65,6 +66,8 @@ function create_problem(u0::DynamicalVariables, tspan::Tuple, sim::AbstractSimul
 end
 
 select_algorithm(::AbstractSimulation) = Tsit5()
+
+include("mdef_baoab.jl")
 
 include("classical.jl")
 include("langevin.jl")
