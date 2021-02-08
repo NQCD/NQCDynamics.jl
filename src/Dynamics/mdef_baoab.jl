@@ -78,6 +78,7 @@ end
     # O
     Λ, σ = integrator.g(u2,p,t+dt*half)
     γ, c = eigen(Λ)
+    clamp!(γ, 0, Inf)
     c1 = diagm(exp.(-γ.*dt))
     c2 = diagm(sqrt.(1 .- diag(c1).^2))
     noise = σ.*W.dW
@@ -111,6 +112,7 @@ end
     Λ = gtmp.x[1]
     σ = gtmp.x[2][1]
     γ, c = eigen(Λ)
+    clamp!(γ, 0, Inf)
     d = diagind(c1)
     for (j,i) in enumerate(diagind(c1))
         c1[i] = exp(-γ[j]*dt)
