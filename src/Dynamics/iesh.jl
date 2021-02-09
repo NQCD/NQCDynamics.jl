@@ -233,16 +233,16 @@ end
 #struct CallbackSet{T1<:Tuple, T2<:Tuple} <: DiffEqBase.DECallback
 #end
 
-save_energy1(u, t, integrator) =
-    Models.energy(integrator.p.calculator.model, get_positions(u), integrator.p.calculator.model.n_states)
+#save_energy1(u, t, integrator) =
+#    Models.energy(integrator.p.calculator.model, get_positions(u), integrator.p.calculator.model.n_states)
 
 
-function create_saving_callback()
-    saved_values = SavedValues(Float64, Float64)
-    cb1 = SavingCallback(save_energy1, saved_values)
-    cb2 = DiscreteCallback(condition, affect!; save_positions=(false, false))
-    CallbackSet(cb1, cb2)
-end
+#function create_saving_callback()
+#    saved_values = SavedValues(Float64, Float64)
+#    cb1 = SavingCallback(save_energy1, saved_values)
+#    cb2 = DiscreteCallback(condition, affect!; save_positions=(false, false))
+#    CallbackSet(cb1, cb2)
+#end
 
 
 
@@ -250,4 +250,3 @@ end
 #IESH_callback = DiscreteCallback(condition, affect!; save_positions=(false, false))
     #CallbackSet(DiscreteCallback(condition, affect!; save_positions=(false, false)))
     #DiscreteCallback(condition, affect!; save_positions=(false, false))
-

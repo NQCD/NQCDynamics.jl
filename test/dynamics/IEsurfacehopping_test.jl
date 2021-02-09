@@ -7,6 +7,7 @@ using UnitfulAtomic
 using Revise
 using Random, Distributions
 using Plots
+#using DataFrames
 
 # IESH should proceed by the following steps:
 #   1) initialize classical positions and momenta, initialize
@@ -22,7 +23,7 @@ vinit = 0.005 # initial velocity
 mass = 1.5 # atomic mass#
 B_na = 1.0 # parameter that defines nonadiabatic coupling strength
 n_DOF = 1
-ntrajes = 2
+ntrajes = 1
 tspan = (0.0, 5.0u"ps")
 
 # 1a) Define adiabatic model, fom Model/scattering_anderson_holsteins.jl
@@ -99,29 +100,20 @@ bolz_pos_momenta = PhasespaceDistribution(outbolz.R, boltzmann, (1,1))
 #
 ###############################################################################
 # Save the energy
-cb, vals = Dynamics.create_energy_saving_callback()
-#1c define the dynamics that will be used
-# defined in main/Dynamics/iesh.jl
-#IESH{T}(DoFs::Integer, atoms::Integer, states::Integer)
+#Define the dynamics that will be used, see main/Dynamics/iesh.jl
 dynam = Dynamics.IESH{Float64}(1, 1, n_states+2)
 
 
-# Initialize the simulation problem
-# Simulation is defined in main/simulations.jl
+# Initialize the simulation problem; Simulation is defined in main/simulations.jl
 #sim = Simulation(atoms, Models.TullyModelOne(), dynam; DoFs=1)
 sim = Simulation(atoms, model, dynam; DoFs=1)
-#calculate momentum
-
-# Try using ensemble_problem (I refuse to use it, it doesn't work)
-#solution = Dynamics.run_ensemble(bolz_pos_momenta, (0.0,150000.0), sim; trajectories = ntrajes)
-#println(solution.u[1])
-
 
 
 #Do dynamics
-#for i=1:ntrajes
-#    fi = open("myfile_$i.txt", "w")
-#    write(fi, "step, r (a.u.), energy (a.u.), p (a.u.), state\n")
+for i=1:ntrajes
+    nname=lpad(i,8)
+    fi = open("trajectory_$nname.txt", "w")
+    write(fi, "step, r (a.u.), p (a.u.),ekin (a.u.), energy (a.u.), state\n")
 #    p = fill(pall[i]*atoms.masses[1], sim.DoFs, length(sim.atoms))
 #    r = fill(rall[i], sim.DoFs, length(sim.atoms)) 
 #    println(p)
@@ -134,57 +126,47 @@ sim = Simulation(atoms, model, dynam; DoFs=1)
     #k = rand(1:n_states+2)
     k = 1
     #Initialize the surface hopping phasespace
-    # postions, momenta, density matrix, state
-    # ../../Dynamics/iesh.jl
+    # postions, momenta, density matrix, state, see: ../../Dynamics/iesh.jl
     z = SurfaceHoppingPhasespace(r,p, n_states+2, k)
+
 
     #display(k)
 
     #../../Dynamics/iesh.jl
-    # Solution of Differentiall equations and propagation, step needs to be implemented
-    #solution = Dynamics.run_trajectory(z, (0.0, 1000), sim, dt=step)
-    # 
+    # Solution of Differential equations and propagation, step needs to be implemented
     cb, vals = Dynamics.create_energy_saving_callback()
     @time solution = Dynamics.run_trajectory(z, (0.0, 15000.0), sim; callback=cb)
+    #@time solution = Dynamics.run_trajectory(z, (0.0, 15000.0),sim)
     
+    # array for output
+    outarray= zeros(length(solution.t[1:2:end]),6)
+    outarray[:,1] = solution.t[1:2:end]
+    #outarray[:,2] = [real(Dynamics.get_density_matrix(u)[1,1]) for u in solution.u][1:2:end]
+    #outarray[:,3] = [real(Dynamics.get_momenta(u)[1,1]) for u in solution.u][1:2:end]
+    #outarray[:,6] = [u.state for u in solution.u][1:2:end].-1
+    #outarray[:,4] = NonadiabaticMolecularDynamics.evaluate_kinetic_energy.(Ref(sim), get_momenta.(solution.u))
+    #outarray[:,5] = vals.saveval
+    #pe = NonadiabaticMolecularDynamics.evaluate_configurational_energy.(Ref(sim), get_positions.(solution.u))
 
-    #    r1 = zeros(length(solution))
-#    istate = zeros(length(solution))
-#    r1 = [real(Dynamics.get_positions(u)[1,1]) for u in solution.u]
-#    p2 = [real(Dynamics.get_momenta(u)[1,1]) for u in solution.u]
-#    istate = [real(Dynamics.get_density_matrix(u)[1,1]) for u in solution.u]
-#    eigs = zeros(length(solution),model.n_states)
-#    p1 = zeros(size(solution))
-#    V = Hermitian(zeros(2,2))
-#    for j=1:length(solution)
-#        p = zeros(1,1)
-#        p[1] = r1[j]
-#        Models.potential!(model,V,p)
-#    p1[i] = V[1,1]
-#    p2[i] = V[2,2]
-#    p3[i] = V[1,2]/0.0001
-#        eigs[j,:] .=eigvals(V)
-#        p1[j] = eigs[j,1]
-#        rrr = r1[j]
-#        ppp = p1[j]
-#        pppp = p2[j]
-#        sss = istate[j]
-#       write(fi, "$j $rrr $ppp $pppp $sss\n")
-#    end
-#    close(fi)
-    
-#println(Dynamics.saved_values.saveval)
+    println(outarray[2,:])
+    a = vals.saveval
+    #println(length(vals.saveval), " " , length(solution.t))
+    println(solution.t)
+
+   
+#println(vals.saveval)
+end
 #println(solution.u[1])
     # for definitiion of u. and 
  #   a=plot([real(Dynamics.get_positions(u)[1,1]) for u in solution.u], [u.state for u in solution.u].-1, label="current surface", marker =2)
  #   plot!(r1, eigs[:,1]*100, label="Energy *100 (a.u.)", marker =2)
-a=plot(solution.t, [real(Dynamics.get_density_matrix(u)[1,1]) for u in solution.u], label="σ[1,1]", marker =2)
-plot!(solution.t, [real(Dynamics.get_density_matrix(u)[2,2]) for u in solution.u], label="σ[2,2]", marker =2)
-plot!(solution.t, [u.state for u in solution.u].-1, label="current surface")
-    xlabel!("x")
-    ylabel!("Energy (a.u.)")
-    display(plot(a))
-#end
+#a=plot(solution.t, [real(Dynamics.get_density_matrix(u)[1,1]) for u in solution.u], label="σ[1,1]", marker =2)
+#plot!(solution.t, [real(Dynamics.get_density_matrix(u)[2,2]) for u in solution.u], label="σ[2,2]", marker =2)
+#plot!(solution.t, [u.state for u in solution.u].-1, label="current surface")
+#    xlabel!("x")
+#    ylabel!("Energy (a.u.)")
+#    display(plot(a))
+
 #savefig(plo,"traj_subA.png")
 
 #display(plot(b))Plots
