@@ -2,8 +2,11 @@ using DiffEqCallbacks
 
 export CellBoundaryCallback
 
-save_energy(u, t, integrator) =
+save_energy(u::DynamicalVariables, t, integrator) =
     Models.energy(integrator.p.calculator.model, get_positions(u))
+
+save_energy(u::SurfaceHoppingPhasespace, t, integrator) =
+    Models.energy(integrator.p.calculator.model, get_positions(u); state=u.state)
 
 function create_energy_saving_callback()
     saved_values = SavedValues(Float64, Float64)

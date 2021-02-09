@@ -1,6 +1,5 @@
 export run_ensemble
 using ..InitialConditions
-using DifferentialEquations.EnsembleAnalysis
 
 """ This module automates the calculation of molecular dynamics trajectories and
     prints out information about the trajectories.

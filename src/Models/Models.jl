@@ -133,16 +133,13 @@ function energy(model::Union{AdiabaticModel, FrictionModel}, R::AbstractMatrix)
     energy[1]
 end
 
-function energy(model::Union{AdiabaticModel, DiabaticModel}, R::AbstractMatrix,N::UInt8)
+function energy(model::DiabaticModel, R::AbstractMatrix; state=1)
     # The Diabatic Models contain a diabatic matrix
-    V = Hermitian(zeros(N,N))
-    energy = zeros(N)
+    V = Hermitian(zeros(model.n_states,model.n_states))
     # Get diabatic matrix
     potential!(model,V,R)
-    # Calculate the eigenvalues
-    energy .=eigvals(V)
     # Export the eigenvalue lowest in energy
-    energy[1]
+    eigvals(V)[state]
 end
 
 function forces(model::Union{AdiabaticModel, FrictionModel}, R::AbstractMatrix)
