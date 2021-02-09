@@ -144,7 +144,8 @@ sim = Simulation(atoms, model, dynam; DoFs=1)
     # Solution of Differentiall equations and propagation, step needs to be implemented
     #solution = Dynamics.run_trajectory(z, (0.0, 1000), sim, dt=step)
     # 
-    @time solution = Dynamics.run_trajectory(z, (0.0, 15000.0), sim)
+    cb, vals = Dynamics.create_energy_saving_callback()
+    @time solution = Dynamics.run_trajectory(z, (0.0, 15000.0), sim; callback=cb)
     
 
     #    r1 = zeros(length(solution))

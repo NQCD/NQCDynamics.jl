@@ -59,8 +59,9 @@ get_density_matrix(z::SurfaceHoppingPhasespace) = z.x.x[3]
 # It first follows motion! and then iesh_callback
 function create_problem(u0::SurfaceHoppingPhasespace, tspan::Tuple, sim::AbstractSimulation{<:IESH})
     #IESH_callback=create_energy_saving_callback(u0,integrator::DiffEqBase.DEIntegrator)
-    IESH_callback=create_saving_callback()
-    ODEProblem(motion!, u0, tspan, sim; callback=IESH_callback)
+    # IESH_callback=create_saving_callback()
+    cb2 = DiscreteCallback(condition, affect!; save_positions=(false, false))
+    ODEProblem(motion!, u0, tspan, sim; callback=cb2)
 end
 
 function motion!(du::SurfaceHoppingPhasespace, u::SurfaceHoppingPhasespace, sim::Simulation{<:IESH}, t)
