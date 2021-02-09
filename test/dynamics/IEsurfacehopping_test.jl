@@ -16,15 +16,14 @@ using Plots
 #   4) calculate switching probability, calculate if hop should occur
 #   5) If no hop, GOTO 2; if hop, see if enough energy to do it, GOTO 2
 
+ps = 98.22694788464062
 n_states = 0# # number of electronic n_states
-x = 5.0 # position of 1D particle
 vinit = 0.005 # initial velocity
-step = 0.01 # MD step
 mass = 1.5 # atomic mass#
 B_na = 1.0 # parameter that defines nonadiabatic coupling strength
 n_DOF = 1
-state = 1
 ntrajes = 2
+tspan = (0.0, 5.0u"ps")
 
 # 1a) Define adiabatic model, fom Model/scattering_anderson_holsteins.jl
 #model = Models.ScatteringAndersonHolstein(N=n_states, a0=1, Bg=B_na, 
@@ -37,6 +36,8 @@ model = Models.Subotnik_A()
 #D = [Hermitian(zeros(2, 2))]'
 #Models.potential!(model,V,R)
 #Models.derivative!(model,D,R)
+# Get eigenvalues
+#Models.energy(model,R,n_states+2)
 
 # 1b) Initialize atomic parameters, i.e. moving atoms, of which there is one
 atoms = Atoms{Float64}([:H])
@@ -97,10 +98,13 @@ bolz_pos_momenta = PhasespaceDistribution(outbolz.R, boltzmann, (1,1))
 # Try dynamics
 #
 ###############################################################################
+# Save the energy
+cb, vals = Dynamics.create_energy_saving_callback()
 #1c define the dynamics that will be used
 # defined in main/Dynamics/iesh.jl
 #IESH{T}(DoFs::Integer, atoms::Integer, states::Integer)
 dynam = Dynamics.IESH{Float64}(1, 1, n_states+2)
+
 
 # Initialize the simulation problem
 # Simulation is defined in main/simulations.jl
@@ -108,9 +112,11 @@ dynam = Dynamics.IESH{Float64}(1, 1, n_states+2)
 sim = Simulation(atoms, model, dynam; DoFs=1)
 #calculate momentum
 
-# Try using ensemble_problem
-solution = Dynamics.run_ensemble(bolz_pos_momenta, (0.0,150000.0), sim; trajectories = ntrajes)
+# Try using ensemble_problem (I refuse to use it, it doesn't work)
+#solution = Dynamics.run_ensemble(bolz_pos_momenta, (0.0,150000.0), sim; trajectories = ntrajes)
 #println(solution.u[1])
+
+
 
 #Do dynamics
 #for i=1:ntrajes
@@ -120,17 +126,17 @@ solution = Dynamics.run_ensemble(bolz_pos_momenta, (0.0,150000.0), sim; trajecto
 #    r = fill(rall[i], sim.DoFs, length(sim.atoms)) 
 #    println(p)
 
-#    r = fill(-10., sim.DoFs, length(sim.atoms)) 
-#    p = fill(vinit*atoms.masses[1], sim.DoFs, length(sim.atoms))
+    r = fill(-10., sim.DoFs, length(sim.atoms)) 
+    p = fill(vinit*atoms.masses[1], sim.DoFs, length(sim.atoms))
 #    println(p)
 
     # intial state
     #k = rand(1:n_states+2)
-#    k = 1
+    k = 1
     #Initialize the surface hopping phasespace
     # postions, momenta, density matrix, state
     # ../../Dynamics/iesh.jl
-#    z = SurfaceHoppingPhasespace(r,p, n_states+2, k)
+    z = SurfaceHoppingPhasespace(r,p, n_states+2, k)
 
     #display(k)
 
@@ -138,7 +144,8 @@ solution = Dynamics.run_ensemble(bolz_pos_momenta, (0.0,150000.0), sim; trajecto
     # Solution of Differentiall equations and propagation, step needs to be implemented
     #solution = Dynamics.run_trajectory(z, (0.0, 1000), sim, dt=step)
     # 
-#    solution = Dynamics.run_trajectory(z, (0.0, 15000.0), sim)
+    @time solution = Dynamics.run_trajectory(z, (0.0, 15000.0), sim)
+    
 
     #    r1 = zeros(length(solution))
 #    istate = zeros(length(solution))
@@ -165,16 +172,17 @@ solution = Dynamics.run_ensemble(bolz_pos_momenta, (0.0,150000.0), sim; trajecto
 #    end
 #    close(fi)
     
+#println(Dynamics.saved_values.saveval)
 #println(solution.u[1])
     # for definitiion of u. and 
  #   a=plot([real(Dynamics.get_positions(u)[1,1]) for u in solution.u], [u.state for u in solution.u].-1, label="current surface", marker =2)
  #   plot!(r1, eigs[:,1]*100, label="Energy *100 (a.u.)", marker =2)
-#plot(solution.t, [real(Dynamics.get_density_matrix(u)[1,1]) for u in solution.u], label="σ[1,1]", marker =2)
-#plot!(solution.t, [real(Dynamics.get_density_matrix(u)[2,2]) for u in solution.u], label="σ[2,2]", marker =2)
-#plot!(solution.t, [u.state for u in solution.u].-1, label="current surface")
-#    xlabel!("x")
-#    ylabel!("Energy (a.u.)")
-#    display(plot(a))
+a=plot(solution.t, [real(Dynamics.get_density_matrix(u)[1,1]) for u in solution.u], label="σ[1,1]", marker =2)
+plot!(solution.t, [real(Dynamics.get_density_matrix(u)[2,2]) for u in solution.u], label="σ[2,2]", marker =2)
+plot!(solution.t, [u.state for u in solution.u].-1, label="current surface")
+    xlabel!("x")
+    ylabel!("Energy (a.u.)")
+    display(plot(a))
 #end
 #savefig(plo,"traj_subA.png")
 

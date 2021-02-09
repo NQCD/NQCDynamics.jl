@@ -2,6 +2,8 @@ export SurfaceHoppingPhasespace
 export IESH
 export IESH_callback
 using Revise
+using DiffEqCallbacks
+
 
 """This module controles how IESH is executed. For a description of IESH, see e.g.
 Roy, Shenvi, Tully, J. Chem. Phys. 130, 174716 (2009) and 
@@ -56,6 +58,8 @@ get_density_matrix(z::SurfaceHoppingPhasespace) = z.x.x[3]
 # This belongs to run_trajectory.
 # It first follows motion! and then iesh_callback
 function create_problem(u0::SurfaceHoppingPhasespace, tspan::Tuple, sim::AbstractSimulation{<:IESH})
+    #IESH_callback=create_energy_saving_callback(u0,integrator::DiffEqBase.DEIntegrator)
+    IESH_callback=create_saving_callback()
     ODEProblem(motion!, u0, tspan, sim; callback=IESH_callback)
 end
 
@@ -225,4 +229,24 @@ function execute_hop!(integrator::DiffEqBase.DEIntegrator, new_state::Integer)
     integrator.u.state = new_state
 end
 
-IESH_callback = DiscreteCallback(condition, affect!; save_positions=(false, false))
+#struct CallbackSet{T1<:Tuple, T2<:Tuple} <: DiffEqBase.DECallback
+#end
+
+save_energy1(u, t, integrator) =
+    Models.energy(integrator.p.calculator.model, get_positions(u), integrator.p.calculator.model.n_states)
+
+
+function create_saving_callback()
+    saved_values = SavedValues(Float64, Float64)
+    cb1 = SavingCallback(save_energy1, saved_values)
+    cb2 = DiscreteCallback(condition, affect!; save_positions=(false, false))
+    CallbackSet(cb1, cb2)
+end
+
+
+
+
+#IESH_callback = DiscreteCallback(condition, affect!; save_positions=(false, false))
+    #CallbackSet(DiscreteCallback(condition, affect!; save_positions=(false, false)))
+    #DiscreteCallback(condition, affect!; save_positions=(false, false))
+
