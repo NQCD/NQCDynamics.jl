@@ -81,7 +81,7 @@ end
 
     # O
     Λ, σ = integrator.g(u2,p,t+dt*half)
-    γ, c = eigen(Λ)
+    γ, c = LAPACK.syev!('V', 'U', Λ) # symmetric eigen
     clamp!(γ, 0, Inf)
     c1 = diagm(exp.(-γ.*dt))
     c2 = diagm(sqrt.(1 .- diag(c1).^2))
@@ -117,9 +117,8 @@ end
     σ = gtmp.x[2]
     @.. noise = σ*W.dW[:]
 
-    γ, c = eigen(Λ)
+    γ, c = LAPACK.syev!('V', 'U', Λ) # symmetric eigen
     clamp!(γ, 0, Inf)
-    d = diagind(c1)
     for (j,i) in enumerate(diagind(c1))
         c1[i] = exp(-γ[j]*dt)
         c2[i] = sqrt(1 - c1[i]^2)
