@@ -2,6 +2,8 @@ using NonadiabaticMolecularDynamics
 using Test
 using Unitful
 
+include("utils.jl")
+
 atoms = Atoms([:H])
 model = Models.Harmonic()
 sim = Simulation{Classical}(atoms, model; DoFs=1)

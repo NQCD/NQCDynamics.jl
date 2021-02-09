@@ -5,6 +5,7 @@ using LinearAlgebra
 using DiffEqNoiseProcess
 using DiffEqDevTools
 using Random
+using Logging
 Random.seed!(100)
 
 u0 = zeros(2,2)
@@ -37,6 +38,8 @@ prob2 = DynamicalSDEProblem(f1_harmonic_iip,f2_harmonic_iip,g_iip,v0,u0,(0.0,0.5
 
 sol2 = solve(prob2,MDEF_BAOAB();dt=1/10)
 @test sol1[:] ≈ sol2[:]
+
+disable_logging(Logging.Info)
 
 dts = (1/2) .^ (8:-1:3)
 res = analyticless_test_convergence(dts, prob1, MDEF_BAOAB(), (1/2)^12;
