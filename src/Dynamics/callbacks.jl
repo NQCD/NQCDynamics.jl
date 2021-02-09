@@ -10,6 +10,8 @@ save_energy(u::SurfaceHoppingPhasespace, t, integrator) =
 
 function create_energy_saving_callback()
     saved_values = SavedValues(Float64, Float64)
+    #SavingCallback(save_energy, saved_values), saved_values
+    saveat=Vector{eltype(saved_values.t)}()
     SavingCallback(save_energy, saved_values), saved_values
 end
 
