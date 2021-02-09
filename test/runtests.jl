@@ -1,22 +1,14 @@
 using Test
-using NonadiabaticMolecularDynamics
+using SafeTestsets
 
-const tests = [
-    "atoms"
-    "cells"
-    "calculators"
-    "simulations"
-    "ring_polymers"
-    "monte_carlo"
-    "phasespace"
-    "dynamics/dynamics"
-    "io/io"
-    "model"
-    "nuclear_distributions"
-]
-
-for t in tests
-    @testset "Test $t" begin
-        include("$t.jl")
-    end
-end
+@safetestset "Atom Tests" begin include("atoms.jl") end
+@safetestset "Cell Tests" begin include("cells.jl") end
+@safetestset "Calculator Tests" begin include("calculators.jl") end
+@safetestset "Simulation Tests" begin include("simulations.jl") end
+@safetestset "Ring Polymer Tests" begin include("ring_polymers.jl") end
+@safetestset "Monte Carlo Tests" begin include("monte_carlo.jl") end
+@safetestset "Dynamical Variables Tests" begin include("dynamical_variables.jl") end
+@safetestset "Dynamics Tests" begin include("dynamics/dynamics.jl") end
+@safetestset "IO Tests" begin include("io/io.jl") end
+@safetestset "Model Tests" begin include("model.jl") end
+@safetestset "Distribution Tests" begin include("nuclear_distributions.jl") end
