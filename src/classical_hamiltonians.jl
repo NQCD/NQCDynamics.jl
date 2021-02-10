@@ -1,6 +1,7 @@
 export evaluate_hamiltonian
 export get_spring_energy
 export evaluate_potential_energy
+export evaluate_kinetic_energy
 
 function evaluate_hamiltonian(sim::AbstractSimulation, u::DynamicalVariables)
     evaluate_hamiltonian(sim, get_velocities(u), get_positions(u))
