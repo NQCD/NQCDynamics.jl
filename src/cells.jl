@@ -48,7 +48,11 @@ end
 function apply_cell_boundaries!(cell::PeriodicCell, R::AbstractMatrix)
     @views for i in axes(R, 2) # atoms
         mul!(cell.tmp_vector1, cell.inverse, R[:,i])
-        cell.tmp_vector1 .= mod.(cell.tmp_vector1, 1)
+        for j in axes(R, 1) # DoFs
+            if cell.periodicity[j]
+                cell.tmp_vector1[j] = mod(cell.tmp_vector1[j], 1)
+            end
+        end
         mul!(R[:,i], cell.vectors, cell.tmp_vector1)
     end
 end
