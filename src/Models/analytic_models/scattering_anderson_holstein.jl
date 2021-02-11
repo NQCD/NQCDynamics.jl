@@ -73,6 +73,7 @@ function potential!(model::ScatteringAndersonHolstein, V::Hermitian, R::Abstract
     V[1,1] = V0(R[1])
     V[2,2] = V1(R[1])
     γ_q = γ2(R[1])
+    # Isn't here the nonadiabatic coupling to the 1st state missing?
     for i=3:model.N+1
         V[i,i] = model.alpha
         V.data[i,i+1] = model.beta

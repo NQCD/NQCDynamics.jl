@@ -142,6 +142,15 @@ function energy(model::DiabaticModel, R::AbstractMatrix; state=1)
     eigvals(V)[state]
 end
 
+function potential_matrix(model::DiabaticModel, R::AbstractMatrix; state=1)
+    # The Diabatic Models contain a diabatic matrix
+    V = Hermitian(zeros(model.n_states,model.n_states))
+    # Get diabatic matrix
+    potential!(model,V,R)
+    # Export the eigenvalue lowest in energy
+    V = V
+end
+
 function forces(model::Union{AdiabaticModel, FrictionModel}, R::AbstractMatrix)
     forces = zero(R)
     derivative!(model, forces, R)

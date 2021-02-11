@@ -172,6 +172,34 @@ function update_hopping_probability!(integrator::DiffEqBase.DEIntegrator)
     cumsum!(sim.method.hopping_probability, sim.method.hopping_probability)
 end
 
+
+#function update_hopping_probability1!(integrator::DiffEqBase.DEIntegrator)
+#    s = integrator.u.state
+#    energy = Models.energy(integrator.p.calculator.model, get_positions(integrator.u))
+#    sim = integrator.p
+#    V = Hermitian(zeros(2,2))
+#    V = Models.potential_matrix(integrator.p.calculator.model, get_positions(integrator.u))
+#    Gamma = V[1,2]
+#    energy = V[s,s]
+#    f = 1/(1+exp(1052.63157894737*abs(energy)))
+    
+#    sim.method.hopping_probability .= 0 # Set all entries to 0
+#    for m=1:integrator.p.calculator.model.n_states
+#        if m != s
+#            if s == 1
+#                sim.method.hopping_probability[m] = 1/(f*Gamma)
+#            elseif s == 2
+#                sim.method.hopping_probability[m] = 1/((1-f)*Gamma)
+#            end
+#        end
+#    end
+    
+#    clamp!(sim.method.hopping_probability, 0, 1) # Restrict probabilities between 0 and 1
+#    cumsum!(sim.method.hopping_probability, sim.method.hopping_probability)
+#end
+
+
+
 function select_new_state(probability::Vector{T}, current_state::Integer)::UInt where {T<:AbstractFloat}
     random_number = rand()
     for (i, prob) in enumerate(probability)
@@ -208,13 +236,13 @@ function calculate_rescaling_constant!(integrator::DiffEqBase.DEIntegrator, new_
     end
     
     discriminant = b.^2 .- 2a.*c
-    #if any(discriminant .< 0)
-    #    return false
-    #else
-        #root = sqrt.(discriminant)
-        #integrator.p.method.momentum_rescale .= min.(abs.((b .+ root) ./ a), abs.((b .- root) ./ a))
+    if any(discriminant .< 0)
+        return false
+    else
+        root = sqrt.(discriminant)
+        integrator.p.method.momentum_rescale .= min.(abs.((b .+ root) ./ a), abs.((b .- root) ./ a))
     return true
-    #end
+    end
 end
 
 # This does to update_electronics above.
