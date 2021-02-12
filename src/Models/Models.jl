@@ -21,6 +21,7 @@ using ..NonadiabaticMolecularDynamics
 export Model
 export AdiabaticModel
 export DiabaticModel
+export DiabaticFrictionModel
 export FrictionModel
 
 export potential!
@@ -65,6 +66,20 @@ and each entry must have `size = (n_states, n_states)`.
 """
 abstract type DiabaticModel <: Model end
 
+"""
+    DiabaticFrictionModel <: Model
+
+This model implements `potential!` and `derivative!`.
+
+`potential!` must fill a `Hermitian` with `size = (n_states, n_states)`.
+
+`derivative!` must fill an `AbstractMatrix{<:Hermitian}` with `size = (DoFs, atoms)`,
+and each entry must have `size = (n_states, n_states)`.
+
+Friction is calculated internally from the diabatic potential after diagonalisation
+and calculation of nonadiabatic couplings.
+"""
+abstract type DiabaticFrictionModel <: DiabaticModel end
 
 """
     AdiabaticModel <: Model

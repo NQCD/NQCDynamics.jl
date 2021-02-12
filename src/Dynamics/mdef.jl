@@ -1,5 +1,6 @@
 using Random
 using LinearAlgebra
+using ..Calculators: DiabaticFrictionCalculator
 
 export MDEF
 export TwoTemperatureMDEF
@@ -12,9 +13,29 @@ struct TwoTemperatureMDEF <: AbstractMDEF
     temperature::Function
 end
 
+"""Gets the temperature as a function of time during MDEF."""
 get_temperature(sim::Simulation{MDEF}, ::AbstractFloat) = sim.temperature
 get_temperature(sim::Simulation{TwoTemperatureMDEF}, t::AbstractFloat) = sim.method.temperature(t)
 
+"""
+    acceleration!(dv, v, r, sim::Simulation{MDEF,<:DiabaticFrictionCalculator}, t)
+
+Sets acceleration due to ground state force when using a `DiabaticFrictionModel`.
+"""
+function acceleration!(dv, v, r, sim::Simulation{MDEF,<:DiabaticFrictionCalculator}, t)
+    Calculators.update_electronics!(sim.calculator, r)
+    for i in axes(r, 2)
+        for j in axes(r, 1)
+            dv[j,i] = -sim.calculator.adiabatic_derivative[j,i][1,1] / sim.atoms.masses[i]
+        end
+    end
+end
+
+"""
+    friction!(du, r, sim, t)
+
+Evaluates friction tensor and provides variance of random force.
+"""
 function friction!(du, r, sim, t)
     Calculators.evaluate_friction!(sim.calculator, r)
 
