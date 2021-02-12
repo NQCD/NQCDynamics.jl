@@ -28,7 +28,7 @@ obtained from the model.
 """
 abstract type AbstractCalculator{M<:Model} end
 abstract type AbstractAdiabaticCalculator{M<:AdiabaticModel} <: AbstractCalculator{M} end
-abstract type AbstractDiabaticCalculator{M<:DiabaticModel} <: AbstractCalculator{M} end
+abstract type AbstractDiabaticCalculator{M<:Union{DiabaticFrictionModel,DiabaticModel}} <: AbstractCalculator{M} end
 abstract type AbstractFrictionCalculator{M<:FrictionModel} <: AbstractCalculator{M} end
 
 struct AdiabaticCalculator{T,M} <: AbstractAdiabaticCalculator{M}
@@ -93,6 +93,28 @@ struct FrictionCalculator{T,M} <: AbstractFrictionCalculator{M}
     end
 end
 
+struct DiabaticFrictionCalculator{T,M} <: AbstractDiabaticCalculator{M}
+    model::M
+    potential::Hermitian{T}
+    derivative::Matrix{Hermitian{T}}
+    eigenvalues::Vector{T}
+    eigenvectors::Matrix{T}
+    adiabatic_derivative::Matrix{Matrix{T}}
+    nonadiabatic_coupling::Matrix{Matrix{T}}
+    friction::Matrix{T}
+    function DiabaticFrictionCalculator{T}(model::M, DoFs::Integer, atoms::Integer) where {T,M<:Model}
+        potential = Hermitian(zeros(model.n_states, model.n_states))
+        derivative = [Hermitian(zeros(model.n_states, model.n_states)) for i=1:DoFs, j=1:atoms]
+        eigenvalues = zeros(model.n_states)
+        eigenvectors = zeros(model.n_states, model.n_states)
+        adiabatic_derivative = [zeros(model.n_states, model.n_states) for i=1:DoFs, j=1:atoms]
+        nonadiabatic_coupling = [zeros(model.n_states, model.n_states) for i=1:DoFs, j=1:atoms]
+        friction = zeros(DoFs*atoms, DoFs*atoms)
+        new{T,M}(model, potential, derivative, eigenvalues, eigenvectors,
+                 adiabatic_derivative, nonadiabatic_coupling, friction)
+    end
+end
+
 function Calculator(model::DiabaticModel, DoFs::Integer, atoms::Integer, T::Type=Float64)
     DiabaticCalculator{T}(model, DoFs, atoms)
 end
@@ -101,6 +123,9 @@ function Calculator(model::AdiabaticModel, DoFs::Integer, atoms::Integer, T::Typ
 end
 function Calculator(model::FrictionModel, DoFs::Integer, atoms::Integer, T::Type=Float64)
     FrictionCalculator{T}(model, DoFs, atoms)
+end
+function Calculator(model::DiabaticFrictionModel, DoFs::Integer, atoms::Integer, T::Type=Float64)
+    DiabaticFrictionCalculator{T}(model, DoFs, atoms)
 end
 function Calculator(model::DiabaticModel, DoFs::Integer, atoms::Integer, beads::Integer, T::Type=Float64)
     RingPolymerDiabaticCalculator{T}(model, DoFs, atoms, beads)
@@ -129,11 +154,23 @@ function evaluate_derivative!(calc::AbstractCalculator, R::AbstractArray{T,3}) w
     end
 end
 
-function evaluate_friction!(calc::AbstractFrictionCalculator, R::AbstractMatrix{T}) where {T}
+function evaluate_friction!(calc::AbstractFrictionCalculator, R::AbstractMatrix)
     Models.friction!(calc.model, calc.friction, R)
 end
 
-function eigen!(calc::DiabaticCalculator)
+function evaluate_friction!(calc::DiabaticFrictionCalculator, R::AbstractMatrix)
+    DoFs = size(R)[1]
+    calc.friction .= 0
+    for i in axes(R, 2) # Atoms
+        for j in axes(R, 1) # DoFs
+            for m=2:calc.model.n_states
+                calc.friction[j+(i-1)*DoFs] += 2π*abs2(calc.nonadiabatic_coupling[j,i][1,m])
+            end
+        end
+    end
+end
+
+function eigen!(calc::AbstractDiabaticCalculator)
     eig = eigen(calc.potential)
     correct_phase!(eig, calc.eigenvectors)
     copyto!(calc.eigenvectors, eig.vectors)
@@ -155,7 +192,7 @@ function correct_phase!(eig::Eigen, old_eigenvectors::Matrix)
     end
 end
 
-function transform_derivative!(calc::DiabaticCalculator)
+function transform_derivative!(calc::AbstractDiabaticCalculator)
     for i in axes(calc.derivative, 2) # Atoms
         for j in axes(calc.derivative, 1) # DoFs
             calc.adiabatic_derivative[j,i] .= calc.eigenvectors' * calc.derivative[j,i] * calc.eigenvectors
@@ -171,6 +208,28 @@ function transform_derivative!(calc::RingPolymerDiabaticCalculator)
             end
         end
     end
+end
+
+function evaluate_nonadiabatic_coupling!(calc::AbstractDiabaticCalculator)
+    evaluate_nonadiabatic_coupling!.(calc.nonadiabatic_coupling, calc.adiabatic_derivative,
+                                     Ref(calc.eigenvalues))
+end
+
+function evaluate_nonadiabatic_coupling!(coupling::Matrix, adiabatic_derivative::Matrix, eigenvalues::Vector)
+    for i=1:length(eigenvalues)
+        for j=i+1:length(eigenvalues)
+            coupling[j,i] = -adiabatic_derivative[j,i] / (eigenvalues[j]-eigenvalues[i])
+            coupling[i,j] = -coupling[j,i]
+        end
+    end
+end
+
+function update_electronics!(calculator::AbstractDiabaticCalculator, r::AbstractMatrix)
+    evaluate_potential!(calculator, r)
+    evaluate_derivative!(calculator, r)
+    eigen!(calculator)
+    transform_derivative!(calculator)
+    evaluate_nonadiabatic_coupling!(calculator)
 end
 
 end # module

@@ -1,6 +1,6 @@
 export Scattering1D
 
-struct Scattering1D <: DiabaticModel
+struct Scattering1D <: DiabaticFrictionModel
     n_states::UInt
     N::UInt
     a::Float64
