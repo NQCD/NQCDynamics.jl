@@ -1,6 +1,8 @@
 using DiffEqCallbacks
 
 export CellBoundaryCallback
+export create_energy_saving_callback
+export create_terminating_callback
 
 save_energy(u, t, integrator) =
     Models.energy(integrator.p.calculator.model, get_positions(u))
@@ -16,3 +18,12 @@ function enforce_periodicity!(integrator)
 end
 
 const CellBoundaryCallback = DiscreteCallback(outside_cell, enforce_periodicity!)
+
+"""
+    create_terminating_callback(func::Function)
+
+Provide a function that returns true when the simulation should terminate.
+"""
+function create_terminating_callback(func::Function)
+    DiscreteCallback(func, terminate!)
+end
