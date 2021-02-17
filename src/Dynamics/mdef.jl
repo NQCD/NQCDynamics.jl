@@ -40,6 +40,9 @@ function friction!(du, r, sim, t)
     Calculators.evaluate_friction!(sim.calculator, r)
 
     du.x[1] .= sim.calculator.friction
+    if sim isa Simulation{MDEF,<:DiabaticFrictionCalculator}
+        du.x[1] ./= sim.atoms.masses[1]
+    end
     du.x[2] .= sqrt.(get_temperature(sim, t) ./ repeat(sim.atoms.masses; inner=sim.DoFs))
 end
 
