@@ -21,7 +21,7 @@ function get_problem_function(sim::AbstractSimulation, distribution::DynamicalDi
     prob_func(prob, i, repeat) = remake(prob, u0=select_u0(sim, distribution, state))
 end
 
-function select_u0(::Simulation{<:Classical}, distribution::DynamicalDistribution, ::Integer)
+function select_u0(::Simulation{<:Union{Classical, AbstractMDEF}}, distribution::DynamicalDistribution, ::Integer)
     ArrayPartition(rand(distribution)...)
 end
 
