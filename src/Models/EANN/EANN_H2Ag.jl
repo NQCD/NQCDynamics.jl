@@ -1,4 +1,5 @@
 export EANN_H₂Ag
+using PeriodicTable
 
 """
 J. Phys. Chem. Lett. 2019, 10, 4962−4967
@@ -46,6 +47,7 @@ function friction!(model::EANN_H₂Ag, F::AbstractMatrix, R::AbstractMatrix)
         calculate_H2Ag_friction_tensor!(model.tmp_friction_coordinates, model.tmp_friction)
     end
     F[1:6,1:6] .= ps_inv_to_au.(model.tmp_friction)
+    F .*= austrip(elements[:H].atomic_mass)
 end
 
 function initialize_H2Ag_pes(lib_path::String)
