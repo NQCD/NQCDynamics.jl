@@ -38,15 +38,15 @@ end
 
     legend --> false
     xguide --> "r /a₀"
-    yguide --> "V(r) /Eₕ"
+    yguide --> "V(r) /eV"
 
     @series begin
         linecolor := :black
-        x, eigs
+        x, au_to_eV.(eigs)
     end
 
     @series begin
         linecolor := :red
-        x, diabats
+        x, au_to_eV.(diabats)
     end
 end
