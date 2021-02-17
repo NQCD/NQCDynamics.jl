@@ -164,7 +164,8 @@ function evaluate_friction!(calc::DiabaticFrictionCalculator, R::AbstractMatrix)
     for i in axes(R, 2) # Atoms
         for j in axes(R, 1) # DoFs
             for m=2:calc.model.n_states
-                calc.friction[j+(i-1)*DoFs] += 2π*abs2(calc.nonadiabatic_coupling[j,i][1,m])
+                diff = calc.eigenvalues[m] - calc.eigenvalues[1]
+                calc.friction[j+(i-1)*DoFs] += π*abs2(calc.nonadiabatic_coupling[j,i][m,1])*diff
             end
         end
     end
