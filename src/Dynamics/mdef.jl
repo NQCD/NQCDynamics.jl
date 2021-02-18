@@ -7,8 +7,27 @@ export TwoTemperatureMDEF
 
 abstract type AbstractMDEF <: Method end
 
+"""
+$(TYPEDEF)
+
+```math
+dr = v dt\\\\
+dv = -\\Delta U/M dt - \\Gamma v dt + \\sigma \\sqrt{2\\Gamma} dW
+```
+``\\Gamma`` is the friction tensor with units of inverse time.
+For thermal dynamics we set ``\\sigma = \\sqrt{kT / M}``,
+where ``T`` is the electronic temperature.
+
+This is integrated using the BAOAB algorithm where the friction "O" step is performed
+in the tensor's eigenbasis. See `src/dynamics/mdef_baoab.jl` for details.
+"""
 struct MDEF <: AbstractMDEF end
 
+"""
+$(TYPEDEF)
+
+Same as standard MDEF but uses a function to determine the time-dependent temperature.
+"""
 struct TwoTemperatureMDEF <: AbstractMDEF
     temperature::Function
 end
