@@ -158,14 +158,30 @@ function evaluate_friction!(calc::AbstractFrictionCalculator, R::AbstractMatrix)
     Models.friction!(calc.model, calc.friction, R)
 end
 
+@doc raw"""
+    evaluate_friction!(calc::DiabaticFrictionCalculator, R::AbstractMatrix)
+
+Evaluate the electronic friction for a model given in the diabatic representation.
+
+Requires that `adiabatic_derivative` and `eigenvalues` be precomputed.
+
+```math
+γ = 2πħ ∑ⱼ <1|dH|j><j|dH|1> δ(ωⱼ) / ωⱼ
+```
+Note that the delta function is approximated by a normalised gaussian.
+"""
 function evaluate_friction!(calc::DiabaticFrictionCalculator, R::AbstractMatrix)
+
+    gauss(x, σ) = exp(-0.5 * x^2 / σ^2) / (σ*sqrt(2π))
+
     DoFs = size(R)[1]
     calc.friction .= 0
     for i in axes(R, 2) # Atoms
         for j in axes(R, 1) # DoFs
             for m=2:calc.model.n_states
-                diff = calc.eigenvalues[m] - calc.eigenvalues[1]
-                calc.friction[j+(i-1)*DoFs] += π*abs2(calc.nonadiabatic_coupling[j,i][m,1])*diff
+                ω = calc.eigenvalues[m] - calc.eigenvalues[1]
+                g = gauss(ω, calc.model.σ) / ω
+                calc.friction[j+(i-1)*DoFs] += 2π*abs2(calc.adiabatic_derivative[j,i][m,1])*g
             end
         end
     end

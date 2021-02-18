@@ -1,4 +1,6 @@
 export Scattering1D
+using Unitful
+using UnitfulAtomic
 
 struct Scattering1D <: DiabaticFrictionModel
     n_states::UInt
@@ -8,10 +10,11 @@ struct Scattering1D <: DiabaticFrictionModel
     α::Float64
     β::Float64
     B::Float64
+    σ::Float64
 end
 
-function Scattering1D(;N=10, a=1, D=1, α=0, β=1, B=1)
-    Scattering1D(N+1, N, a, D, α, β, B)
+function Scattering1D(;N=10, a=1, D=1, α=0, β=1, B=1, σ=0.6u"eV")
+    Scattering1D(N+1, N, a, D, α, β, B, austrip(σ))
 end
 
 function potential!(model::Scattering1D, V::Hermitian, R::AbstractMatrix)
