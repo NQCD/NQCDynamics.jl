@@ -68,7 +68,7 @@ function initialize!(integrator, cache::MDEF_BAOABCache)
 end
 
 @muladd function perform_step!(integrator,cache::MDEF_BAOABConstantCache,f=integrator.f)
-    @unpack t,dt,uprev,p,W = integrator
+    @unpack t,dt,sqdt,uprev,p,W = integrator
     @unpack k, half = cache
     du1 = uprev.x[1]
     u1 = uprev.x[2]
@@ -85,7 +85,7 @@ end
     clamp!(γ, 0, Inf)
     c1 = diagm(exp.(-γ.*dt))
     c2 = diagm(sqrt.(1 .- diag(c1).^2))
-    noise = σ.*W.dW[:]
+    noise = σ.*W.dW[:] / sqdt
     du3 = c*c1*c'*du2[:] + c*c2*c'*noise
     du3 = reshape(du3, size(du2))
 
@@ -100,7 +100,7 @@ end
 end
 
 @muladd function perform_step!(integrator,cache::MDEF_BAOABCache,f=integrator.f)
-    @unpack t,dt,uprev,u,p,W = integrator
+    @unpack t,dt,sqdt,uprev,u,p,W = integrator
     @unpack utmp, dutmp, k, flatdutmp, tmp1, tmp2, gtmp, noise, half, c1, c2 = cache
     du1 = uprev.x[1]
     u1 = uprev.x[2]
@@ -115,7 +115,7 @@ end
     integrator.g(gtmp,utmp,p,t+dt*half)
     Λ = gtmp.x[1]
     σ = gtmp.x[2]
-    @.. noise = σ*W.dW[:]
+    @.. noise = σ*W.dW[:] / sqdt
 
     γ, c = LAPACK.syev!('V', 'U', Λ) # symmetric eigen
     clamp!(γ, 0, Inf)
