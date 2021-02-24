@@ -45,6 +45,3 @@ dts = (1/2) .^ (8:-1:3)
 res = analyticless_test_convergence(dts, prob1, MDEF_BAOAB(), (1/2)^12;
     trajectories=Int(1e2), use_noise_grid=false)
 @test res.𝒪est[:weak_final] ≈ 1 atol=0.5
-res = analyticless_test_convergence(dts, prob2, MDEF_BAOAB(), (1/2)^12;
-    trajectories=Int(1e2), use_noise_grid=false)
-@test res.𝒪est[:weak_final] ≈ 1 atol=0.5
