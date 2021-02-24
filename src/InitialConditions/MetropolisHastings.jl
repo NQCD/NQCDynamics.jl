@@ -38,8 +38,9 @@ mutable struct MonteCarlo{T} <: MonteCarloParameters
     Δ::Dict{Symbol, T}
     steps::UInt
     moveable_atoms::AnalyticWeights
+    extra_function::Function
     function MonteCarlo{T}(Δ::Dict{Symbol, T},
-        n_atoms::Real, passes::Real, fix::Vector{<:Integer}) where {T<:AbstractFloat}
+        n_atoms::Real, passes::Real, fix::Vector{<:Integer}, extra::Function) where {T<:AbstractFloat}
 
         steps = n_atoms * passes
 
@@ -47,7 +48,7 @@ mutable struct MonteCarlo{T} <: MonteCarloParameters
         moveables[fix] .= 0
         moveable_atoms = AnalyticWeights(moveables)
 
-        new(0.0, 0.0, Δ, steps, moveable_atoms)
+        new(0.0, 0.0, Δ, steps, moveable_atoms, extra)
     end
 end
 
@@ -105,11 +106,11 @@ From the initial positions specified `R0` the system will be explored using the
 Metropolis-Hastings algorithm.
 """
 function run_monte_carlo_sampling(sim::Simulation, R0::Matrix{T},
-    Δ::Dict{Symbol,T}, passes::Real; fix::Vector{<:Integer}=Int[]) where {T}
+    Δ::Dict{Symbol,T}, passes::Real; fix::Vector{<:Integer}=Int[], extra_function::Function=x->true) where {T}
 
     Rᵢ = copy(R0) # Current positions
     Rₚ = zero(Rᵢ) # Proposed positions
-    monte = MonteCarlo{T}(Δ, length(sim.atoms), passes, fix)
+    monte = MonteCarlo{T}(Δ, length(sim.atoms), passes, fix, extra_function)
     monte.Eᵢ = evaluate_potential_energy(sim, Rᵢ)
     output = MonteCarloOutput(Rᵢ, sim.atoms)
 
@@ -243,10 +244,12 @@ Update the energy, check for acceptance, and update the output.
 function assess_proposal!(sim::AbstractSimulation, monte::MonteCarloParameters, Rᵢ, Rₚ, output, atom::Integer)
     monte.Eₚ = evaluate_potential_energy(sim, Rₚ)
     output.total_moves[sim.atoms.types[atom]] += 1
-    if acceptance_probability(sim, monte) > rand()
-        monte.Eᵢ = monte.Eₚ
-        Rᵢ .= Rₚ
-        output.acceptance[sim.atoms.types[atom]] += 1
+    if monte.extra_function(Rₚ)
+        if acceptance_probability(sim, monte) > rand()
+            monte.Eᵢ = monte.Eₚ
+            Rᵢ .= Rₚ
+            output.acceptance[sim.atoms.types[atom]] += 1
+        end
     end
     write_output!(output, Rᵢ, monte.Eᵢ)
 end
