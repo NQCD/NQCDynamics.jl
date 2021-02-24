@@ -60,7 +60,7 @@ end
 
 @testset "run_monte_carlo_sampling" begin
     R0 = rand(sim.DoFs, length(sim.atoms))
-    out = InitialConditions.run_monte_carlo_sampling(sim, monte_carlo, R0)
+    out = InitialConditions.run_monte_carlo_sampling(sim, R0, Δ, 10)
     @test !(out.R[1] ≈ out.R[10])
     @test !(out.energy[1] ≈ out.energy[20])
 end
