@@ -17,11 +17,10 @@ cell, atoms, positions = extract_parameters_and_positions(slab)
 model = Models.JuLIPModel(atoms, cell, JuLIP.Potentials.EAM("PdH_hijazi.eam.alloy"))
 
 Δ = Dict([(:Pd, 0.5), (:H, 1.0)])
-monte_carlo = InitialConditions.PathIntegralMonteCarlo{Float64}(Δ, length(atoms), 100, collect(1:6), 1.0, 10)
 sim = RingPolymerSimulation{Classical}(atoms, model, 10; quantum_nuclei=[:H], temperature=100u"K", cell=cell)
 
 R = cat([positions for i=1:10]..., dims=3)
-output = InitialConditions.run_monte_carlo_sampling(sim, monte_carlo, R)
+output = InitialConditions.run_monte_carlo_sampling(sim, R, Δ, 100; fix=collect(1:6))
 
 @show output.acceptance
 write_trajectory("sampling.xyz", cell, atoms, output.R)
