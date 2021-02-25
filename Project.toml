@@ -25,3 +25,17 @@ StochasticDiffEq = "789caeaf-c7a9-5a7d-9973-96adeb23e2a0"
 UnPack = "3a884ed6-31ef-47d7-9d2a-63182c4928ed"
 Unitful = "1986cc42-f94f-5a68-af5c-568840ba703d"
 UnitfulAtomic = "a7773ee8-282e-5fa2-be4e-bd808c38a91a"
+
+[extras]
+DiffEqDevTools = "f3b72e0c-5b89-59e1-b016-84e28bfd966d"
+DiffEqNoiseProcess = "77a26b50-5914-5dd7-bc55-306e6241c503"
+FiniteDiff = "6a86dc24-6348-571c-b903-95158fe2bd41"
+Logging = "56ddb016-857b-54e1-b83d-db4d58db5568"
+PyCall = "438e738f-606a-5dbb-bf0a-cddfbfd45ab0"
+SafeTestsets = "1bc83da4-3b8d-516f-aca4-4fe02f6d838f"
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+JuLIP = "945c410c-986d-556a-acb1-167a618e0462"
+
+[targets]
+test = ["Test", "SafeTestsets", "DiffEqNoiseProcess",
+        "FiniteDiff", "DiffEqDevTools", "Logging", "PyCall", "JuLIP"]
