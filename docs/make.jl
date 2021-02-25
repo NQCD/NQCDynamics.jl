@@ -1,9 +1,11 @@
 using Documenter, NonadiabaticMolecularDynamics
 
 makedocs(sitename="NonadiabaticMolecularDynamics.jl",
-    format=Documenter.HTML(prettyurls=false),
+    format=Documenter.HTML(prettyurls=true),
     pages=[
-        "NonadiabaticMolecularDynamics.jl Documentation" => "index.md"
+        "index.md"
+        "getting_started.md"
+        "initial_conditions.md"
         "calculators.md"
         "Models" => [
             "models/overview.md"
@@ -12,9 +14,6 @@ makedocs(sitename="NonadiabaticMolecularDynamics.jl",
             "dynamics/overview.md"
             "dynamics/classical.md"
             "dynamics/mdef.md"
-        ]
-        "Initial Conditions" => [
-            "initial_conditions/initial_conditions.md"
         ]
     ])
 
