@@ -1,14 +1,11 @@
 using Test
 using NonadiabaticMolecularDynamics
-using Unitful
 
-@test Dynamics.Langevin{Float64}(1.0) isa Dynamics.Langevin
-
-atoms = Atoms([:H, :H])
+atoms = Atoms([:H])
 model = Models.Harmonic()
 
-sim = Simulation{Langevin}(atoms, model; DoFs=2, temperature=300u"K")
+sim = Simulation{Langevin}(atoms, model; DoFs=1, temperature=1, γ=1)
 
-z = Dynamics.Phasespace(zeros(2, length(atoms)), zeros(2, length(atoms)))
+z = Dynamics.ClassicalDynamicals(randn(sim.DoFs, length(atoms)), randn(sim.DoFs, length(atoms)))
 
-solution = Dynamics.run_trajectory(z, (0.0, 50.0), sim)
+solution = Dynamics.run_trajectory(z, (0.0, 500.0), sim; dt=1)

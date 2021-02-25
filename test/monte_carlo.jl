@@ -9,7 +9,7 @@ cell = PeriodicCell(hcat(1))
 model = Models.Harmonic()
 
 Δ = Dict([(:H, 0.1), (:C, 0.1)])
-monte_carlo = MonteCarlo{Float64}(Δ, length(atoms), 100, Int[])
+monte_carlo = MonteCarlo{Float64}(Δ, length(atoms), 100, Int[], x->true)
 sim = Simulation(1, 100u"K", cell, atoms, model, monte_carlo)
 
 @testset "propose_move!" begin
