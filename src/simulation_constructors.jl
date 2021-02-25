@@ -17,8 +17,10 @@ Simulation{TwoTemperatureMDEF}(atoms::Atoms, model::Model, T::Function; kwargs..
 RingPolymerSimulation{NRPMD}(atoms::Atoms{S,T}, model::Model, n_beads::Integer; kwargs...) where {S,T}=
     RingPolymerSimulation(atoms, model, NRPMD{T}(model.n_states), n_beads; kwargs...)
 
-Simulation{Langevin}(atoms::Atoms{S,T}, model::Model; η=1, kwargs...) where {S,T} =
-    Simulation(atoms, model, Langevin{T}(η); kwargs...)
+function Simulation{Langevin}(atoms::Atoms{S,T}, model::Model; γ=1, temperature=0u"K", DoFs=3, kwargs...) where {S,T}
+    Simulation(atoms, model, Langevin{T}(γ, austrip(temperature), atoms.masses, DoFs);
+               temperature=temperature, DoFs=DoFs, kwargs...)
+end
 
 Simulation{FSSH}(atoms::Atoms{S,T}, model::Model; DoFs=3, kwargs...) where {S,T} =
     Simulation(atoms, model, FSSH{T}(DoFs, length(atoms), model.n_states); DoFs=DoFs, kwargs...)

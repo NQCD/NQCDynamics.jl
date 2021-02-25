@@ -55,7 +55,7 @@ end
 
 Evaluates friction tensor and provides variance of random force.
 """
-function friction!(du, r, sim, t)
+function friction!(du, r, sim::AbstractSimulation{<:AbstractMDEF}, t)
     Calculators.evaluate_friction!(sim.calculator, r)
 
     du.x[1] .= sim.calculator.friction

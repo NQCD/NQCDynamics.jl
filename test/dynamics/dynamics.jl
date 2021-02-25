@@ -2,7 +2,7 @@ using SafeTestsets
 using Test
 
 @safetestset "Classical Tests" begin include("classical.jl") end
-# include("langevin.jl")
+@safetestset "Langevin Tests" begin include("langevin.jl") end
 @safetestset "MDEF BAOAB Tests" begin include("mdef_baoab.jl") end
 @safetestset "MDEF Tests" begin include("mdef.jl") end
 @safetestset "FSSH Tests" begin include("fssh.jl") end
