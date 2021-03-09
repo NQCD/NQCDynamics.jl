@@ -6,7 +6,7 @@ using Test
 @safetestset "MDEF BAOAB Tests" begin include("mdef_baoab.jl") end
 @safetestset "MDEF Tests" begin include("mdef.jl") end
 @safetestset "FSSH Tests" begin include("fssh.jl") end
-@safetestset "Fermionic bath ring polymer (experimental) Tests" begin include("fermionic.jl") end
+# @safetestset "Fermionic bath ring polymer (experimental) Tests" begin include("fermionic.jl") end
 @safetestset "NRPMD Tests" begin include("nrpmd.jl") end
 @safetestset "Ensembles Tests" begin include("ensembles.jl") end
 @safetestset "Saving Callback Tests" begin include("saving_callbacks.jl") end
