@@ -6,7 +6,6 @@ using SafeTestsets
 @safetestset "Calculator Tests" begin include("calculators.jl") end
 @safetestset "Simulation Tests" begin include("simulations.jl") end
 @safetestset "Ring Polymer Tests" begin include("ring_polymers.jl") end
-@safetestset "Ring Polymer Array Tests" begin include("ring_polymer_array.jl") end
 @safetestset "Monte Carlo Tests" begin include("monte_carlo.jl") end
 @safetestset "Dynamical Variables Tests" begin include("dynamical_variables.jl") end
 @safetestset "Dynamics Tests" begin include("dynamics/dynamics.jl") end

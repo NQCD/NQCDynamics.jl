@@ -14,6 +14,6 @@ using NonadiabaticMolecularDynamics
     @test get_flat_positions(z) == get_positions(z)[:]
 end
 
-@testset "RingPolymerPhasespace" begin
+@testset "RingPolymerClassicalDynamicals" begin
     z = RingPolymerClassicalDynamicals(rand(3, 10), rand(3, 10), 20)
 end
