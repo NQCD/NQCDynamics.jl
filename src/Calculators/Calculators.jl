@@ -56,13 +56,15 @@ struct DiabaticCalculator{T,M} <: AbstractDiabaticCalculator{M}
     eigenvalues::Vector{T}
     eigenvectors::Matrix{T}
     adiabatic_derivative::Matrix{Matrix{T}}
+    nonadiabatic_coupling::Matrix{Matrix{T}}
     function DiabaticCalculator{T}(model::M, DoFs::Integer, atoms::Integer) where {T,M<:Model}
         potential = Hermitian(zeros(model.n_states, model.n_states))
         derivative = [Hermitian(zeros(model.n_states, model.n_states)) for i=1:DoFs, j=1:atoms]
         eigenvalues = zeros(model.n_states)
         eigenvectors = zeros(model.n_states, model.n_states)
         adiabatic_derivative = [zeros(model.n_states, model.n_states) for i=1:DoFs, j=1:atoms]
-        new{T,M}(model, potential, derivative, eigenvalues, eigenvectors, adiabatic_derivative)
+        nonadiabatic_coupling = [zeros(model.n_states, model.n_states) for i=1:DoFs, j=1:atoms]
+        new{T,M}(model, potential, derivative, eigenvalues, eigenvectors, adiabatic_derivative, nonadiabatic_coupling)
     end
 end
 
@@ -73,13 +75,15 @@ struct RingPolymerDiabaticCalculator{T,M} <: AbstractDiabaticCalculator{M}
     eigenvalues::Vector{Vector{T}}
     eigenvectors::Vector{Matrix{T}}
     adiabatic_derivative::Array{Matrix{T},3}
+    nonadiabatic_coupling::Array{Matrix{T},3}
     function RingPolymerDiabaticCalculator{T}(model::M, DoFs::Integer, atoms::Integer, beads::Integer) where {T,M<:Model}
         potential = [Hermitian(zeros(model.n_states, model.n_states)) for i=1:beads]
         derivative = [Hermitian(zeros(model.n_states, model.n_states)) for i=1:DoFs, j=1:atoms, k=1:beads]
         eigenvalues = [zeros(model.n_states) for i=1:beads]
         eigenvectors = [zeros(model.n_states, model.n_states) for i=1:beads]
         adiabatic_derivative = [zeros(model.n_states, model.n_states) for i=1:DoFs, j=1:atoms, k=1:beads]
-        new{T,M}(model, potential, derivative, eigenvalues, eigenvectors, adiabatic_derivative)
+        nonadiabatic_coupling = [zeros(model.n_states, model.n_states) for i=1:DoFs, j=1:atoms, k=1:beads]
+        new{T,M}(model, potential, derivative, eigenvalues, eigenvectors, adiabatic_derivative, nonadiabatic_coupling)
     end
 end
 
@@ -227,9 +231,16 @@ function transform_derivative!(calc::RingPolymerDiabaticCalculator)
     end
 end
 
-function evaluate_nonadiabatic_coupling!(calc::AbstractDiabaticCalculator)
+function evaluate_nonadiabatic_coupling!(calc::DiabaticCalculator)
     evaluate_nonadiabatic_coupling!.(calc.nonadiabatic_coupling, calc.adiabatic_derivative,
                                      Ref(calc.eigenvalues))
+end
+
+function evaluate_nonadiabatic_coupling!(calc::RingPolymerDiabaticCalculator)
+    for i in axes(calc.nonadiabatic_coupling, 3) # Beads
+        evaluate_nonadiabatic_coupling!.(calc.nonadiabatic_coupling[:,:,i], calc.adiabatic_derivative[:,:,i],
+                                        Ref(calc.eigenvalues[i]))
+    end
 end
 
 function evaluate_nonadiabatic_coupling!(coupling::Matrix, adiabatic_derivative::Matrix, eigenvalues::Vector)
