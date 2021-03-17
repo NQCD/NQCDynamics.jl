@@ -43,9 +43,14 @@ function select_u0(sim::Simulation{<:FSSH}, distribution::PhasespaceDistribution
     SurfaceHoppingPhasespace(rand(distribution)..., sim.calculator.model.n_states, state)
 end
 
-function select_u0(sim::Simulation{<:IESH}, distribution::PhasespaceDistribution, state::Integer)
+#function select_u0(sim::Simulation{<:IESH}, distribution::PhasespaceDistribution, state::Integer)
+#    # give: SurfaceHoppingPhasespace(r, p, n_states, state)
+#    SurfaceHoppingPhasespace(rand(distribution)..., sim.calculator.model.n_states, state)
+#end
+
+function select_u0(sim::Simulation{<:IESH}, distribution::PhasespaceDistribution, state::Vector{Int})
     # give: SurfaceHoppingPhasespace(r, p, n_states, state)
-    SurfaceHoppingPhasespace(rand(distribution)..., sim.calculator.model.n_states, state)
+    IESHPhasespace(rand(distribution)..., sim.calculator.model.n_states, state)
 end
 
 function select_u0(sim::RingPolymerSimulation{<:NRPMD}, distribution::PhasespaceDistribution, state::Integer)

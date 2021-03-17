@@ -156,7 +156,7 @@ function potential!(model::MiaoSubotnik, V::Hermitian, R::AbstractMatrix)
     # Since half of the state will be filled with electrons, this puts the 
     # onset of the states at half the bandwidth.
     ei = -model.W
-    for i=3:n_states+1
+    for i=3:n_states-1
         ei = ei + spacing
         V[i,i] = ei
         V.data[1,i] = V_couple
