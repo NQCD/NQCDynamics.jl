@@ -11,5 +11,5 @@ r = randn(1, 2, 5)
 v = zeros(1, 2, 5)
 z = RingPolymerClassicalDynamicals(v, r)
 
-@time solution = Dynamics.run_trajectory(z, (0.0, 1e3), sim; dt=0.1)
-plot(solution, vars=1:10) # Plot velocities
+@time solution = Dynamics.run_trajectory(z, (0.0, 1e3), sim; dt=0.1, output=(:velocity))
+plot(solution, :velocity)
