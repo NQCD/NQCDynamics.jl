@@ -10,10 +10,10 @@ function run_ensemble(distribution::DynamicalDistribution,
                       callback=nothing,
                       kwargs...)
 
-    callbacks, values = create_saving_callbacks(kwargs[:trajectories], output, callback)
+    callbacks, values = create_saving_callbacks(kwargs[:trajectories], output)
 
     problem = create_problem(select_u0(sim, distribution, state), austrip.(tspan), sim)
-    prob_func = get_problem_function(sim, distribution, state, callbacks)
+    prob_func = get_problem_function(sim, distribution, state, callbacks, callback)
 
     ensemble_problem = EnsembleProblem(problem,
                                        prob_func=prob_func,
@@ -23,20 +23,22 @@ function run_ensemble(distribution::DynamicalDistribution,
     [Table(t=vals.t, vals.saveval) for vals in values]
 end
 
-function create_saving_callbacks(trajectories, output, callback)
+function create_saving_callbacks(trajectories, output)
     callbacks = []
     values = []
     for i=1:trajectories
         cb, vals = SavingCallback(output)
-        cb = CallbackSet(callback, cb)
         push!(callbacks, cb)
         push!(values, vals)
     end
     callbacks, values
 end
 
-function get_problem_function(sim::AbstractSimulation, distribution::DynamicalDistribution, state::Integer, callbacks)
-    prob_func(prob, i, repeat) = remake(prob, u0=select_u0(sim, distribution, state), callback=callbacks[i])
+function get_problem_function(sim::AbstractSimulation, distribution::DynamicalDistribution, state::Integer, callbacks, callback)
+    function prob_func(prob, i, repeat)
+        callback_set = CallbackSet(callback, callbacks[i], get_callbacks(sim))
+        remake(prob, u0=select_u0(sim, distribution, state), callback=callback_set)
+    end
 end
 
 function select_u0(::Simulation{<:Union{Classical, AbstractMDEF}}, distribution::DynamicalDistribution, ::Integer)
