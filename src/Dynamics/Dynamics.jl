@@ -65,10 +65,10 @@ Solve a single trajectory.
 """
 function run_trajectory(u0::DynamicalVariables, tspan::Tuple, sim::AbstractSimulation; output=(:u,), callback=nothing, kwargs...)
     stripped_kwargs = austrip_kwargs(;kwargs...)
-    cb, vals = SavingCallback(output)
-    cb = CallbackSet(callback, cb)
+    saving_callback, vals = SavingCallback(output)
+    callback_set = CallbackSet(callback, saving_callback, get_callbacks(sim))
     problem = create_problem(u0, austrip.(tspan), sim)
-    problem = remake(problem, callback=cb)
+    problem = remake(problem, callback=callback_set)
     solve(problem, select_algorithm(sim); stripped_kwargs...)
     Table(t=vals.t, vals.saveval)
 end
@@ -78,6 +78,7 @@ function create_problem(u0::DynamicalVariables, tspan::Tuple, sim::AbstractSimul
 end
 
 select_algorithm(::AbstractSimulation) = Tsit5()
+get_callbacks(::AbstractSimulation) = nothing
 
 include("mdef_baoab.jl")
 
