@@ -67,7 +67,9 @@ function run_trajectory(u0::DynamicalVariables, tspan::Tuple, sim::AbstractSimul
     stripped_kwargs = austrip_kwargs(;kwargs...)
     cb, vals = SavingCallback(output)
     cb = CallbackSet(callback, cb)
-    solve(create_problem(u0, austrip.(tspan), sim), select_algorithm(sim); callback=cb, stripped_kwargs...)
+    problem = create_problem(u0, austrip.(tspan), sim)
+    problem = remake(problem, callback=cb)
+    solve(problem, select_algorithm(sim); stripped_kwargs...)
     Table(t=vals.t, vals.saveval)
 end
 
