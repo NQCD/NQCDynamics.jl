@@ -6,6 +6,7 @@ makedocs(sitename="NonadiabaticMolecularDynamics.jl",
         "index.md"
         "getting_started.md"
         "initial_conditions.md"
+        "ensemble_simulations.md"
         "calculators.md"
         "Models" => [
             "models/overview.md"
