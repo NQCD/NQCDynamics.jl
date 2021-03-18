@@ -75,16 +75,11 @@ function create_problem(u0::IESHPhasespace, tspan::Tuple, sim::AbstractSimulatio
 
 
 function motion!(du::IESHPhasespace, u::IESHPhasespace, sim::Simulation{<:IESH}, t)
-    println("ping1 ", time())
     #println(get_positions(u))
     set_velocity!(du, u, sim)  # classical.jl momenta/(atom_mass) v = p/m 
-    println("ping2 ", time())
     update_electronics!(sim, u) # The next three routines 
-    println("ping3 ", time())
     set_force!(du, u, sim) # 4th routine
-    println("ping4 ", time())
     set_density_matrix_derivative!(du, u, sim)# 5th routine
-    println("ping5 ", time())
 end
 
 # Get the current eneries, the current derivate and the current eigenvectors
@@ -163,15 +158,14 @@ function set_density_matrix_derivative!(du::IESHPhasespace, u::IESHPhasespace, s
 condition(u, t, integrator::DiffEqBase.DEIntegrator) = true
 
 function affect!(integrator::DiffEqBase.DEIntegrator)
-    println("ping6 ", time())
     update_hopping_probability!(integrator)
-    println("ping7 ", time())
     
     # not necessary anymore
     #new_state = select_new_state(integrator.p.method.hopping_probability, integrator.u.state)
     
     #if new_state != 0
     if integrator.p.method.hopping_probability[1] !=0
+        println("Hop!")
         # Set new state population
         new_state = copy(integrator.u.state)
         new_state[Int(integrator.p.method.hopping_probability[2])] = 0
@@ -230,13 +224,14 @@ function update_hopping_probability!(integrator::DiffEqBase.DEIntegrator)
                     println("Error: Sum of hopping probability above 1!")
                     println("Sum: ", sumer, " Individ. hopping probability: ", hop_mat[l,m])
                     println("l = ", l, " m = ", m)
-                    exit()
+                    #exit()
                 end
             end
         end
     end
     
-    #a=findmax(hop_mat)
+    a=findmax(hop_mat)
+    println(random_number," ", a)
     # Write the hopping probability and the array positions into array
     # This one just extracts the maximum hopping probability. 
     # May be alternative to above
