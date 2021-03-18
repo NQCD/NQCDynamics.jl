@@ -7,6 +7,10 @@ function evaluate_hamiltonian(sim::AbstractSimulation, u::DynamicalVariables)
     evaluate_hamiltonian(sim, get_velocities(u), get_positions(u))
 end
 
+function evaluate_hamiltonian(sim::AbstractSimulation, u::ArrayPartition)
+    evaluate_hamiltonian(sim, get_velocities(u), get_positions(u))
+end
+
 function evaluate_hamiltonian(sim::AbstractSimulation, v::AbstractMatrix, r::AbstractMatrix)
     k = evaluate_kinetic_energy(sim.atoms.masses, v)
     e = evaluate_potential_energy(sim, r)
