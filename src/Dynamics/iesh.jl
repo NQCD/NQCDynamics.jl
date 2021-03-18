@@ -123,9 +123,9 @@ function set_force!(du::IESHPhasespace, u::IESHPhasespace, sim::Simulation{<:IES
         for j=1:sim.DoFs
             get_momenta(du)[j,i] = 0.0
             for n=1:length(u.state)
-                get_momenta(du)[j,i] = get_momenta(du)[j,i] 
+                # calculate as sum of the momenta of the occupied
+                get_momenta(du)[j,i] = get_momenta(du)[j,i] -sim.calculator.adiabatic_derivative[j,i][n, n]*u.state[n]
                                        #-sim.calculator.adiabatic_derivative[j,i][u.state, u.state]
-                                    -sim.calculator.adiabatic_derivative[j,i][n, n]
             end
         end
     end
@@ -165,7 +165,7 @@ function affect!(integrator::DiffEqBase.DEIntegrator)
     
     #if new_state != 0
     if integrator.p.method.hopping_probability[1] !=0
-        println("Hop!")
+        println("Hop! from ", Int(integrator.p.method.hopping_probability[2]), " to ", Int(integrator.p.method.hopping_probability[3]))
         # Set new state population
         new_state = copy(integrator.u.state)
         new_state[Int(integrator.p.method.hopping_probability[2])] = 0
@@ -213,17 +213,18 @@ function update_hopping_probability!(integrator::DiffEqBase.DEIntegrator)
                 # the transition that's first above the random number.
                 # See: Tully_JChemPhys_93_1061_1990
                 sumer = sumer+abs(hop_mat[l,m]) # cumulative sum.
-                if (random_number > sumer)
+                if (random_number > sumer &&first)
                     sum_before = sumer
                 elseif (random_number < sumer && random_number > sum_before && first)
                     sim.method.hopping_probability[1] = sumer
                     sim.method.hopping_probability[2] = l
                     sim.method.hopping_probability[3] = m
                     first = false
-                elseif (sumer > 1)
-                    println("Error: Sum of hopping probability above 1!")
+                elseif (sumer > 1 && first)
+                    println("Warning: Sum of hopping probability above 1!")
                     println("Sum: ", sumer, " Individ. hopping probability: ", hop_mat[l,m])
                     println("l = ", l, " m = ", m)
+                    println(first)
                     #exit()
                 end
             end
@@ -231,7 +232,7 @@ function update_hopping_probability!(integrator::DiffEqBase.DEIntegrator)
     end
     
     a=findmax(hop_mat)
-    println(random_number," ", a)
+    #println(random_number," ", a)
     # Write the hopping probability and the array positions into array
     # This one just extracts the maximum hopping probability. 
     # May be alternative to above

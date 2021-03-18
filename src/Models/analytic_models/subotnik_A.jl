@@ -94,6 +94,8 @@ end
     In the original model, m = 2000, ω = 0.0002, g = 20.6097, ΔG = -0.0038 and 
     kBT=0.00095. In the paper, Γ, 2W and M were varied and tested.
     The numbers given as default correspond to the one listed in the paper.
+    The model is defined such that h=(V_0-V_1)d^t d + V_1, however, the diabatic surfaces
+    that they show in the paper in Fig. 1 correspond to the picture implemented below
 """
 
 #struct MiaoSubotnik <: DiabaticModel
@@ -135,7 +137,7 @@ end
 Diabatic potenial matrix
 """
 function potential!(model::MiaoSubotnik, V::Hermitian, R::AbstractMatrix)
-    
+    # Note that for the purpose of this model, n_states includes V1 and V0
     #pi=3.14159265359
     n_states=model.n_states
     # Higher potential well
