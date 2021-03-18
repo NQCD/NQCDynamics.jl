@@ -78,6 +78,7 @@ function set_force!(du::SurfaceHoppingPhasespace, u::SurfaceHoppingPhasespace, s
             get_momenta(du)[j,i] = -sim.calculator.adiabatic_derivative[j,i][u.state, u.state]
         end
     end
+#    println(get_momenta(du))
 end
 
 function set_density_matrix_derivative!(du::SurfaceHoppingPhasespace, u::SurfaceHoppingPhasespace, sim::Simulation{<:FSSH})
