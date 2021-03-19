@@ -1,37 +1,32 @@
 
-export PositionDistribution
-export PhasespaceDistribution
+export DynamicalDistribution
 
-using Random: AbstractRNG
+using Random: AbstractRNG, rand!
 using Distributions
 
-struct PositionDistribution{T} <: Sampleable{Matrixvariate,Continuous}
-    positions::Vector{Matrix{T}}
+struct DynamicalVariate <: VariateForm end
+
+struct DynamicalDistribution{V,R,S} <: Sampleable{DynamicalVariate,Continuous}
+    velocity::V
+    position::R
+    size::NTuple{S,Int}
 end
 
-struct PhasespaceVariate <: VariateForm end
+Base.eltype(s::DynamicalDistribution{<:Sampleable,R}) where {R} = eltype(s.velocity)
+Base.eltype(s::DynamicalDistribution{<:AbstractArray,R} where {R}) = eltype(s.velocity[1])
+Base.size(s::DynamicalDistribution) = s.size
 
-struct PhasespaceDistribution{T} <: Sampleable{PhasespaceVariate,Continuous}
-    positions::Vector{Matrix{T}}
-    momenta::Vector{Matrix{T}}
+function Distributions.rand(rng::AbstractRNG, s::Sampleable{DynamicalVariate})
+    Distributions._rand!(rng, s, [Array{eltype(s)}(undef, size(s)) for i=1:2])
 end
 
-NuclearDistributions{T} = Union{PositionDistribution{T}, PhasespaceDistribution{T}}
-
-Base.eltype(::NuclearDistributions{T}) where {T} = T
-Base.size(s::NuclearDistributions{T}) where {T} = size(s.positions[1])
-
-function Distributions._rand!(rng::AbstractRNG, s::PositionDistribution{T}, x::DenseMatrix{T}) where T<:AbstractFloat
-    x .= rand(rng, s.positions)
-end
-
-function Distributions.rand(rng::AbstractRNG, s::Sampleable{PhasespaceVariate})
-    Distributions._rand!(rng, s, Phasespace([Matrix{eltype(s)}(undef, size(s)) for i=1:2]...))
-end
-
-function Distributions._rand!(rng::AbstractRNG, s::PhasespaceDistribution{T}, x::Phasespace{T}) where T<:AbstractFloat
-    i = rand(rng, 1:length(s.positions))
-    get_positions(x) .= s.positions[i]
-    get_momenta(x) .= s.momenta[i]
+function Distributions._rand!(rng::AbstractRNG, s::DynamicalDistribution, x::Vector{<:Array})
+    i = rand(rng, 1:length(s.position))
+    x[1] .= select_item(s.velocity, i, s.size)
+    x[2] .= select_item(s.position, i, s.size)
     x
 end
+
+select_item(x::Vector, i::Integer, ::NTuple) = x[i]
+select_item(x::Sampleable{Univariate}, ::Integer, size::NTuple) = rand(x, size)
+select_item(x::Real, ::Integer, ::NTuple) = x

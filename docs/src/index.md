@@ -1,20 +1,27 @@
-# NonadiabaticMolecularDynamics.jl
+# Introduction
 
-This is a package for performing nonadiabatic molecular dynamics simulations, along with
-generating the initial conditions and analysing the resulting trajectories.
+Welcome to the documentation for NonadiabaticMolecularDynamics, 
+a package for performing nonadiabatic molecular dynamics simulations.
+The documentation covers both how to use the existing code and describes the
+intricacies of the implementations, hoping to make further contributions as simple as possible.
 
-Dynamics methods:
+The goal of the package is to provide highly performant code that is easily extensible and
+transferrable between model systems and realistic atomic systems.
+The dynamics methods are built on top of the `DifferentialEquations.jl` ecosystem which
+provides an intuitive interface for implementing different nonadiabatic dynamics methods.
 
-- Classical molecular dynamics
-- Classical Langevin dynamics
-- Fewest-switches surface hopping
-- Molecular dynamics with electronic friction
-- Ring polymer molecular dynamics
+The existing methods are :
 
-Initial conditions sampling:
+- Classical molecular dynamics (MD)
+- Classical Langevin dynamics (LD)
+- Fewest-switches surface hopping (FSSH)
+- Molecular dynamics with electronic friction (MDEF)
+- Ring polymer molecular dynamics (RPMD)
+- Nonadiabatic ring polymer molecular dynamics (NRPMD)
+
+Given that mixed quantum-classical and semiclassical methods usually require averaging
+over many trajectories, we provide a few options for generating initial conditions for
+the simulations:
 
 - Metropolis-Hastings Markov chain Monte Carlo thermal sampling
-
-An advantage of this package is that analytic model Hamiltonians and atomic systems are
-treated equivalently within the dynamics, making the transition from models to
-atomic systems as frictionless as possible.
+- Langevin dynamics

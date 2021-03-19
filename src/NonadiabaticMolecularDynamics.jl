@@ -1,11 +1,15 @@
 module NonadiabaticMolecularDynamics
 
 using Reexport
+using Requires
+using DocStringExtensions
+
+include("unit_conversions.jl")
 
 include("atoms.jl")
 include("ring_polymer.jl")
 include("cells.jl")
-include("phasespace.jl")
+include("dynamical_variables.jl")
 
 include("Models/Models.jl")
 export Models
@@ -19,10 +23,10 @@ include("InitialConditions/InitialConditions.jl")
 export InitialConditions
 
 include("Dynamics/Dynamics.jl")
-export Dynamics
-using .Dynamics: SurfaceHoppingPhasespace
-export SurfaceHoppingPhasespace
+@reexport using .Dynamics
 
-include("IO/IO.jl")
+include("InputOutput/InputOutput.jl")
+
+include("simulation_constructors.jl")
 
 end # module
