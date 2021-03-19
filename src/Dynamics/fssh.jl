@@ -40,8 +40,10 @@ end
 get_density_matrix(u::SurfaceHoppingDynamicals) = u.x.x[3]
 
 function create_problem(u0::SurfaceHoppingDynamicals, tspan::Tuple, sim::AbstractSimulation{<:FSSH})
-    ODEProblem(motion!, u0, tspan, sim; callback=fssh_callback)
+    ODEProblem(motion!, u0, tspan, sim)
 end
+
+get_callbacks(::AbstractSimulation{<:FSSH}) = fssh_callback
 
 function motion!(du::SurfaceHoppingDynamicals, u::SurfaceHoppingDynamicals, sim::AbstractSimulation{<:FSSH}, t)
     dr = get_positions(du)
