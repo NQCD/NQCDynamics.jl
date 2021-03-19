@@ -7,13 +7,13 @@ using Distributions
 struct DynamicalVariate <: VariateForm end
 
 struct DynamicalDistribution{V,R,S} <: Sampleable{DynamicalVariate,Continuous}
-    velocities::V
-    positions::R
+    velocity::V
+    position::R
     size::NTuple{S,Int}
 end
 
-Base.eltype(s::DynamicalDistribution{<:Sampleable,R}) where {R} = eltype(s.velocities)
-Base.eltype(s::DynamicalDistribution{<:AbstractArray,R} where {R}) = eltype(s.velocities[1])
+Base.eltype(s::DynamicalDistribution{<:Sampleable,R}) where {R} = eltype(s.velocity)
+Base.eltype(s::DynamicalDistribution{<:AbstractArray,R} where {R}) = eltype(s.velocity[1])
 Base.size(s::DynamicalDistribution) = s.size
 
 function Distributions.rand(rng::AbstractRNG, s::Sampleable{DynamicalVariate})
@@ -21,9 +21,9 @@ function Distributions.rand(rng::AbstractRNG, s::Sampleable{DynamicalVariate})
 end
 
 function Distributions._rand!(rng::AbstractRNG, s::DynamicalDistribution, x::Vector{<:Array})
-    i = rand(rng, 1:length(s.positions))
-    x[1] .= select_item(s.velocities, i, s.size)
-    x[2] .= select_item(s.positions, i, s.size)
+    i = rand(rng, 1:length(s.position))
+    x[1] .= select_item(s.velocity, i, s.size)
+    x[2] .= select_item(s.position, i, s.size)
     x
 end
 

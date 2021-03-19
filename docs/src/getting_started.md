@@ -39,13 +39,14 @@ solution = Dynamics.run_trajectory(z, (0.0, 50.0), sim, dt=0.1)
 nothing # hide
 ```
 
-`Dynamics.run_trajectory` returns a `DESolution` from `DifferentialEquations.jl`,
-this provides a simple interface with `Plots.jl` that we can use the inspect our solution.
+`Dynamics.run_trajectory` returns a `Table` from `TypedTables.jl`.
+This contains the time and the values of the output quantities at each time.
+By default, it outputs the value of the `DynamicalVariables` into the field `u`.
 
-This shows the velocities and positions throughout the trajectory for both atoms. 
+Convenience functions are provided that allow easy plotting of the result:
 ```@example classical
 using Plots
-plot(solution)
+plot(solution, :u)
 ```
 
 ## Moving forward
