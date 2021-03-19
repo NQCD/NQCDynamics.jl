@@ -1,6 +1,8 @@
 using LinearAlgebra
 using FastGaussQuadrature
 using Statistics
+using LsqFit
+
 """
     calculate_diatomic_energy!(sim::Simulation, bond_length::T; height::T=10.0,
                                normal_vector::Vector{T}=[0.0, 0.0, 1.0]) where {T}
@@ -11,15 +13,15 @@ Orients molecule parallel to the surface at the specified height, the surface is
 to intersect the origin.
 This requires that the model implicitly provides the surface, or works fine without one.
 """
-function calculate_diatomic_energy(sim::Simulation, bond_length::T;
-                                   height::T=10.0,
-                                   normal_vector::Vector{T}=[0.0, 0.0, 1.0]) where {T}
+function calculate_diatomic_energy(sim::Simulation, bond_length::Real;
+                                   height::Real=10.0,
+                                   normal_vector::Vector=[0.0, 0.0, 1.0])
     #=
     This first line only needs to be calculated once for the system so it can be moved
     outside the function and passed as an argument.
     =#
     orthogonals = nullspace(reshape(normal_vector, 1, :)) # Plane parallel to surface
-    R = normal_vector .* height .+ orthogonals .* bond_length/2
+    R = normal_vector .* height .+ orthogonals .* bond_length ./ sqrt(2)
 
     Calculators.evaluate_potential!(sim.calculator, R)
 
@@ -30,46 +32,40 @@ function calculate_COM(R::Matrix, P::Matrix, atoms::Atoms)
     #calculate centre of mass (COM_R) from diatomic coordinates (R)
     #calculates centre of mass momenta (COM_R) from diatomic momenta (P)
     #COM_R = vector, COM_P = vector
-    m = atoms.masses
-    COM_R = (R[0,:]*m[0]+R[1,:]*m[1])/m[0]+m[1]
-    COM_P = (P[0,:]*m[0]+P[1,:]*m[1])/m[0]+m[1]
+
+    COM_R = centre_of_mass(R, atoms.masses)
+    COM_P = centre_of_mass(P, atoms.masses)
+
     return COM_R, COM_P
 end
 
-function calculate_reduced_mass(atoms::Atoms)
-    #calc reduced mass (μ)
-    m = atoms.masses
-    μ = m[1]*m[2]/(m[1]+m[2])
-    μ
+centre_of_mass(x, m) = (x[:,1].*m[1] .+ x[:,2].*m[2]) ./ (m[1]+m[2])
+reduced_mass(atoms::Atoms) = reduced_mass(atoms.masses)
+reduced_mass(m) = m[1]*m[2]/(m[1]+m[2])
+bond_length(r) = norm(r[:,1] .- r[:,2])
+total_angular_momentum(r, p) = norm(cross(r[:,1], p[:,1]) + cross(r[:,2], p[:,2]))
+total_moment_of_inertia(r, m) = norm(r[:,1])*m[1] + norm(r[:,2])*m[2]
+
+"""
+Evaluate energy for different bond lengths and identify force constant. 
+
+This uses LsqFit.jl to fit a harmonic potential centered at the provided `bond_length`.
+"""
+function calculate_force_constant(sim::Simulation, bond_length::Real;
+                                  height::Real=10.0,
+                                  normal_vector::Vector=[0.0, 0.0, 1.0])
+
+    harmonic(f, x, k) = (@. f = k*(x - bond_length)^2/2)
+    jacobian(J, x, k) = (@. J = (x - bond_length)^2/2)
+
+    bond_lengths = 0.5:0.01:4.0
+    V = calculate_diatomic_energy.(sim, bond_lengths; height=height, normal_vector=normal_vector)
+
+    fit = curve_fit(harmonic, jacobian, bond_lengths, V, [1.0]; lower=[0.0], inplace=true)
+    fit.param[1]
 end
 
-function calculate_bond_length(R::Matrix)
-    #get bond length of diatomic
-    T3=R[2,3]-R[1,3]
-    T2=R[2,2]-R[1,2]
-    T1=R[2,1]-R[1,1]
-    RO=sqrt(T1^2+T2^2+T3^2)
-    R0
-end
-
-function calculate_force_constant(sim::Simulation, bond_length::T;
-                                height::T=10.0,
-                                normal_vector::Vector{T}=[0.0, 0.0, 1.0]) where {T}
-
-    #Force constant (f) calcuulated from V(x) = 1/2 * f * x^2
-
-    bond_lengths = collect(0.5:0.01:4.0)
-    V = Vector(size(bond_lengths))
-
-    for i in range(size(bond_lengths))
-        V[i] = calculate_diatomic_energy(bond_length=bond_lengths[i])
-    end
-
-    f = Statistics.mean(V / bond_lengths^2) * 2
-    f
-end
-
-function calculate_quantum(R::Vector{T},P::Vector{T},Evib,AM,V_ref)
+function calculate_quantum(R::Vector,P::Vector,Evib,AM,V_ref)
 
     #    CALCULATE VIBRATIONAL AND ROTATIONAL QUANTUM NUMBERS FOR
     #    A PRODUCT DIATOM
@@ -144,28 +140,34 @@ function calculate_ROTN(AM,EROT)
     #AM = angular momentum, C1 C2 etc are unit conversions.
 
     if (NAM=0) 
-       for I=1:2
-          J=L(I)
-          J3=3*J
-          J2=J3-1
-          J1=J2-1
-          AM(1)=AM(1)+(QQ(J2)*PP(J3)-QQ(J3)*PP(J2))
-          AM(2)=AM(2)+(QQ(J3)*PP(J1)-QQ(J1)*PP(J3))
-          AM(3)=AM(3)+(QQ(J1)*PP(J2)-QQ(J2)*PP(J1))
-       end
-       AM(4)=sqrt(AM(1)^2+AM(2)^2+AM(3)^2)
+      #  for I=1:2
+      #     J=L(I)
+      #     J3=3*J
+      #     J2=J3-1
+      #     J1=J2-1
+      #     AM(1)=AM(1)+(QQ(J2)*PP(J3)-QQ(J3)*PP(J2))
+      #     AM(2)=AM(2)+(QQ(J3)*PP(J1)-QQ(J1)*PP(J3))
+      #     AM(3)=AM(3)+(QQ(J1)*PP(J2)-QQ(J2)*PP(J1))
+      #  end
+      #  AM(4)=sqrt(AM(1)^2+AM(2)^2+AM(3)^2)
+      # This loop is equivalent to this:
+      AM(4) = total_angular_momentum(r, p)
        
-       AIXX=0.0
-       for I=1:2
-          J=3*L(I)+1
-          SR=0.0
-          for K=1:3
-             SR=SR+QQ(J-K)^2
-          end
-          AIXX=AIXX+SR*W(L(I))
-       end
-       EROT=AM(4)^2/AIXX/2
-       return
+      #  AIXX=0.0
+      #  for I=1:2
+      #     J=3*L(I)+1
+      #     SR=0.0
+      #     for K=1:3
+      #        SR=SR+QQ(J-K)^2
+      #     end
+      #     AIXX=AIXX+SR*W(L(I))
+      #  end
+      #  EROT=AM(4)^2/AIXX/2
+      #  return
+      # AIXX appears to be the total moment of inertia
+      AIXX = total_moment_of_inertia(r, atoms.masses)
+      # Therefore EROT is the rotational kinetic energy
+      EROT = AM(4)^2 / AIXX/2
     end
     #         CALCULATE THE MOMENT OF INERTIA TENSOR
 

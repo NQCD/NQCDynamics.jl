@@ -24,6 +24,8 @@ struct Simulation{M,A,S,T,C} <: AbstractSimulation{M,A,S,T,C}
     end
 end
 
+Base.broadcastable(sim::AbstractSimulation) = Ref(sim)
+
 function Simulation(DoFs::Integer, temperature::Unitful.Temperature, cell::AbstractCell,
         atoms::Atoms{S,T}, model::Model, method::M) where {M,S,T}
     Simulation(DoFs, austrip(temperature), cell, atoms, model, method)

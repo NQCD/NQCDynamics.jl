@@ -65,6 +65,11 @@ end
 @testset "DiatomicHarmonic" begin
     model = DiatomicHarmonic()
     test_model(model, 3, 2)
+
+    R = [0 0; 0 0; 1 0]
+    @test Models.energy(model, R) ≈ 0
+    R = [sqrt(3) 0; sqrt(3) 0; sqrt(3) 0]
+    @test Models.energy(model, R) ≈ 2
 end
 
 @testset "Free" begin
