@@ -13,7 +13,7 @@ rp = RingPolymerParameters{Float64}(10, 1.0, 10)
 @test sort(eigvals(rp.springs)) ≈ sort(rp.normal_mode_springs)
 
 atoms = Atoms{Float64}(vcat(fill(:H, 10), :O))
-cell = InfiniteCell{Float64}()
+cell = InfiniteCell()
 model = Models.Free()
 sim = RingPolymerSimulation(3, 1.0, cell, atoms, model, Dynamics.Classical(), 10)
 @test sim.beads.quantum_atoms == collect(1:11)

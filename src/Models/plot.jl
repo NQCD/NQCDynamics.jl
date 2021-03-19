@@ -1,7 +1,7 @@
-using Plots
 using LinearAlgebra
+using RecipesBase
 
-function Plots.plot(x, model::AdiabaticModel)
+@recipe function f(x, model::AdiabaticModel)
     V = [0.0]
     D = hcat(0.0)
     potential = zeros(size(x))
@@ -12,11 +12,21 @@ function Plots.plot(x, model::AdiabaticModel)
         potential[i] = V[1]
         derivative[i] = D[1]
     end
-    plot(x, potential, label="potential!")
-    plot!(x, derivative, label="derivative!")
+
+    xguide --> "r /a₀"
+
+    @series begin
+        label := "V(r) /Eₕ"
+        x, potential
+    end
+
+    @series begin
+        label := "dV(r)dr /Eₕ/a₀"
+        x, derivative
+    end
 end
 
-function Plots.plot(x, model::DiabaticModel)
+@recipe function f(x, model::DiabaticModel)
     V = Hermitian(zeros(model.n_states, model.n_states))
     eigs = zeros(length(x), model.n_states)
     diabats = zeros(length(x), model.n_states)
@@ -25,6 +35,18 @@ function Plots.plot(x, model::DiabaticModel)
         eigs[i,:] .= eigvals(V)
         diabats[i,:] .= diag(V)
     end
-    plot(x, eigs, color="black", legend=false)
-    plot!(x, diabats, color="red")
+
+    legend --> false
+    xguide --> "r /a₀"
+    yguide --> "V(r) /eV"
+
+    @series begin
+        linecolor := :black
+        x, au_to_eV.(eigs)
+    end
+
+    @series begin
+        linecolor := :red
+        x, au_to_eV.(diabats)
+    end
 end

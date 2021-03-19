@@ -1,5 +1,5 @@
 using NonadiabaticMolecularDynamics
-using NonadiabaticMolecularDynamics.IO
+using PyCall
 
 model_path = "/Users/wojciechstark/Desktop/H2_on_Cu/1_h2cu_pes"
 input_f = model_path * "/H2Cu_example.xyz"
@@ -13,12 +13,12 @@ println(positions)
 
 println("Energy:")
 V = [0.0]
-model.potential!(V, positions)
+Models.potential!(model, V, positions)
 println(V)
 
 println("Forces:")
 D = zero(positions)
-model.derivative!(D, positions)
+Models.derivative!(model, D, positions)
 println(D)
 
 println("Deallocate...")

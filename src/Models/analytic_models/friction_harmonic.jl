@@ -18,4 +18,8 @@ function derivative!(model::FrictionHarmonic, D::AbstractMatrix, R::AbstractMatr
     D .= model.mass * model.ω^2 .* (R .- model.r₀)
 end
 
-friction!(::FrictionHarmonic, F::AbstractMatrix, ::AbstractMatrix) = randn!(F)
+function friction!(::FrictionHarmonic, F::AbstractMatrix, ::AbstractMatrix)
+    randn!(F)
+    F .= F'F
+    F .= (F + F')/2
+end

@@ -10,17 +10,18 @@ The concrete subtype can contain any parameters needed to evaluate the functions
 """
 module Models
 
-using NeighbourLists
-using StaticArrays
+using Unitful
 using UnitfulAtomic
 using LinearAlgebra
 using Reexport
+using Requires
 
 using ..NonadiabaticMolecularDynamics
 
 export Model
 export AdiabaticModel
 export DiabaticModel
+export DiabaticFrictionModel
 export FrictionModel
 
 export potential!
@@ -39,6 +40,8 @@ subtyped.
 If an appropriate type is not already available, a new abstract subtype should be created.
 """
 abstract type Model end
+
+Base.broadcastable(model::Model) = Ref(model)
 
 """
     AdiabaticModel <: Model
@@ -63,6 +66,20 @@ and each entry must have `size = (n_states, n_states)`.
 """
 abstract type DiabaticModel <: Model end
 
+"""
+    DiabaticFrictionModel <: Model
+
+This model implements `potential!` and `derivative!`.
+
+`potential!` must fill a `Hermitian` with `size = (n_states, n_states)`.
+
+`derivative!` must fill an `AbstractMatrix{<:Hermitian}` with `size = (DoFs, atoms)`,
+and each entry must have `size = (n_states, n_states)`.
+
+Friction is calculated internally from the diabatic potential after diagonalisation
+and calculation of nonadiabatic couplings.
+"""
+abstract type DiabaticFrictionModel <: DiabaticModel end
 
 """
     AdiabaticModel <: Model
@@ -102,16 +119,6 @@ This need only be implemented for `FrictionModel`s.
 """
 function friction! end
 
-"""
-    get_pairs(R::AbstractMatrix, cutoff::AbstractFloat, cell::AbstractCell)
-    
-Use NeighbourLists to calculate the neighbour list.
-"""
-function get_pairs(R::AbstractMatrix, cutoff::AbstractFloat, cell::AbstractCell)
-    Q = copy(reinterpret(SVector{size(R)[1], eltype(R)}, vec(R))) # Convert array to vector of SVectors
-    PairList(Q, cutoff, austrip.(cell.vectors'), cell.periodicity) # Construct the list of neighbours
-end
-
 include("analytic_models/free.jl")
 include("analytic_models/harmonic.jl")
 include("analytic_models/diatomic_harmonic.jl")
@@ -119,14 +126,30 @@ include("analytic_models/diatomic_harmonic.jl")
 include("analytic_models/double_well.jl")
 include("analytic_models/tully_models.jl")
 include("analytic_models/scattering_anderson_holstein.jl")
+include("analytic_models/1D_scattering.jl")
 
 include("analytic_models/friction_harmonic.jl")
 
-include("EAM/PdH.jl")
 include("EANN/EANN_H2Cu.jl")
 include("EANN/EANN_H2Ag.jl")
-include("ML/ML.jl")
-@reexport using .ML
+include("EANN/EANN_NOAu.jl")
+
+function __init__()
+    @require PyCall="438e738f-606a-5dbb-bf0a-cddfbfd45ab0" @eval include("ML/ML.jl")
+    @require JuLIP="945c410c-986d-556a-acb1-167a618e0462" @eval include("julip.jl")
+end
+
+function energy(model::Union{AdiabaticModel, FrictionModel}, R::AbstractMatrix)
+    energy = [0.0]
+    potential!(model, energy, R)
+    energy[1]
+end
+
+function forces(model::Union{AdiabaticModel, FrictionModel}, R::AbstractMatrix)
+    forces = zero(R)
+    derivative!(model, forces, R)
+    -forces
+end
 
 include("plot.jl")
 end # module

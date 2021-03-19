@@ -4,7 +4,7 @@ using NonadiabaticMolecularDynamics.Models
 using LinearAlgebra
 using FiniteDiff
 
-function finite_difference_gradient(model, R)
+function finite_difference_gradient(model::Union{AdiabaticModel, FrictionModel}, R)
     function f(x)
         out = [0.0]
         potential!(model, out, x)
@@ -13,81 +13,101 @@ function finite_difference_gradient(model, R)
     FiniteDiff.finite_difference_gradient(f, R)
 end
 
-R = rand(3, 10)
+function finite_difference_gradient(model::DiabaticModel, R)
+    function f(x, i, j)
+        out = Hermitian(zeros(model.n_states, model.n_states))
+        potential!(model, out, x)
+        out[i,j]
+    end
+    grad = [Hermitian(zeros(model.n_states, model.n_states)) for i=1:size(R)[1], j=1:size(R)[2]]
+    for i=1:model.n_states
+        for j=1:model.n_states
+            grad[1].data[i,j] = FiniteDiff.finite_difference_gradient(x->f(x,i,j), R)[1]
+        end
+    end
+    grad
+end
+
+function test_model(model::AdiabaticModel, DoFs, atoms)
+    R = rand(DoFs, atoms)
+    V = zeros(1)
+    D = zero(R)
+    potential!(model, V, R)
+    derivative!(model, D, R)
+    @test finite_difference_gradient(model, R) ≈ D
+end
+
+function test_model(model::DiabaticModel, DoFs, atoms)
+    R = rand(DoFs, atoms)
+    V = Hermitian(zeros(model.n_states, model.n_states))
+    D = [Hermitian(zeros(model.n_states, model.n_states))]'
+    potential!(model, V, R)
+    derivative!(model, D, R)
+    @test finite_difference_gradient(model, R) ≈ D rtol=1e-3
+end
+
+function test_model(model::FrictionModel, DoFs, atoms)
+    R = rand(DoFs, atoms)
+    V = zeros(1)
+    D = zero(R)
+    F = zeros(DoFs*atoms, DoFs*atoms)
+    potential!(model, V, R)
+    derivative!(model, D, R)
+    @test finite_difference_gradient(model, R) ≈ D
+    friction!(model, F, R)
+end
 
 @testset "Harmonic" begin
     model = Harmonic()
-    potential!(model, [0.0], R)
-    D = zero(R)
-    derivative!(model, D, R)
-    @test finite_difference_gradient(model, R) ≈ D
+    test_model(model, 3, 10)
 end
 
 @testset "DiatomicHarmonic" begin
     model = DiatomicHarmonic()
-    R = rand(3, 2)
-    V = [0.0]
-    potential!(model, V, R)
-
-    D = zero(R)
-    derivative!(model, D, R)
-    @test finite_difference_gradient(model, R) ≈ D
+    test_model(model, 3, 2)
 end
 
 @testset "Free" begin
     model = Free()
-    potential!(model, [0.0], R)
-    D = zero(R)
-    derivative!(model, D, R)
-    @test finite_difference_gradient(model, R) ≈ D
+    test_model(model, 3, 10)
 end
 
 @testset "DoubleWell" begin
-    R = rand(1,1)
     model = DoubleWell()
-    potential!(model, Hermitian(zeros(model.n_states, model.n_states)), R)
-    derivative!(model, [Hermitian(zeros(model.n_states, model.n_states))]', R)
+    test_model(model, 1, 1)
 end
 
 @testset "TullyModelOne" begin
-    R = rand(1,1)
     model = TullyModelOne()
-    potential!(model, Hermitian(zeros(model.n_states, model.n_states)), R)
-    derivative!(model, [Hermitian(zeros(model.n_states, model.n_states))]', R)
+    test_model(model, 1, 1)
 end
 
 @testset "TullyModelTwo" begin
-    R = rand(1,1)
     model = TullyModelTwo()
-    potential!(model, Hermitian(zeros(model.n_states, model.n_states)), R)
-    derivative!(model, [Hermitian(zeros(model.n_states, model.n_states))]', R)
+    test_model(model, 1, 1)
 end
 
 @testset "FrictionHarmonic" begin
-    R = rand(1,3)
     model = FrictionHarmonic()
-    potential!(model, [0.0], R)
-
-    D = zero(R)
-    derivative!(model, D, R)
-    @test finite_difference_gradient(model, R) ≈ D
-
-    friction!(model, zero(R), R)
+    test_model(model, 1, 3)
 end
 
 @testset "ScatteringAndersonHolstein" begin
-    R = rand(1,1)
     model = ScatteringAndersonHolstein()
-    potential!(model, Hermitian(zeros(model.n_states, model.n_states)), R)
-    derivative!(model, [Hermitian(zeros(model.n_states, model.n_states))]', R)
+    test_model(model, 1, 1)
 end
 
-@testset "PdH" begin
-    model = PdH([:Pd, :Pd, :H], PeriodicCell([10 0 0; 0 10 0; 0 0 10]), 10.0)
-    R = rand(3, 3) * 10
-    V = [0.0]
-    D = zero(R)
-    potential!(model, V, R)
-    derivative!(model, D, R)
-    @test finite_difference_gradient(model, R) ≈ D
+@testset "Scattering1D" begin
+    model = Scattering1D()
+    test_model(model, 1, 1)
+end
+
+@testset "JuLIP" begin
+    import JuLIP
+    atoms = NonadiabaticMolecularDynamics.Atoms{Float64}([:H, :H])
+    x = [10.0 0 0]
+    y = [0 10.0 0]
+    z = [0 0 10.0]
+    model = JuLIPModel(atoms, PeriodicCell(vcat(x,y,z)), JuLIP.StillingerWeber())
+    test_model(model, 3, 2)
 end
