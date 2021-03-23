@@ -12,8 +12,15 @@ sim = Simulation(atoms, model, Dynamics.Classical())
 end
 
 @testset "calculate_force_constant" begin
-    @test Diatomic.calculate_force_constant(sim, 1.0) ≈ 1
+    @test Diatomic.calculate_force_constant(sim) ≈ 1
     model2 = Models.DiatomicHarmonic(r₀=6.3)
     sim2 = Simulation(atoms, model2, Dynamics.Classical())
-    @test Diatomic.calculate_force_constant(sim2, 6.3) ≈ 1
+    @test Diatomic.calculate_force_constant(sim2, bond_length=4.0) ≈ 1
+end
+
+@testset "subtract_centre_of_mass!" begin
+    atoms = Atoms([:O, :O])
+    r = rand(3, 2)
+    r = Diatomic.subtract_centre_of_mass(r, atoms.masses)
+    @test r[:,1] ≈ -r[:,2]
 end

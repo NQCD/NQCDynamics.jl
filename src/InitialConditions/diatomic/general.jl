@@ -1,5 +1,4 @@
 using LinearAlgebra
-using FastGaussQuadrature
 using LsqFit
 
 """
@@ -27,23 +26,13 @@ function calculate_diatomic_energy(sim::Simulation, bond_length::Real;
     sim.calculator.potential[1]
 end
 
-function calculate_COM(R::Matrix, P::Matrix, atoms::Atoms)
-    #calculate centre of mass (COM_R) from diatomic coordinates (R)
-    #calculates centre of mass momenta (COM_R) from diatomic momenta (P)
-    #COM_R = vector, COM_P = vector
-
-    COM_R = centre_of_mass(R, atoms.masses)
-    COM_P = centre_of_mass(P, atoms.masses)
-
-    return COM_R, COM_P
-end
-
-centre_of_mass(x, m) = (x[:,1].*m[1] .+ x[:,2].*m[2]) ./ (m[1]+m[2])
+subtract_centre_of_mass(x, m) = x .- centre_of_mass(x, m)
+@views centre_of_mass(x, m) = (x[:,1].*m[1] .+ x[:,2].*m[2]) ./ (m[1]+m[2])
 reduced_mass(atoms::Atoms) = reduced_mass(atoms.masses)
 reduced_mass(m::AbstractVector) = m[1]*m[2]/(m[1]+m[2])
-bond_length(r) = norm(r[:,1] .- r[:,2])
-total_angular_momentum(r, p) = norm(cross(r[:,1], p[:,1]) + cross(r[:,2], p[:,2]))
-total_moment_of_inertia(r, m) = norm(r[:,1])*m[1] + norm(r[:,2])*m[2]
+@views bond_length(r) = norm(r[:,1] .- r[:,2])
+@views total_angular_momentum(r, p) = norm(cross(r[:,1], p[:,1]) + cross(r[:,2], p[:,2]))
+@views total_moment_of_inertia(r, m) = norm(r[:,1])*m[1] + norm(r[:,2])*m[2]
 
 function moment_of_inertia_tensor(r, m)
     tensor = zeros(3,3)
@@ -62,19 +51,23 @@ end
 """
 Evaluate energy for different bond lengths and identify force constant. 
 
-This uses LsqFit.jl to fit a harmonic potential centered at the provided `bond_length`.
+This uses LsqFit.jl to fit a harmonic potential with optimised minimum.
 """
-function calculate_force_constant(sim::Simulation, bond_length::Real;
+function calculate_force_constant(sim::Simulation;
                                   height::Real=10.0,
+                                  bond_length=2.5,
                                   normal_vector::Vector=[0.0, 0.0, 1.0])
 
-    harmonic(f, x, k) = (@. f = k*(x - bond_length)^2/2)
-    jacobian(J, x, k) = (@. J = (x - bond_length)^2/2)
+    harmonic(f, x, p) = (@. f = p[1]*(x - p[2])^2/2)
+    function jacobian(J, x, p)
+        @. J[:,1] = (x - p[2])^2/2
+        @. J[:,2] = -p[1] * (x - p[2])
+    end
 
     bond_lengths = 0.5:0.01:4.0
     V = calculate_diatomic_energy.(sim, bond_lengths; height=height, normal_vector=normal_vector)
 
-    fit = curve_fit(harmonic, jacobian, bond_lengths, V, [1.0]; lower=[0.0], inplace=true)
+    fit = curve_fit(harmonic, bond_lengths, V, [1.0, bond_length]; lower=[0.0, 0.0], inplace=true)
     fit.param[1]
 end
 
