@@ -61,10 +61,34 @@ end
 """
     Generate positions and momenta for given quantum numbers
 """
-function generate_configuration(sim, ν, J)
+function generate_configuration(sim, ν, J; samples=1000)
     E, bounds, integral = extract_energy_and_bounds(sim, ν, J)
     μ = reduced_mass(sim.atoms)
 
-    r = rand(Uniform(bounds...))
+    rotational(r) = J*(J+1) / (2μ*r^2)
+    Vᵣ(r) = rotational(r) + calculate_diatomic_energy(sim, r)
+    radial_momentum(r) = sqrt(2μ * (E - Vᵣ(r)))
+
+    bonds = select_random_bond_lengths(E, bounds, radial_momentum, μ, samples)
+
+end
+
+function select_random_bond_lengths(E, bounds, probability_function, μ, samples)
+    P0 = sqrt(1e-4 * 2μ*E)
+    distribution = Uniform(bounds...)
+    bonds = zeros(samples)
+    for i=1:samples
+        keep_going = true
+        while keep_going
+            r = rand(distribution)
+            P = probability_function(r)
+            if rand() < P0 / P
+                bonds[i] = r
+                keep_going = false
+            end
+        end
+    end
+    bonds
+end
 
 end
