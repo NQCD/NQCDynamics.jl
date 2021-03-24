@@ -30,3 +30,4 @@ end
 select_item(x::Vector, i::Integer, ::NTuple) = x[i]
 select_item(x::Sampleable{Univariate}, ::Integer, size::NTuple) = rand(x, size)
 select_item(x::Real, ::Integer, ::NTuple) = x
+select_item(x::Matrix, ::Integer, ::NTuple) = x
