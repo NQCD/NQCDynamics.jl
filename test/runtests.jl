@@ -7,6 +7,7 @@ using SafeTestsets
 @safetestset "Simulation Tests" begin include("simulations.jl") end
 @safetestset "Ring Polymer Tests" begin include("ring_polymers.jl") end
 @safetestset "Monte Carlo Tests" begin include("monte_carlo.jl") end
+@safetestset "Quantised Diatomic Tests" begin include("quantised_diatomic.jl") end
 @safetestset "Dynamical Variables Tests" begin include("dynamical_variables.jl") end
 @safetestset "Dynamics Tests" begin include("dynamics/dynamics.jl") end
 @safetestset "IO Tests" begin include("io/io.jl") end
