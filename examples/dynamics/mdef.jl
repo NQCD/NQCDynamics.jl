@@ -4,7 +4,7 @@ using Unitful
 using UnitfulAtomic
 
 atoms = Atoms([:H])
-model = Models.FreeConstantFriction(1) # Friction in units
+model = Models.FreeConstantFriction(1) # Friction in atomic units of mass / time
 sim = Simulation{MDEF}(atoms, model; temperature=2000u"K")
 
 """
