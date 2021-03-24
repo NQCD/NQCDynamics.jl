@@ -30,6 +30,7 @@ energy(u, t, integrator) = evaluate_hamiltonian(integrator.p, u)
 u(u, t, integrator) = copy(u)
 density_matrix(u, t, integrator) = copy(get_density_matrix(u))
 state(u, t, integrator) = copy(u.state)
+noise(u, t, integrator) = copy(integrator.W.dW) / sqrt(integrator.dt)
 
 outside_cell(u,t,integrator) = !check_atoms_in_cell(integrator.p.cell, get_positions(u))
 function enforce_periodicity!(integrator)
