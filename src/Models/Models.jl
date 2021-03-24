@@ -129,6 +129,7 @@ include("analytic_models/scattering_anderson_holstein.jl")
 include("analytic_models/1D_scattering.jl")
 
 include("analytic_models/friction_harmonic.jl")
+include("analytic_models/free_constant_friction.jl")
 
 include("EANN/EANN_H2Cu.jl")
 include("EANN/EANN_H2Ag.jl")

@@ -16,6 +16,9 @@ export au_to_u
 export ps_inv_to_au
 export au_to_ps_inv
 
+export ps_to_au
+export au_to_ps
+
 export austrip_kwargs
 
 auconvertstrip(u::Unitful.Units, x::Number) = ustrip(auconvert(u, x))
@@ -34,6 +37,9 @@ au_to_u(x) = auconvertstrip(u"u", x)
 
 ps_inv_to_au(x) = austrip(x*u"ps^-1")
 au_to_ps_inv(x) = auconvertstrip(u"ps^-1", x)
+
+ps_to_au(x) = austrip(x*u"ps")
+au_to_ps(x) = auconvertstrip(u"ps", x)
 
 function austrip_kwargs(;kwargs...)
     stripped_kwargs = Dict{Symbol,Any}()
