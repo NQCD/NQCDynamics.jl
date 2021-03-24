@@ -10,6 +10,7 @@ function run_ensemble(distribution::DynamicalDistribution,
                       callback=nothing,
                       kwargs...)
 
+    stripped_kwargs = austrip_kwargs(;kwargs...)
     callbacks, values = create_saving_callbacks(kwargs[:trajectories], output)
 
     problem = create_problem(select_u0(sim, distribution, state), austrip.(tspan), sim)
@@ -19,7 +20,7 @@ function run_ensemble(distribution::DynamicalDistribution,
                                        prob_func=prob_func,
                                        reduction=reduction,
                                        output_func=output_func)
-    solve(ensemble_problem, select_algorithm(sim); kwargs...)
+    solve(ensemble_problem, select_algorithm(sim); stripped_kwargs...)
     [Table(t=vals.t, vals.saveval) for vals in values]
 end
 
