@@ -12,6 +12,8 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: julia-actions/setup-julia@latest
+      - name: Install ase for IO tests
+        run: pip install ase
       - name: Add JuliaMolSim registry
         run: julia -e 'using Pkg; Pkg.Registry.add(RegistrySpec(url="https://github.com/JuliaMolSim/MolSim"))'
       - uses: julia-actions/julia-buildpkg@v1
