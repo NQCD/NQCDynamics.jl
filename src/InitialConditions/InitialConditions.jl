@@ -12,7 +12,7 @@ include("nuclear_distributions.jl")
 
 include("MetropolisHastings.jl")
 @reexport using .MetropolisHastings
-include("Diatomic/Diatomic.jl")
-@reexport using .Diatomic
+include("QuantisedDiatomic.jl")
+@reexport using .QuantisedDiatomic
 
 end # module
