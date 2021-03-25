@@ -1,4 +1,5 @@
 using DiffEqCallbacks
+using RecursiveArrayTools
 
 export CellBoundaryCallback
 
@@ -13,6 +14,18 @@ function create_energy_saving_callback()
     #SavingCallback(save_energy, saved_values), saved_values
     saveat=Vector{eltype(saved_values.t)}()
     SavingCallback(save_energy, saved_values), saved_values
+end
+
+# See ../../Models/Models.jl
+save_eigs(u::IESHPhasespace, t, integrator) =
+    Models.eigen_summary(integrator.p.calculator.model, get_positions(u))
+
+
+function create_eigen_saving_callback()
+        saved_values = SavedValues(Float64, AbstractArray{Float64})
+        #SavingCallback(save_energy, saved_values), saved_values
+        saveat=Vector{eltype(saved_values.t)}()
+        SavingCallback(save_eigs, saved_values), saved_values
 end
 
 outside_cell(u,t,integrator) = !check_atoms_in_cell(integrator.p.cell, get_positions(u))

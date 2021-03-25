@@ -141,6 +141,19 @@ function energy(model::DiabaticModel, R::AbstractMatrix; state=1)
     eigvals(V)[state]
 end
 
+function eigen_summary(model::DiabaticModel, R::AbstractMatrix)
+    # define output array
+    eig_array = zeros(model.n_states+1, model.n_states)
+    # The Diabatic Models contain a diabatic matrix
+    V = Hermitian(zeros(model.n_states,model.n_states))
+    # Get diabatic matrix
+    potential!(model,V,R)
+    # Export a matrix of eigenvectors and eigenvalues in the bottom line
+    eig_array[1:model.n_states,:] .= eigvecs(V)
+    eig_array[end,:] .= eigvals(V)
+    eig_array = eig_array
+end
+
 function potential_matrix(model::DiabaticModel, R::AbstractMatrix; state=1)
     # The Diabatic Models contain a diabatic matrix
     V = Hermitian(zeros(model.n_states,model.n_states))
