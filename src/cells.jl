@@ -48,7 +48,7 @@ end
 
 function set_vectors!(cell::PeriodicCell, vectors::Matrix)
     cell.vectors .= vectors
-    cell.inverse .= inv(cell)
+    cell.inverse .= inv(cell.vectors)
 end
 
 function apply_cell_boundaries!(cell::PeriodicCell, R::AbstractMatrix)
