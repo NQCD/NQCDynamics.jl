@@ -5,6 +5,7 @@ export AbstractCell
 export PeriodicCell
 export InfiniteCell
 export set_periodicity!
+export set_vectors!
 export apply_cell_boundaries!
 export evaluate_periodic_distance
 export check_atoms_in_cell
@@ -43,6 +44,11 @@ end
 
 function set_periodicity!(cell::PeriodicCell, periodicity::Vector{Bool})
     cell.periodicity .= periodicity
+end
+
+function set_vectors!(cell::PeriodicCell, vectors::Matrix)
+    cell.vectors .= vectors
+    cell.inverse .= inv(cell)
 end
 
 function apply_cell_boundaries!(cell::PeriodicCell, R::AbstractMatrix)
