@@ -58,6 +58,16 @@ function apply_cell_boundaries!(cell::PeriodicCell, R::AbstractMatrix)
 end
 apply_cell_boundaries!(::InfiniteCell, ::AbstractMatrix) = nothing
 
+function apply_cell_boundaries!(cell::PeriodicCell, R::AbstractVector)
+    mul!(cell.tmp_vector1, cell.inverse, R)
+    for j in axes(R, 1) # DoFs
+        if cell.periodicity[j]
+            cell.tmp_vector1[j] = mod(cell.tmp_vector1[j], 1)
+        end
+    end
+    mul!(R, cell.vectors, cell.tmp_vector1)
+end
+
 """
     apply_cell_boundaries!(cell::PeriodicCell, R::AbstractArray{T,3}, beads::RingPolymerParameters) where {T}
     
