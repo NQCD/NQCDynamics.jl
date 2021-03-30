@@ -1,12 +1,13 @@
 using NonadiabaticMolecularDynamics
 using PyCall
 
-model_path = "/Users/wojciechstark/Desktop/ML-model-repository-master/H2_on_Ag111/h2ag111pes"
-input_f = model_path * "/Ag.xyz"
+pes_path = "/home/chem/msuhmw/programs/ML-model-repository/H2_on_Ag111/h2ag111pes/h2pes.so"
+friction_path = "/home/chem/msuhmw/programs/ML-model-repository/H2_on_Ag111/h2agtensor/tensor_neu/h2agtensor.so"
+input_f = "Ag.xyz"
 cell, atoms, positions = read_system(input_f)
 
 println("Initialize...")
-model = Models.EANN_H₂Ag(model_path, atoms)
+model = Models.EANN_H₂Ag(pes_path, friction_path, atoms)
 
 println("Positions:")
 println(positions)
