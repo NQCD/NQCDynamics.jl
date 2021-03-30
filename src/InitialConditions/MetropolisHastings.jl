@@ -148,7 +148,7 @@ function run_main_loop!(sim::Simulation, monte::MonteCarlo, Rᵢ::Matrix, Rₚ::
     @showprogress 0.1 "Sampling... " for i=1:convert(Int, monte.steps)
         atom = sample(range(sim.atoms), monte.moveable_atoms)
         propose_move!(sim, monte, Rᵢ, Rₚ, atom)
-        @views for i in axes(R, 2) # atoms
+        @views for i in axes(Rₚ, 2) # atoms
             if monte.moveable_atoms[i] > 0
                 apply_cell_boundaries!(sim.cell, Rₚ[:,i])
             end
