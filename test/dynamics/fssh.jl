@@ -2,11 +2,11 @@ using Test
 using NonadiabaticMolecularDynamics
 using OrdinaryDiffEq
 
-@test Dynamics.FSSH{Float64}(3, 2) isa Dynamics.FSSH
+@test Dynamics.FSSH{Float64}(2) isa Dynamics.FSSH
 atoms = Atoms([:H])
 
 @testset "FSSH" begin
-    sim = Simulation(atoms, Models.DoubleWell(), Dynamics.FSSH{Float64}(1, 2); DoFs=1)
+    sim = Simulation(atoms, Models.DoubleWell(), Dynamics.FSSH{Float64}(2); DoFs=1)
 
     r = zeros(sim.DoFs, length(sim.atoms)) 
     v = rand(sim.DoFs, length(sim.atoms)) 
@@ -68,8 +68,8 @@ end
 @testset "RPSH" begin
     sim = RingPolymerSimulation{FSSH}(atoms, Models.DoubleWell(), 5; DoFs=1)
 
-    r = zeros(sim.DoFs, length(sim.atoms), 5) 
-    v = rand(sim.DoFs, length(sim.atoms), 5) 
+    r = RingPolymerArray(zeros(sim.DoFs, length(sim.atoms), 5))
+    v = RingPolymerArray(rand(sim.DoFs, length(sim.atoms), 5))
     u = SurfaceHoppingDynamicals(v, r, 2, 1)
 
     problem = ODEProblem(Dynamics.motion!, u, (0.0, 1.0), sim)
@@ -110,8 +110,8 @@ end
 
         sim = RingPolymerSimulation{FSSH}(atoms, Models.DoubleWell(), 5; DoFs=1)
 
-        r = zeros(sim.DoFs, length(sim.atoms), 5) 
-        v = rand(sim.DoFs, length(sim.atoms), 5) 
+        r = RingPolymerArray(zeros(sim.DoFs, length(sim.atoms), 5))
+        v = RingPolymerArray(rand(sim.DoFs, length(sim.atoms), 5))
         u = SurfaceHoppingDynamicals(v, r, 2, 1)
 
         solution = Dynamics.run_trajectory(u, (0.0, 10.0), sim)
