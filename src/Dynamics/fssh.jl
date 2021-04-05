@@ -10,7 +10,7 @@ struct FSSH{T} <: Method
     density_propagator::Matrix{Complex{T}}
     hopping_probability::Vector{T}
     new_state::Vector{Int}
-    function FSSH{T}(atoms::Integer, states::Integer) where {T}
+    function FSSH{T}(states::Integer) where {T}
         density_propagator = zeros(states, states)
         hopping_probability = zeros(states)
         new_state = [0]
@@ -18,8 +18,8 @@ struct FSSH{T} <: Method
     end
 end
 
-mutable struct SurfaceHoppingDynamicals{T,N}  <: DynamicalVariables{T}
-    x::ArrayPartition{Complex{T}, Tuple{Array{T,N}, Array{T,N}, Matrix{Complex{T}}}}
+mutable struct SurfaceHoppingDynamicals{T,D}  <: DynamicalVariables{T}
+    x::ArrayPartition{Complex{T}, Tuple{D,D,Matrix{Complex{T}}}}
     state::Int
 end
 
@@ -203,7 +203,7 @@ function evaluate_a_and_b(sim::AbstractSimulation{<:FSSH}, velocity::AbstractArr
     (a, b)
 end
 
-function evaluate_a_and_b(sim::RingPolymerSimulation{<:FSSH}, velocity::Array{T,3}, new_state, old_state) where {T}
+function evaluate_a_and_b(sim::RingPolymerSimulation{<:FSSH}, velocity::RingPolymerArray, new_state, old_state)
     a = zeros(length(sim.atoms), length(sim.beads))
     b = zero(a)
     @views for i in range(sim.beads)

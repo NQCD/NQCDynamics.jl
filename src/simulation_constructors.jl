@@ -22,7 +22,7 @@ Simulation{Langevin}(atoms::Atoms{S,T}, model::Model; γ=1, temperature=0u"K", D
                temperature=temperature, DoFs=DoFs, kwargs...)
 
 Simulation{FSSH}(atoms::Atoms{S,T}, model::Model; kwargs...) where {S,T} =
-    Simulation(atoms, model, FSSH{T}(length(atoms), model.n_states); kwargs...)
+    Simulation(atoms, model, FSSH{T}(model.n_states); kwargs...)
 
 RingPolymerSimulation{FSSH}(atoms::Atoms{S,T}, model::Model, n_beads::Integer; kwargs...) where {S,T} =
-    RingPolymerSimulation(atoms, model, FSSH{T}(length(atoms), model.n_states), n_beads; kwargs...)
+    RingPolymerSimulation(atoms, model, FSSH{T}(model.n_states), n_beads; kwargs...)
