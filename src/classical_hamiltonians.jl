@@ -17,7 +17,7 @@ function evaluate_hamiltonian(sim::AbstractSimulation, v::AbstractMatrix, r::Abs
     k + e
 end
 
-function evaluate_hamiltonian(sim::RingPolymerSimulation, v::Array{T,3}, r::Array{T,3}) where {T}
+function evaluate_hamiltonian(sim::RingPolymerSimulation, v::RingPolymerArray, r::RingPolymerArray)
     E = 0.0
     @views for i=1:length(sim.beads)
         E += evaluate_kinetic_energy(sim.atoms.masses, v[:,:,i])
@@ -33,7 +33,7 @@ function evaluate_potential_energy(sim::AbstractSimulation, R::AbstractMatrix)
     sim.calculator.potential[1]
 end
 
-function evaluate_potential_energy(sim::RingPolymerSimulation, R::Array{T, 3}) where {T}
+function evaluate_potential_energy(sim::RingPolymerSimulation, R::RingPolymerArray)
     Calculators.evaluate_potential!(sim.calculator, R)
     get_spring_energy(sim, R) + sum(sim.calculator.potential)[1]
 end
@@ -45,7 +45,7 @@ Calculate the ring polymer spring potential.
 
 I don't like having to write these loops but it seems faster than any alternative.
 """
-function get_spring_energy(sim::RingPolymerSimulation, R::Array{T, 3}) where {T}
+function get_spring_energy(sim::RingPolymerSimulation, R::RingPolymerArray)
     E = 0.0
     for bead=1:length(sim.beads)-1
         for i in sim.beads.quantum_atoms # Only for quantum nuclei
