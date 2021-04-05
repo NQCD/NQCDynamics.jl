@@ -50,7 +50,7 @@ Applies the force that arises from the harmonic springs between adjacent beads.
 
 Only applies the force for atoms labelled as quantum within the `RingPolymerParameters`.
 """
-function apply_interbead_coupling!(dr::Array{T,3}, r::Array{T,3}, sim::RingPolymerSimulation) where {T}
+function apply_interbead_coupling!(dr::RingPolymerArray, r::RingPolymerArray, sim::RingPolymerSimulation)
     for i in sim.beads.quantum_atoms
         for j=1:sim.DoFs
             dr[j,i,:] .-= 2sim.beads.springs*r[j,i,:]
@@ -58,7 +58,7 @@ function apply_interbead_coupling!(dr::Array{T,3}, r::Array{T,3}, sim::RingPolym
     end
 end
 
-function create_problem(u0::D, tspan::Tuple, sim::AbstractSimulation{<:Classical}) where {D<:Union{ClassicalDynamicals,RingPolymerClassicalDynamicals}}
+function create_problem(u0::ClassicalDynamicals, tspan::Tuple, sim::AbstractSimulation{<:Classical})
     DynamicalODEProblem(acceleration!, velocity!, get_velocities(u0), get_positions(u0), tspan, sim)
 end
 
