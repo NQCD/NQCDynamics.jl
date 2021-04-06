@@ -28,7 +28,7 @@ function create_saving_callbacks(trajectories, output)
     callbacks = []
     values = []
     for i=1:trajectories
-        cb, vals = SavingCallback(output)
+        cb, vals = create_saving_callback(output)
         push!(callbacks, cb)
         push!(values, vals)
     end
