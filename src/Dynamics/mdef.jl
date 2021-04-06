@@ -21,20 +21,33 @@ where ``T`` is the electronic temperature.
 This is integrated using the BAOAB algorithm where the friction "O" step is performed
 in the tensor's eigenbasis. See `src/dynamics/mdef_baoab.jl` for details.
 """
-struct MDEF <: AbstractMDEF end
+struct MDEF{M} <: AbstractMDEF
+    mass_scaling::M
+end
+
+MDEF(masses::AbstractVector, DoFs::Integer) = MDEF(get_mass_scale_matrix(masses, DoFs))
 
 """
 $(TYPEDEF)
 
 Same as standard MDEF but uses a function to determine the time-dependent temperature.
 """
-struct TwoTemperatureMDEF <: AbstractMDEF
+struct TwoTemperatureMDEF{M} <: AbstractMDEF
+    mass_scaling::M
     temperature::Function
 end
 
+TwoTemperatureMDEF(masses::AbstractVector, DoFs::Integer, temperature::Function) =
+    TwoTemperatureMDEF(get_mass_scale_matrix(masses, DoFs), temperature)
+
+function get_mass_scale_matrix(masses::AbstractVector, DoFs::Integer)
+    vect = repeat(sqrt.(masses), inner=DoFs)
+    vect * vect'
+end
+
 """Gets the temperature as a function of time during MDEF."""
-get_temperature(sim::Simulation{MDEF}, ::AbstractFloat) = sim.temperature
-get_temperature(sim::Simulation{TwoTemperatureMDEF}, t::AbstractFloat) = sim.method.temperature(t)
+get_temperature(sim::Simulation{<:MDEF}, ::AbstractFloat) = sim.temperature
+get_temperature(sim::Simulation{<:TwoTemperatureMDEF}, t::AbstractFloat) = sim.method.temperature(t)
 
 """
     acceleration!(dv, v, r, sim::Simulation{MDEF,<:DiabaticFrictionCalculator}, t)
@@ -58,15 +71,7 @@ Evaluates friction tensor and provides variance of random force.
 function friction!(du, r, sim::AbstractSimulation{<:AbstractMDEF}, t)
     Calculators.evaluate_friction!(sim.calculator, r)
 
-    du.x[1] .= sim.calculator.friction
-    for i in range(sim.atoms)
-        for j in range(sim.atoms)
-            for k=0:sim.DoFs-1
-                du.x[1][i+k,j+k] /= sqrt(sim.atoms.masses[i] * sim.atoms.masses[j])
-            end
-        end
-    end
-
+    du.x[1] .= sim.calculator.friction ./ sim.method.mass_scaling
     du.x[2] .= sqrt.(get_temperature(sim, t) ./ repeat(sim.atoms.masses; inner=sim.DoFs))
 end
 
