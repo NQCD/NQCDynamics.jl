@@ -14,10 +14,11 @@ struct MDEF_BAOABConstantCache{uType,uEltypeNoUnits} <: StochasticDiffEqConstant
     k::uType
     half::uEltypeNoUnits
 end
-struct MDEF_BAOABCache{uType,uTypeFlat,uEltypeNoUnits,rateNoiseType,compoundType} <: StochasticDiffEqMutableCache
-    utmp::uType
-    dutmp::uType
-    k::uType
+struct MDEF_BAOABCache{uType,rType,vType,uTypeFlat,uEltypeNoUnits,rateNoiseType,compoundType} <: StochasticDiffEqMutableCache
+    tmp::uType
+    utmp::rType
+    dutmp::vType
+    k::vType
     flatdutmp::uTypeFlat
     tmp1::uTypeFlat
     tmp2::uTypeFlat
@@ -34,6 +35,7 @@ function alg_cache(alg::MDEF_BAOAB,prob,u,ΔW,ΔZ,p,rate_prototype,noise_rate_pr
 end
 
 function alg_cache(alg::MDEF_BAOAB,prob,u,ΔW,ΔZ,p,rate_prototype,noise_rate_prototype,jump_rate_prototype,uEltypeNoUnits,uBottomEltypeNoUnits,tTypeNoUnits,uprev,f,t,dt,::Type{Val{true}})
+    tmp = zero(u)
     dutmp = zero(u.x[1])
     utmp = zero(u.x[2])
     k = zero(rate_prototype.x[1])
@@ -48,7 +50,7 @@ function alg_cache(alg::MDEF_BAOAB,prob,u,ΔW,ΔZ,p,rate_prototype,noise_rate_pr
     c1 = zeros(length(utmp), length(utmp))
     c2 = zero(c1)
 
-    MDEF_BAOABCache(utmp, dutmp, k, flatdutmp, tmp1, tmp2, gtmp, noise, half, c1, c2)
+    MDEF_BAOABCache(tmp, utmp, dutmp, k, flatdutmp, tmp1, tmp2, gtmp, noise, half, c1, c2)
 end
 
 function initialize!(integrator, cache::MDEF_BAOABConstantCache)
