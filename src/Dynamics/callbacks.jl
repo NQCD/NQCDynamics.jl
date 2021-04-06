@@ -2,14 +2,14 @@ using DiffEqCallbacks
 
 export CellBoundaryCallback
 export create_terminating_callback
-export SavingCallback
+export create_saving_callback
 
-DiffEqCallbacks.SavingCallback(quantities::Symbol) = SavingCallback((quantities,))
+create_saving_callback(quantities::Symbol; saveat=[]) = create_saving_callback((quantities,), saveat=saveat)
 
-function DiffEqCallbacks.SavingCallback(quantities::NTuple{N, Symbol}) where {N}
+function create_saving_callback(quantities::NTuple{N, Symbol}; saveat=[]) where {N}
     saved_values = SavedValues(Float64, NamedTuple{quantities})
     saving_function = get_saving_function(NamedTuple{quantities})
-    SavingCallback(saving_function, saved_values), saved_values
+    SavingCallback(saving_function, saved_values; saveat=saveat), saved_values
 end
 
 function get_saving_function(::Type{savevalType})::Function where {savevalType}
