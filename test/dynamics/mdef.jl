@@ -14,9 +14,9 @@ u = ClassicalDynamicals(v, r)
 du = zero(u)
 
 @testset "friction!" begin
-    gtmp = ArrayPartition(zeros(length(r), length(r)), zeros(length(r)))
+    gtmp = zeros(length(r), length(r))
     NonadiabaticMolecularDynamics.Dynamics.friction!(gtmp, r, sim, 0.0)
-    @test all(diag(gtmp.x[1]) .≈ 1.0)
+    @test all(diag(gtmp) .≈ 1.0)
 end
 
 sol = Dynamics.run_trajectory(u, (0.0, 100.0), sim; dt=1)

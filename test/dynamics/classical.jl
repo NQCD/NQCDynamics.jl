@@ -18,7 +18,7 @@ test_acceleration!(sim)
 test_motion!(sim)
 
 u0 = ClassicalDynamicals(v, r)
-sol = Dynamics.run_trajectory(u0, (0.0, 10000.0), sim; dt=0.1)
+sol = Dynamics.run_trajectory(u0, (0.0, 1000.0), sim; dt=0.1)
 
 e0 = evaluate_hamiltonian(sim, ClassicalDynamicals(sol.u[1]))
 e1 = evaluate_hamiltonian(sim, ClassicalDynamicals(sol.u[end]))
@@ -32,7 +32,7 @@ dv = zero(v)
 dr = zero(r)
 
 u0 = ClassicalDynamicals(v, r)
-sol = Dynamics.run_trajectory(u0, (0.0, 10000.0), sim; dt=0.1)
+sol = Dynamics.run_trajectory(u0, (0.0, 1000.0), sim; dt=0.1)
 
 e0 = evaluate_hamiltonian(sim, ClassicalDynamicals(sol.u[1]))
 e1 = evaluate_hamiltonian(sim, ClassicalDynamicals(sol.u[end]))
