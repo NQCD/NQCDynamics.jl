@@ -47,15 +47,13 @@ function acceleration!(dv, v, r, sim::Simulation{MDEF,<:DiabaticFrictionCalculat
 end
 
 """
-    friction!(du, r, sim, t)
+    friction!(g, r, sim, t)
 
 Evaluates friction tensor and provides variance of random force.
 """
-function friction!(du, r, sim::AbstractSimulation{<:AbstractMDEF}, t)
+function friction!(g, r, sim::AbstractSimulation{<:AbstractMDEF}, t)
     Calculators.evaluate_friction!(sim.calculator, r)
-
-    du.x[1] .= sim.calculator.friction ./ sim.method.mass_scaling
-    du.x[2] .= sqrt.(get_temperature(sim, t) ./ repeat(sim.atoms.masses; inner=sim.DoFs))
+    g .= sim.calculator.friction ./ sim.method.mass_scaling
 end
 
 function create_problem(u0::ClassicalDynamicals, tspan::Tuple, sim::AbstractSimulation{<:AbstractMDEF})

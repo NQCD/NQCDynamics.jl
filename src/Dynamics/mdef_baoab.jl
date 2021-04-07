@@ -8,7 +8,7 @@ export MDEF_BAOAB
 
 struct MDEF_BAOAB <: StochasticDiffEqAlgorithm end
 
-alg_compatible(prob::DiffEqBase.AbstractSDEProblem,alg::MDEF_BAOAB) = true
+alg_compatible(::DiffEqBase.AbstractSDEProblem,::MDEF_BAOAB) = true
 
 struct MDEF_BAOABConstantCache{uType,uEltypeNoUnits} <: StochasticDiffEqConstantCache
     k::uType
@@ -29,12 +29,12 @@ struct MDEF_BAOABCache{uType,rType,vType,uTypeFlat,uEltypeNoUnits,rateNoiseType,
     c2::Matrix{uEltypeNoUnits}
 end
 
-function alg_cache(alg::MDEF_BAOAB,prob,u,ΔW,ΔZ,p,rate_prototype,noise_rate_prototype,jump_rate_prototype,uEltypeNoUnits,uBottomEltypeNoUnits,tTypeNoUnits,uprev,f,t,dt,::Type{Val{false}})
+function alg_cache(::MDEF_BAOAB,prob,u,ΔW,ΔZ,p,rate_prototype,noise_rate_prototype,jump_rate_prototype,uEltypeNoUnits,uBottomEltypeNoUnits,tTypeNoUnits,uprev,f,t,dt,::Type{Val{false}})
     k = zero(rate_prototype.x[1])
     MDEF_BAOABConstantCache(k, uEltypeNoUnits(1//2))
 end
 
-function alg_cache(alg::MDEF_BAOAB,prob,u,ΔW,ΔZ,p,rate_prototype,noise_rate_prototype,jump_rate_prototype,uEltypeNoUnits,uBottomEltypeNoUnits,tTypeNoUnits,uprev,f,t,dt,::Type{Val{true}})
+function alg_cache(::MDEF_BAOAB,prob,u,ΔW,ΔZ,p,rate_prototype,noise_rate_prototype,jump_rate_prototype,uEltypeNoUnits,uBottomEltypeNoUnits,tTypeNoUnits,uprev,f,t,dt,::Type{Val{true}})
     tmp = zero(u)
     dutmp = zero(u.x[1])
     utmp = zero(u.x[2])
@@ -43,7 +43,7 @@ function alg_cache(alg::MDEF_BAOAB,prob,u,ΔW,ΔZ,p,rate_prototype,noise_rate_pr
     tmp1 = zero(flatdutmp)
     tmp2 = zero(flatdutmp)
 
-    gtmp = ArrayPartition(zeros(length(utmp), length(utmp)), zeros(length(utmp)))
+    gtmp = zeros(length(utmp), length(utmp))
     noise = zero(rate_prototype.x[1][:])
 
     half = uEltypeNoUnits(1//2)
@@ -82,7 +82,8 @@ end
     u2 = u1 + half*dt*du2
 
     # O
-    Λ, σ = integrator.g(u2,p,t+dt*half)
+    Λ = integrator.g(u2,p,t+dt*half)
+    σ = sqrt(get_temperature(p, t+dt*half)) ./ sqrt.(repeat(p.atoms.masses; inner=p.DoFs))
     γ, c = LAPACK.syev!('V', 'U', Λ) # symmetric eigen
     clamp!(γ, 0, Inf)
     c1 = diagm(exp.(-γ.*dt))
@@ -103,20 +104,33 @@ end
 
 @muladd function perform_step!(integrator,cache::MDEF_BAOABCache,f=integrator.f)
     @unpack t,dt,sqdt,uprev,u,p,W = integrator
-    @unpack utmp, dutmp, k, flatdutmp, tmp1, tmp2, gtmp, noise, half, c1, c2 = cache
+    @unpack utmp, dutmp, k, half, gtmp = cache
     du1 = uprev.x[1]
     u1 = uprev.x[2]
 
-    # B
-    @.. dutmp = du1 + half*dt*k
+    step_B!(dutmp, du1, half*dt, k)
 
-    # A
-    @.. utmp = u1 + half*dt*dutmp
+    step_A!(utmp, u1, half*dt, dutmp)
 
-    # O
     integrator.g(gtmp,utmp,p,t+dt*half)
-    Λ = gtmp.x[1]
-    σ = gtmp.x[2]
+    step_O!(cache, integrator)
+
+    step_A!(u.x[2], utmp, half*dt, dutmp)
+
+    integrator.f.f1(k,dutmp,u.x[2],p,t+dt)
+    step_B!(u.x[1], dutmp, half*dt, k)
+end
+
+step_B!(v2, v1, dt, k) = @.. v2 = v1 + dt*k
+step_A!(r2, r1, dt, v)  = @.. r2 = r1 + dt*v
+
+function step_O!(cache, integrator)
+    @unpack t, dt, W, p, sqdt = integrator
+    @unpack dutmp, flatdutmp, tmp1, tmp2, gtmp, noise, half, c1, c2 = cache
+
+    Λ = gtmp
+    σ = sqrt(get_temperature(p, t+dt*half)) ./ sqrt.(repeat(p.atoms.masses; inner=p.DoFs))
+
     @.. noise = σ*W.dW[:] / sqdt
 
     γ, c = LAPACK.syev!('V', 'U', Λ) # symmetric eigen
@@ -138,11 +152,4 @@ end
 
     @.. flatdutmp += tmp1
     copyto!(dutmp, flatdutmp)
-
-    # A
-    @.. u.x[2] = utmp + half*dt*dutmp
-
-    # B
-    f.f1(k,dutmp,u.x[2],p,t+dt)
-    @.. u.x[1] = dutmp + half*dt*k
 end
