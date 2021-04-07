@@ -20,6 +20,8 @@ struct Simulation{M,Calc,A,T,C} <: AbstractSimulation{M,Calc,A,T,C}
     method::M
 end
 
+Base.broadcastable(sim::AbstractSimulation) = Ref(sim)
+
 function Simulation(DoFs::Integer, temperature, cell::AbstractCell,
         atoms::Atoms{S,T}, model::Model, method::M) where {M,S,T}
     calc = Calculator(model, DoFs, length(atoms), T)
