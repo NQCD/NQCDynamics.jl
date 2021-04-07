@@ -13,27 +13,20 @@ v0 = ones(2,2)
 γ = 1
 f1_harmonic(v,u,p,t) = -u
 f2_harmonic(v,u,p,t) = v
-function g(u,p,t)
-    Λ = diagm(ones(length(u)))
-    σ = 0.2
-    Λ, σ
-end
+g(u,p,t) = diagm(ones(length(u)))
+
+p = Simulation(Atoms([:H,:H]), Models.Free(); DoFs=2, temperature=100)
 
 ff_harmonic = DynamicalSDEFunction(f1_harmonic,f2_harmonic,g)
-prob1 = DynamicalSDEProblem(ff_harmonic,g,v0,u0,(0.0,0.5))
+prob1 = DynamicalSDEProblem(ff_harmonic,g,v0,u0,(0.0,0.5),p)
 
 sol1 = solve(prob1,MDEF_BAOAB();dt=1/10,save_noise=true)
 
 f1_harmonic_iip(dv,v,u,p,t) = dv .= f1_harmonic(v,u,p,t)
 f2_harmonic_iip(du,v,u,p,t) = du .= f2_harmonic(v,u,p,t)
-function g_iip(du,u,p,t)
-    Λ = diagm(ones(length(u)))
-    σ = 0.2
-    du.x[1] .= Λ
-    du.x[2] .= σ
-end
+g_iip(du,u,p,t) = du .= g(u,p,t)
 
-prob2 = DynamicalSDEProblem(f1_harmonic_iip,f2_harmonic_iip,g_iip,v0,u0,(0.0,0.5);
+prob2 = DynamicalSDEProblem(f1_harmonic_iip,f2_harmonic_iip,g_iip,v0,u0,(0.0,0.5),p;
                            noise=NoiseWrapper(sol1.W))
 
 sol2 = solve(prob2,MDEF_BAOAB();dt=1/10)
