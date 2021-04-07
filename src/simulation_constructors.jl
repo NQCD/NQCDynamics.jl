@@ -11,9 +11,6 @@ RingPolymerSimulation{Classical}(atoms::Atoms, model::Model, n_beads::Integer; k
 Simulation{MDEF}(atoms::Atoms, model::Model; DoFs=3, kwargs...) =
     Simulation(atoms, model, MDEF(atoms.masses, DoFs); DoFs=DoFs, kwargs...)
     
-Simulation{TwoTemperatureMDEF}(atoms::Atoms, model::Model, T::Function; DoFs=3, kwargs...) =
-    Simulation(atoms, model, TwoTemperatureMDEF(atoms.masses, DoFs, T); DoFs=DoFs, kwargs...)
-
 RingPolymerSimulation{NRPMD}(atoms::Atoms{S,T}, model::Model, n_beads::Integer; kwargs...) where {S,T}=
     RingPolymerSimulation(atoms, model, NRPMD{T}(model.n_states), n_beads; kwargs...)
 
