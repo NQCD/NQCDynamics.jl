@@ -1,4 +1,5 @@
 export run_ensemble
+export run_dissociation_ensemble
 using ..InitialConditions
 
 function run_ensemble(distribution::DynamicalDistribution,
@@ -56,4 +57,45 @@ end
 
 function select_u0(sim::RingPolymerSimulation{<:NRPMD}, distribution::DynamicalDistribution, state::Integer)
     RingPolymerMappingDynamicals(rand(distribution)..., sim.calculator.model.n_states, state)
+end
+
+function run_dissociation_ensemble(
+    distribution::DynamicalDistribution,
+    tspan::Tuple, sim::AbstractSimulation;
+    atom_indices=(1,2),
+    distance=1.0,
+    kwargs...)
+
+    stripped_kwargs = austrip_kwargs(;kwargs...)
+
+    u0 = ArrayPartition(InitialConditions.pick(distribution, 1)...)
+    problem = create_problem(u0, austrip.(tspan), sim)
+
+    @views function atoms_far_apart(u, t, integrator)
+        R = get_positions(u)
+        norm(R[:,atom_indices[1]] .- R[:,atom_indices[2]]) > austrip(distance)
+    end
+    terminate = create_terminating_callback(atoms_far_apart)
+
+    function output_func(sol, i)
+        if atoms_far_apart(sol.u[end], 0.0, 0.0)
+            return (1, false)
+        else
+            return (0, false)
+        end
+    end
+
+    function prob_func(prob, i, repeat)
+        u0 = ArrayPartition(InitialConditions.pick(distribution, i)...)
+        remake(prob, u0=u0)
+    end
+
+    reduction(u,batch,I) = (mean(batch), false)
+
+    ensemble_problem = EnsembleProblem(problem,
+                                       prob_func=prob_func,
+                                       reduction=reduction,
+                                       output_func=output_func)
+
+    solve(ensemble_problem, select_algorithm(sim); callback=terminate, stripped_kwargs...)
 end
