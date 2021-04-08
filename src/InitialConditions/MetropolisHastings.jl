@@ -264,7 +264,7 @@ end
 Return the Metropolis-Hastings acceptance probability.
 """
 function acceptance_probability(sim::Simulation, monte::MonteCarlo)
-    acceptance_probability(monte.Eₚ, monte.Eᵢ, sim.temperature)
+    acceptance_probability(monte.Eₚ, monte.Eᵢ, get_temperature(sim))
 end
 function acceptance_probability(sim::RingPolymerSimulation, monte::PathIntegralMonteCarlo)
     acceptance_probability(monte.Eₚ, monte.Eᵢ, sim.beads.ω_n)

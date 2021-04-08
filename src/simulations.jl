@@ -7,44 +7,49 @@ export AbstractSimulation
 export Simulation
 export RingPolymerSimulation
 export Method
+export get_temperature
 
-abstract type AbstractSimulation{M,A<:AbstractCalculator,S,T<:AbstractFloat,C<:AbstractCell} end
+abstract type AbstractSimulation{M,Calc<:AbstractCalculator,A<:Atoms,T,C<:AbstractCell} end
 
-struct Simulation{M,A,S,T,C} <: AbstractSimulation{M,A,S,T,C}
+struct Simulation{M,Calc,A,T,C} <: AbstractSimulation{M,Calc,A,T,C}
     DoFs::UInt8
     temperature::T
     cell::C
-    atoms::Atoms{S,T}
-    calculator::A
+    atoms::A
+    calculator::Calc
     method::M
-    function Simulation(DoFs::Integer, temperature::Real, cell::AbstractCell,
-            atoms::Atoms{S,T}, model::Model, method::M) where {M,S,T}
-        calc = Calculator(model, DoFs, length(atoms), T)
-        new{M,typeof(calc),S,T,typeof(cell)}(DoFs, temperature, cell, atoms, calc, method)
-    end
 end
 
 Base.broadcastable(sim::AbstractSimulation) = Ref(sim)
 
-function Simulation(DoFs::Integer, temperature::Unitful.Temperature, cell::AbstractCell,
+function Simulation(DoFs::Integer, temperature, cell::AbstractCell,
         atoms::Atoms{S,T}, model::Model, method::M) where {M,S,T}
-    Simulation(DoFs, austrip(temperature), cell, atoms, model, method)
+    calc = Calculator(model, DoFs, length(atoms), T)
+    Simulation(UInt8(DoFs), temperature, cell, atoms, calc, method)
 end
-
-function Simulation(atoms::Atoms{S,T}, model::Model, method::M;
+    
+function Simulation(atoms::Atoms, model::Model, method::M;
         DoFs::Integer=3, temperature=0u"K",
-        cell::AbstractCell=InfiniteCell()) where {M,S,T}
+        cell::AbstractCell=InfiniteCell()) where {M}
     Simulation(DoFs, temperature, cell, atoms, model, method)
 end
 
-struct RingPolymerSimulation{M,A,S,T,C} <: AbstractSimulation{M,A,S,T,C}
+function get_temperature(sim::AbstractSimulation{M,Calc,A,T,C}, t::Real=0) where {M,Calc,A,T,C}
+    austrip(sim.temperature)
+end
+function get_temperature(sim::AbstractSimulation{M,Calc,A,T,C}, t::Real=0) where {M,Calc,A,T<:Function,C}
+    t = auconvert(u"fs", t)
+    austrip(sim.temperature(t))
+end
+
+struct RingPolymerSimulation{M,Calc,A,T,C,B} <: AbstractSimulation{M,Calc,A,T,C}
     DoFs::UInt8
     temperature::T
     cell::C
-    atoms::Atoms{S,T}
-    calculator::A
+    atoms::A
+    calculator::Calc
     method::M
-    beads::RingPolymerParameters{T}
+    beads::B
     function RingPolymerSimulation(DoFs::Integer, temperature::Real, cell::AbstractCell,
             atoms::Atoms{S,T}, model::Model, method::M,
             n_beads::Integer, quantum_nuclei::Vector{Symbol}=Symbol[]) where {M,S,T}
@@ -56,18 +61,18 @@ struct RingPolymerSimulation{M,A,S,T,C} <: AbstractSimulation{M,A,S,T,C}
         end
         
         calc = Calculator(model, DoFs, length(atoms), n_beads, T)
-        new{M,typeof(calc),S,T,typeof(cell)}(DoFs, temperature, cell, atoms, calc, method, beads)
+        new{M,typeof(calc),typeof(atoms),typeof(temperature),typeof(cell),typeof(beads)}(DoFs, temperature, cell, atoms, calc, method, beads)
     end
 end
 
 function RingPolymerSimulation(DoFs::Integer, temperature::Unitful.Temperature, cell::AbstractCell,
-        atoms::Atoms{S,T}, model::Model, method::M,
-        n_beads::Integer, quantum_nuclei::Vector{Symbol}=Symbol[]) where {M,S,T}
+        atoms::Atoms, model::Model, method::M,
+        n_beads::Integer, quantum_nuclei::Vector{Symbol}=Symbol[]) where {M}
     RingPolymerSimulation(DoFs, austrip(temperature), cell, atoms, model, method, n_beads, quantum_nuclei)
 end
 
-function RingPolymerSimulation(atoms::Atoms{S,T}, model::Model, method::M, n_beads::Integer;
+function RingPolymerSimulation(atoms::Atoms, model::Model, method::M, n_beads::Integer;
         DoFs::Integer=3, temperature::Unitful.Temperature=0u"K",
-        cell::AbstractCell=InfiniteCell(), quantum_nuclei::Vector{Symbol}=Symbol[]) where {M,S,T}
+        cell::AbstractCell=InfiniteCell(), quantum_nuclei::Vector{Symbol}=Symbol[]) where {M}
     RingPolymerSimulation(DoFs, austrip(temperature), cell, atoms, model, method, n_beads, quantum_nuclei)
 end

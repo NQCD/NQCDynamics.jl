@@ -22,11 +22,11 @@ Type for containing the classical variables for ring polymer mapping methods.
 
 Can be used for both NRPMD and MVRPMD.
 """
-mutable struct RingPolymerMappingDynamicals{T} <: DynamicalVariables{T}
-    x::ArrayPartition{T, Tuple{Array{T,3}, Array{T,3}, Matrix{T}, Matrix{T}}}
+mutable struct RingPolymerMappingDynamicals{T,D} <: DynamicalVariables{T}
+    x::ArrayPartition{T, Tuple{D,D, Matrix{T}, Matrix{T}}}
 end
 
-function RingPolymerMappingDynamicals(v::Array{T,3}, r::Array{T,3},
+function RingPolymerMappingDynamicals(v::RingPolymerArray{T}, r::RingPolymerArray{T},
                                       n_states::Integer, state::Integer) where {T}
 
     n_beads = size(r)[3]
@@ -38,13 +38,13 @@ function RingPolymerMappingDynamicals(v::Array{T,3}, r::Array{T,3},
     qmap[state,:] .*= sqrt(3)
     pmap = qmap .* tan.(-θ)
 
-    RingPolymerMappingDynamicals{T}(ArrayPartition(v, r, pmap, qmap))
+    RingPolymerMappingDynamicals{T,RingPolymerArray{T}}(ArrayPartition(v, r, pmap, qmap))
 end
 
 function RingPolymerMappingDynamicals(v::Matrix, r::Matrix, n_beads::Integer,
         n_states::Integer, state::Integer)
-    v = cat([v for i=1:n_beads]..., dims=3)
-    r = cat([r for i=1:n_beads]..., dims=3)
+    v = RingPolymerArray(cat([v for i=1:n_beads]..., dims=3))
+    r = RingPolymerArray(cat([r for i=1:n_beads]..., dims=3))
     RingPolymerMappingDynamicals(v, r, n_states, state)
 end
 
