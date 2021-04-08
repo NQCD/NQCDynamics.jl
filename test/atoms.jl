@@ -10,3 +10,6 @@ atoms = Atoms{Float64}([:C, :H])
 @test atoms.masses isa SVector
 
 @test range(atoms) == 1:2
+
+@test atoms[1] isa Atoms{1,Float64}
+@test atoms[1:2] isa Atoms{2,Float64}
