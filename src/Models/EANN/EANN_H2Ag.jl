@@ -32,7 +32,7 @@ struct EANN_H₂Ag{S,T} <: FrictionModel
         @assert h2indices == [1, 2]
         new{S,T}(potential_function, force_function, friction_function,
                  potential_path, friction_path, atoms, h2indices,
-                 zeros(3, length(atoms)),
+                 zeros(3, 2),
                  zeros(3, 2),
                  zeros(6, 6),
                  zeros(1, 1))
@@ -48,19 +48,19 @@ function initialize!(path, pes_lib)
 end
 
 function potential!(model::EANN_H₂Ag, V::AbstractVector, R::AbstractMatrix)
-    model.tmp_coordinates .= au_to_ang.(R)
+    @views model.tmp_coordinates .= au_to_ang.(R[:,model.h2indices])
     cd(splitdir(model.potential_path)[1]) do
         ccall(model.potential_function, Cvoid, (Ref{Int64}, Ref{Float64}, Ptr{Float64}),
-              length(model.atoms), model.tmp_coordinates, model.tmp_energy)
+              2, model.tmp_coordinates, model.tmp_energy)
     end
     V[1] = eV_to_au(model.tmp_energy[1])
 end
 
 function derivative!(model::EANN_H₂Ag, D::AbstractMatrix, R::AbstractMatrix)
-    model.tmp_coordinates .= au_to_ang.(R)
+    @views model.tmp_coordinates .= au_to_ang.(R[:,model.h2indices])
     cd(splitdir(model.potential_path)[1]) do
         ccall(model.force_function, Cvoid, (Ref{Int64}, Ref{Float64}, Ptr{Float64}),
-              length(model.atoms), model.tmp_coordinates, D)
+              2, model.tmp_coordinates, D)
     end
     D .= eV_per_ang_to_au.(D)
 end
