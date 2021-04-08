@@ -77,7 +77,15 @@ Quantise the vibrational and rotational degrees of freedom for the specified
 positions and velocities
 """
 function quantise_diatomic(sim::Simulation, v::Matrix, r::Matrix)
-    @assert length(sim.atoms) == 2
+    # Select only the first two atoms
+    if length(sim.atoms) > 2
+        sim = Simulation(sim.atoms[1:2], sim.calculator.model; cell=sim.cell)
+        v = v[:,1:2]
+        r = r[:,1:2]
+    elseif length(sim.atoms) == 1
+        throw(ArgumentError("Only a single atom in the simulation?"))
+    end
+
     p = v .* sim.atoms.masses'
     r_com = subtract_centre_of_mass(r, sim.atoms.masses)
     p_com = subtract_centre_of_mass(p, sim.atoms.masses)

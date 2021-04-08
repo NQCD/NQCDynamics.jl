@@ -27,27 +27,10 @@ end
 
 MDEF(masses::AbstractVector, DoFs::Integer) = MDEF(get_mass_scale_matrix(masses, DoFs))
 
-"""
-$(TYPEDEF)
-
-Same as standard MDEF but uses a function to determine the time-dependent temperature.
-"""
-struct TwoTemperatureMDEF{M} <: AbstractMDEF
-    mass_scaling::M
-    temperature::Function
-end
-
-TwoTemperatureMDEF(masses::AbstractVector, DoFs::Integer, temperature::Function) =
-    TwoTemperatureMDEF(get_mass_scale_matrix(masses, DoFs), temperature)
-
 function get_mass_scale_matrix(masses::AbstractVector, DoFs::Integer)
     vect = repeat(sqrt.(masses), inner=DoFs)
     vect * vect'
 end
-
-"""Gets the temperature as a function of time during MDEF."""
-get_temperature(sim::Simulation{<:MDEF}, ::AbstractFloat) = sim.temperature
-get_temperature(sim::Simulation{<:TwoTemperatureMDEF}, t::AbstractFloat) = sim.method.temperature(t)
 
 """
     acceleration!(dv, v, r, sim::Simulation{MDEF,<:DiabaticFrictionCalculator}, t)
@@ -64,15 +47,13 @@ function acceleration!(dv, v, r, sim::Simulation{MDEF,<:DiabaticFrictionCalculat
 end
 
 """
-    friction!(du, r, sim, t)
+    friction!(g, r, sim, t)
 
 Evaluates friction tensor and provides variance of random force.
 """
-function friction!(du, r, sim::AbstractSimulation{<:AbstractMDEF}, t)
+function friction!(g, r, sim::AbstractSimulation{<:AbstractMDEF}, t)
     Calculators.evaluate_friction!(sim.calculator, r)
-
-    du.x[1] .= sim.calculator.friction ./ sim.method.mass_scaling
-    du.x[2] .= sqrt.(get_temperature(sim, t) ./ repeat(sim.atoms.masses; inner=sim.DoFs))
+    g .= sim.calculator.friction ./ sim.method.mass_scaling
 end
 
 function create_problem(u0::ClassicalDynamicals, tspan::Tuple, sim::AbstractSimulation{<:AbstractMDEF})
