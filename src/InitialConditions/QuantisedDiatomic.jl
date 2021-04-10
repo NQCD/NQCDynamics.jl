@@ -32,16 +32,21 @@ export generate_configurations
 export quantise_diatomic
 
 """
-    generate_configurations(sim, ν, J; samples=1000)
+    generate_configurations(sim, ν, J; samples=1000, height=10, normal_vector=[0, 0, 1])
 
 Generate positions and momenta for given quantum numbers
+
+Keyword arguments `height` and `normal_vector` become relevant if the potential
+requires specific placement of the molecule.
+These allow the molecule to be placed at a distance `height` in the direction
+`normal_vector` when performing potential evaluations.
 """
-function generate_configurations(sim, ν, J; samples=1000)
-    E, bounds = extract_energy_and_bounds(sim, ν, J)
+function generate_configurations(sim, ν, J; samples=1000, height=10, normal_vector=[0, 0, 1])
+    E, bounds = extract_energy_and_bounds(sim, ν, J; height=height, normal_vector=normal_vector)
     μ = reduced_mass(sim.atoms)
 
     rotational(r) = J*(J+1) / (2μ*r^2)
-    Vᵣ(r) = rotational(r) + calculate_diatomic_energy(sim, r)
+    Vᵣ(r) = rotational(r) + calculate_diatomic_energy(sim, r; height=height, normal_vector=normal_vector)
     radial_momentum(r) = sqrt(2μ * (E - Vᵣ(r)))
 
     bonds, momenta = select_random_bond_lengths(E, bounds, radial_momentum, μ, samples)
@@ -52,20 +57,20 @@ end
 """
 Identify the energy and turning points associated with the specified quantum numbers
 """
-function extract_energy_and_bounds(sim, ν, J)
+function extract_energy_and_bounds(sim, ν, J; height=10, normal_vector=[0, 0, 1])
 
-    k = calculate_force_constant(sim)
+    k = calculate_force_constant(sim; height=height, normal_vector=normal_vector)
     μ = reduced_mass(sim.atoms)
     ω = sqrt(k / μ)
     E_guess = (ν + 1/2) * ω
 
     function target(E)
-        ν_tmp, J_tmp, bounds = extract_quantum_numbers(sim, μ, E, J)
+        ν_tmp, J_tmp, bounds = extract_quantum_numbers(sim, μ, E, J; height=height, normal_vector=normal_vector)
         ν_tmp - ν
     end
 
     E = find_zero(target, E_guess)
-    ν_tmp, J_tmp, bounds = extract_quantum_numbers(sim, μ, E, J)
+    ν_tmp, J_tmp, bounds = extract_quantum_numbers(sim, μ, E, J; height=height, normal_vector=normal_vector)
 
     E, bounds 
 end
@@ -75,8 +80,12 @@ end
 
 Quantise the vibrational and rotational degrees of freedom for the specified
 positions and velocities
+
+When evaluating the potential, the molecule is moved to `height` in direction `normal_vector`.
+If the potential is independent of centre of mass position, this has no effect.
+Otherwise, be sure to modify these parameters to give the intended behaviour.
 """
-function quantise_diatomic(sim::Simulation, v::Matrix, r::Matrix)
+function quantise_diatomic(sim::Simulation, v::Matrix, r::Matrix; height=10, normal_vector=[0, 0, 1])
     # Select only the first two atoms
     if length(sim.atoms) > 2
         sim = Simulation(sim.atoms[1:2], sim.calculator.model; cell=sim.cell)
@@ -93,25 +102,32 @@ function quantise_diatomic(sim::Simulation, v::Matrix, r::Matrix)
     μ = reduced_mass(sim.atoms)
 
     v_com = p_com ./ sim.atoms.masses'
-    E = evaluate_hamiltonian(sim, v_com, r)
+    k = evaluate_kinetic_energy(sim.atoms.masses, v_com)
+    p = calculate_diatomic_energy(sim, bond_length(r_com); height=height, normal_vector=normal_vector)
+    E = k + p
 
     L = total_angular_momentum(r_com, p_com)
     J = (sqrt(1+4*L^2) - 1) / 2 # L^2 = J(J+1)ħ^2
 
-    ν, J, bounds = extract_quantum_numbers(sim, μ, E, J)
+    ν, J, bounds = extract_quantum_numbers(sim, μ, E, J; height=height, normal_vector=normal_vector)
     ν, J
 end
 
 """
 Calculate the vibrational and rotational quantum numbers using EBK
 """
-function extract_quantum_numbers(sim::Simulation, μ::Real, E::Real, J::Real)
+function extract_quantum_numbers(sim::Simulation, μ::Real, E::Real, J::Real; height=10, normal_vector=[0, 0, 1])
 
     rotational(r) = J*(J+1) / (2μ*r^2)
     Vᵣ(r) = rotational(r) + calculate_diatomic_energy(sim, r)
     radial_momentum(r) = sqrt(2μ * (E - Vᵣ(r)))
 
     bounds = find_zeros(r -> E - Vᵣ(r), 0.0, 10.0)
+    if length(bounds) != 2
+        throw(ArgumentError("Unable to determine bounds for EBK quantisation."
+        * " Perhaps the chosen quantum numbers are unreasonable?
+        Bounds obtained = $bounds"))
+    end
     integral, err = quadgk(radial_momentum, bounds...)
     ν = integral / π - 1/2
 
@@ -178,8 +194,8 @@ function apply_random_rotation!(x, y)
 end
 
 """
-    calculate_diatomic_energy(sim::Simulation, bond_length::T; height::T=10.0,
-                               normal_vector::Vector{T}=[0.0, 0.0, 1.0]) where {T}
+    calculate_diatomic_energy(sim::Simulation, bond_length::Real; height::Real=10,
+                               normal_vector::Vector=[0, 0, 1])
 
 Returns potential energy of diatomic with `bond_length` at `height` from surface.
 
@@ -188,8 +204,8 @@ to intersect the origin.
 This requires that the model implicitly provides the surface, or works fine without one.
 """
 function calculate_diatomic_energy(sim::Simulation, bond_length::Real;
-                                   height::Real=10.0,
-                                   normal_vector::Vector=[0.0, 0.0, 1.0])
+                                   height::Real=10,
+                                   normal_vector::Vector=[0, 0, 1])
 
     orthogonals = nullspace(reshape(normal_vector, 1, :)) # Plane parallel to surface
     R = normal_vector .* height .+ orthogonals .* bond_length ./ sqrt(2)
