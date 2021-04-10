@@ -44,7 +44,7 @@ end
 
 
 @testset "generate and check results" begin
-    numbers = [rand(1:50), rand(1:50)]
+    numbers = [2, 5]
     configs = generate_configurations(sim, numbers[1], numbers[2]; samples=10)
     for config in configs
         ν, J = quantise_diatomic(sim, config...)
@@ -52,4 +52,3 @@ end
         @test J ≈ numbers[2] rtol=1e-1
     end
 end
-
