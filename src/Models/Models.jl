@@ -155,6 +155,41 @@ function eigen_summary(model::DiabaticModel, R::AbstractMatrix)
     eig_array = eig_array
 end
 
+function impurity_summary(model::DiabaticModel, R::AbstractMatrix, state::AbstractArray, σ::AbstractArray)
+    # define output array
+    #eig_array = zeros(model.n_states+2)
+    eig_vec = zeros(model.n_states,model.n_states)
+    eival = zeros(model.n_states)
+    σdia = zeros(model.n_states,model.n_states)
+    eig_array = zeros(4)
+    # The Diabatic Models contain a diabatic matrix
+    V = Hermitian(zeros(model.n_states,model.n_states))
+    # Get diabatic matrix
+    potential!(model,V,R)
+    # Get the eigenvectors and values
+    eival .= eigvals(V)
+    eig_vec .= eigvecs(V)
+    ieig = inv(eig_vec)
+    #eig_array[1:model.n_states] .= eigvals(V)
+    # calculate diabatic density matrix
+    σdia .= eig_vec .* real(σ) .* ieig
+    # Calculate two different hopping probabilities
+
+    # save position
+    eig_array[1] = R[1]
+    for i = 1:length(state)
+        # Energy
+        eig_array[2] = eig_array[2] + state[i]*eival[i]
+        # Hopping prob. by hopping array
+        eig_array[3] = eig_array[3] + state[i]
+        # directly from density matrix hopping prob.
+        eig_array[4] = eig_array[4] + (real(σdia[i,i]) + imag(σdia[i,i]))^2*state[i]
+    end
+    #println(eig_array[2])
+    # Export an array of eigenvalues with last two elements being hopping prob
+    eig_array = eig_array
+end
+
 function potential_matrix(model::DiabaticModel, R::AbstractMatrix; state=1)
     # The Diabatic Models contain a diabatic matrix
     V = Hermitian(zeros(model.n_states,model.n_states))
