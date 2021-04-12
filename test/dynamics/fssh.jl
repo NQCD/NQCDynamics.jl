@@ -42,18 +42,18 @@ end
     @test 1.2 ≈ Dynamics.calculate_potential_energy_change([0.0, 0.1, 0.9, -0.3], 3, 4)
 end
 
-@testset "execute_hop!" begin
-    get_momenta(integrator.u) .= 1e4 # Set high momentum to ensure successful hop
-    Dynamics.motion!(get_du(integrator), integrator.u, sim, 0.0)
-    ΔE = Dynamics.calculate_potential_energy_change(integrator.p.calculator.eigenvalues, 2, 1)
+# @testset "execute_hop!" begin
+#     get_momenta(integrator.u) .= 1e4 # Set high momentum to ensure successful hop
+#     Dynamics.motion!(get_du(integrator), integrator.u, sim, 0.0)
+#     ΔE = Dynamics.calculate_potential_energy_change(integrator.p.calculator.eigenvalues, 2, 1)
 
-    cont = Dynamics.calculate_rescaling_constant!(integrator, 2)
-    @test cont == true
+#     cont = Dynamics.calculate_rescaling_constant!(integrator, 2)
+#     @test cont == true
 
-    KE_initial = sum(get_momenta(integrator.u).^2 ./ integrator.p.atoms.masses')/2
-    @test integrator.u.state == 1
-    Dynamics.execute_hop!(integrator, 2)
-    @test integrator.u.state == 2 # Check state has changed
-    KE_final = sum(get_momenta(integrator.u).^2 ./ integrator.p.atoms.masses')/2
-    @test KE_final - KE_initial ≈ -ΔE # Test for energy conservation
-end
+#     KE_initial = sum(get_momenta(integrator.u).^2 ./ integrator.p.atoms.masses')/2
+#     @test integrator.u.state == 1
+#     Dynamics.execute_hop!(integrator, 2)
+#     @test integrator.u.state == 2 # Check state has changed
+#     KE_final = sum(get_momenta(integrator.u).^2 ./ integrator.p.atoms.masses')/2
+#     @test KE_final - KE_initial ≈ -ΔE # Test for energy conservation
+# end

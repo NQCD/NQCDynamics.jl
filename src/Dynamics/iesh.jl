@@ -4,6 +4,8 @@ export IESH_callback
 using Revise
 using DiffEqCallbacks
 using Combinatorics
+using TickTock
+using LinearAlgebra
 
 """This module controles how IESH is executed. For a description of IESH, see e.g.
 Roy, Shenvi, Tully, J. Chem. Phys. 130, 174716 (2009) and 
@@ -55,8 +57,8 @@ function IESHPhasespace(R::Matrix{T}, P::Matrix{T}, n_states::Integer, state::Ve
     # 1 needs to be replaced by the info from state, once I've gotten things to run.
     c = 0
     for i=1:length(state)/2
-        c = c + 1
-        σ[c, c] = 1
+        #c = c + 1
+        σ[Int(i), Int(i)] = 1
     end
     IESHPhasespace(R, P, σ, state)
 end
@@ -69,10 +71,12 @@ get_density_matrix(z::IESHPhasespace) = z.x.x[3]
 function create_problem(u0::IESHPhasespace, tspan::Tuple, sim::AbstractSimulation{<:IESH})
     #IESH_callback=create_energy_saving_callback(u0,integrator::DiffEqBase.DEIntegrator)
     # IESH_callback=create_saving_callback()
+    #cb2 = DiscreteCallback(condition, affect!; save_positions=(false, false))
     cb2 = DiscreteCallback(condition, affect!; save_positions=(false, false))
-    ODEProblem(motion!, u0, tspan, sim; callback=cb2)
+    #ODEProblem(motion!, u0, tspan, sim; callback=cb2, dt = 1, adaptive = false)
+    #ODEProblem(motion!, u0, tspan, sim; callback=cb2, save_everystep=false,dense=false, dt = 10, adaptive = false)
+    ODEProblem(motion!, u0, tspan, sim; callback=cb2, save_everystep=false,dense=false)
  end
-
 
 function motion!(du::IESHPhasespace, u::IESHPhasespace, sim::Simulation{<:IESH}, t)
     #println(get_positions(u))
@@ -119,16 +123,22 @@ end
 # Here, instead of just calculating the moment, I assume I will need to some up (?)
 # the different contributions to the force according to Eq.(12) in the Tully paper.
 function set_force!(du::IESHPhasespace, u::IESHPhasespace, sim::Simulation{<:IESH})
+    #energ=zeros(1)
     for i=1:length(sim.atoms)
         for j=1:sim.DoFs
+            #energ[1]=0
+            #println(" ")
             get_momenta(du)[j,i] = 0.0
             for n=1:length(u.state)
                 # calculate as sum of the momenta of the occupied
                 get_momenta(du)[j,i] = get_momenta(du)[j,i] -sim.calculator.adiabatic_derivative[j,i][n, n]*u.state[n]
+                #energ[1] = energ[1] + sim.calculator.eigenvalues[n]*u.state[n]
+                #println(sim.calculator.eigenvalues[n]*u.state[n])
                                        #-sim.calculator.adiabatic_derivative[j,i][u.state, u.state]
             end
         end
     end
+    #println(energ)
 end
 
 # Calculate the _time_-derivate  of the  density matrix
@@ -140,7 +150,7 @@ function set_density_matrix_derivative!(du::IESHPhasespace, u::IESHPhasespace, s
     V = sim.method.density_propagator # this is the potential energy surface
 
     V .= diagm(sim.calculator.eigenvalues)# Creates a diagonal matrix from eigenvalues
-
+    #println(typeof(V))
     # Calculation going on here from: Martens_JPhysChemA_123_1110_2019, eq. 6
     # d is the nonadiabatic coupling matrix
     #i ħ dσ/dt = iħ sum_l [(V_{m,l} - i ħ velocity d_{m,l})*σ_{l,n} - &
@@ -151,7 +161,20 @@ function set_density_matrix_derivative!(du::IESHPhasespace, u::IESHPhasespace, s
             V .-= im*velocity[j,i].*sim.method.nonadiabatic_coupling[j,i]
         end
     end
-    get_density_matrix(du) .= -im*(V*σ - σ*V)
+    
+    # This version is presumably much slower than below
+    #@time get_density_matrix(du) .= -im*(V*σ - σ*V)
+    #inlining?
+    ust = length(u.state)
+    Y = zeros(Complex, ust, ust)
+    Z = zeros(Complex, ust, ust)
+    # Okay, the loops are much slower than writing it with *
+    # Unfortunatley, this doesn't seem to speed things up
+    #@time begin
+    mul!(Y, σ, V)
+    mul!(Z, V, σ)
+    get_density_matrix(du) .= -im *(Z - Y)
+    #end
  end
 
 # This sets when the condition will be true. In this case, always.
@@ -165,16 +188,21 @@ function affect!(integrator::DiffEqBase.DEIntegrator)
     
     #if new_state != 0
     if integrator.p.method.hopping_probability[1] !=0
+        #tick()
         println("Hop! from ", Int(integrator.p.method.hopping_probability[2]), " to ", Int(integrator.p.method.hopping_probability[3]))
         # Set new state population
         new_state = copy(integrator.u.state)
         new_state[Int(integrator.p.method.hopping_probability[2])] = 0
         new_state[Int(integrator.p.method.hopping_probability[3])] = 1
 
+
         # needs probably a vector as input for new_state (i.e. the state distribution)
         if calculate_rescaling_constant!(integrator, new_state)
             execute_hop!(integrator, new_state)
+        else
+            println("Frustrated!")
         end
+        #tock()
     end
 end
 
@@ -192,9 +220,8 @@ function update_hopping_probability!(integrator::DiffEqBase.DEIntegrator)
     sum_before = 0
     random_number = rand()
     first = true
-    #random_number = 1e-8
+
     # Calculate matrix with hopping probs
-    # This should probably be optimized at some point.
     for l = 1:length(s)
         # If occupied
         if(integrator.u.state[l]==1)
@@ -203,8 +230,8 @@ function update_hopping_probability!(integrator::DiffEqBase.DEIntegrator)
                 if(integrator.u.state[m]==0)
                     for i=1:length(sim.atoms)
                         for j=1:sim.DoFs
-                            #sim.method.hopping_probability[m] += 2*velocity[j,i]*real(σ[m,s]/σ[s,s])*coupling[j,i][s,m] * dt
                             hop_mat[l,m] += 2*velocity[j,i]*real(σ[m,l]/σ[l,l])*coupling[j,i][l,m] * dt
+                            #println(velocity[j,i], " ",real(σ[m,l]/σ[l,l]), " ",coupling[j,i][l,m] , " ", dt)
                         end
                     end
                 end    
@@ -225,52 +252,14 @@ function update_hopping_probability!(integrator::DiffEqBase.DEIntegrator)
                     println("Sum: ", sumer, " Individ. hopping probability: ", hop_mat[l,m])
                     println("l = ", l, " m = ", m)
                     println(first)
-                    #exit()
                 end
             end
         end
+        #if (first == false) break
     end
     
-    a=findmax(hop_mat)
-    #println(random_number," ", a)
-    # Write the hopping probability and the array positions into array
-    # This one just extracts the maximum hopping probability. 
-    # May be alternative to above
-    #sim.method.hopping_probability[1] = maximum(hop_mat)
-    #sim.method.hopping_probability[2] = a[2][1]
-    #sim.method.hopping_probability[3] = a[2][2]
-
-    #@time a=combinations(integrator.u.state)
-    #b=collect(permutations(integrator.u.state))
-    #println(b)
-
-    # Old version from FSSH
-    # for m=1:integrator.p.calculator.model.n_states
-    #     if m != s
-    #         for i=1:length(sim.atoms)
-    #             for j=1:sim.DoFs
-    #                 sim.method.hopping_probability[m] += 2*velocity[j,i]*real(σ[m,s]/σ[s,s])*coupling[j,i][s,m] * dt
-    #             end
-    #         end
-    #     end
-    # end
-    #clamp!(sim.method.hopping_probability[1], 0, 1) # Restrict probabilities between 0 and 1
-    # A cumulative sum. No idea why.
-    #cumsum!(sim.method.hopping_probability[1], sim.method.hopping_probability[1]) # Cumulative sum
+ 
 end
-
-# Not necessary anymore, bcs hopping probabilty selected inside loop.
-# function select_new_state(probability::Vector{T}, current_state::Integer)::UInt where {T<:AbstractFloat}
-#     random_number = rand()
-#     for (i, prob) in enumerate(probability)
-#         if i != current_state # Avoid self-hops
-#             if prob > random_number
-#                 return i # Return index of selected state
-#             end
-#         end
-#     end
-#     0 # Return 0 if no hop is desired
-# end
 
 # Calculate if hop frustrated
 # This includes a momentum rescaling (IESH paper of Shenvi et al. expresses it in terms of velocity)
@@ -294,8 +283,6 @@ function calculate_rescaling_constant!(integrator::DiffEqBase.DEIntegrator, new_
     b = zero(a)
     # view: treats data structure from array as another array
     #': conjucated transposition (adjoint)
-    # Might be that old and new state need to be other way around; changes sign.
-    # (but probably  not; looks like any sign vanishes if real valued)
     @views for i in range(sim.atoms)
         coupling = [sim.method.nonadiabatic_coupling[j,i][Int(state_diff[3]), Int(state_diff[2])] for j=1:sim.DoFs]
         #coupling = [sim.method.nonadiabatic_coupling[j,i][Int(state_diff[2]), Int(state_diff[3])] for j=1:sim.DoFs]
@@ -325,13 +312,11 @@ function execute_hop!(integrator::DiffEqBase.DEIntegrator, new_state::Vector)
     for i in range(integrator.p.atoms)
         coupling = [integrator.p.method.nonadiabatic_coupling[j,i][Int(state_diff[3]), 
                    Int(state_diff[2])] for j=1:integrator.p.DoFs]
-        #for n=1:length(new_state)
-        #coupling = [integrator.p.method.nonadiabatic_coupling[j,i][new_state, integrator.u.state] for j=1:integrator.p.DoFs]
-        #get_momenta(integrator.u)[:,i] .-= integrator.p.method.momentum_rescale[i] .* coupling
+        
         # No sum over states necessary, because momenta just rescaled & 
         # not calculated from scratch
         get_momenta(integrator.u)[:,i] .-= integrator.p.method.momentum_rescale[i] .* coupling
-        #end
+
     end
     integrator.u.state = new_state
 end
