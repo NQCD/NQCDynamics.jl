@@ -57,14 +57,29 @@ end
 get_normal_mode_springs(n_beads::Integer, ω_n::Real) = get_matsubara_frequencies(n_beads, ω_n) .^2 / 2
 get_matsubara_frequencies(n::Integer, ω_n::Real) = 2ω_n*sin.((0:n-1)*π/n)
 
-"""
-    get_normal_mode_transformation(n::Int)::Matrix
+# """
+#     get_normal_mode_transformation(n::Int)::Matrix
     
-Get the transformation matrix that converts to normal mode coordinates.
+# Get the transformation matrix that converts to normal mode coordinates.
+# """
+# function get_normal_mode_transformation(n::Int)::Matrix
+#     a = ([exp(2π*im/n * j * k) for j=0:n-1, k=0:n-1])
+#     (real(a) + imag(a)) / sqrt(n)
+# end
+
 """
-function get_normal_mode_transformation(n::Int)::Matrix
-    a = ([exp(2π*im/n * j * k) for j=0:n-1, k=0:n-1])
-    (real(a) + imag(a)) / sqrt(n)
+Creates normal mode transformation for `n` beads.
+"""
+function get_normal_mode_transformation(n::Integer)::Matrix
+    # Real and imaginary parts of the discrete Fourier transform matrix. 
+    U = sqrt(2/n) .* hcat([cos(2π * j * k / n) for j=0:n-1, k=0:n÷2],
+                        [sin(2π * j * k / n) for j=0:n-1, k=n÷2+1:n-1])
+
+    # Normalisation
+    U[:, 1] ./= sqrt(2)
+    iseven(n) && (U[:, n÷2+1] ./= sqrt(2))
+
+    U
 end
 
 function transform_to_normal_modes!(p::RingPolymerParameters, R::Array{T,3}) where {T}

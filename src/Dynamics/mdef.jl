@@ -1,47 +1,67 @@
 using Random
 using LinearAlgebra
+using ..Calculators: DiabaticFrictionCalculator
 
 export MDEF
+export TwoTemperatureMDEF
 
 abstract type AbstractMDEF <: Method end
 
-struct MDEF{T<:AbstractFloat} <: AbstractMDEF
-    drag::Vector{T}
-    function MDEF{T}(atoms::Integer; DoF::Integer=3) where {T}
-        new(zeros(DoF*atoms))
+"""
+$(TYPEDEF)
+
+```math
+dr = v dt\\\\
+dv = -\\Delta U/M dt - \\Gamma v dt + \\sigma \\sqrt{2\\Gamma} dW
+```
+``\\Gamma`` is the friction tensor with units of inverse time.
+For thermal dynamics we set ``\\sigma = \\sqrt{kT / M}``,
+where ``T`` is the electronic temperature.
+
+This is integrated using the BAOAB algorithm where the friction "O" step is performed
+in the tensor's eigenbasis. See `src/dynamics/mdef_baoab.jl` for details.
+"""
+struct MDEF{M} <: AbstractMDEF
+    mass_scaling::M
+end
+
+MDEF(masses::AbstractVector, DoFs::Integer) = MDEF(get_mass_scale_matrix(masses, DoFs))
+
+function get_mass_scale_matrix(masses::AbstractVector, DoFs::Integer)
+    vect = repeat(sqrt.(masses), inner=DoFs)
+    vect * vect'
+end
+
+"""
+    acceleration!(dv, v, r, sim::Simulation{MDEF,<:DiabaticFrictionCalculator}, t)
+
+Sets acceleration due to ground state force when using a `DiabaticFrictionModel`.
+"""
+function acceleration!(dv, v, r, sim::Simulation{MDEF,<:DiabaticFrictionCalculator}, t)
+    Calculators.update_electronics!(sim.calculator, r)
+    for i in axes(r, 2)
+        for j in axes(r, 1)
+            dv[j,i] = -sim.calculator.adiabatic_derivative[j,i][1,1] / sim.atoms.masses[i]
+        end
     end
 end
 
-struct TwoTemperatureMDEF{T<:AbstractFloat} <: AbstractMDEF
-    drag::Vector{T}
-    temperature::Function
-    function TwoTemperatureMDEF{T}(atoms::Integer, temperature::Function; DoF::Integer=3) where {T}
-        new(zeros(DoF*atoms), temperature)
-    end
+"""
+    friction!(g, r, sim, t)
+
+Evaluates friction tensor and provides variance of random force.
+"""
+function friction!(g, r, sim::AbstractSimulation{<:AbstractMDEF}, t)
+    Calculators.evaluate_friction!(sim.calculator, r)
+    g .= sim.calculator.friction ./ sim.method.mass_scaling
 end
 
-function set_force!(du::Phasespace, u::Phasespace, sim::Simulation{<:AbstractMDEF})
-    Calculators.evaluate_derivative!(sim.calculator, get_positions(u))
-    get_momenta(du) .= -sim.calculator.derivative
-    
-    Calculators.evaluate_friction!(sim.calculator, get_positions(u))
-    mul!(sim.method.drag, sim.calculator.friction, get_flat_momenta(u))
-
-    drag = reshape(sim.method.drag, sim.DoFs, length(sim.atoms))
-    
-    get_momenta(du) .-= drag ./ sim.atoms.masses'
+function create_problem(u0::ClassicalDynamicals, tspan::Tuple, sim::AbstractSimulation{<:AbstractMDEF})
+    create_problem(u0.x, tspan, sim)
 end
 
-function random_force!(du, u::Phasespace, sim::Simulation{<:AbstractMDEF}, t)
-    slice = sim.DoFs*length(sim.atoms)+1
-    du[slice:end, slice:end] .= sqrt.(sim.calculator.friction .* 2 .* get_temperature(sim, t))
+function create_problem(u0::ArrayPartition, tspan::Tuple, sim::AbstractSimulation{<:AbstractMDEF})
+    DynamicalSDEProblem(acceleration!, velocity!, friction!, get_velocities(u0), get_positions(u0), tspan, sim)
 end
 
-get_temperature(sim::Simulation{<:MDEF}, ::AbstractFloat) = sim.temperature
-get_temperature(sim::Simulation{<:TwoTemperatureMDEF}, t::AbstractFloat) = sim.method.temperature(t)
-
-function create_problem(u0::Phasespace, tspan::Tuple, sim::Simulation{<:AbstractMDEF})
-    n = sim.DoFs * length(sim.atoms) * 2
-    SDEProblem(motion!, random_force!, u0, tspan, sim; noise_rate_prototype=zeros(n,n))
-end
-select_algorithm(::AbstractSimulation{<:MDEF}) = SRA()
+select_algorithm(::AbstractSimulation{<:AbstractMDEF}) = MDEF_BAOAB()

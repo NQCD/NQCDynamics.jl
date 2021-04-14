@@ -28,7 +28,7 @@ vinit = 0.005 # initial velocity
 mass = 1.5 # atomic mass#
 B_na = 1.0 # parameter that defines nonadiabatic coupling strength
 n_DOF = 1
-ntrajes = 250
+ntrajes = 10
 tspan = (0.0, 5.0u"ps")
 
 # 1a) Define adiabatic model, fom Model/scattering_anderson_holsteins.jl
@@ -66,11 +66,10 @@ boltzmann = Normal(0.0, austrip(temperature))
 # create distribution of atomic positions from Monte Carlo sampling of the PESs
 # for the number of trajectories and atoms
 Δ = Dict([(:H, 0.3)])
-monte_carlo = InitialConditions.MonteCarlo{Float64}(Δ, length(atoms), ntrajes, Int[])
 sim = Simulation(atoms, model; DoFs=1, temperature=temperature)
-outbolz = InitialConditions.run_monte_carlo_sampling(sim, monte_carlo, zeros(1, length(sim.atoms)))
+outbolz = InitialConditions.run_monte_carlo_sampling(sim, zeros(1, length(sim.atoms)), Δ, ntrajes)
 # If sampled, gives an array of momenta and positions from the above initialized sampling
-bolz_pos_momenta = PhasespaceDistribution(outbolz.R, boltzmann, (1, 1))
+bolz_pos_momenta = DynamicalDistribution(boltzmann, outbolz.R, (1, 1))
 
 
 # Save the energy
@@ -87,9 +86,9 @@ sim = Simulation(atoms, model, dynam; DoFs=1)
 # Do dynamics
  for i=8:ntrajes
     nname=lpad(i,8,"0")
-    r, p = rand(bolz_pos_momenta)
-    p = -p * atoms.masses[1]
-    println(i, r, p)
+    r, v = rand(bolz_pos_momenta)
+    v = -v
+    println(i, r, v)
 
     # r = fill(-4.87, sim.DoFs, length(sim.atoms)) 
     #r = fill(0.13867834028319972, sim.DoFs, length(sim.atoms)) 
@@ -111,7 +110,7 @@ sim = Simulation(atoms, model, dynam; DoFs=1)
     # k = 1
     # Initialize the surface hopping phasespace
     # postions, momenta, density matrix, state-vector, see: ../../Dynamics/iesh.jl
-    z = IESHPhasespace(r, p, n_states, k)
+    z = IESHPhasespace(v, r, n_states, k)
     
 
 
@@ -120,24 +119,24 @@ sim = Simulation(atoms, model, dynam; DoFs=1)
     # Solution of Differential equations and propagation, step needs to be implemented
     #cb, vals, vects = Dynamics.create_energy_saving_callback()
     #cb, vals = Dynamics.create_energy_saving_callback()
-    cb, vals = Dynamics.create_impurity_saving_callback()
+    # cb, vals = Dynamics.create_impurity_saving_callback()
     # ../../Dynamics/iesh.jl
-    @time solution = Dynamics.run_trajectory(z, (0.0, 100000.0), sim; callback=cb)
+    @time solution = Dynamics.run_trajectory(z, (0.0, 10.0), sim; output=(:save_impurity))
     # For testing only: w/o callback
     
     #@time solution = Dynamics.run_trajectory(z, (0.0, 12000000.0), sim)
     println("Finished")
-    println(length(vals.t))
+    println(length(solution.t))
 
     open("trajectory_$nname.txt", "w") do fi
         write(fi, "step, r (a.u.), epot (a.u.), state, impurity population\n")
-        outarray = zeros(length(vals.saveval), 5)
-        for i = 1:length(vals.saveval)
-            outarray[i,1] = vals.t[i]
-            outarray[i,2] = vals.saveval[i][1]
-            outarray[i,3] = vals.saveval[i][2]
-            outarray[i,4] = vals.saveval[i][3]
-            outarray[i,5] = vals.saveval[i][4]
+        outarray = zeros(length(solution), 5)
+        for i = 1:length(solution)
+            outarray[i,1] = solution.t[i]
+            outarray[i,2] = solution.save_impurity[i][1]
+            outarray[i,3] = solution.save_impurity[i][2]
+            outarray[i,4] = solution.save_impurity[i][3]
+            outarray[i,5] = solution.save_impurity[i][4]
         end
         writedlm(fi, outarray,'\t')
     end

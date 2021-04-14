@@ -13,7 +13,7 @@ sim = Simulation(atoms, model, dynam; DoFs=1)
 
 R = zeros(sim.DoFs, length(sim.atoms))
 P = rand(sim.DoFs, length(sim.atoms))
-P = fill(2.7, sim.DoFs, length(sim.atoms))
+P = fill(2.7, sim.DoFs, length(sim.atoms)) ./ atoms.masses[1]
 #println(P)
 #P = [0.8]
 
@@ -21,7 +21,7 @@ P = fill(2.7, sim.DoFs, length(sim.atoms))
 k = round.(Int64, (zeros(n_states)))
 l = Int(n_states / 2)
 k[1:l] .= 1
-u = IESHPhasespace(R, P, n_states, k)
+u = IESHPhasespace(P, R, n_states, k)
 du = zero(u)
 # set some velocity
 du.x.x[1] .= P
@@ -39,8 +39,7 @@ end
 #Test if nonadiabatic coupling behave reasonably
 Dynamics.motion!(du, u, sim, 1.0)
 
-Dynamics.evaluate_nonadiabatic_coupling!(sim)
-@test sim.method.nonadiabatic_coupling ≈ -sim.method.nonadiabatic_coupling'
+@test sim.calculator.nonadiabatic_coupling ≈ -sim.calculator.nonadiabatic_coupling'
 
 # Test new state generatation
 problem = ODEProblem(Dynamics.motion!, u, (0.0, 1.0), sim)
@@ -50,7 +49,8 @@ set_proposed_dt!(integrator, 1.0)
 # Set high values for density matrix and nonadiabatic coupling to force hopping
 # Hopping is forced from the highest occupied to the lowest unoccupied
 integrator.u.x.x[3][l+1,l] = 100
-sim.method.nonadiabatic_coupling[1][l,l+1] = 100
+sim.calculator.nonadiabatic_coupling[1][l,l+1] = 100
+sim.calculator.nonadiabatic_coupling[1][l+1,l] = 100
 Dynamics.update_hopping_probability!(integrator)
 
 # Test that new states are correctly selected and hopping prob.

@@ -17,6 +17,7 @@ using ProgressMeter
 using Unitful
 using UnitfulAtomic
 using Distributions
+using DocStringExtensions
 
 using ....NonadiabaticMolecularDynamics
 
@@ -26,7 +27,10 @@ export PathIntegralMonteCarlo
 
 abstract type MonteCarloParameters end
 
-"""Parameters for MonteCarlo simulation
+"""
+$(TYPEDEF)
+
+Parameters for Monte carlo simulations.
 """
 mutable struct MonteCarlo{T} <: MonteCarloParameters
     Eᵢ::T
@@ -34,8 +38,9 @@ mutable struct MonteCarlo{T} <: MonteCarloParameters
     Δ::Dict{Symbol, T}
     steps::UInt
     moveable_atoms::AnalyticWeights
+    extra_function::Function
     function MonteCarlo{T}(Δ::Dict{Symbol, T},
-        n_atoms::Real, passes::Real, fix::Vector{<:Integer}) where {T<:AbstractFloat}
+        n_atoms::Real, passes::Real, fix::Vector{<:Integer}, extra::Function) where {T<:AbstractFloat}
 
         steps = n_atoms * passes
 
@@ -43,7 +48,7 @@ mutable struct MonteCarlo{T} <: MonteCarloParameters
         moveables[fix] .= 0
         moveable_atoms = AnalyticWeights(moveables)
 
-        new(0.0, 0.0, Δ, steps, moveable_atoms)
+        new(0.0, 0.0, Δ, steps, moveable_atoms, extra)
     end
 end
 
@@ -91,29 +96,39 @@ mutable struct MonteCarloOutput{T<:AbstractFloat,S}
         new{T,S}(output, acceptance, total_moves, energy)
     end
 end
-# function MonteCarloOutput(R0::S, atoms::Atoms{N,T}) where {N,T,S}
-#     MonteCarloOutput{T,S}(R0, atoms)
-# end
 
 """
-    Configuration{T} = Union{Matrix{T}, Array{T, 3}}
-
-Type union for the two allowed positions types.
-
-A Matrix for a simple classical system and a Array{T, 3} for ring polymer systems.
-"""
-const Configuration{T} = Union{Matrix{T}, Array{T, 3}}
-
-"""
-    function run_monte_carlo_sampling(system::AbstractSystem{MonteCarlo}, R0::Configuration{T}) where {T}
+    run_monte_carlo_sampling(sim::AbstractSimulation, monte::MonteCarloParameters, R0)
     
-Run the simulation defined by the MonteCarlo system.
+Perform Monte Carlo sampling for the system defined by the `sim` and `monte` parameters.
+
+From the initial positions specified `R0` the system will be explored using the
+Metropolis-Hastings algorithm.
 """
-function run_monte_carlo_sampling(sim::AbstractSimulation, monte::MonteCarloParameters, R0::Configuration{T}) where {T}
+function run_monte_carlo_sampling(sim::Simulation, R0::Matrix{T},
+    Δ::Dict{Symbol,T}, passes::Real; fix::Vector{<:Integer}=Int[], extra_function::Function=x->true) where {T}
 
     Rᵢ = copy(R0) # Current positions
     Rₚ = zero(Rᵢ) # Proposed positions
-    monte.Eᵢ = evaluate_configurational_energy(sim, Rᵢ)
+    monte = MonteCarlo{T}(Δ, length(sim.atoms), passes, fix, extra_function)
+    monte.Eᵢ = evaluate_potential_energy(sim, Rᵢ)
+    output = MonteCarloOutput(Rᵢ, sim.atoms)
+
+    run_main_loop!(sim, monte, Rᵢ, Rₚ, output)
+
+    for key in keys(output.acceptance)
+        output.acceptance[key] /= output.total_moves[key]
+    end
+    output
+end
+
+function run_monte_carlo_sampling(sim::RingPolymerSimulation, R0::Array{T,3},
+    Δ::Dict{Symbol,T}, passes::Real; fix::Vector{<:Integer}=Int[], segment::Real=1) where {T}
+
+    Rᵢ = copy(R0) # Current positions
+    Rₚ = zero(Rᵢ) # Proposed positions
+    monte = PathIntegralMonteCarlo{T}(Δ, length(sim.atoms), passes, fix, segment, length(sim.beads))
+    monte.Eᵢ = evaluate_potential_energy(sim, Rᵢ)
     output = MonteCarloOutput(Rᵢ, sim.atoms)
 
     run_main_loop!(sim, monte, Rᵢ, Rₚ, output)
@@ -133,7 +148,11 @@ function run_main_loop!(sim::Simulation, monte::MonteCarlo, Rᵢ::Matrix, Rₚ::
     @showprogress 0.1 "Sampling... " for i=1:convert(Int, monte.steps)
         atom = sample(range(sim.atoms), monte.moveable_atoms)
         propose_move!(sim, monte, Rᵢ, Rₚ, atom)
-        apply_cell_boundaries!(sim.cell, Rₚ)
+        @views for i in axes(Rₚ, 2) # atoms
+            if monte.moveable_atoms[i] > 0
+                apply_cell_boundaries!(sim.cell, Rₚ[:,i])
+            end
+        end
         assess_proposal!(sim, monte, Rᵢ, Rₚ, output, atom)
     end
 end
@@ -142,7 +161,7 @@ end
 """
 function run_main_loop!(sim::RingPolymerSimulation, monte::PathIntegralMonteCarlo, Rᵢ::Array{T,3}, Rₚ::Array{T,3},
     output::MonteCarloOutput) where {T}
-    @showprogress 0.1 "Sampling... " for i=1:monte.pass_length+1:convert(Int, monte.steps*(monte.pass_length+1))
+    @showprogress 0.1 "Sampling... " for i=1:convert(Int, monte.steps)
         if !all(monte.moveable_atoms .== 0.0)
             atom = sample(range(sim.atoms), monte.moveable_atoms)
             propose_centroid_move!(sim, monte, Rᵢ, Rₚ, atom)
@@ -227,12 +246,14 @@ end
 Update the energy, check for acceptance, and update the output. 
 """
 function assess_proposal!(sim::AbstractSimulation, monte::MonteCarloParameters, Rᵢ, Rₚ, output, atom::Integer)
-    monte.Eₚ = evaluate_configurational_energy(sim, Rₚ)
+    monte.Eₚ = evaluate_potential_energy(sim, Rₚ)
     output.total_moves[sim.atoms.types[atom]] += 1
-    if acceptance_probability(sim, monte) > rand()
-        monte.Eᵢ = monte.Eₚ
-        Rᵢ .= Rₚ
-        output.acceptance[sim.atoms.types[atom]] += 1
+    if monte.extra_function(Rₚ)
+        if acceptance_probability(sim, monte) > rand()
+            monte.Eᵢ = monte.Eₚ
+            Rᵢ .= Rₚ
+            output.acceptance[sim.atoms.types[atom]] += 1
+        end
     end
     write_output!(output, Rᵢ, monte.Eᵢ)
 end
@@ -243,7 +264,7 @@ end
 Return the Metropolis-Hastings acceptance probability.
 """
 function acceptance_probability(sim::Simulation, monte::MonteCarlo)
-    acceptance_probability(monte.Eₚ, monte.Eᵢ, sim.temperature)
+    acceptance_probability(monte.Eₚ, monte.Eᵢ, get_temperature(sim))
 end
 function acceptance_probability(sim::RingPolymerSimulation, monte::PathIntegralMonteCarlo)
     acceptance_probability(monte.Eₚ, monte.Eᵢ, sim.beads.ω_n)
@@ -251,11 +272,11 @@ end
 acceptance_probability(Eₚ::T, Eᵢ::T, kT::T) where {T<:AbstractFloat} = min(1, exp(-(Eₚ - Eᵢ)/kT))
 
 """
-    write_output!(output::MonteCarloOutput, Rᵢ::Configuration, energy::AbstractFloat, i::Integer)
+    write_output!(output::MonteCarloOutput, Rᵢ::AbstractArray, energy::AbstractFloat, i::Integer)
     
 Store the current configuration and associated energy.
 """
-function write_output!(output::MonteCarloOutput, Rᵢ::Configuration, energy::AbstractFloat)
+function write_output!(output::MonteCarloOutput, Rᵢ::AbstractArray, energy::AbstractFloat)
     push!(output.R, copy(Rᵢ))
     push!(output.energy, copy(energy))
 end

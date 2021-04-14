@@ -1,4 +1,7 @@
-.vscode
 Manifest.toml
 *.xyz
 docs/build
+dev/
+.*
+!/.gitignore
+!/.github

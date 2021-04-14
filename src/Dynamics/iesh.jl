@@ -1,10 +1,7 @@
 export IESHPhasespace
 export IESH
 export IESH_callback
-using Revise
 using DiffEqCallbacks
-using Combinatorics
-using TickTock
 using LinearAlgebra
 
 """This module controles how IESH is executed. For a description of IESH, see e.g.
@@ -21,18 +18,16 @@ The latter calls back to DifferentialEquations, but the callback of Differential
 with the hopping between surfaces is handled here.
 """
 
-struct IESH{T} <: Method
-    nonadiabatic_coupling::Matrix{Matrix{T}}
+struct IESH{T} <: SurfaceHopping
     density_propagator::Matrix{Complex{T}}
     hopping_probability::Vector{T}
     momentum_rescale::Vector{T}
     function IESH{T}(DoFs::Integer, atoms::Integer, states::Integer) where {T}
-        nonadiabatic_coupling = [zeros(states, states) for i=1:DoFs, j=1:atoms]
         density_propagator = zeros(states, states)
         #hopping_probability = zeros(states)
         hopping_probability = zeros(3)
         momentum_rescale = zeros(atoms)
-        new{T}(nonadiabatic_coupling, density_propagator, hopping_probability, momentum_rescale)
+        new{T}(density_propagator, hopping_probability, momentum_rescale)
     end
 end
 
@@ -78,64 +73,65 @@ function create_problem(u0::IESHPhasespace, tspan::Tuple, sim::AbstractSimulatio
     ODEProblem(motion!, u0, tspan, sim; callback=cb2, save_everystep=false,dense=false)
  end
 
-function motion!(du::IESHPhasespace, u::IESHPhasespace, sim::Simulation{<:IESH}, t)
-    #println(get_positions(u))
-    set_velocity!(du, u, sim)  # classical.jl momenta/(atom_mass) v = p/m 
-    update_electronics!(sim, u) # The next three routines 
-    set_force!(du, u, sim) # 4th routine
-    set_density_matrix_derivative!(du, u, sim)# 5th routine
-end
+# function motion!(du::IESHPhasespace, u::IESHPhasespace, sim::Simulation{<:IESH}, t)
+#     #println(get_positions(u))
+#     set_velocity!(du, u, sim)  # classical.jl momenta/(atom_mass) v = p/m 
+#     update_electronics!(sim, u) # The next three routines 
+#     set_force!(du, u, sim) # 4th routine
+#     set_density_matrix_derivative!(du, u, sim)# 5th routine
+# end
 
-# Get the current eneries, the current derivate and the current eigenvectors
-# see ../Calculators/Calculators.jl for the functions used here.
-# Then get the eigenvectors of the energy
-# then use them to transform the derivatives into the adiabatic form.
-function update_electronics!(sim::Simulation{<:IESH}, u::IESHPhasespace)
-    Calculators.evaluate_potential!(sim.calculator, get_positions(u))
-    Calculators.evaluate_derivative!(sim.calculator, get_positions(u))
-    Calculators.eigen!(sim.calculator)
-    Calculators.transform_derivative!(sim.calculator)
-    evaluate_nonadiabatic_coupling!(sim)
-end
+# # Get the current eneries, the current derivate and the current eigenvectors
+# # see ../Calculators/Calculators.jl for the functions used here.
+# # Then get the eigenvectors of the energy
+# # then use them to transform the derivatives into the adiabatic form.
+# function update_electronics!(sim::Simulation{<:IESH}, u::IESHPhasespace)
+#     Calculators.evaluate_potential!(sim.calculator, get_positions(u))
+#     Calculators.evaluate_derivative!(sim.calculator, get_positions(u))
+#     Calculators.eigen!(sim.calculator)
+#     Calculators.transform_derivative!(sim.calculator)
+#     evaluate_nonadiabatic_coupling!(sim)
+# end
 
-#These routines point to the previous routine and hands down an empty array,
-# the adiabatic_derivatives calculated in transform_drivatives and the 
-# energy eigenvectors
-function evaluate_nonadiabatic_coupling!(sim::Simulation{<:IESH})
-    evaluate_nonadiabatic_coupling!.(
-        sim.method.nonadiabatic_coupling,
-        sim.calculator.adiabatic_derivative,
-        Ref(sim.calculator.eigenvalues))
-end
+# #These routines point to the previous routine and hands down an empty array,
+# # the adiabatic_derivatives calculated in transform_drivatives and the 
+# # energy eigenvectors
+# function evaluate_nonadiabatic_coupling!(sim::Simulation{<:IESH})
+#     evaluate_nonadiabatic_coupling!.(
+#         sim.method.nonadiabatic_coupling,
+#         sim.calculator.adiabatic_derivative,
+#         Ref(sim.calculator.eigenvalues))
+# end
 
-# Calculates the nonadiabatic coupling. This is probably also true for IESH
-function evaluate_nonadiabatic_coupling!(coupling::Matrix, adiabatic_derivative::Matrix, eigenvalues::Vector)
-    for i=1:length(eigenvalues)
-        for j=i+1:length(eigenvalues)
-            coupling[j,i] = -adiabatic_derivative[j,i] / (eigenvalues[j]-eigenvalues[i])
-            coupling[i,j] = -coupling[j,i]
-        end
-    end
-end
+# # Calculates the nonadiabatic coupling. This is probably also true for IESH
+# function evaluate_nonadiabatic_coupling!(coupling::Matrix, adiabatic_derivative::Matrix, eigenvalues::Vector)
+#     for i=1:length(eigenvalues)
+#         for j=i+1:length(eigenvalues)
+#             coupling[j,i] = -adiabatic_derivative[j,i] / (eigenvalues[j]-eigenvalues[i])
+#             coupling[i,j] = -coupling[j,i]
+#         end
+#     end
+# end
 
 # gets the momenta corresponding to the current state from the adiabatic derivates 
 # (transformation of the diabatic ones, see 3 routines above)
 # Here, instead of just calculating the moment, I assume I will need to some up (?)
 # the different contributions to the force according to Eq.(12) in the Tully paper.
-function set_force!(du::IESHPhasespace, u::IESHPhasespace, sim::Simulation{<:IESH})
+function acceleration!(dv, v, r, sim::Simulation{<:IESH}, t, state)
     #energ=zeros(1)
     for i=1:length(sim.atoms)
         for j=1:sim.DoFs
             #energ[1]=0
             #println(" ")
-            get_momenta(du)[j,i] = 0.0
-            for n=1:length(u.state)
+            dv[j,i] = 0.0
+            for n=1:length(state)
                 # calculate as sum of the momenta of the occupied
-                get_momenta(du)[j,i] = get_momenta(du)[j,i] -sim.calculator.adiabatic_derivative[j,i][n, n]*u.state[n]
+                dv[j,i] = dv[j,i] -sim.calculator.adiabatic_derivative[j,i][n, n]*state[n]
                 #energ[1] = energ[1] + sim.calculator.eigenvalues[n]*u.state[n]
                 #println(sim.calculator.eigenvalues[n]*u.state[n])
                                        #-sim.calculator.adiabatic_derivative[j,i][u.state, u.state]
             end
+            dv[j,i] /= sim.atoms.masses[i]
         end
     end
     #println(energ)
@@ -144,38 +140,38 @@ end
 # Calculate the _time_-derivate  of the  density matrix
 # Goes back to motion!
 # This one should be the same as for FSSH
-function set_density_matrix_derivative!(du::IESHPhasespace, u::IESHPhasespace, sim::Simulation{<:IESH})
-    σ = get_density_matrix(u)
-    velocity = get_positions(du)
-    V = sim.method.density_propagator # this is the potential energy surface
+# function set_density_matrix_derivative!(du::IESHPhasespace, u::IESHPhasespace, sim::Simulation{<:IESH})
+#     σ = get_density_matrix(u)
+#     velocity = get_positions(du)
+#     V = sim.method.density_propagator # this is the potential energy surface
 
-    V .= diagm(sim.calculator.eigenvalues)# Creates a diagonal matrix from eigenvalues
-    #println(typeof(V))
-    # Calculation going on here from: Martens_JPhysChemA_123_1110_2019, eq. 6
-    # d is the nonadiabatic coupling matrix
-    #i ħ dσ/dt = iħ sum_l [(V_{m,l} - i ħ velocity d_{m,l})*σ_{l,n} - &
-    #                      σ_{m,l}*(V_{l,n} - iħ velocity d_{l,n})]
-    # vgl. also SubotnikBellonzi_AnnuRevPhyschem_67_387_2016, eq. 5 and 6
-    for i=1:length(sim.atoms)
-        for j=1:sim.DoFs
-            V .-= im*velocity[j,i].*sim.method.nonadiabatic_coupling[j,i]
-        end
-    end
+#     V .= diagm(sim.calculator.eigenvalues)# Creates a diagonal matrix from eigenvalues
+#     #println(typeof(V))
+#     # Calculation going on here from: Martens_JPhysChemA_123_1110_2019, eq. 6
+#     # d is the nonadiabatic coupling matrix
+#     #i ħ dσ/dt = iħ sum_l [(V_{m,l} - i ħ velocity d_{m,l})*σ_{l,n} - &
+#     #                      σ_{m,l}*(V_{l,n} - iħ velocity d_{l,n})]
+#     # vgl. also SubotnikBellonzi_AnnuRevPhyschem_67_387_2016, eq. 5 and 6
+#     for i=1:length(sim.atoms)
+#         for j=1:sim.DoFs
+#             V .-= im*velocity[j,i].*sim.method.nonadiabatic_coupling[j,i]
+#         end
+#     end
     
-    # This version is presumably much slower than below
-    #@time get_density_matrix(du) .= -im*(V*σ - σ*V)
-    #inlining?
-    ust = length(u.state)
-    Y = zeros(Complex, ust, ust)
-    Z = zeros(Complex, ust, ust)
-    # Okay, the loops are much slower than writing it with *
-    # Unfortunatley, this doesn't seem to speed things up
-    #@time begin
-    mul!(Y, σ, V)
-    mul!(Z, V, σ)
-    get_density_matrix(du) .= -im *(Z - Y)
-    #end
- end
+#     # This version is presumably much slower than below
+#     #@time get_density_matrix(du) .= -im*(V*σ - σ*V)
+#     #inlining?
+#     ust = length(u.state)
+#     Y = zeros(Complex, ust, ust)
+#     Z = zeros(Complex, ust, ust)
+#     # Okay, the loops are much slower than writing it with *
+#     # Unfortunatley, this doesn't seem to speed things up
+#     #@time begin
+#     mul!(Y, σ, V)
+#     mul!(Z, V, σ)
+#     get_density_matrix(du) .= -im *(Z - Y)
+#     #end
+#  end
 
 # This sets when the condition will be true. In this case, always.
 condition(u, t, integrator::DiffEqBase.DEIntegrator) = true
@@ -208,7 +204,7 @@ end
 
 function update_hopping_probability!(integrator::DiffEqBase.DEIntegrator)
     sim = integrator.p
-    coupling = sim.method.nonadiabatic_coupling
+    coupling = sim.calculator.nonadiabatic_coupling
     velocity = get_positions(get_du(integrator))
     s = integrator.u.state
     σ = get_density_matrix(integrator.u)
@@ -284,7 +280,7 @@ function calculate_rescaling_constant!(integrator::DiffEqBase.DEIntegrator, new_
     # view: treats data structure from array as another array
     #': conjucated transposition (adjoint)
     @views for i in range(sim.atoms)
-        coupling = [sim.method.nonadiabatic_coupling[j,i][Int(state_diff[3]), Int(state_diff[2])] for j=1:sim.DoFs]
+        coupling = [sim.calculator.nonadiabatic_coupling[j,i][Int(state_diff[3]), Int(state_diff[2])] for j=1:sim.DoFs]
         #coupling = [sim.method.nonadiabatic_coupling[j,i][Int(state_diff[2]), Int(state_diff[3])] for j=1:sim.DoFs]
         a[i] = coupling'coupling / sim.atoms.masses[i]
         b[i] = velocity[:,i]'coupling
@@ -310,12 +306,12 @@ function execute_hop!(integrator::DiffEqBase.DEIntegrator, new_state::Vector)
     state_diff = integrator.p.method.hopping_probability
     # For momentum rescaling, see eq. 7 and 8 SubotnikBellonzi_AnnuRevPhyschem_67_387_2016
     for i in range(integrator.p.atoms)
-        coupling = [integrator.p.method.nonadiabatic_coupling[j,i][Int(state_diff[3]), 
+        coupling = [integrator.p.calculator.nonadiabatic_coupling[j,i][Int(state_diff[3]), 
                    Int(state_diff[2])] for j=1:integrator.p.DoFs]
         
         # No sum over states necessary, because momenta just rescaled & 
         # not calculated from scratch
-        get_momenta(integrator.u)[:,i] .-= integrator.p.method.momentum_rescale[i] .* coupling
+        get_velocities(integrator.u)[:,i] .-= integrator.p.method.momentum_rescale[i] .* coupling ./ integrator.p.atoms.masses[i]
 
     end
     integrator.u.state = new_state
