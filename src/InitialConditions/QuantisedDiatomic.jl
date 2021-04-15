@@ -26,22 +26,28 @@ using Roots
 using Rotations
 using LsqFit
 using LinearAlgebra
+using UnitfulAtomic
 using ....NonadiabaticMolecularDynamics
 
 export generate_configurations
 export quantise_diatomic
 
 """
-    generate_configurations(sim, ν, J; samples=1000, height=10, normal_vector=[0, 0, 1])
+    generate_configurations(sim, ν, J; samples=1000, height=10, normal_vector=[0, 0, 1],
+        translational_energy=0, direction=[0, 0, -1], position=[0, 0, height])
 
 Generate positions and momenta for given quantum numbers
+
+`translational_energy`, `direction` and `position` specify the kinetic energy in
+a specific direction with the molecule placed with centre of mass at `position`.
 
 Keyword arguments `height` and `normal_vector` become relevant if the potential
 requires specific placement of the molecule.
 These allow the molecule to be placed at a distance `height` in the direction
 `normal_vector` when performing potential evaluations.
 """
-function generate_configurations(sim, ν, J; samples=1000, height=10, normal_vector=[0, 0, 1])
+function generate_configurations(sim, ν, J; samples=1000, height=10, normal_vector=[0, 0, 1],
+    translational_energy=0, direction=[0, 0, -1], position=[0, 0, height])
     E, bounds = extract_energy_and_bounds(sim, ν, J; height=height, normal_vector=normal_vector)
     μ = reduced_mass(sim.atoms)
 
@@ -51,7 +57,7 @@ function generate_configurations(sim, ν, J; samples=1000, height=10, normal_vec
 
     bonds, momenta = select_random_bond_lengths(E, bounds, radial_momentum, μ, samples)
 
-    configure_diatomic.(sim, bonds, momenta, J, μ)
+    configure_diatomic.(sim, bonds, momenta, J, μ, Ref(direction), translational_energy, Ref(position))
 end
 
 """
@@ -95,13 +101,10 @@ function quantise_diatomic(sim::Simulation, v::Matrix, r::Matrix; height=10, nor
         throw(ArgumentError("Only a single atom in the simulation?"))
     end
 
-    p = v .* sim.atoms.masses'
     r_com = subtract_centre_of_mass(r, sim.atoms.masses)
-    p_com = subtract_centre_of_mass(p, sim.atoms.masses)
+    v_com = subtract_centre_of_mass(v, sim.atoms.masses)
+    p_com = v_com .* sim.atoms.masses'
 
-    μ = reduced_mass(sim.atoms)
-
-    v_com = p_com ./ sim.atoms.masses'
     k = evaluate_kinetic_energy(sim.atoms.masses, v_com)
     p = calculate_diatomic_energy(sim, bond_length(r_com); height=height, normal_vector=normal_vector)
     E = k + p
@@ -109,6 +112,7 @@ function quantise_diatomic(sim::Simulation, v::Matrix, r::Matrix; height=10, nor
     L = total_angular_momentum(r_com, p_com)
     J = (sqrt(1+4*L^2) - 1) / 2 # L^2 = J(J+1)ħ^2
 
+    μ = reduced_mass(sim.atoms)
     ν, J, bounds = extract_quantum_numbers(sim, μ, E, J; height=height, normal_vector=normal_vector)
     ν, J
 end
@@ -161,7 +165,7 @@ end
 """
 Randomly orient molecule in space for a given bond length and radial momentum
 """
-function configure_diatomic(sim, bond, momentum, J, μ)
+function configure_diatomic(sim, bond, momentum, J, μ, direction, translational_energy, position)
     r = zeros(3,2)
     v = zeros(3,2)
     r[1,1] = bond
@@ -178,6 +182,8 @@ function configure_diatomic(sim, bond, momentum, J, μ)
     v[:,2] .+= cross(ω, r[:,2])
 
     apply_random_rotation!(v, r)
+    position_above_surface!(r, position)
+    apply_translational_impulse!(v, sim.atoms.masses, translational_energy, direction)
 
     v, r
 end
@@ -191,6 +197,18 @@ function apply_random_rotation!(x, y)
         col1 .= rotation * col1
         col2 .= rotation * col2
     end
+end
+
+position_above_surface!(r, position) = r .+= position
+
+function velocity_from_energy(masses, energy)
+    m = sum(masses)
+    sqrt(2austrip(energy) / m)
+end
+
+function apply_translational_impulse!(v, masses, translational_energy, direction)
+    velocity_impulse = velocity_from_energy(masses, translational_energy)
+    v .+= velocity_impulse .* normalize!(direction)
 end
 
 """
