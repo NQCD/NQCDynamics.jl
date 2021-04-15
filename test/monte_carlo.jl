@@ -9,7 +9,7 @@ cell = PeriodicCell(hcat(1))
 model = Models.Harmonic()
 
 Δ = Dict([(:H, 0.1), (:C, 0.1)])
-monte_carlo = MonteCarlo{Float64}(Δ, length(atoms), 100, Int[])
+monte_carlo = MonteCarlo{Float64}(Δ, length(atoms), 100, Int[], x->true)
 sim = Simulation(1, 100u"K", cell, atoms, model, monte_carlo)
 
 @testset "propose_move!" begin
@@ -60,7 +60,7 @@ end
 
 @testset "run_monte_carlo_sampling" begin
     R0 = rand(sim.DoFs, length(sim.atoms))
-    out = InitialConditions.run_monte_carlo_sampling(sim, monte_carlo, R0)
+    out = InitialConditions.run_monte_carlo_sampling(sim, R0, Δ, 10)
     @test !(out.R[1] ≈ out.R[10])
     @test !(out.energy[1] ≈ out.energy[20])
 end

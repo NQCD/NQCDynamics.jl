@@ -2,12 +2,12 @@ using Test
 using NonadiabaticMolecularDynamics
 
 @test Dynamics.NRPMD{Float64}(10) isa Dynamics.NRPMD
-atoms = Atoms{Float64}([:H])
-sim = RingPolymerSimulation(atoms, Models.DoubleWell(), Dynamics.NRPMD{Float64}(2), 10; DoFs=1)
+atoms = Atoms([:H])
+sim = RingPolymerSimulation{NRPMD}(atoms, Models.DoubleWell(), 10; DoFs=1)
 
-R = zeros(sim.DoFs, length(sim.atoms), length(sim.beads)) 
-P = rand(sim.DoFs, length(sim.atoms), length(sim.beads)) 
-u = Dynamics.RingPolymerMappingPhasespace(R, P, 2, 2)
+v = RingPolymerArray(zeros(sim.DoFs, length(sim.atoms), length(sim.beads)))
+r = RingPolymerArray(rand(sim.DoFs, length(sim.atoms), length(sim.beads)))
+u = Dynamics.RingPolymerMappingDynamicals(v, r, 2, 2)
 qmap = Dynamics.get_mapping_positions(u)
 pmap = Dynamics.get_mapping_momenta(u)
 population = Dynamics.get_population(u)

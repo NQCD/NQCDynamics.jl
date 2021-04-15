@@ -1,8 +1,8 @@
 using NonadiabaticMolecularDynamics
 using PyCall
 
-model_path = "/Users/wojciechstark/Desktop/ML-model-repository-master/H2_on_Ag111/h2ag111pes"
-input = model_path * "/Ag.xyz"
+model_path = "~/programs/ML-model/repository/H2_on_Ag111"
+input = model_path * "h2ag111pes/Ag.xyz"
 cell, atoms, positions = read_system(input)
 
 println("Initialize...")

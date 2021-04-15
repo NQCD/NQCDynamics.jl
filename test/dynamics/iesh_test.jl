@@ -13,7 +13,11 @@ sim = Simulation(atoms, model, dynam; DoFs=1)
 
 R = zeros(sim.DoFs, length(sim.atoms))
 P = rand(sim.DoFs, length(sim.atoms))
+<<<<<<< HEAD
 P = fill(2.7, sim.DoFs, length(sim.atoms))
+=======
+P = fill(2.7, sim.DoFs, length(sim.atoms)) ./ atoms.masses[1]
+>>>>>>> c0f6d97171f30e24cabdbf5157e3fd907556a7a1
 #println(P)
 #P = [0.8]
 
@@ -21,7 +25,11 @@ P = fill(2.7, sim.DoFs, length(sim.atoms))
 k = round.(Int64, (zeros(n_states)))
 l = Int(n_states / 2)
 k[1:l] .= 1
+<<<<<<< HEAD
 u = IESHPhasespace(R, P, n_states, k)
+=======
+u = IESHPhasespace(P, R, n_states, k)
+>>>>>>> c0f6d97171f30e24cabdbf5157e3fd907556a7a1
 du = zero(u)
 # set some velocity
 du.x.x[1] .= P
@@ -38,9 +46,14 @@ end
 
 #Test if nonadiabatic coupling behave reasonably
 Dynamics.motion!(du, u, sim, 1.0)
+<<<<<<< HEAD
 Dynamics.evaluate_nonadiabatic_coupling!(sim)
 @test sim.method.nonadiabatic_coupling ≈ -sim.method.nonadiabatic_coupling'
 ##
+=======
+
+@test sim.calculator.nonadiabatic_coupling ≈ -sim.calculator.nonadiabatic_coupling'
+>>>>>>> c0f6d97171f30e24cabdbf5157e3fd907556a7a1
 
 # Test new state generatation
 problem = ODEProblem(Dynamics.motion!, u, (0.0, 1.0), sim)
@@ -50,18 +63,28 @@ set_proposed_dt!(integrator, 1.0)
 # Set high values for density matrix and nonadiabatic coupling to force hopping
 # Hopping is forced from the highest occupied to the lowest unoccupied
 integrator.u.x.x[3][l+1,l] = 100
+<<<<<<< HEAD
 sim.method.nonadiabatic_coupling[1][l,l+1] = 100
+=======
+sim.calculator.nonadiabatic_coupling[1][l,l+1] = 100
+sim.calculator.nonadiabatic_coupling[1][l+1,l] = 100
+>>>>>>> c0f6d97171f30e24cabdbf5157e3fd907556a7a1
 Dynamics.update_hopping_probability!(integrator)
 
 # Test that new states are correctly selected and hopping prob.
 # is above 0
+<<<<<<< HEAD
 @testset "New states" begin
+=======
+@testset "new_states" begin
+>>>>>>> c0f6d97171f30e24cabdbf5157e3fd907556a7a1
     @test 0 < integrator.p.method.hopping_probability[1]
     @test l == integrator.p.method.hopping_probability[2]
     @test l + 1 == integrator.p.method.hopping_probability[3]
 end
 ##
 
+<<<<<<< HEAD
 # Check momentum rescaling
 @testset "Hopping" begin
     # Check that hop doesn't happened (small momentum)
@@ -80,6 +103,25 @@ end
     Dynamics.affect!(integrator)
     @test ktest == integrator.u.state
 end
+=======
+# Check that hop doesn't happened (small momentum)
+# Read out state vector
+k = integrator.u.state
+ktest = copy(k)
+Dynamics.affect!(integrator)
+@test ktest == integrator.u.state
+
+# Check that hop happens with large moment
+# Set larger velocity
+get_positions(get_du(integrator)) .= 10.
+# Build expected state vector
+ktest[l] = 0
+ktest[l+1] = 1
+println(k)
+println(ktest)
+Dynamics.affect!(integrator)
+@test ktest == integrator.u.state
+>>>>>>> c0f6d97171f30e24cabdbf5157e3fd907556a7a1
 ##
 
 # Check momentum rescaling happening with low momentum

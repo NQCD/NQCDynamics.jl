@@ -2,13 +2,15 @@ module NonadiabaticMolecularDynamics
 
 using Reexport
 using Requires
+using DocStringExtensions
 
 include("unit_conversions.jl")
 
 include("atoms.jl")
 include("ring_polymer.jl")
 include("cells.jl")
-include("phasespace.jl")
+include("dynamical_variables.jl")
+include("ring_polymer_array.jl")
 
 include("Models/Models.jl")
 export Models
@@ -24,9 +26,7 @@ export InitialConditions
 include("Dynamics/Dynamics.jl")
 @reexport using .Dynamics
 
-function __init__()
-    @require PyCall="438e738f-606a-5dbb-bf0a-cddfbfd45ab0" @eval include("ase_io.jl")
-end
+include("InputOutput/InputOutput.jl")
 
 include("simulation_constructors.jl")
 

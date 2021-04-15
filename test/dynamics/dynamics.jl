@@ -1,29 +1,13 @@
-using NonadiabaticMolecularDynamics
+using SafeTestsets
 using Test
-using FiniteDiff
 
-function test_motion!(sim)
-    function f(x)
-        evaluate_hamiltonian(sim, x)
-    end
-
-    R = randn(sim.DoFs, length(sim.atoms))
-    P = randn(sim.DoFs, length(sim.atoms))
-    u = Phasespace(R, P)
-
-    du = zero(u)
-    Dynamics.motion!(du, u, sim, 0.0)
-    grad = FiniteDiff.finite_difference_gradient(f, u)
-    @test get_positions(du) ≈ get_momenta(grad) rtol=1e-3
-    @test get_momenta(du) ≈ -get_positions(grad) rtol=1e-3
-end
-
-include("langevin.jl")
-include("mdef.jl")
-include("fssh.jl")
-include("fermionic.jl")
-include("ensembles.jl")
-include("nrpmd.jl")
-
-include("saving_callbacks.jl")
-include("cell_boundary_callback.jl")
+@time @safetestset "Classical Tests" begin include("classical.jl") end
+@time @safetestset "Langevin Tests" begin include("langevin.jl") end
+@time @safetestset "MDEF BAOAB Tests" begin include("mdef_baoab.jl") end
+@time @safetestset "MDEF Tests" begin include("mdef.jl") end
+@time @safetestset "FSSH Tests" begin include("fssh.jl") end
+# @safetestset "Fermionic bath ring polymer (experimental) Tests" begin include("fermionic.jl") end
+@time @safetestset "NRPMD Tests" begin include("nrpmd.jl") end
+@time @safetestset "IESH Tests" begin include("iesh_test.jl") end
+@time @safetestset "Ensembles Tests" begin include("ensembles.jl") end
+@time @safetestset "Cell Boundary Callback Tests" begin include("cell_boundary_callback.jl") end

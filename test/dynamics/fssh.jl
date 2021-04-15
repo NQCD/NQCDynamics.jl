@@ -2,46 +2,70 @@ using Test
 using NonadiabaticMolecularDynamics
 using OrdinaryDiffEq
 
-@test Dynamics.FSSH{Float64}(3, 3, 2) isa Dynamics.FSSH
-atoms = Atoms{Float64}([:H])
-sim = Simulation(atoms, Models.DoubleWell(), Dynamics.FSSH{Float64}(1, 1, 2); DoFs=1)
+@test Dynamics.FSSH{Float64}(2) isa Dynamics.FSSH
+atoms = Atoms([:H])
 
-R = zeros(sim.DoFs, length(sim.atoms)) 
-P = rand(sim.DoFs, length(sim.atoms)) 
-u = SurfaceHoppingPhasespace(R, P, 2, 1)
-du = zero(u)
+@testset "FSSH" begin
+    sim = Simulation(atoms, Models.DoubleWell(), Dynamics.FSSH{Float64}(2); DoFs=1)
 
-@test Dynamics.get_density_matrix(u) ≈ Complex.([1 0; 0 0])
+    r = zeros(sim.DoFs, length(sim.atoms)) 
+    v = rand(sim.DoFs, length(sim.atoms)) 
+    u = SurfaceHoppingDynamicals(v, r, 2, 1)
+    du = zero(u)
 
-Dynamics.motion!(du, u, sim, 0.0)
+    @test Dynamics.get_density_matrix(u) ≈ Complex.([1 0; 0 0])
 
-Dynamics.evaluate_nonadiabatic_coupling!(sim)
-@test sim.method.nonadiabatic_coupling ≈ -sim.method.nonadiabatic_coupling'
+    Dynamics.motion!(du, u, sim, 0.0)
 
-problem = ODEProblem(Dynamics.motion!, u, (0.0, 1.0), sim)
-integrator = init(problem, Tsit5(), callback=Dynamics.fssh_callback)
-Dynamics.update_hopping_probability!(integrator)
+    Calculators.evaluate_nonadiabatic_coupling!(sim.calculator)
+    @test sim.calculator.nonadiabatic_coupling ≈ -sim.calculator.nonadiabatic_coupling'
 
-@testset "select_new_state" begin
-    @test 3 == Dynamics.select_new_state([0, 0, 1.0], 2)
-    @test 0 == Dynamics.select_new_state([0, 1.0, 0.0], 2)
-    @test 1 == Dynamics.select_new_state([1.0, 0.0, 0.0], 2)
+    problem = ODEProblem(Dynamics.motion!, u, (0.0, 1.0), sim)
+    integrator = init(problem, Tsit5(), callback=Dynamics.fssh_callback)
+    Dynamics.update_hopping_probability!(integrator.p, integrator.u, get_proposed_dt(integrator))
+
+    @testset "select_new_state" begin
+        @test 3 == Dynamics.select_new_state([0, 0, 1.0], 2)
+        @test 0 == Dynamics.select_new_state([0, 1.0, 0.0], 2)
+        @test 1 == Dynamics.select_new_state([1.0, 0.0, 0.0], 2)
+    end
+
+    @testset "rescale_velocity!" begin
+        get_velocities(integrator.u) .= 0.0 # Set momentum to zero to force frustrated hop
+        integrator.p.method.new_state[1] = 2
+        cont = Dynamics.rescale_velocity!(integrator)
+        @test cont == false # Check hop is rejected 
+
+        get_velocities(integrator.u) .= 1e5 # Set momentum to big to force hop
+        cont = Dynamics.rescale_velocity!(integrator)
+        @test cont == true # Check hop is accepted
+    end
+
+    @testset "calculate_potential_energy_change" begin
+        integrator.p.calculator.eigenvalues .= [0.9, -0.3]
+        @test 1.2 ≈ Dynamics.calculate_potential_energy_change(integrator.p.calculator, 1, 2)
+        @test -1.2 ≈ Dynamics.calculate_potential_energy_change(integrator.p.calculator, 2, 1)
+    end
+
+    @testset "execute_hop!" begin
+        get_velocities(integrator.u) .= 1e4 # Set high momentum to ensure successful hop
+        integrator.p.method.new_state[1] = 2
+        ΔE = Dynamics.calculate_potential_energy_change(integrator.p.calculator, 2, 1)
+
+        KE_initial = sum(get_velocities(integrator.u).^2 .* integrator.p.atoms.masses')/2
+        @test integrator.u.state == 1
+        Dynamics.execute_hop!(integrator)
+        KE_final = sum(get_velocities(integrator.u).^2 .* integrator.p.atoms.masses')/2
+        @test integrator.u.state == 2 # Check state has changed
+        @test KE_final - KE_initial ≈ ΔE rtol=1e-3 # Test for energy conservation
+    end
+
+    @testset "run_trajectory" begin
+        solution = Dynamics.run_trajectory(u, (0.0, 10.0), sim)
+    end
 end
 
-@testset "calculate_rescaling_constant" begin
-    get_momenta(integrator.u) .= 0.0 # Set momentum to zero to force frustrated hop
-    Dynamics.motion!(get_du(integrator), integrator.u, sim, 0.0) # Update velocity
-    cont = Dynamics.calculate_rescaling_constant!(integrator, 2)
-    @test cont == false # Check hop is rejected 
-
-    get_momenta(integrator.u) .= 1e5 # Set momentum to big to force hop
-    Dynamics.motion!(get_du(integrator), integrator.u, sim, 0.0) # Update velocity
-    cont = Dynamics.calculate_rescaling_constant!(integrator, 2)
-    @test cont == true # Check hop is accepted
-
-    @test 1.2 ≈ Dynamics.calculate_potential_energy_change([0.0, 0.1, 0.9, -0.3], 3, 4)
-end
-
+<<<<<<< HEAD
 # @testset "execute_hop!" begin
 #     get_momenta(integrator.u) .= 1e4 # Set high momentum to ensure successful hop
 #     Dynamics.motion!(get_du(integrator), integrator.u, sim, 0.0)
@@ -57,3 +81,58 @@ end
 #     KE_final = sum(get_momenta(integrator.u).^2 ./ integrator.p.atoms.masses')/2
 #     @test KE_final - KE_initial ≈ -ΔE # Test for energy conservation
 # end
+=======
+@testset "RPSH" begin
+    sim = RingPolymerSimulation{FSSH}(atoms, Models.DoubleWell(), 5; DoFs=1)
+
+    r = RingPolymerArray(zeros(sim.DoFs, length(sim.atoms), 5))
+    v = RingPolymerArray(rand(sim.DoFs, length(sim.atoms), 5))
+    u = SurfaceHoppingDynamicals(v, r, 2, 1)
+
+    problem = ODEProblem(Dynamics.motion!, u, (0.0, 1.0), sim)
+    integrator = init(problem, Tsit5(), callback=Dynamics.fssh_callback)
+    Dynamics.update_hopping_probability!(integrator.p, integrator.u, get_proposed_dt(integrator))
+
+    @testset "rescale_velocity!" begin
+        get_velocities(integrator.u) .= 0.0 # Set momentum to zero to force frustrated hop
+        integrator.p.method.new_state[1] = 2
+        cont = Dynamics.rescale_velocity!(integrator)
+        @test cont == false # Check hop is rejected 
+
+        get_velocities(integrator.u) .= 1e5 # Set momentum to big to force hop
+        cont = Dynamics.rescale_velocity!(integrator)
+        @test cont == true # Check hop is accepted
+    end
+
+    @testset "calculate_potential_energy_change" begin
+        integrator.p.calculator.eigenvalues .= [[0.9, -0.3] for i=1:5]
+        @test 1.2 ≈ Dynamics.calculate_potential_energy_change(integrator.p.calculator, 1, 2)
+        @test -1.2 ≈ Dynamics.calculate_potential_energy_change(integrator.p.calculator, 2, 1)
+    end
+
+    @testset "execute_hop!" begin
+        get_velocities(integrator.u) .= 1e4 # Set high momentum to ensure successful hop
+        integrator.p.method.new_state[1] = 2
+        ΔE = Dynamics.calculate_potential_energy_change(integrator.p.calculator, 2, 1)
+
+        KE_initial = sum(get_velocities(integrator.u).^2 .* integrator.p.atoms.masses')/2 ./ 5
+        @test integrator.u.state == 1
+        Dynamics.execute_hop!(integrator)
+        KE_final = sum(get_velocities(integrator.u).^2 .* integrator.p.atoms.masses')/2 ./ 5
+        @test integrator.u.state == 2 # Check state has changed
+        @test KE_final - KE_initial ≈ ΔE rtol=1e-3 # Test for energy conservation
+    end
+
+    @testset "run_trajectory" begin
+
+        sim = RingPolymerSimulation{FSSH}(atoms, Models.DoubleWell(), 5; DoFs=1)
+
+        r = RingPolymerArray(zeros(sim.DoFs, length(sim.atoms), 5))
+        v = RingPolymerArray(rand(sim.DoFs, length(sim.atoms), 5))
+        u = SurfaceHoppingDynamicals(v, r, 2, 1)
+
+        solution = Dynamics.run_trajectory(u, (0.0, 10.0), sim)
+    end
+
+end
+>>>>>>> c0f6d97171f30e24cabdbf5157e3fd907556a7a1
