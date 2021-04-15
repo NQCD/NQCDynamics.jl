@@ -26,13 +26,20 @@ struct IESH{T} <: Method
     density_propagator::Matrix{Complex{T}}
     hopping_probability::Vector{T}
     momentum_rescale::Vector{T}
+    tmp_matrix1::Matrix{Complex{T}}
+    tmp_matrix2::Matrix{Complex{T}}
+    tmp_matrix3::Matrix{Complex{T}}
+    # matrix as temporary arrays to allocate only once
     function IESH{T}(DoFs::Integer, atoms::Integer, states::Integer) where {T}
         nonadiabatic_coupling = [zeros(states, states) for i=1:DoFs, j=1:atoms]
         density_propagator = zeros(states, states)
-        #hopping_probability = zeros(states)
         hopping_probability = zeros(3)
         momentum_rescale = zeros(atoms)
-        new{T}(nonadiabatic_coupling, density_propagator, hopping_probability, momentum_rescale)
+        tmp_matrix1 = zeros(states, states)
+        tmp_matrix2 = zeros(states, states)
+        tmp_matrix3 = zeros(states, states)
+        new{T}(nonadiabatic_coupling, density_propagator, hopping_probability, 
+               momentum_rescale, tmp_matrix1, tmp_matrix2, tmp_matrix3)
     end
 end
 
@@ -50,7 +57,7 @@ function IESHPhasespace(R::Matrix{T}, P::Matrix{T}, σ::Matrix{Complex{T}}, stat
 end
 
 # construct the density matrix
-# Adapted from James's definition. We now need states as the Vector |k>
+# Adapted from James's definition from FSSH. We now need states as the Vector |k>
 # See: ShenviRoyTully_JChemPhys_130_174107_2009
 function IESHPhasespace(R::Matrix{T}, P::Matrix{T}, n_states::Integer, state::Vector{Int}) where {T}
     σ = zeros(Complex{T}, n_states, n_states)
@@ -67,19 +74,17 @@ get_density_matrix(z::IESHPhasespace) = z.x.x[3]
 
 # This belongs to run_trajectory.
 # It first follows motion! and then iesh_callback
-# Doesn't work, yet. HERE!
 function create_problem(u0::IESHPhasespace, tspan::Tuple, sim::AbstractSimulation{<:IESH})
     #IESH_callback=create_energy_saving_callback(u0,integrator::DiffEqBase.DEIntegrator)
     # IESH_callback=create_saving_callback()
     #cb2 = DiscreteCallback(condition, affect!; save_positions=(false, false))
     cb2 = DiscreteCallback(condition, affect!; save_positions=(false, false))
     #ODEProblem(motion!, u0, tspan, sim; callback=cb2, dt = 1, adaptive = false)
-    #ODEProblem(motion!, u0, tspan, sim; callback=cb2, save_everystep=false,dense=false, dt = 10, adaptive = false)
-    ODEProblem(motion!, u0, tspan, sim; callback=cb2, save_everystep=false,dense=false)
+    ODEProblem(motion!, u0, tspan, sim; callback=cb2, save_everystep=false,dense=false, dt = 1, adaptive = false)
+    #ODEProblem(motion!, u0, tspan, sim; callback=cb2, save_everystep=false,dense=false)
  end
 
 function motion!(du::IESHPhasespace, u::IESHPhasespace, sim::Simulation{<:IESH}, t)
-    #println(get_positions(u))
     set_velocity!(du, u, sim)  # classical.jl momenta/(atom_mass) v = p/m 
     update_electronics!(sim, u) # The next three routines 
     set_force!(du, u, sim) # 4th routine
@@ -94,7 +99,9 @@ function update_electronics!(sim::Simulation{<:IESH}, u::IESHPhasespace)
     Calculators.evaluate_potential!(sim.calculator, get_positions(u))
     Calculators.evaluate_derivative!(sim.calculator, get_positions(u))
     Calculators.eigen!(sim.calculator)
-    Calculators.transform_derivative!(sim.calculator)
+    #Calculators.transform_derivative!(sim.calculator)
+    # Speeds up by a factor of 10
+    Calculators.transform_derivative!(sim.calculator, sim.method.tmp_matrix1, sim.method.tmp_matrix2, sim.method.tmp_matrix3)
     evaluate_nonadiabatic_coupling!(sim)
 end
 
@@ -110,12 +117,15 @@ end
 
 # Calculates the nonadiabatic coupling. This is probably also true for IESH
 function evaluate_nonadiabatic_coupling!(coupling::Matrix, adiabatic_derivative::Matrix, eigenvalues::Vector)
+    #println("ping1")
+    #println(eigenvalues[1])
     for i=1:length(eigenvalues)
         for j=i+1:length(eigenvalues)
             coupling[j,i] = -adiabatic_derivative[j,i] / (eigenvalues[j]-eigenvalues[i])
             coupling[i,j] = -coupling[j,i]
         end
     end
+    #println(coupling)
 end
 
 # gets the momenta corresponding to the current state from the adiabatic derivates 
@@ -123,22 +133,15 @@ end
 # Here, instead of just calculating the moment, I assume I will need to some up (?)
 # the different contributions to the force according to Eq.(12) in the Tully paper.
 function set_force!(du::IESHPhasespace, u::IESHPhasespace, sim::Simulation{<:IESH})
-    #energ=zeros(1)
     for i=1:length(sim.atoms)
         for j=1:sim.DoFs
-            #energ[1]=0
-            #println(" ")
             get_momenta(du)[j,i] = 0.0
             for n=1:length(u.state)
                 # calculate as sum of the momenta of the occupied
                 get_momenta(du)[j,i] = get_momenta(du)[j,i] -sim.calculator.adiabatic_derivative[j,i][n, n]*u.state[n]
-                #energ[1] = energ[1] + sim.calculator.eigenvalues[n]*u.state[n]
-                #println(sim.calculator.eigenvalues[n]*u.state[n])
-                                       #-sim.calculator.adiabatic_derivative[j,i][u.state, u.state]
             end
         end
     end
-    #println(energ)
 end
 
 # Calculate the _time_-derivate  of the  density matrix
@@ -162,18 +165,19 @@ function set_density_matrix_derivative!(du::IESHPhasespace, u::IESHPhasespace, s
         end
     end
     
-    # This version is presumably much slower than below
-    #@time get_density_matrix(du) .= -im*(V*σ - σ*V)
+        # 8 allocations, but still on average slightly  faster
+    #@time 
+    get_density_matrix(du) .= -im*(V*σ - σ*V)
     #inlining?
-    ust = length(u.state)
-    Y = zeros(Complex, ust, ust)
-    Z = zeros(Complex, ust, ust)
-    # Okay, the loops are much slower than writing it with *
-    # Unfortunatley, this doesn't seem to speed things up
+    # 4 allocations, but marginally slower on average
     #@time begin
-    mul!(Y, σ, V)
-    mul!(Z, V, σ)
-    get_density_matrix(du) .= -im *(Z - Y)
+    #mul!(sim.method.tmp_matrix1, σ, V)
+    #mul!(sim.method.tmp_matrix2, V, σ)
+    #mul!(sim.method.tmp_matrix1, get_density_matrix(u), V)
+    #mul!(sim.method.tmp_matrix2, V, get_density_matrix(u))
+    #get_density_matrix(du) .= -im *(sim.method.tmp_matrix2 - sim.method.tmp_matrix1)
+    # No allocation, but slower
+    #get_density_matrix(du) .= -im .*(sim.method.tmp_matrix2 .- sim.method.tmp_matrix1)
     #end
  end
 
@@ -181,6 +185,8 @@ function set_density_matrix_derivative!(du::IESHPhasespace, u::IESHPhasespace, s
 condition(u, t, integrator::DiffEqBase.DEIntegrator) = true
 
 function affect!(integrator::DiffEqBase.DEIntegrator)
+    #println("ping7")
+    #@time 
     update_hopping_probability!(integrator)
     
     # not necessary anymore

@@ -21,14 +21,15 @@ using Profile
 
 ps = 98.22694788464062
 Random.seed!(13)
+n_states = 502
 #n_states = 202
-n_states = 42
+#n_states = 42
 # # number of electronic n_states
 vinit = 0.005 # initial velocity
 mass = 1.5 # atomic mass#
 B_na = 1.0 # parameter that defines nonadiabatic coupling strength
 n_DOF = 1
-ntrajes = 250
+ntrajes = 5
 tspan = (0.0, 5.0u"ps")
 
 # 1a) Define adiabatic model, fom Model/scattering_anderson_holsteins.jl
@@ -85,7 +86,7 @@ sim = Simulation(atoms, model, dynam; DoFs=1)
 
 
 # Do dynamics
- for i=8:ntrajes
+ for i=1:ntrajes
     nname=lpad(i,8,"0")
     r, p = rand(bolz_pos_momenta)
     p = -p * atoms.masses[1]
@@ -122,7 +123,11 @@ sim = Simulation(atoms, model, dynam; DoFs=1)
     #cb, vals = Dynamics.create_energy_saving_callback()
     cb, vals = Dynamics.create_impurity_saving_callback()
     # ../../Dynamics/iesh.jl
-    @time solution = Dynamics.run_trajectory(z, (0.0, 100000.0), sim; callback=cb)
+    @time solution = Dynamics.run_trajectory(z, (0.0, 50.0), sim; callback=cb)
+    #@profile solution = Dynamics.run_trajectory(z, (0.0, 10.0), sim; callback=cb)
+    #f = open("timing.txt", "w")
+    #Profile.print(f, format=:flat, maxdepth=1)
+    #close(f)
     # For testing only: w/o callback
     
     #@time solution = Dynamics.run_trajectory(z, (0.0, 12000000.0), sim)

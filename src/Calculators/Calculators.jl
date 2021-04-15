@@ -134,6 +134,7 @@ function evaluate_friction!(calc::AbstractFrictionCalculator, R::AbstractMatrix{
 end
 
 function eigen!(calc::DiabaticCalculator)
+    # very computationally expensive
     eig = eigen(calc.potential)
     correct_phase!(eig, calc.eigenvectors)
     copyto!(calc.eigenvectors, eig.vectors)
@@ -155,13 +156,29 @@ function correct_phase!(eig::Eigen, old_eigenvectors::Matrix)
     end
 end
 
-function transform_derivative!(calc::DiabaticCalculator)
+# function transform_derivative!(calc::DiabaticCalculator)
+#     # very computationally expensive
+#     for i in axes(calc.derivative, 2) # Atoms
+#         for j in axes(calc.derivative, 1) # DoFs
+#             calc.adiabatic_derivative[j,i] .= calc.eigenvectors' * calc.derivative[j,i] * calc.eigenvectors
+#         end
+#     end
+# end
+
+function transform_derivative!(calc::DiabaticCalculator, mat1::Matrix, mat2::Matrix, mat3::Matrix)
+    # very computationally expensive
+    mat2 .= calc.eigenvectors
     for i in axes(calc.derivative, 2) # Atoms
         for j in axes(calc.derivative, 1) # DoFs
-            calc.adiabatic_derivative[j,i] .= calc.eigenvectors' * calc.derivative[j,i] * calc.eigenvectors
+            mat3 .= calc.derivative[j,i]
+            mul!(mat1, mat3, mat2)
+            mul!(mat3, mat2', mat1)
+            #calc.adiabatic_derivative[j,i] .= calc.eigenvectors' * calc.derivative[j,i] * calc.eigenvectors
+            calc.adiabatic_derivative[j,i] .= mat3
         end
     end
 end
+
 
 function transform_derivative!(calc::RingPolymerDiabaticCalculator)
     for i in axes(calc.derivative, 3) # Beads

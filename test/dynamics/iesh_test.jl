@@ -38,9 +38,9 @@ end
 
 #Test if nonadiabatic coupling behave reasonably
 Dynamics.motion!(du, u, sim, 1.0)
-
 Dynamics.evaluate_nonadiabatic_coupling!(sim)
 @test sim.method.nonadiabatic_coupling ≈ -sim.method.nonadiabatic_coupling'
+##
 
 # Test new state generatation
 problem = ODEProblem(Dynamics.motion!, u, (0.0, 1.0), sim)
@@ -55,30 +55,31 @@ Dynamics.update_hopping_probability!(integrator)
 
 # Test that new states are correctly selected and hopping prob.
 # is above 0
-@testset "new_states" begin
+@testset "New states" begin
     @test 0 < integrator.p.method.hopping_probability[1]
     @test l == integrator.p.method.hopping_probability[2]
     @test l + 1 == integrator.p.method.hopping_probability[3]
 end
 ##
 
-# Check that hop doesn't happened (small momentum)
-# Read out state vector
-k = integrator.u.state
-ktest = copy(k)
-Dynamics.affect!(integrator)
-@test ktest == integrator.u.state
+# Check momentum rescaling
+@testset "Hopping" begin
+    # Check that hop doesn't happened (small momentum)
+    # Read out state vector
+    k = integrator.u.state
+    ktest = copy(k)
+    Dynamics.affect!(integrator)
+    @test ktest == integrator.u.state
 
-# Check that hop happens with large moment
-# Set larger velocity
-get_positions(get_du(integrator)) .= 10.
-# Build expected state vector
-ktest[l] = 0
-ktest[l+1] = 1
-println(k)
-println(ktest)
-Dynamics.affect!(integrator)
-@test ktest == integrator.u.state
+    # Check that hop happens with large moment
+    # Set larger velocity
+    get_positions(get_du(integrator)) .= 10.
+    # Build expected state vector
+    ktest[l] = 0
+    ktest[l+1] = 1
+    Dynamics.affect!(integrator)
+    @test ktest == integrator.u.state
+end
 ##
 
 # Check momentum rescaling happening with low momentum
