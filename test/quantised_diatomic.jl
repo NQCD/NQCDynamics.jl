@@ -2,6 +2,8 @@ using Test
 using NonadiabaticMolecularDynamics
 using NonadiabaticMolecularDynamics.InitialConditions.QuantisedDiatomic
 using LinearAlgebra: norm
+using Unitful
+using UnitfulAtomic
 
 atoms = Atoms([:N, :O])
 model = Models.DiatomicHarmonic()
@@ -45,10 +47,41 @@ end
 
 @testset "generate and check results" begin
     numbers = [2, 5]
-    configs = generate_configurations(sim, numbers[1], numbers[2]; samples=10)
+    configs = generate_configurations(sim, numbers[1], numbers[2]; samples=10, translational_energy=1u"eV")
     for config in configs
         ν, J = quantise_diatomic(sim, config...)
         @test ν ≈ numbers[1] rtol=1e-1
         @test J ≈ numbers[2] rtol=1e-1
     end
+end
+
+@testset "position_above_surface!" begin
+    r = zeros(3, 2)
+    height = 10
+    direction = [0, 1, 0]
+    QuantisedDiatomic.position_above_surface!(r, height.*direction)
+    @test r == [0 0; height height; 0 0]
+end
+
+@testset "velocity_from_energy" begin
+    v = QuantisedDiatomic.velocity_from_energy([100, 100], 10u"eV")
+    v2 = QuantisedDiatomic.velocity_from_energy([100, 100], austrip(10u"eV"))
+    @test v ≈ v2
+end
+
+@testset "apply_translational_impulse!" begin
+    masses = [100, 100]
+    v = rand(3, 2) ./ 100
+    v_before = copy(v)
+    e = 10u"eV"
+    direction = [0, 0.5, 0.5]
+    QuantisedDiatomic.apply_translational_impulse!(v, masses, e, direction)
+    @test v_before[1,:] == v[1,:]
+    @test all(v_before[2:3,:] .< v[2:3,:])
+
+    νi, Ji = quantise_diatomic(sim, v, r)
+    QuantisedDiatomic.apply_translational_impulse!(v, sim.atoms.masses, 1, rand(3))
+    νf, Jf = quantise_diatomic(sim, v, r)
+    @test νi ≈ νf
+    @test Ji ≈ Jf
 end
