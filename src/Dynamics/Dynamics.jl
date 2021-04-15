@@ -89,6 +89,8 @@ include("fssh.jl")
 include("fermionic_ring_polymer.jl")
 include("nrpmd.jl")
 
+include("bcocb.jl")
+
 include("ensembles.jl")
 include("callbacks.jl")
 include("plot.jl")

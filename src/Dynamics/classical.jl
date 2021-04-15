@@ -31,16 +31,16 @@ velocity!(dr, v, r, sim, t) = dr .= v
 """
 `f1` in `DifferentialEquations.jl` docs.
 """
-function acceleration!(dv, v, r, sim::Simulation, t)
+function acceleration!(dv, v, r, sim::AbstractSimulation, t)
     Calculators.evaluate_derivative!(sim.calculator, r)
     dv .= -sim.calculator.derivative ./ sim.atoms.masses'
 end
 
-function acceleration!(dv, v, r, sim::RingPolymerSimulation, t)
-    Calculators.evaluate_derivative!(sim.calculator, r)
-    dv .= -sim.calculator.derivative ./ sim.atoms.masses'
-    apply_interbead_coupling!(dv, r, sim)
-end
+# function acceleration!(dv, v, r, sim::RingPolymerSimulation{<:FSSH}, t)
+#     Calculators.evaluate_derivative!(sim.calculator, r)
+#     dv .= -sim.calculator.derivative ./ sim.atoms.masses'
+#     apply_interbead_coupling!(dv, r, sim)
+# end
 
 """
     apply_interbead_coupling!(du::DynamicalVariables, u::DynamicalVariables,

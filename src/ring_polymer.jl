@@ -1,4 +1,4 @@
-using LinearAlgebra: Symmetric, SymTridiagonal
+using LinearAlgebra: Symmetric, SymTridiagonal, inv, I
 using RecursiveArrayTools
 
 export RingPolymerParameters
@@ -100,3 +100,21 @@ end
 
 Base.length(beads::RingPolymerParameters) = beads.n_beads
 Base.range(beads::RingPolymerParameters) = range(1; length=length(beads))
+
+"""
+    cayley_propagator(beads::RingPolymerParameters{T}, dt::Real; half::Bool=true) where {T}
+
+J. Chem. Phys. 151, 124103 (2019); doi: 10.1063/1.5120282
+"""
+function cayley_propagator(beads::RingPolymerParameters{T}, dt::Real; half::Bool=true) where {T}
+
+    cay(dtA::Matrix)::Matrix = inv(I - dtA/2) * (I + dtA/2)
+
+    ω_k = get_matsubara_frequencies(length(beads), beads.ω_n)
+    prop = [Array{T}(undef, 2, 2) for i=1:length(beads)]
+    for (i, ω) in enumerate(ω_k)
+        A = [0 1; -ω^2 0]
+        prop[i] .= half ? real.(sqrt(cay(dt.*A))) : cay(dt.*A)
+    end
+    prop
+end
