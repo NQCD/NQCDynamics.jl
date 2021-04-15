@@ -97,6 +97,16 @@ struct FrictionCalculator{T,M} <: AbstractFrictionCalculator{M}
     end
 end
 
+struct RingPolymerFrictionCalculator{T,M} <: AbstractFrictionCalculator{M}
+    model::M
+    potential::Vector{Vector{T}}
+    derivative::Array{T,3}
+    friction::Array{T,3}
+    function RingPolymerFrictionCalculator{T}(model::M, DoFs::Integer, atoms::Integer, beads::Integer) where {T,M<:Model}
+        new{T,M}(model, [[0.0] for i=1:beads], zeros(DoFs, atoms, beads), zeros(DoFs*atoms, DoFs*atoms, beads))
+    end
+end
+
 struct DiabaticFrictionCalculator{T,M} <: AbstractDiabaticCalculator{M}
     model::M
     potential::Hermitian{T}
@@ -137,8 +147,11 @@ end
 function Calculator(model::AdiabaticModel, DoFs::Integer, atoms::Integer, beads::Integer, T::Type=Float64)
     RingPolymerAdiabaticCalculator{T}(model, DoFs, atoms, beads)
 end
+function Calculator(model::FrictionModel, DoFs::Integer, atoms::Integer, beads::Integer, T::Type=Float64)
+    RingPolymerFrictionCalculator{T}(model, DoFs, atoms, beads)
+end
 
-function evaluate_potential!(calc::AbstractCalculator, R::AbstractMatrix{T}) where {T}
+function evaluate_potential!(calc::AbstractCalculator, R::AbstractMatrix)
     Models.potential!(calc.model, calc.potential, R)
 end
 
@@ -148,7 +161,7 @@ function evaluate_potential!(calc::AbstractCalculator, R::AbstractArray{T,3}) wh
     end
 end
 
-function evaluate_derivative!(calc::AbstractCalculator, R::AbstractMatrix{T}) where {T}
+function evaluate_derivative!(calc::AbstractCalculator, R::AbstractMatrix)
     Models.derivative!(calc.model, calc.derivative, R)
 end
 
@@ -160,6 +173,12 @@ end
 
 function evaluate_friction!(calc::AbstractFrictionCalculator, R::AbstractMatrix)
     Models.friction!(calc.model, calc.friction, R)
+end
+
+function evaluate_friction!(calc::AbstractFrictionCalculator, R::AbstractArray{T,3}) where {T}
+    @views for i in axes(R, 3)
+        Models.friction!(calc.model, calc.friction[:,:,i], R[:,:,i])
+    end
 end
 
 @doc raw"""
