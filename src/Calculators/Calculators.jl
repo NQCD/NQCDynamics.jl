@@ -52,9 +52,12 @@ struct DiabaticCalculator{T,M} <: AbstractDiabaticCalculator{M}
     eigenvectors::Matrix{T}
     adiabatic_derivative::Matrix{Matrix{T}}
     nonadiabatic_coupling::Matrix{Matrix{T}}
-    tmp_mat1::Matrix{Complex{T}}
-    tmp_mat2::Matrix{Complex{T}}
-    tmp_mat3::Matrix{Complex{T}}
+    #tmp_mat1::Matrix{Complex{T}}
+    #tmp_mat2::Matrix{Complex{T}}
+    #tmp_mat3::Matrix{Complex{T}}
+    tmp_mat1::Matrix{T}
+    tmp_mat2::Matrix{T}
+    tmp_mat3::Matrix{T}
     function DiabaticCalculator{T}(model::M, DoFs::Integer, atoms::Integer) where {T,M<:Model}
         potential = Hermitian(zeros(model.n_states, model.n_states))
         derivative = [Hermitian(zeros(model.n_states, model.n_states)) for i=1:DoFs, j=1:atoms]

@@ -112,7 +112,7 @@ sim = Simulation(atoms, model, dynam; DoFs=1)
     # cb, vals = Dynamics.create_impurity_saving_callback()
     # ../../Dynamics/iesh.jl
 
-    solution = Dynamics.run_trajectory(z, (0.0, 1000.0), sim)
+    solution = Dynamics.run_trajectory(z, (0.0, 10.0), sim)
 
     #@time solution = Dynamics.run_trajectory(z, (0.0, 10.0), sim; output=(:save_impurity))
     # For testing only: w/o callback
