@@ -22,7 +22,7 @@ atoms = Atoms([:H])
 
     problem = ODEProblem(Dynamics.motion!, u, (0.0, 1.0), sim)
     integrator = init(problem, Tsit5(), callback=Dynamics.fssh_callback)
-    Dynamics.update_hopping_probability!(integrator.p, integrator.u, get_proposed_dt(integrator))
+    Dynamics.update_hopping_probability!(integrator)
 
     @testset "select_new_state" begin
         @test 3 == Dynamics.select_new_state([0, 0, 1.0], 2)
@@ -65,23 +65,6 @@ atoms = Atoms([:H])
     end
 end
 
-<<<<<<< HEAD
-# @testset "execute_hop!" begin
-#     get_momenta(integrator.u) .= 1e4 # Set high momentum to ensure successful hop
-#     Dynamics.motion!(get_du(integrator), integrator.u, sim, 0.0)
-#     ΔE = Dynamics.calculate_potential_energy_change(integrator.p.calculator.eigenvalues, 2, 1)
-
-#     cont = Dynamics.calculate_rescaling_constant!(integrator, 2)
-#     @test cont == true
-
-#     KE_initial = sum(get_momenta(integrator.u).^2 ./ integrator.p.atoms.masses')/2
-#     @test integrator.u.state == 1
-#     Dynamics.execute_hop!(integrator, 2)
-#     @test integrator.u.state == 2 # Check state has changed
-#     KE_final = sum(get_momenta(integrator.u).^2 ./ integrator.p.atoms.masses')/2
-#     @test KE_final - KE_initial ≈ -ΔE # Test for energy conservation
-# end
-=======
 @testset "RPSH" begin
     sim = RingPolymerSimulation{FSSH}(atoms, Models.DoubleWell(), 5; DoFs=1)
 
@@ -91,7 +74,7 @@ end
 
     problem = ODEProblem(Dynamics.motion!, u, (0.0, 1.0), sim)
     integrator = init(problem, Tsit5(), callback=Dynamics.fssh_callback)
-    Dynamics.update_hopping_probability!(integrator.p, integrator.u, get_proposed_dt(integrator))
+    Dynamics.update_hopping_probability!(integrator)
 
     @testset "rescale_velocity!" begin
         get_velocities(integrator.u) .= 0.0 # Set momentum to zero to force frustrated hop
@@ -135,4 +118,3 @@ end
     end
 
 end
->>>>>>> c0f6d97171f30e24cabdbf5157e3fd907556a7a1

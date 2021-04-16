@@ -87,6 +87,7 @@ function acceleration!(dv, v, r, sim::RingPolymerSimulation{<:FSSH}, t, state=1)
         end
     end
     apply_interbead_coupling!(dv, r, sim)
+end
 
 function set_density_matrix_derivative!(dσ, v, σ, sim::Simulation{<:SurfaceHopping})
     V = sim.method.density_propagator

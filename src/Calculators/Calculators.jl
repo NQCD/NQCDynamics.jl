@@ -1,13 +1,10 @@
 """
     Calculators
-
 This module exists to bridge the gap between the `Models` and the `Dynamics`.
-
 Here we provide functions and types for evaluating and storing quantities obtained from the
 `Models`.
 In addition any further manipulation of those quantities, such as computing eigenvalues,
 is included here.
-
 This module is largely needed to facilitate seemless integration of both ring polymer and
 classical dynamics, using the same models and functions for both.
 Specific ring polymer types are provided that have the extra fields and methods needed
@@ -20,9 +17,7 @@ using ..Models
 
 """
     AbstractCalculator{M<:Model}
-
 Top-level type for all calculators.
-
 Each concrete calculator contains the `Model` and the fields to store the quantities
 obtained from the model.
 """
@@ -57,6 +52,9 @@ struct DiabaticCalculator{T,M} <: AbstractDiabaticCalculator{M}
     eigenvectors::Matrix{T}
     adiabatic_derivative::Matrix{Matrix{T}}
     nonadiabatic_coupling::Matrix{Matrix{T}}
+    tmp_mat1::Matrix{Complex{T}}
+    tmp_mat2::Matrix{Complex{T}}
+    tmp_mat3::Matrix{Complex{T}}
     function DiabaticCalculator{T}(model::M, DoFs::Integer, atoms::Integer) where {T,M<:Model}
         potential = Hermitian(zeros(model.n_states, model.n_states))
         derivative = [Hermitian(zeros(model.n_states, model.n_states)) for i=1:DoFs, j=1:atoms]
@@ -64,7 +62,12 @@ struct DiabaticCalculator{T,M} <: AbstractDiabaticCalculator{M}
         eigenvectors = zeros(model.n_states, model.n_states)
         adiabatic_derivative = [zeros(model.n_states, model.n_states) for i=1:DoFs, j=1:atoms]
         nonadiabatic_coupling = [zeros(model.n_states, model.n_states) for i=1:DoFs, j=1:atoms]
-        new{T,M}(model, potential, derivative, eigenvalues, eigenvectors, adiabatic_derivative, nonadiabatic_coupling)
+        tmp_mat1 = zeros(model.n_states, model.n_states)
+        tmp_mat2 = zeros(model.n_states, model.n_states)
+        tmp_mat3 = zeros(model.n_states, model.n_states)
+        new{T,M}(model, potential, derivative, eigenvalues, eigenvectors, 
+                adiabatic_derivative, nonadiabatic_coupling, tmp_mat1,
+                tmp_mat2, tmp_mat3)
     end
 end
 
@@ -164,11 +167,8 @@ end
 
 @doc raw"""
     evaluate_friction!(calc::DiabaticFrictionCalculator, R::AbstractMatrix)
-
 Evaluate the electronic friction for a model given in the diabatic representation.
-
 Requires that `adiabatic_derivative` and `eigenvalues` be precomputed.
-
 ```math
 γ = 2πħ ∑ⱼ <1|dH|j><j|dH|1> δ(ωⱼ) / ωⱼ
 ```
@@ -213,8 +213,7 @@ function correct_phase!(eig::Eigen, old_eigenvectors::Matrix)
     end
 end
 
-# function transform_derivative!(calc::DiabaticCalculator)
-#     # very computationally expensive
+# function transform_derivative!(calc::AbstractDiabaticCalculator)
 #     for i in axes(calc.derivative, 2) # Atoms
 #         for j in axes(calc.derivative, 1) # DoFs
 #             calc.adiabatic_derivative[j,i] .= calc.eigenvectors' * calc.derivative[j,i] * calc.eigenvectors
@@ -222,20 +221,18 @@ end
 #     end
 # end
 
-function transform_derivative!(calc::DiabaticCalculator, mat1::Matrix, mat2::Matrix, mat3::Matrix)
-    # very computationally expensive
-    mat2 .= calc.eigenvectors
+function transform_derivative!(calc::AbstractDiabaticCalculator)
+    # speed up calculation with mul()
+    calc.tmp_mat2 .= calc.eigenvectors
     for i in axes(calc.derivative, 2) # Atoms
         for j in axes(calc.derivative, 1) # DoFs
-            mat3 .= calc.derivative[j,i]
-            mul!(mat1, mat3, mat2)
-            mul!(mat3, mat2', mat1)
-            #calc.adiabatic_derivative[j,i] .= calc.eigenvectors' * calc.derivative[j,i] * calc.eigenvectors
-            calc.adiabatic_derivative[j,i] .= mat3
+            calc.tmp_mat3 .= calc.derivative[j,i]
+            mul!(calc.tmp_mat1, calc.tmp_mat3, calc.tmp_mat2)
+            mul!(calc.tmp_mat3, calc.tmp_mat2', calc.tmp_mat1)
+            calc.adiabatic_derivative[j,i] .= calc.tmp_mat3
         end
     end
 end
-
 
 function transform_derivative!(calc::RingPolymerDiabaticCalculator)
     for i in axes(calc.derivative, 3) # Beads
@@ -246,6 +243,7 @@ function transform_derivative!(calc::RingPolymerDiabaticCalculator)
         end
     end
 end
+
 
 function evaluate_nonadiabatic_coupling!(calc::DiabaticCalculator)
     evaluate_nonadiabatic_coupling!.(calc.nonadiabatic_coupling, calc.adiabatic_derivative,

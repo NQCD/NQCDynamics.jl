@@ -1,3 +1,4 @@
+push!(LOAD_PATH, pwd())
 module NonadiabaticMolecularDynamics
 
 using Reexport

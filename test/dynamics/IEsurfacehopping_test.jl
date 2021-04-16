@@ -15,46 +15,27 @@ using Profile
 #   1) initialize classical positions and momenta, initialize
 #      electronic states, define surface on which to propagate
 #   2) Do Verlet algorithm for the atomic positions, velocities electronic
-#   3) Integrate the electronic wave function w/ 1e- Schroedinger equation
+#   3) Integrate the electronic wave function w/ 1e- Schroedinger equationa
 #   4) calculate switching probability, calculate if hop should occur
 #   5) If no hop, GOTO 2; if hop, see if enough energy to do it, GOTO 2
 
 ps = 98.22694788464062
 Random.seed!(13)
-<<<<<<< HEAD
-n_states = 502
-#n_states = 202
-#n_states = 42
-=======
 #n_states = 202
 n_states = 42
->>>>>>> c0f6d97171f30e24cabdbf5157e3fd907556a7a1
+n_states = 502
 # # number of electronic n_states
 vinit = 0.005 # initial velocity
 mass = 1.5 # atomic mass#
 B_na = 1.0 # parameter that defines nonadiabatic coupling strength
 n_DOF = 1
-<<<<<<< HEAD
-ntrajes = 5
-=======
-ntrajes = 10
->>>>>>> c0f6d97171f30e24cabdbf5157e3fd907556a7a1
+ntrajes = 1
 tspan = (0.0, 5.0u"ps")
 
 # 1a) Define adiabatic model, fom Model/scattering_anderson_holsteins.jl
 # model = Models.ScatteringAndersonHolstein(N=n_states, a0=1, Bg=B_na, 
 # Cg=1, alpha=-5.0, beta=.5)
-# model = Models.TullyModelOne()
-# model = Models.Subotnik_A()
-#model = Models.MiaoSubotnik(n_states=n_states, W=0.02, Gamma=0.0001)
 model = Models.MiaoSubotnik(n_states=n_states, W=0.064, Gamma=0.0064)
-# D = zero(R)
-# D = [Hermitian(zeros(2, 2))]'
-# Models.potential!(model,V,R)
-# Models.derivative!(model,D,R)
-# println(Models.potential!(model,V,R))
-# Get eigenvalues
-# Models.energy(model,R,n_states+2)
 
 # 1b) Initialize atomic parameters, i.e. moving atoms, of which there is one
 atoms = Atoms{Float64}([:H])
@@ -76,45 +57,27 @@ boltzmann = Normal(0.0, austrip(temperature))
 # create distribution of atomic positions from Monte Carlo sampling of the PESs
 # for the number of trajectories and atoms
 Δ = Dict([(:H, 0.3)])
-<<<<<<< HEAD
-monte_carlo = InitialConditions.MonteCarlo{Float64}(Δ, length(atoms), ntrajes, Int[])
-sim = Simulation(atoms, model; DoFs=1, temperature=temperature)
-outbolz = InitialConditions.run_monte_carlo_sampling(sim, monte_carlo, zeros(1, length(sim.atoms)))
-# If sampled, gives an array of momenta and positions from the above initialized sampling
-bolz_pos_momenta = PhasespaceDistribution(outbolz.R, boltzmann, (1, 1))
-=======
 sim = Simulation(atoms, model; DoFs=1, temperature=temperature)
 outbolz = InitialConditions.run_monte_carlo_sampling(sim, zeros(1, length(sim.atoms)), Δ, ntrajes)
 # If sampled, gives an array of momenta and positions from the above initialized sampling
 bolz_pos_momenta = DynamicalDistribution(boltzmann, outbolz.R, (1, 1))
->>>>>>> c0f6d97171f30e24cabdbf5157e3fd907556a7a1
 
 
-# Save the energy
 # Define the dynamics that will be used, see main/Dynamics/iesh.jl
 dynam = Dynamics.IESH{Float64}(1, 1, n_states)
 # dynam = Dynamics.FSSH{Float64}(1, 1, 2)
 
 
 # Initialize the simulation problem; Simulation is defined in main/simulations.jl
-# sim = Simulation(atoms, Models.TullyModelOne(), dynam; DoFs=1)
 sim = Simulation(atoms, model, dynam; DoFs=1)
 
 
 # Do dynamics
-<<<<<<< HEAD
  for i=1:ntrajes
-    nname=lpad(i,8,"0")
-    r, p = rand(bolz_pos_momenta)
-    p = -p * atoms.masses[1]
-    println(i, r, p)
-=======
- for i=8:ntrajes
     nname=lpad(i,8,"0")
     r, v = rand(bolz_pos_momenta)
     v = -v
-    println(i, r, v)
->>>>>>> c0f6d97171f30e24cabdbf5157e3fd907556a7a1
+    println(i," ", r, " ", v)
 
     # r = fill(-4.87, sim.DoFs, length(sim.atoms)) 
     #r = fill(0.13867834028319972, sim.DoFs, length(sim.atoms)) 
@@ -136,64 +99,40 @@ sim = Simulation(atoms, model, dynam; DoFs=1)
     # k = 1
     # Initialize the surface hopping phasespace
     # postions, momenta, density matrix, state-vector, see: ../../Dynamics/iesh.jl
-<<<<<<< HEAD
-    z = IESHPhasespace(r, p, n_states, k)
-=======
     z = IESHPhasespace(v, r, n_states, k)
->>>>>>> c0f6d97171f30e24cabdbf5157e3fd907556a7a1
     
 
 
     # ../../Dynamics/callbacks.jl
+    # ../../Dynamics/Dynamics.jl
     # and ../../Models/Models.jl
     # Solution of Differential equations and propagation, step needs to be implemented
     #cb, vals, vects = Dynamics.create_energy_saving_callback()
     #cb, vals = Dynamics.create_energy_saving_callback()
-<<<<<<< HEAD
-    cb, vals = Dynamics.create_impurity_saving_callback()
-    # ../../Dynamics/iesh.jl
-    @time solution = Dynamics.run_trajectory(z, (0.0, 50.0), sim; callback=cb)
-    #@profile solution = Dynamics.run_trajectory(z, (0.0, 10.0), sim; callback=cb)
-    #f = open("timing.txt", "w")
-    #Profile.print(f, format=:flat, maxdepth=1)
-    #close(f)
-=======
     # cb, vals = Dynamics.create_impurity_saving_callback()
     # ../../Dynamics/iesh.jl
-    @time solution = Dynamics.run_trajectory(z, (0.0, 10.0), sim; output=(:save_impurity))
->>>>>>> c0f6d97171f30e24cabdbf5157e3fd907556a7a1
+
+    solution = Dynamics.run_trajectory(z, (0.0, 1000.0), sim)
+
+    #@time solution = Dynamics.run_trajectory(z, (0.0, 10.0), sim; output=(:save_impurity))
     # For testing only: w/o callback
     
     #@time solution = Dynamics.run_trajectory(z, (0.0, 12000000.0), sim)
     println("Finished")
-<<<<<<< HEAD
-    println(length(vals.t))
-
-    open("trajectory_$nname.txt", "w") do fi
-        write(fi, "step, r (a.u.), epot (a.u.), state, impurity population\n")
-        outarray = zeros(length(vals.saveval), 5)
-        for i = 1:length(vals.saveval)
-            outarray[i,1] = vals.t[i]
-            outarray[i,2] = vals.saveval[i][1]
-            outarray[i,3] = vals.saveval[i][2]
-            outarray[i,4] = vals.saveval[i][3]
-            outarray[i,5] = vals.saveval[i][4]
-=======
     println(length(solution.t))
 
-    open("trajectory_$nname.txt", "w") do fi
-        write(fi, "step, r (a.u.), epot (a.u.), state, impurity population\n")
-        outarray = zeros(length(solution), 5)
-        for i = 1:length(solution)
-            outarray[i,1] = solution.t[i]
-            outarray[i,2] = solution.save_impurity[i][1]
-            outarray[i,3] = solution.save_impurity[i][2]
-            outarray[i,4] = solution.save_impurity[i][3]
-            outarray[i,5] = solution.save_impurity[i][4]
->>>>>>> c0f6d97171f30e24cabdbf5157e3fd907556a7a1
-        end
-        writedlm(fi, outarray,'\t')
-    end
+    # open("trajectory_$nname.txt", "w") do fi
+    #     write(fi, "step, r (a.u.), epot (a.u.), state, impurity population\n")
+    #     outarray = zeros(length(solution), 5)
+    #     for i = 1:length(solution)
+    #         outarray[i,1] = solution.t[i]
+    #         outarray[i,2] = solution.save_impurity[i][1]
+    #         outarray[i,3] = solution.save_impurity[i][2]
+    #         outarray[i,4] = solution.save_impurity[i][3]
+    #         outarray[i,5] = solution.save_impurity[i][4]
+    #     end
+    #     writedlm(fi, outarray,'\t')
+    # end
 
 
 # b = plot(outarray[:,1], outarray[:,2], label="energy", marker=2)
@@ -212,7 +151,7 @@ sim = Simulation(atoms, model, dynam; DoFs=1)
 # display(plot(b))
 
 end
-# # savefig(a,"traj_subA_G4Em4_W10G_test5.png")
-# # savefig(b,"traj_imppop_G4Em4_W10G_test2.png")
+# savefig(a,"traj_subA_G4Em4_W10G_test5.png")
+# savefig(b,"traj_imppop_G4Em4_W10G_test2.png")
 
 # display(plot(b))
