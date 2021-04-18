@@ -53,11 +53,7 @@ struct DiabaticCalculator{T,M} <: AbstractDiabaticCalculator{M}
     adiabatic_derivative::Matrix{Matrix{T}}
     nonadiabatic_coupling::Matrix{Matrix{T}}
     #tmp_mat1::Matrix{Complex{T}}
-    #tmp_mat2::Matrix{Complex{T}}
-    #tmp_mat3::Matrix{Complex{T}}
     tmp_mat1::Matrix{T}
-    tmp_mat2::Matrix{T}
-    tmp_mat3::Matrix{T}
     function DiabaticCalculator{T}(model::M, DoFs::Integer, atoms::Integer) where {T,M<:Model}
         potential = Hermitian(zeros(model.n_states, model.n_states))
         derivative = [Hermitian(zeros(model.n_states, model.n_states)) for i=1:DoFs, j=1:atoms]
@@ -66,11 +62,8 @@ struct DiabaticCalculator{T,M} <: AbstractDiabaticCalculator{M}
         adiabatic_derivative = [zeros(model.n_states, model.n_states) for i=1:DoFs, j=1:atoms]
         nonadiabatic_coupling = [zeros(model.n_states, model.n_states) for i=1:DoFs, j=1:atoms]
         tmp_mat1 = zeros(model.n_states, model.n_states)
-        tmp_mat2 = zeros(model.n_states, model.n_states)
-        tmp_mat3 = zeros(model.n_states, model.n_states)
         new{T,M}(model, potential, derivative, eigenvalues, eigenvectors, 
-                adiabatic_derivative, nonadiabatic_coupling, tmp_mat1,
-                tmp_mat2, tmp_mat3)
+                adiabatic_derivative, nonadiabatic_coupling, tmp_mat1)
     end
 end
 
@@ -226,14 +219,9 @@ end
 
 function transform_derivative!(calc::AbstractDiabaticCalculator)
     # speed up calculation with mul()
-    calc.tmp_mat2 .= calc.eigenvectors
-    for i in axes(calc.derivative, 2) # Atoms
-        for j in axes(calc.derivative, 1) # DoFs
-            calc.tmp_mat3 .= calc.derivative[j,i]
-            mul!(calc.tmp_mat1, calc.tmp_mat3, calc.tmp_mat2)
-            mul!(calc.tmp_mat3, calc.tmp_mat2', calc.tmp_mat1)
-            calc.adiabatic_derivative[j,i] .= calc.tmp_mat3
-        end
+    for I in eachindex(calc.derivative)
+                mul!(calc.tmp_mat1, calc.derivative[I], calc.eigenvectors)
+                mul!(calc.adiabatic_derivative[I], calc.eigenvectors', calc.tmp_mat1)
     end
 end
 
