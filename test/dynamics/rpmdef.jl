@@ -45,3 +45,24 @@ end
     integrator = init(prob,BCOCB();dt=0.5)
     Dynamics.step_O!(cache.friction, integrator, v, r, 0.0)
 end
+
+@testset "ThermalLangevin" begin
+    atoms = Atoms([:H, :C])
+    sim = RingPolymerSimulation{ThermalLangevin}(atoms, Models.Free(), 3; temperature=100u"K", γ=0.01, DoFs=1)
+
+    v = RingPolymerArray(zeros(sim.DoFs, length(sim.atoms), length(sim.beads)))
+    r = RingPolymerArray(zeros(sim.DoFs, length(sim.atoms), length(sim.beads)))
+
+    sol = Dynamics.run_trajectory(ClassicalDynamicals(v, r), (0.0, 1e4), sim; dt=1, output=(:kinetic))
+    @test mean(sol.kinetic) ≈ austrip(100u"K") * length(sim.beads) rtol=1e-1
+end
+
+@testset "MDEF" begin
+    atoms = Atoms([:H, :C])
+    sim = RingPolymerSimulation{MDEF}(atoms, Models.FrictionHarmonic(), 3; temperature=100u"K", DoFs=1)
+
+    v = RingPolymerArray(zeros(sim.DoFs, length(sim.atoms), length(sim.beads)))
+    r = RingPolymerArray(zeros(sim.DoFs, length(sim.atoms), length(sim.beads)))
+
+    sol = Dynamics.run_trajectory(ClassicalDynamicals(v, r), (0.0, 1e2), sim; dt=1, output=(:kinetic))
+end

@@ -1,4 +1,5 @@
 export Langevin
+export ThermalLangevin
 
 struct Langevin{T<:AbstractFloat} <: Method
     γ::T
@@ -21,3 +22,12 @@ select_algorithm(sim::AbstractSimulation{<:Langevin}) = BAOAB(sim.method.γ)
 function friction!(du, r, sim::AbstractSimulation{<:Langevin}, t)
     du .= sim.method.σ
 end
+
+struct ThermalLangevin{T<:Real} <: Method
+    γ::T
+end
+
+function create_problem(u0::ClassicalDynamicals, tspan::Tuple, sim::AbstractSimulation{<:ThermalLangevin})
+    DynamicalSDEProblem(acceleration!, velocity!, friction!, get_velocities(u0), get_positions(u0), tspan, sim)
+end
+select_algorithm(::RingPolymerSimulation{<:ThermalLangevin}) = BCOCB()

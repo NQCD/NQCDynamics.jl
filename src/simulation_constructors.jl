@@ -29,3 +29,6 @@ Simulation{FSSH}(atoms::Atoms{S,T}, model::Model; kwargs...) where {S,T} =
 
 RingPolymerSimulation{FSSH}(atoms::Atoms{S,T}, model::Model, n_beads::Integer; kwargs...) where {S,T} =
     RingPolymerSimulation(atoms, model, FSSH{T}(model.n_states), n_beads; kwargs...)
+
+RingPolymerSimulation{ThermalLangevin}(atoms::Atoms, model::Model, n_beads::Integer; γ=1, kwargs...) =
+    RingPolymerSimulation(atoms, model, ThermalLangevin(γ), n_beads; kwargs...)

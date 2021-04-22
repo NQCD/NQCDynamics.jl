@@ -74,12 +74,12 @@ struct LangevinCache{C,M,S}
     σ::S
 end
 
-function FrictionCache(sim::RingPolymerSimulation{<:Langevin}, dt)
+function FrictionCache(sim::RingPolymerSimulation{<:ThermalLangevin}, dt)
     γ0 = sim.method.γ
-    γ = [γ0, 2get_matsubara_frequencies(length(sim.beads), sim.beads.ω_n)...]
+    γ = [γ0, 2sqrt.(2sim.beads.normal_mode_springs[2:end])...]
     c1 = exp.(-dt.*γ)
-    c2 = sqrt.(1 - c1.^2)
-    sqrtmass = 1 ./ sqrt.(repeat(sim.atoms.masses; inner=DoFs))
+    c2 = sqrt.(1 .- c1.^2)
+    sqrtmass = 1 ./ repeat(sqrt.(sim.atoms.masses'), sim.DoFs)
     σ = zero(sqrtmass)
 
     LangevinCache(c1, c2, sqrtmass, σ)
@@ -103,8 +103,8 @@ end
     step_B!(vtmp, v1, half*dt, k)
     @.. rtmp = r1
 
-    transform!(rtmp, p.beads.U)
-    transform!(vtmp, p.beads.U)
+    transform_to_normal_modes!(p.beads, rtmp)
+    transform_to_normal_modes!(p.beads, vtmp)
 
     step_C!(vtmp, rtmp, cayley)
 
@@ -112,8 +112,8 @@ end
 
     step_C!(vtmp, rtmp, cayley)
 
-    transform!(rtmp, p.beads.U)
-    transform!(vtmp, p.beads.U)
+    transform_from_normal_modes!(p.beads, rtmp)
+    transform_from_normal_modes!(p.beads, vtmp)
 
     @.. u.x[2] = rtmp
 
@@ -122,11 +122,24 @@ end
 end
 
 function step_C!(v::R, r::R, cayley::Vector{<:Matrix}) where {R<:RingPolymerArray}
-    for I in CartesianIndices(v)
-        rtmp = cayley[I[3]][1,1] * r[I] + cayley[I[3]][1,2] * v[I]
-        vtmp = cayley[I[3]][2,1] * r[I] + cayley[I[3]][2,2] * v[I]
-        r[I] = rtmp
-        v[I] = vtmp
+    for i in axes(r, 3)
+        for j in v.quantum_atoms
+            for k in axes(r, 1)
+                rtmp = cayley[i][1,1] * r[k,j,i] + cayley[i][1,2] * v[k,j,i]
+                vtmp = cayley[i][2,1] * r[k,j,i] + cayley[i][2,2] * v[k,j,i]
+                r[k,j,i] = rtmp
+                v[k,j,i] = vtmp
+            end
+        end
+    end
+
+    for j in v.classical_atoms
+        for k in axes(r, 1)
+            rtmp = cayley[1][1,1] * r[k,j,1] + cayley[1][1,2] * v[k,j,1]
+            vtmp = cayley[1][2,1] * r[k,j,1] + cayley[1][2,2] * v[k,j,1]
+            r[k,j,1] = rtmp
+            v[k,j,1] = vtmp
+        end
     end
 end
 
@@ -163,14 +176,19 @@ function step_O!(friction::MDEFCache, integrator, v, r, t)
 
 end
 
-function step_O!(friction::LangevinCache, integrator, v, r, t)
+function step_O!(friction::LangevinCache, integrator, v::R, r::R, t) where {R<:RingPolymerArray}
     @unpack W, p, dt, sqdt = integrator
     @unpack c1, c2, sqrtmass, σ = friction
 
     @.. σ = sqrt(get_temperature(p, t)) * sqrtmass
 
-    @views for i in axes(r, 3)
-        @.. v[:,:,i] = c1[i] * v[:,:,i] + c2[i] * σ * W.dW[:,:,i] / sqdt
+    for i in axes(r, 3)
+        for j in v.quantum_atoms
+            @. v[:,j,i] = c1[i] * v[:,j,i] + c2[i] * σ[:,j] * W.dW[:,j,i] / sqdt
+        end
     end
 
+    for j in v.classical_atoms
+        @. v[:,j,1] = c1[1] * v[:,j,1] + c2[1] * σ[:,j] * W.dW[:,j,1] / sqdt
+    end
 end
