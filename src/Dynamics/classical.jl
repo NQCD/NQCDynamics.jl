@@ -8,13 +8,13 @@ A singleton type that simply labels the parent `AbstractSimulation` as classical
 struct Classical <: Method end
 
 """
-    motion!(du::DynamicalVariables, u::DynamicalVariables, sim::AbstractSimulation, t)
+    motion!(du, u, sim::AbstractSimulation{<:Classical}, t)
     
 Sets the time derivative for the positions and momenta contained within `u`.
 
 This is defined for the abstract types and acts as a fallback for all other dynamics methods.
 """
-function motion!(du::DynamicalVariables, u::DynamicalVariables, sim::AbstractSimulation, t)
+function motion!(du, u, sim::AbstractSimulation{<:Classical}, t)
     dr = get_positions(du)
     dv = get_velocities(du)
     r = get_positions(u)
@@ -23,7 +23,7 @@ function motion!(du::DynamicalVariables, u::DynamicalVariables, sim::AbstractSim
     acceleration!(dv, v, r, sim, t)
 end
 
-function motion!(du::DynamicalVariables, u::DynamicalVariables, sim::RingPolymerSimulation, t)
+function motion!(du, u, sim::RingPolymerSimulation{<:Classical}, t)
     dr = get_positions(du)
     dv = get_velocities(du)
     r = get_positions(u)
