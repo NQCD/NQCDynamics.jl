@@ -33,7 +33,10 @@ u(u, t, integrator) = copy(u)
 density_matrix(u, t, integrator) = copy(get_density_matrix(u))
 state(u, t, integrator) = copy(u.state)
 noise(u, t, integrator) = copy(integrator.W.dW) / sqrt(integrator.dt)
-friction(u, t, integrator) = auconvert.(u"ps^-1", integrator.cache.gtmp)
+function friction(u, t, integrator)
+    integrator.g(integrator.cache.gtmp,get_positions(u),integrator.p,t)
+    auconvert.(u"ps^-1", integrator.cache.gtmp)
+end
 
 outside_cell(u,t,integrator) = !check_atoms_in_cell(integrator.p.cell, get_positions(u))
 function enforce_periodicity!(integrator)
