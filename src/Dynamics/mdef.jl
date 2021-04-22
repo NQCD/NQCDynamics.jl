@@ -56,11 +56,7 @@ function friction!(g, r, sim::AbstractSimulation{<:AbstractMDEF}, t)
     g .= sim.calculator.friction ./ sim.method.mass_scaling
 end
 
-function create_problem(u0::ClassicalDynamicals, tspan::Tuple, sim::AbstractSimulation{<:AbstractMDEF})
-    create_problem(u0.x, tspan, sim)
-end
-
-function create_problem(u0::ArrayPartition, tspan::Tuple, sim::AbstractSimulation{<:AbstractMDEF})
+function create_problem(u0, tspan::Tuple, sim::AbstractSimulation{<:AbstractMDEF})
     DynamicalSDEProblem(acceleration!, velocity!, friction!, get_velocities(u0), get_positions(u0), tspan, sim)
 end
 

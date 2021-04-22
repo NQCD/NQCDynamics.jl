@@ -73,7 +73,7 @@ function run_trajectory(u0::DynamicalVariables, tspan::Tuple, sim::AbstractSimul
     Table(t=vals.t, vals.saveval)
 end
 
-function create_problem(u0::DynamicalVariables, tspan::Tuple, sim::AbstractSimulation)
+function create_problem(u0, tspan::Tuple, sim::AbstractSimulation)
     ODEProblem(motion!, u0, tspan, sim)
 end
 
