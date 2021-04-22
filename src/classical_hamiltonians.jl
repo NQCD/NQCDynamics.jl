@@ -18,15 +18,19 @@ function evaluate_hamiltonian(sim::AbstractSimulation, v::AbstractMatrix, r::Abs
 end
 
 function evaluate_hamiltonian(sim::RingPolymerSimulation, v::RingPolymerArray, r::RingPolymerArray)
-    E = 0.0
-    @views for i=1:length(sim.beads)
-        E += evaluate_kinetic_energy(sim.atoms.masses, v[:,:,i])
-    end
+    E = evaluate_kinetic_energy(sim.atoms.masses, v)
     E += evaluate_potential_energy(sim, r)
     E / length(sim.beads)
 end
 
 evaluate_kinetic_energy(masses, v) = sum(masses' .* v.^2)/2
+function evaluate_kinetic_energy(masses, v::RingPolymerArray)
+    E = 0.0
+    @views for i in axes(v, 3)
+        E += evaluate_kinetic_energy(masses, v[:,:,i])
+    end
+    E
+end
 
 function evaluate_potential_energy(sim::AbstractSimulation, R::AbstractMatrix)
     Calculators.evaluate_potential!(sim.calculator, R)

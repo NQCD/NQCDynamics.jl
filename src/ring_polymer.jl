@@ -12,6 +12,7 @@ struct RingPolymerParameters{T<:AbstractFloat}
     normal_mode_springs::Vector{T}
     U::Matrix{T}
     quantum_atoms::Vector{UInt}
+    tmp::Vector{T}
     function RingPolymerParameters{T}(
         n_beads::Integer, temperature::Real,
         quantum_atoms::Vector{<:Integer}) where {T<:AbstractFloat}
@@ -21,7 +22,8 @@ struct RingPolymerParameters{T<:AbstractFloat}
             get_spring_matrix(n_beads, ω_n),
             get_normal_mode_springs(n_beads, ω_n), 
             get_normal_mode_transformation(n_beads),
-            quantum_atoms)
+            quantum_atoms,
+            zeros(T, n_beads))
     end
 end
 
@@ -82,18 +84,20 @@ function get_normal_mode_transformation(n::Integer)::Matrix
     U
 end
 
-function transform_to_normal_modes!(p::RingPolymerParameters, R::Array{T,3}) where {T}
+function transform_to_normal_modes!(p::RingPolymerParameters, R::AbstractArray{T,3}) where {T}
     @views for i in p.quantum_atoms
         for j in axes(R, 1)
-            R[j,i,:] .= p.U'R[j,i,:]
+            mul!(p.tmp, p.U', R[j,i,:])
+            R[j,i,:] .= p.tmp
         end
     end
 end
 
-function transform_from_normal_modes!(p::RingPolymerParameters, R::Array{T,3}) where {T}
+function transform_from_normal_modes!(p::RingPolymerParameters, R::AbstractArray{T,3}) where {T}
     @views for i in p.quantum_atoms
         for j in axes(R, 1)
-            R[j,i,:] .= p.U*R[j,i,:]
+            mul!(p.tmp, p.U, R[j,i,:])
+            R[j,i,:] .= p.tmp
         end
     end
 end
