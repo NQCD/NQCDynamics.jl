@@ -45,7 +45,7 @@ end
 
 get_callbacks(::AbstractSimulation{<:FSSH}) = fssh_callback
 
-function motion!(du::SurfaceHoppingDynamicals, u::SurfaceHoppingDynamicals, sim::AbstractSimulation{<:FSSH}, t)
+function motion!(du, u, sim::AbstractSimulation{<:FSSH}, t)
     dr = get_positions(du)
     dv = get_velocities(du)
     dσ = get_density_matrix(du)

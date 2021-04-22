@@ -34,3 +34,7 @@ transform_to_normal_modes!(sim.beads, R)
 @test !(R ≈ R_original)
 transform_from_normal_modes!(sim.beads, R)
 @test R ≈ R_original
+
+half = NonadiabaticMolecularDynamics.cayley_propagator(sim.beads, 0.1; half=true)
+full = NonadiabaticMolecularDynamics.cayley_propagator(sim.beads, 0.1; half=false)
+@test full ≈ half .* half

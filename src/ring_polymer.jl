@@ -1,4 +1,4 @@
-using LinearAlgebra: Symmetric, SymTridiagonal
+using LinearAlgebra: Symmetric, SymTridiagonal, inv, I
 using RecursiveArrayTools
 
 export RingPolymerParameters
@@ -12,6 +12,7 @@ struct RingPolymerParameters{T<:AbstractFloat}
     normal_mode_springs::Vector{T}
     U::Matrix{T}
     quantum_atoms::Vector{UInt}
+    tmp::Vector{T}
     function RingPolymerParameters{T}(
         n_beads::Integer, temperature::Real,
         quantum_atoms::Vector{<:Integer}) where {T<:AbstractFloat}
@@ -21,7 +22,8 @@ struct RingPolymerParameters{T<:AbstractFloat}
             get_spring_matrix(n_beads, ω_n),
             get_normal_mode_springs(n_beads, ω_n), 
             get_normal_mode_transformation(n_beads),
-            quantum_atoms)
+            quantum_atoms,
+            zeros(T, n_beads))
     end
 end
 
@@ -82,21 +84,41 @@ function get_normal_mode_transformation(n::Integer)::Matrix
     U
 end
 
-function transform_to_normal_modes!(p::RingPolymerParameters, R::Array{T,3}) where {T}
+function transform_to_normal_modes!(p::RingPolymerParameters, R::AbstractArray{T,3}) where {T}
     @views for i in p.quantum_atoms
         for j in axes(R, 1)
-            R[j,i,:] .= p.U'R[j,i,:]
+            mul!(p.tmp, p.U', R[j,i,:])
+            R[j,i,:] .= p.tmp
         end
     end
 end
 
-function transform_from_normal_modes!(p::RingPolymerParameters, R::Array{T,3}) where {T}
+function transform_from_normal_modes!(p::RingPolymerParameters, R::AbstractArray{T,3}) where {T}
     @views for i in p.quantum_atoms
         for j in axes(R, 1)
-            R[j,i,:] .= p.U*R[j,i,:]
+            mul!(p.tmp, p.U, R[j,i,:])
+            R[j,i,:] .= p.tmp
         end
     end
 end
 
 Base.length(beads::RingPolymerParameters) = beads.n_beads
 Base.range(beads::RingPolymerParameters) = range(1; length=length(beads))
+
+"""
+    cayley_propagator(beads::RingPolymerParameters{T}, dt::Real; half::Bool=true) where {T}
+
+J. Chem. Phys. 151, 124103 (2019); doi: 10.1063/1.5120282
+"""
+function cayley_propagator(beads::RingPolymerParameters{T}, dt::Real; half::Bool=true) where {T}
+
+    cay(dtA::Matrix)::Matrix = inv(I - dtA/2) * (I + dtA/2)
+
+    ω_k = get_matsubara_frequencies(length(beads), beads.ω_n)
+    prop = [Array{T}(undef, 2, 2) for i=1:length(beads)]
+    for (i, ω) in enumerate(ω_k)
+        A = [0 1; -ω^2 0]
+        prop[i] .= half ? real.(sqrt(cay(dt.*A))) : cay(dt.*A)
+    end
+    prop
+end
