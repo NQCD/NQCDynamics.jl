@@ -14,13 +14,23 @@ Sets the time derivative for the positions and momenta contained within `u`.
 
 This is defined for the abstract types and acts as a fallback for all other dynamics methods.
 """
-function motion!(du::DynamicalVariables, u::DynamicalVariables, sim::AbstractSimulation, t)
+function motion!(du::DynamicalVariables, u::DynamicalVariables, sim::Simulation, t)
     dr = get_positions(du)
     dv = get_velocities(du)
     r = get_positions(u)
     v = get_velocities(u)
     velocity!(dr, v, r, sim, t)
     acceleration!(dv, v, r, sim, t)
+end
+
+function motion!(du::DynamicalVariables, u::DynamicalVariables, sim::RingPolymerSimulation, t)
+    dr = get_positions(du)
+    dv = get_velocities(du)
+    r = get_positions(u)
+    v = get_velocities(u)
+    velocity!(dr, v, r, sim, t)
+    acceleration!(dv, v, r, sim, t)
+    apply_interbead_coupling!(dv, r, sim)
 end
 
 """
@@ -35,12 +45,6 @@ function acceleration!(dv, v, r, sim::AbstractSimulation, t)
     Calculators.evaluate_derivative!(sim.calculator, r)
     dv .= -sim.calculator.derivative ./ sim.atoms.masses'
 end
-
-# function acceleration!(dv, v, r, sim::RingPolymerSimulation{<:FSSH}, t)
-#     Calculators.evaluate_derivative!(sim.calculator, r)
-#     dv .= -sim.calculator.derivative ./ sim.atoms.masses'
-#     apply_interbead_coupling!(dv, r, sim)
-# end
 
 """
     apply_interbead_coupling!(du::DynamicalVariables, u::DynamicalVariables,
