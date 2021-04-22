@@ -8,19 +8,28 @@ A singleton type that simply labels the parent `AbstractSimulation` as classical
 struct Classical <: Method end
 
 """
-    motion!(du::DynamicalVariables, u::DynamicalVariables, sim::AbstractSimulation, t)
+    motion!(du, u, sim::AbstractSimulation{<:Classical}, t)
     
 Sets the time derivative for the positions and momenta contained within `u`.
 
 This is defined for the abstract types and acts as a fallback for all other dynamics methods.
 """
-function motion!(du::DynamicalVariables, u::DynamicalVariables, sim::AbstractSimulation, t)
+function motion!(du, u, sim::AbstractSimulation{<:Classical}, t)
     dr = get_positions(du)
     dv = get_velocities(du)
     r = get_positions(u)
     v = get_velocities(u)
     velocity!(dr, v, r, sim, t)
     acceleration!(dv, v, r, sim, t)
+end
+
+function motion!(du, u, sim::RingPolymerSimulation{<:Classical}, t)
+    dr = get_positions(du)
+    dv = get_velocities(du)
+    r = get_positions(u)
+    v = get_velocities(u)
+    velocity!(dr, v, r, sim, t)
+    ring_polymer_acceleration!(dv, v, r, sim, t)
 end
 
 """
@@ -31,12 +40,12 @@ velocity!(dr, v, r, sim, t) = dr .= v
 """
 `f1` in `DifferentialEquations.jl` docs.
 """
-function acceleration!(dv, v, r, sim::Simulation, t)
+function acceleration!(dv, v, r, sim::AbstractSimulation, t)
     Calculators.evaluate_derivative!(sim.calculator, r)
     dv .= -sim.calculator.derivative ./ sim.atoms.masses'
 end
 
-function acceleration!(dv, v, r, sim::RingPolymerSimulation, t)
+function ring_polymer_acceleration!(dv, v, r, sim::RingPolymerSimulation, t)
     Calculators.evaluate_derivative!(sim.calculator, r)
     dv .= -sim.calculator.derivative ./ sim.atoms.masses'
     apply_interbead_coupling!(dv, r, sim)
@@ -58,12 +67,12 @@ function apply_interbead_coupling!(dr::RingPolymerArray, r::RingPolymerArray, si
     end
 end
 
-function create_problem(u0::ClassicalDynamicals, tspan::Tuple, sim::AbstractSimulation{<:Classical})
+function create_problem(u0, tspan::Tuple, sim::Simulation{<:Classical})
     DynamicalODEProblem(acceleration!, velocity!, get_velocities(u0), get_positions(u0), tspan, sim)
 end
 
-function create_problem(u0::ArrayPartition, tspan::Tuple, sim::AbstractSimulation{<:Classical})
-    DynamicalODEProblem(acceleration!, velocity!, u0.x[1], u0.x[2], tspan, sim)
+function create_problem(u0, tspan::Tuple, sim::RingPolymerSimulation{<:Classical})
+    DynamicalODEProblem(ring_polymer_acceleration!, velocity!, get_velocities(u0), get_positions(u0), tspan, sim)
 end
 
 select_algorithm(::AbstractSimulation{<:Classical}) = VelocityVerlet()

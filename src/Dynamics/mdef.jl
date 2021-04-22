@@ -49,19 +49,16 @@ end
 """
     friction!(g, r, sim, t)
 
-Evaluates friction tensor and provides variance of random force.
+Evaluates friction tensor
 """
 function friction!(g, r, sim::AbstractSimulation{<:AbstractMDEF}, t)
     Calculators.evaluate_friction!(sim.calculator, r)
     g .= sim.calculator.friction ./ sim.method.mass_scaling
 end
 
-function create_problem(u0::ClassicalDynamicals, tspan::Tuple, sim::AbstractSimulation{<:AbstractMDEF})
-    create_problem(u0.x, tspan, sim)
-end
-
-function create_problem(u0::ArrayPartition, tspan::Tuple, sim::AbstractSimulation{<:AbstractMDEF})
+function create_problem(u0, tspan::Tuple, sim::AbstractSimulation{<:AbstractMDEF})
     DynamicalSDEProblem(acceleration!, velocity!, friction!, get_velocities(u0), get_positions(u0), tspan, sim)
 end
 
-select_algorithm(::AbstractSimulation{<:AbstractMDEF}) = MDEF_BAOAB()
+select_algorithm(::Simulation{<:AbstractMDEF}) = MDEF_BAOAB()
+select_algorithm(::RingPolymerSimulation{<:AbstractMDEF}) = BCOCB()
