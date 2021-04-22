@@ -7,7 +7,7 @@ sim = Simulation{FSSH}(atoms, Models.TullyModelOne(); DoFs=1)
 
 r = fill(-5.0, sim.DoFs, length(sim.atoms))
 v = fill(8.9, sim.DoFs, length(sim.atoms)) ./ sim.atoms.masses[1]
-z = SurfaceHoppingDynamicals(v, r, 2, 1)
+z = SurfaceHoppingVariables(v, r, 2, 1)
 
 solution = Dynamics.run_trajectory(z, (0.0, 2500.0), sim; output=(:density_matrix, :state))
 
@@ -19,7 +19,7 @@ n_beads = 4
 rpsh_sim = RingPolymerSimulation{FSSH}(atoms, Models.TullyModelOne(), n_beads; DoFs=1, temperature=10u"K")
 r1 = RingPolymerArray(fill(-5.0, sim.DoFs, length(sim.atoms), n_beads))
 v1 = RingPolymerArray(fill(8.9, sim.DoFs, length(sim.atoms), n_beads) ./ sim.atoms.masses[1])
-rpsh_z = Dynamics.SurfaceHoppingDynamicals(v1, r1, 2, 1)
+rpsh_z = Dynamics.SurfaceHoppingVariables(v1, r1, 2, 1)
 
 rpsh_solution = Dynamics.run_trajectory(rpsh_z, (0.0, 2500.0), rpsh_sim; output=(:density_matrix, :state))
 
