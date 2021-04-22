@@ -57,6 +57,9 @@ struct DiabaticCalculator{T,M} <: AbstractDiabaticCalculator{M}
     eigenvectors::Matrix{T}
     adiabatic_derivative::Matrix{Matrix{T}}
     nonadiabatic_coupling::Matrix{Matrix{T}}
+    tmp_mat::Matrix{T}
+    tmp_mat_complex1::Matrix{Complex{T}}
+    tmp_mat_complex2::Matrix{Complex{T}}
     function DiabaticCalculator{T}(model::M, DoFs::Integer, atoms::Integer) where {T,M<:Model}
         potential = Hermitian(zeros(model.n_states, model.n_states))
         derivative = [Hermitian(zeros(model.n_states, model.n_states)) for i=1:DoFs, j=1:atoms]
@@ -64,7 +67,11 @@ struct DiabaticCalculator{T,M} <: AbstractDiabaticCalculator{M}
         eigenvectors = zeros(model.n_states, model.n_states)
         adiabatic_derivative = [zeros(model.n_states, model.n_states) for i=1:DoFs, j=1:atoms]
         nonadiabatic_coupling = [zeros(model.n_states, model.n_states) for i=1:DoFs, j=1:atoms]
-        new{T,M}(model, potential, derivative, eigenvalues, eigenvectors, adiabatic_derivative, nonadiabatic_coupling)
+        tmp_mat = zeros(T, model.n_states, model.n_states)
+        tmp_mat_complex1 = zeros(Complex{T}, model.n_states, model.n_states)
+        tmp_mat_complex2 = zeros(Complex{T}, model.n_states, model.n_states)
+        new{T,M}(model, potential, derivative, eigenvalues, eigenvectors, adiabatic_derivative, nonadiabatic_coupling,
+            tmp_mat, tmp_mat_complex1, tmp_mat_complex2)
     end
 end
 
@@ -76,6 +83,9 @@ struct RingPolymerDiabaticCalculator{T,M} <: AbstractDiabaticCalculator{M}
     eigenvectors::Vector{Matrix{T}}
     adiabatic_derivative::Array{Matrix{T},3}
     nonadiabatic_coupling::Array{Matrix{T},3}
+    tmp_mat::Matrix{T}
+    tmp_mat_complex1::Matrix{Complex{T}}
+    tmp_mat_complex2::Matrix{Complex{T}}
     function RingPolymerDiabaticCalculator{T}(model::M, DoFs::Integer, atoms::Integer, beads::Integer) where {T,M<:Model}
         potential = [Hermitian(zeros(model.n_states, model.n_states)) for i=1:beads]
         derivative = [Hermitian(zeros(model.n_states, model.n_states)) for i=1:DoFs, j=1:atoms, k=1:beads]
@@ -83,7 +93,11 @@ struct RingPolymerDiabaticCalculator{T,M} <: AbstractDiabaticCalculator{M}
         eigenvectors = [zeros(model.n_states, model.n_states) for i=1:beads]
         adiabatic_derivative = [zeros(model.n_states, model.n_states) for i=1:DoFs, j=1:atoms, k=1:beads]
         nonadiabatic_coupling = [zeros(model.n_states, model.n_states) for i=1:DoFs, j=1:atoms, k=1:beads]
-        new{T,M}(model, potential, derivative, eigenvalues, eigenvectors, adiabatic_derivative, nonadiabatic_coupling)
+        tmp_mat = zeros(T, model.n_states, model.n_states)
+        tmp_mat_complex1 = zeros(Complex{T}, model.n_states, model.n_states)
+        tmp_mat_complex2 = zeros(Complex{T}, model.n_states, model.n_states)
+        new{T,M}(model, potential, derivative, eigenvalues, eigenvectors, adiabatic_derivative, nonadiabatic_coupling,
+            tmp_mat, tmp_mat_complex1, tmp_mat_complex2)
     end
 end
 
@@ -233,10 +247,9 @@ function correct_phase!(eig::Eigen, old_eigenvectors::Matrix)
 end
 
 function transform_derivative!(calc::AbstractDiabaticCalculator)
-    for i in axes(calc.derivative, 2) # Atoms
-        for j in axes(calc.derivative, 1) # DoFs
-            calc.adiabatic_derivative[j,i] .= calc.eigenvectors' * calc.derivative[j,i] * calc.eigenvectors
-        end
+    for I in eachindex(calc.derivative)
+        mul!(calc.tmp_mat, calc.derivative[I], calc.eigenvectors)
+        mul!(calc.adiabatic_derivative[I], calc.eigenvectors', calc.tmp_mat)
     end
 end
 
@@ -271,7 +284,7 @@ function evaluate_nonadiabatic_coupling!(coupling::Matrix, adiabatic_derivative:
     end
 end
 
-function update_electronics!(calculator::AbstractDiabaticCalculator, r::AbstractMatrix)
+function update_electronics!(calculator::AbstractDiabaticCalculator, r::AbstractArray)
     evaluate_potential!(calculator, r)
     evaluate_derivative!(calculator, r)
     eigen!(calculator)
