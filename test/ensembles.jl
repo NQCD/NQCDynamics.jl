@@ -49,7 +49,7 @@ end
 
 @testset "OutputFinal" begin
     output = Ensembles.OutputFinal()
-    @test output(1:10, 1) == 10 
+    @test output(1:10, 1) == (10, false)
 end
 
 @testset "OutputDissociation" begin
@@ -63,5 +63,9 @@ end
     u = ArrayPartition(v, r)
     sol = [u]
     @test output(sol, 1) == (1, false)
+end
+
+@testset "OutputDiabaticPopulation" begin
+    output = Ensembles.OutputDiabaticPopulation()
 end
 
