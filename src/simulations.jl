@@ -27,7 +27,7 @@ function Simulation(DoFs::Integer, temperature, cell::AbstractCell,
     calc = Calculator(model, DoFs, length(atoms), T)
     Simulation(UInt8(DoFs), temperature, cell, atoms, calc, method)
 end
-    
+
 function Simulation(atoms::Atoms, model::Model, method::M;
         DoFs::Integer=3, temperature=0u"K",
         cell::AbstractCell=InfiniteCell()) where {M}

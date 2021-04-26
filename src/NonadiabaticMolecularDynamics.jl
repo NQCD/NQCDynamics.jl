@@ -26,6 +26,9 @@ export InitialConditions
 include("Dynamics/Dynamics.jl")
 @reexport using .Dynamics
 
+include("Ensembles/Ensembles.jl")
+export Ensembles
+
 include("InputOutput/InputOutput.jl")
 
 include("simulation_constructors.jl")
