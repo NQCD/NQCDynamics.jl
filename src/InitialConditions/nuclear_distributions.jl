@@ -27,9 +27,9 @@ function Distributions._rand!(rng::AbstractRNG, s::DynamicalDistribution, x::Vec
     x
 end
 
-pick(s::DynamicalDistribution, i::Integer) = [s.velocity[i], s.position[i]]
+pick(s::DynamicalDistribution, i::Integer) = [select_item(s.velocity, i, s.size), select_item(s.position, i, s.size)]
 
 select_item(x::Vector, i::Integer, ::NTuple) = x[i]
 select_item(x::Sampleable{Univariate}, ::Integer, size::NTuple) = rand(x, size)
-select_item(x::Real, ::Integer, ::NTuple) = x
+select_item(x::Real, ::Integer, size::NTuple) = fill(x, size)
 select_item(x::Matrix, ::Integer, ::NTuple) = x

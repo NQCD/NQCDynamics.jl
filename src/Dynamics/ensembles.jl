@@ -43,12 +43,12 @@ function get_problem_function(sim::AbstractSimulation, distribution::DynamicalDi
     end
 end
 
-function select_u0(::Simulation{<:Union{Classical, AbstractMDEF}}, distribution::DynamicalDistribution, ::Integer)
-    ArrayPartition(rand(distribution)...)
+function select_u0(::Simulation{<:Union{Classical, AbstractMDEF}}, distribution::DynamicalDistribution, i)
+    ArrayPartition(InitialConditions.pick(distribution, i)...)
 end
 
 function select_u0(::RingPolymerSimulation{<:Classical}, distribution::DynamicalDistribution, ::Integer)
-    RingPolymerClassicalDynamicals(rand(distribution)...)
+    RingPolymerClassicalDynamicals(InitialConditions.pick(distribution, i)...)
 end
 
 function select_u0(sim::Simulation{<:FSSH}, distribution::DynamicalDistribution, state::Integer)
