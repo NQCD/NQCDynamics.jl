@@ -13,3 +13,4 @@ include("dynamics/dynamics.jl")
 @time @safetestset "IO Tests" begin include("io/io.jl") end
 @time @safetestset "Model Tests" begin include("model.jl") end
 @time @safetestset "Distribution Tests" begin include("nuclear_distributions.jl") end
+@time @safetestset "Ensemble Tests" begin include("ensembles.jl") end

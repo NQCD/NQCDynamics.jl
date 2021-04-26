@@ -97,3 +97,20 @@ end
 function calculate_potential_energy_change(calc::DiabaticCalculator, new_state::Integer, current_state::Integer)
     return calc.eigenvalues[new_state] - calc.eigenvalues[current_state]
 end
+
+"""
+    get_population(sim::Simulation{<:FSSH}, u)
+
+Diabatic populations recommended from J. Chem. Phys. 139, 211101 (2013).
+"""
+function get_population(sim::Simulation{<:FSSH}, u)
+    Calculators.evaluate_potential!(sim.calculator, get_positions(u))
+    Calculators.eigen!(sim.calculator)
+    U = sim.calculator.eigenvectors
+
+    σ = copy(get_density_matrix(u))
+    σ[diagind(σ)] .= 0
+    σ[u.state, u.state] = 1
+
+    return real.(diag(U * σ * U'))
+end

@@ -98,7 +98,7 @@ function set_mapping_force!(du::RingPolymerMappingDynamicals,
     end
 end
 
-function get_population(u::RingPolymerMappingDynamicals)
+function get_population(::RingPolymerSimulation{<:NRPMD}, u::RingPolymerMappingDynamicals)
     qmap = get_mapping_positions(u)
     pmap = get_mapping_momenta(u)
     sum(qmap.^2 + pmap.^2 .- 1; dims=2) / 2size(qmap, 2)

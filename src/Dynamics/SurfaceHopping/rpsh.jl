@@ -68,3 +68,14 @@ end
 function calculate_potential_energy_change(calc::RingPolymerDiabaticCalculator, new_state::Integer, current_state::Integer)
     return mean([eigs[new_state] - eigs[current_state] for eigs in calc.eigenvalues])
 end
+
+function get_population(sim::RingPolymerSimulation{<:FSSH}, u)
+    Models.potential!(sim.calculator.model, sim.calculator.potential[1], dropdims(mean(get_positions(u); dims=3), dims=3))
+    vals, U = eigen!(sim.calculator.potential[1])
+
+    σ = copy(get_density_matrix(u))
+    σ[diagind(σ)] .= 0
+    σ[u.state, u.state] = 1
+
+    return real.(diag(U * σ * U'))
+end

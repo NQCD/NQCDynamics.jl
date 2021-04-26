@@ -10,7 +10,7 @@ r = RingPolymerArray(rand(sim.DoFs, length(sim.atoms), length(sim.beads)))
 u = Dynamics.RingPolymerMappingDynamicals(v, r, 2, 2)
 qmap = Dynamics.get_mapping_positions(u)
 pmap = Dynamics.get_mapping_momenta(u)
-population = Dynamics.get_population(u)
+population = Dynamics.get_population(sim, u)
 @test population[1] ≈ 0 atol=1e-10
 @test population[2] ≈ 1
 
