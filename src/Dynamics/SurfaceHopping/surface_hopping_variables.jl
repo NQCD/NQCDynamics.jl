@@ -16,4 +16,12 @@ function SurfaceHoppingVariables(v::AbstractArray, r::AbstractArray, n_states::I
     SurfaceHoppingVariables(ArrayPartition(v, r, σ), state)
 end
 
+function SurfaceHoppingVariables(v::AbstractArray, r::AbstractArray, n_states::Integer, state::Vector{Int})
+    σ = zeros(Complex{eltype(r)}, n_states, n_states)
+    for i=1:n_states/2
+        σ[Int(i), Int(i)] = 1
+    end
+    SurfaceHoppingVariables(ArrayPartition(v, r, σ), state)
+end
+
 get_density_matrix(u::SurfaceHoppingVariables) = u.x.x[3]

@@ -65,8 +65,10 @@ Solve a single trajectory.
 """
 function run_trajectory(u0::DynamicalVariables, tspan::Tuple, sim::AbstractSimulation; output=(:u,), saveat=[], callback=nothing, kwargs...)
     stripped_kwargs = austrip_kwargs(;kwargs...)
+    #src/Dynamics/ensembles.jl?
     saving_callback, vals = create_saving_callback(output; saveat=austrip.(saveat))
     callback_set = CallbackSet(callback, saving_callback, get_callbacks(sim))
+    # goes to problem files
     problem = create_problem(u0, austrip.(tspan), sim)
     problem = remake(problem, callback=callback_set)
     solve(problem, select_algorithm(sim); stripped_kwargs...)
