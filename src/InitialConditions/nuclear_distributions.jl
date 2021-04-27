@@ -6,11 +6,14 @@ using Distributions
 
 struct DynamicalVariate <: VariateForm end
 
-struct DynamicalDistribution{V,R,S} <: Sampleable{DynamicalVariate,Continuous}
+struct DynamicalDistribution{V,R,S,N} <: Sampleable{DynamicalVariate,Continuous}
     velocity::V
     position::R
     size::NTuple{S,Int}
+    state::N
 end
+DynamicalDistribution(velocity, position, size; state=0) =
+    DynamicalDistribution(velocity, position, size, state)
 
 Base.eltype(s::DynamicalDistribution{<:Sampleable,R}) where {R} = eltype(s.velocity)
 Base.eltype(s::DynamicalDistribution{<:AbstractArray,R} where {R}) = eltype(s.velocity[1])

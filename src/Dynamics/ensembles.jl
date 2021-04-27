@@ -47,12 +47,12 @@ function select_u0(::Simulation{<:Union{Classical, AbstractMDEF}}, distribution:
     ArrayPartition(InitialConditions.pick(distribution, i)...)
 end
 
-function select_u0(::RingPolymerSimulation{<:Classical}, distribution::DynamicalDistribution, ::Integer)
+function select_u0(::RingPolymerSimulation{<:Classical}, distribution::DynamicalDistribution, i)
     RingPolymerClassicalDynamicals(InitialConditions.pick(distribution, i)...)
 end
 
-function select_u0(sim::Simulation{<:FSSH}, distribution::DynamicalDistribution, state::Integer)
-    SurfaceHoppingDynamicals(rand(distribution)..., sim.calculator.model.n_states, state)
+function select_u0(sim::Simulation{<:FSSH}, distribution::DynamicalDistribution, i)
+    SurfaceHoppingVariables(InitialConditions.pick(distribution, i)..., sim.calculator.model.n_states, distribution.state)
 end
 
 function select_u0(sim::RingPolymerSimulation{<:NRPMD}, distribution::DynamicalDistribution, state::Integer)

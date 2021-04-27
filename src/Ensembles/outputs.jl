@@ -40,5 +40,7 @@ $(TYPEDEF)
 
 Output the population of each diabatic state.
 """
-struct OutputDiabaticPopulation <: AbstractOutput end
-(output::OutputDiabaticPopulation)(sol, i) = (Dynamics.get_population.(sol.p, sol.u), false)
+struct OutputDiabaticPopulation{S} <: AbstractOutput
+    sim::S
+end
+(output::OutputDiabaticPopulation)(sol, i) = (Dynamics.get_population.(output.sim, sol.u), false)
