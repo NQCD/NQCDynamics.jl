@@ -24,8 +24,13 @@ Simulation{Langevin}(atoms::Atoms{S,T}, model::Model; γ=1, temperature=0u"K", D
     Simulation(atoms, model, Langevin{T}(γ, austrip(temperature), atoms.masses, DoFs);
                temperature=temperature, DoFs=DoFs, kwargs...)
 
+# FSSH is defined in src/Dynamics/SurfaceHopping
 Simulation{FSSH}(atoms::Atoms{S,T}, model::Model; kwargs...) where {S,T} =
     Simulation(atoms, model, FSSH{T}(model.n_states); kwargs...)
+
+# IESH is defined in src/Dynamics/SurfaceHopping
+Simulation{IESH}(atoms::Atoms{S,T}, model::Model; kwargs...) where {S,T} =
+    Simulation(atoms, model, IESH{T}(model.n_states); kwargs...)
 
 RingPolymerSimulation{FSSH}(atoms::Atoms{S,T}, model::Model, n_beads::Integer; kwargs...) where {S,T} =
     RingPolymerSimulation(atoms, model, FSSH{T}(model.n_states), n_beads; kwargs...)
