@@ -18,7 +18,15 @@ function Atoms{T}(atom_types::AbstractVector{Symbol}) where {T}
     Atoms{S,T}(types, numbers, masses)
 end
 
-Atoms{T}(atom_type::Symbol) where {T<:AbstractFloat} = Atoms{T}([atom_type])
+function Atoms{T}(masses::AbstractVector) where {T}
+    S = length(masses)
+    types = SVector{S,Symbol}(fill(:X, S))
+    numbers = SVector{S,UInt8}(zeros(S))
+    masses = SVector{S,T}(austrip.(masses))
+    Atoms{S,T}(types, numbers, masses)
+end
+
+Atoms{T}(atom_type) where {T} = Atoms{T}([atom_type])
 Atoms(atom_types) = Atoms{Float64}(atom_types)
 
 Base.length(::Atoms{S}) where {S} = S
