@@ -1,4 +1,4 @@
-# Molecular dynamics with electronic friction (MDEF)
+# Molecular dynamics with electronic friction -- MDEF
 
 MDEF is a method designed to include the effect of low energy electron-hole pair
 excitations that occur when a molecule encounters a metal.
@@ -10,7 +10,6 @@ First let's import the packages we need.
 using NonadiabaticMolecularDynamics
 using Plots
 using Unitful
-using UnitfulAtomic
 nothing # hide
 ```
 
@@ -42,6 +41,7 @@ plot(solution, :energy)
 Now let's see what happens if we make the electronic temperature a function of time.
 ```@example mdef
 temperature_function(t) = exp(-(t - 0.5u"ps")^2 * 20u"ps^-2") * 3000u"K"
+nothing # hide
 ```
 !!! warning
 
