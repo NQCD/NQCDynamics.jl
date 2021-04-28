@@ -66,6 +66,7 @@ end
 end
 
 @testset "OutputDiabaticPopulation" begin
-    output = Ensembles.OutputDiabaticPopulation()
+    sim = Simulation{FSSH}(atoms, Models.TullyModelTwo(); DoFs=1)
+    output = Ensembles.OutputDiabaticPopulation(sim)
 end
 

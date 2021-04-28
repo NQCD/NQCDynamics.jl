@@ -67,7 +67,7 @@ end
 
 @testset "propose_centroid_move!" begin
     monte_carlo = PathIntegralMonteCarlo{Float64}(Δ, length(atoms), 100, [1], 1.0, 10)
-    sim = RingPolymerSimulation(1, 100u"K", cell, atoms, model, monte_carlo, 10, [:H])
+    sim = RingPolymerSimulation(atoms, model, 10; cell=cell, temperature=100u"K", DoFs=1, quantum_nuclei=[:H])
     Rᵢ = randn(3, length(sim.atoms), 10)
     Rₚ = copy(Rᵢ)
     MetropolisHastings.propose_centroid_move!(sim, monte_carlo, Rᵢ, Rₚ, 2)

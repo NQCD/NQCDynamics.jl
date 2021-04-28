@@ -21,6 +21,7 @@ function run_ensemble(
     stripped_kwargs = austrip_kwargs(;kwargs...)
 
     problem = Dynamics.create_problem(Dynamics.select_u0(sim, selection.distribution, 1), austrip.(tspan), sim)
+    problem = remake(problem, callback=Dynamics.get_callbacks(sim))
     ensemble_problem = EnsembleProblem(
         problem,
         prob_func=selection,
