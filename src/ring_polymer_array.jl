@@ -10,9 +10,8 @@ mutable struct RingPolymerArray{T} <: AbstractArray{T,3}
     quantum_atoms::Vector{Int}
     classical_atoms::Vector{Int}
     normal::Bool
-    tmp::Vector{T}
     function RingPolymerArray{T}(data::Array{T,3}, quantum, classical) where {T}
-        new(data, quantum, classical, false, zero(axes(data,3)))
+        new(data, quantum, classical, false)
     end
 end
 
@@ -40,6 +39,14 @@ function Base.similar(A::RingPolymerArray, ::Type{S}, dims::Dims) where {S}
     end
 end
 
+struct RingPolymerStyle <: Broadcast.AbstractArrayStyle{3} end
+Base.BroadcastStyle(::Type{<:RingPolymerArray}) = RingPolymerStyle()
+RingPolymerStyle(::Val{3}) = RingPolymerStyle()
+RingPolymerStyle(::Val{N}) where {N} = Broadcast.DefaultArrayStyle{N}()
+
+Base.similar(bc::Broadcast.Broadcasted{RingPolymerStyle}, ::Type{Eltype}) where {Eltype} =
+    RingPolymerArray(similar(Array{Eltype}, axes(bc)))
+
 """
     constrain_classical_atoms!(A::RingPolymerArray)
 
@@ -53,25 +60,12 @@ end
 constrain_classical_atoms!(A::RingPolymerArray, k::Integer) = constrain_classical_atoms!(A.data, A.classical_atoms, k)
 
 """
-Transform to/from normal mode coordinates.
-"""
-function transform!(A::RingPolymerArray, U::Matrix)
-    transform = A.normal ? U .* sqrt(size(U,1)) : U' ./ sqrt(size(U,1))
-    @views for i in A.quantum_atoms
-        for j in axes(A, 1)
-            mul!(A.tmp, transform, A[j,i,:])
-            A[j,i,:] .= A.tmp
-        end
-    end
-    A.normal = !A.normal
-end
-
-"""
 Evaluate centroid of ring polymer.
 """
 function get_centroid(A::RingPolymerArray{T})::Matrix{T} where {T}
     if A.normal
-        centroid = @view A[:,:,1]
+        centroid = A[:,:,1]
+        centroid[:,A.quantum_atoms] ./= sqrt(size(A,3))
     else
         centroid = dropdims(mean(A.data; dims=3); dims=3)
     end

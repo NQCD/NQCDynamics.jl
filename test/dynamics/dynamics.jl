@@ -8,5 +8,4 @@ using Test
 @time @safetestset "FSSH Tests" begin include("fssh.jl") end
 # @safetestset "Fermionic bath ring polymer (experimental) Tests" begin include("fermionic.jl") end
 @time @safetestset "NRPMD Tests" begin include("nrpmd.jl") end
-@time @safetestset "Ensembles Tests" begin include("ensembles.jl") end
 @time @safetestset "Cell Boundary Callback Tests" begin include("cell_boundary_callback.jl") end
