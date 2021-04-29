@@ -21,7 +21,7 @@ include("simulations.jl")
 include("classical_hamiltonians.jl")
 
 include("InitialConditions/InitialConditions.jl")
-export InitialConditions
+@reexport using .InitialConditions
 
 include("Dynamics/Dynamics.jl")
 @reexport using .Dynamics

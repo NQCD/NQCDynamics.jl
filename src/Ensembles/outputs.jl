@@ -1,6 +1,7 @@
 using Unitful
 using UnitfulAtomic
 using LinearAlgebra: norm
+using ..InitialConditions.QuantisedDiatomic
 
 abstract type AbstractOutput end
 
@@ -44,3 +45,23 @@ struct OutputDiabaticPopulation{S} <: AbstractOutput
     sim::S
 end
 (output::OutputDiabaticPopulation)(sol, i) = (Dynamics.get_population.(output.sim, sol.u), false)
+
+"""
+$(TYPEDEF)
+
+Output the vibrational and rotational quantum numbers of the final image.
+"""
+struct OutputQuantisedDiatomic{S,H,V} <: AbstractOutput
+    sim::S
+    height::H
+    normal_vector::V
+end
+OutputQuantisedDiatomic(sim; height=10, normal_vector=[0, 0, 1]) = OutputQuantisedDiatomic(sim, height, normal_vector)
+
+function (output::OutputQuantisedDiatomic)(sol, i)
+    final = last(sol.u) 
+    ν, J = QuantisedDiatomic.quantise_diatomic(output.sim,
+        Dynamics.get_velocities(final), Dynamics.get_positions(final);
+        height=output.height, normal_vector=output.normal_vector)
+    return ((ν, J), false)
+end
