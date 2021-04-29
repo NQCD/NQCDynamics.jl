@@ -28,6 +28,11 @@ atoms = Atoms([:H])
     dσ = zero(σ)
     Dynamics.set_density_matrix_derivative!(dσ, v, σ, sim)
 
+    @testset "get_population" begin
+        population = Dynamics.get_population(sim, u)
+        @test population ≈ [0.5, 0.5]
+    end
+
     @testset "select_new_state" begin
         sim.method.hopping_probability .= [0, 1.0]
         u.state = 1

@@ -16,6 +16,12 @@ makedocs(sitename="NonadiabaticMolecularDynamics.jl",
             "dynamics/classical.md"
             "dynamics/mdef.md"
         ]
+        "Examples" => [
+            "examples/mdef.md"
+            "examples/fssh.md"
+            "examples/nrpmd.md"
+            "examples/quantisation.md"
+        ]
     ])
 
 deploydocs(

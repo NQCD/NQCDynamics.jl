@@ -19,10 +19,12 @@ function finite_difference_gradient(model::DiabaticModel, R)
         potential!(model, out, x)
         out[i,j]
     end
-    grad = [Hermitian(zeros(model.n_states, model.n_states)) for i=1:size(R)[1], j=1:size(R)[2]]
-    for i=1:model.n_states
-        for j=1:model.n_states
-            grad[1].data[i,j] = FiniteDiff.finite_difference_gradient(x->f(x,i,j), R)[1]
+    grad = [Hermitian(zeros(model.n_states, model.n_states)) for i in CartesianIndices(R)]
+    for k in eachindex(R)
+        for i=1:model.n_states
+            for j=1:model.n_states
+                grad[k].data[i,j] = FiniteDiff.finite_difference_gradient(x->f(x,i,j), R)[k]
+            end
         end
     end
     grad
@@ -40,7 +42,7 @@ end
 function test_model(model::DiabaticModel, DoFs, atoms)
     R = rand(DoFs, atoms)
     V = Hermitian(zeros(model.n_states, model.n_states))
-    D = [Hermitian(zeros(model.n_states, model.n_states))]'
+    D = [Hermitian(zeros(model.n_states, model.n_states)) for i=1:DoFs, j=1:atoms]
     potential!(model, V, R)
     derivative!(model, D, R)
     @test finite_difference_gradient(model, R) ≈ D rtol=1e-3
@@ -105,6 +107,21 @@ end
 @testset "Scattering1D" begin
     model = Scattering1D()
     test_model(model, 1, 1)
+end
+
+@testset "ThreeStateMorse" begin
+    model = ThreeStateMorse()
+    test_model(model, 1, 1)
+end
+
+@testset "DebyeSpinBoson" begin
+    model = DebyeSpinBoson(10)
+    test_model(model, 1, 10)
+end
+
+@testset "DebyeBosonBath" begin
+    model = DebyeBosonBath(10)
+    test_model(model, 1, 10)
 end
 
 @testset "JuLIP" begin

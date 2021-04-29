@@ -125,6 +125,8 @@ include("analytic_models/diatomic_harmonic.jl")
 
 include("analytic_models/double_well.jl")
 include("analytic_models/tully_models.jl")
+include("analytic_models/three_state_morse.jl")
+include("analytic_models/spin_boson.jl")
 include("analytic_models/scattering_anderson_holstein.jl")
 include("analytic_models/1D_scattering.jl")
 
