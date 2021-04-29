@@ -5,25 +5,11 @@ using OrdinaryDiffEq
 
 atoms = Atoms([:H])
 model = Models.Harmonic()
-sim = Simulation(atoms, model, Dynamics.Classical(); DoFs=1)
+sim = Simulation(atoms, model; DoFs=1)
 
 positions = [randn(1, length(atoms)) for i=1:10]
 velocities = [randn(1, length(atoms)) for i=1:10]
 distribution = InitialConditions.DynamicalDistribution(positions, velocities, (1, 1))
-
-# solution = Dynamics.run_ensemble(distribution, (0.0, 1e3), sim; trajectories=10, dt=1)
-
-# @testset "run_dissociation_ensemble" begin
-#     atoms = Atoms([:H, :H])
-#     model = Models.Free()
-#     sim = Simulation(atoms, model; DoFs=1)
-#     positions = [zeros(1, length(atoms)) for i=1:100]
-#     velocities = [randn(1, length(atoms)) for i=1:100]
-#     distribution = InitialConditions.DynamicalDistribution(positions, velocities, (1, 2))
-
-#     solution = Dynamics.run_dissociation_ensemble(distribution, (0.0, 1e2), sim; trajectories=100, dt=1)
-#     @test solution.u < 1.0
-# end
 
 prob = Dynamics.create_problem(ArrayPartition(rand(distribution)...), (0.0, 1.0), sim)
 @testset "OrderedSelection" begin 
@@ -35,6 +21,11 @@ end
 @testset "RandomSelection" begin
     selector = Ensembles.RandomSelection(distribution)
     new_prob = selector(prob, 3, false)
+end
+
+@testset "SelectWithCallbacks" begin
+    selector = Ensembles.RandomSelection(distribution)
+    Ensembles.SelectWithCallbacks(selector, CallbackSet(), (:position), 10)
 end
 
 @testset "SumReduction" begin
@@ -73,5 +64,12 @@ end
 @testset "OutputQuantisedDiatomic" begin
     output = Ensembles.OutputQuantisedDiatomic(sim; height=1, normal_vector = [1, 1, 1])
     output = Ensembles.OutputQuantisedDiatomic(sim)
+end
+
+@testset "run_ensemble_standard_output" begin
+    selection = Ensembles.RandomSelection(distribution)
+    tspan = (0.0, 10.0)
+    out = Ensembles.run_ensemble_standard_output(sim, tspan, selection; output=(:position), dt=1,
+        trajectories=10)
 end
 
