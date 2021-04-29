@@ -8,20 +8,20 @@ using DocStringExtensions
 using RecursiveArrayTools: ArrayPartition
 using TypedTables
 
-function select_u0(::Simulation{<:Union{Classical, AbstractMDEF}}, v, r)
+function select_u0(::Simulation{<:Union{Classical, AbstractMDEF}}, v, r, state)
     ArrayPartition(v, r)
 end
 
-function select_u0(::RingPolymerSimulation{<:Classical}, v, r)
+function select_u0(::RingPolymerSimulation{<:Classical}, v, r, state)
     RingPolymerClassicalDynamicals(v, r)
 end
 
-function select_u0(sim::Simulation{<:FSSH}, v, r)
-    SurfaceHoppingVariables(v, r, sim.calculator.model.n_states, distribution.state)
+function select_u0(sim::Simulation{<:FSSH}, v, r, state)
+    SurfaceHoppingVariables(v, r, sim.calculator.model.n_states, state)
 end
 
-function select_u0(sim::RingPolymerSimulation{<:NRPMD}, v, r)
-    RingPolymerMappingVariables(v, r, sim.calculator.model.n_states, distribution.state)
+function select_u0(sim::RingPolymerSimulation{<:NRPMD}, v, r, state)
+    RingPolymerMappingVariables(v, r, sim.calculator.model.n_states, state)
 end
 
 include("selections.jl")
@@ -39,7 +39,7 @@ function run_ensemble(
 
     stripped_kwargs = austrip_kwargs(;kwargs...)
 
-    problem = Dynamics.create_problem(select_u0(sim, selection.distribution, 1), austrip.(tspan), sim)
+    problem = Dynamics.create_problem(select_u0(sim, rand(selection.distribution)..., selection.distribution.state), austrip.(tspan), sim)
     problem = remake(problem, callback=Dynamics.get_callbacks(sim))
     ensemble_problem = EnsembleProblem(
         problem,
@@ -57,7 +57,7 @@ function run_ensemble_standard_output(
 
     stripped_kwargs = austrip_kwargs(;kwargs...)
 
-    problem = Dynamics.create_problem(select_u0(sim, selection.distribution, 1), austrip.(tspan), sim)
+    problem = Dynamics.create_problem(select_u0(sim, rand(selection.distribution)..., selection.distribution.state), austrip.(tspan), sim)
     problem = remake(problem, callback=Dynamics.get_callbacks(sim))
 
     new_selection = SelectWithCallbacks(selection, Dynamics.get_callbacks(sim), output, kwargs[:trajectories])

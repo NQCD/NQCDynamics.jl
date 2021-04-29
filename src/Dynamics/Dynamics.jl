@@ -27,7 +27,7 @@ using DiffEqBase
 using StochasticDiffEq
 using OrdinaryDiffEq
 using RecursiveArrayTools: ArrayPartition
-using UnitfulAtomic
+using UnitfulAtomic, Unitful
 using DocStringExtensions
 using TypedTables
 
@@ -70,7 +70,7 @@ function run_trajectory(u0::DynamicalVariables, tspan::Tuple, sim::AbstractSimul
     problem = create_problem(u0, austrip.(tspan), sim)
     problem = remake(problem, callback=callback_set)
     solve(problem, select_algorithm(sim); stripped_kwargs...)
-    Table(t=vals.t, vals.saveval)
+    Table(t=auconvert.(u"fs", vals.t), vals.saveval)
 end
 
 """
