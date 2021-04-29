@@ -9,7 +9,7 @@ First let's import the packages we need.
 ```@example mdef
 using NonadiabaticMolecularDynamics
 using Plots
-using Unitful
+using Unitful, UnitfulRecipes
 nothing # hide
 ```
 

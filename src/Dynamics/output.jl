@@ -18,12 +18,12 @@ function get_saving_function(::Type{savevalType})::Function where {savevalType}
     end
 end
 
-force(u, t, integrator) = -integrator.p.calculator.derivative
-velocity(u, t, integrator) = copy(get_velocities(u))
-position(u, t, integrator) = copy(get_positions(u))
-potential(u, t, integrator) = Models.energy(integrator.p.calculator.model, get_positions(u))
-energy(u, t, integrator) = evaluate_hamiltonian(integrator.p, u)
-kinetic(u, t, integrator) = evaluate_kinetic_energy(integrator.p.atoms.masses, get_velocities(u))
+force(u, t, integrator) = -auconvert.(u"eV/Å", integrator.p.calculator.derivative)
+velocity(u, t, integrator) = auconvert.(u"Å/fs", get_velocities(u))
+position(u, t, integrator) = auconvert.(u"Å", get_positions(u))
+potential(u, t, integrator) = auconvert.(u"eV", Models.energy(integrator.p.calculator.model, get_positions(u)))
+energy(u, t, integrator) = auconvert.(u"eV", evaluate_hamiltonian(integrator.p, u))
+kinetic(u, t, integrator) = auconvert.(u"eV", evaluate_kinetic_energy(integrator.p.atoms.masses, get_velocities(u)))
 u(u, t, integrator) = copy(u)
 density_matrix(u, t, integrator) = copy(get_density_matrix(u))
 state(u, t, integrator) = copy(u.state)
