@@ -81,7 +81,8 @@ create_problem(u0, tspan, sim) = ODEProblem(motion!, u0, tspan, sim)
 select_algorithm(::AbstractSimulation) = Tsit5()
 get_callbacks(::AbstractSimulation) = nothing
 
-include("mdef_baoab.jl")
+include("algorithms/mdef_baoab.jl")
+include("algorithms/bcocb.jl")
 
 include("classical.jl")
 include("langevin.jl")
@@ -90,10 +91,9 @@ include("SurfaceHopping/SurfaceHopping.jl")
 include("fermionic_ring_polymer.jl")
 include("nrpmd.jl")
 
-include("bcocb.jl")
-
 include("ensembles.jl")
 include("callbacks.jl")
+include("output.jl")
 include("plot.jl")
 
 end # module
