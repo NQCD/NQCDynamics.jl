@@ -7,10 +7,10 @@ using DocStringExtensions
 include("unit_conversions.jl")
 
 include("atoms.jl")
+include("ring_polymer_array.jl")
 include("ring_polymer.jl")
 include("cells.jl")
 include("dynamical_variables.jl")
-include("ring_polymer_array.jl")
 
 include("Models/Models.jl")
 export Models

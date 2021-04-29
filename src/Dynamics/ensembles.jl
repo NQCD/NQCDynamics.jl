@@ -55,8 +55,8 @@ function select_u0(sim::Simulation{<:FSSH}, distribution::DynamicalDistribution,
     SurfaceHoppingVariables(InitialConditions.pick(distribution, i)..., sim.calculator.model.n_states, distribution.state)
 end
 
-function select_u0(sim::RingPolymerSimulation{<:NRPMD}, distribution::DynamicalDistribution, state::Integer)
-    RingPolymerMappingDynamicals(rand(distribution)..., sim.calculator.model.n_states, state)
+function select_u0(sim::RingPolymerSimulation{<:NRPMD}, distribution::DynamicalDistribution, i)
+    RingPolymerMappingVariables(InitialConditions.pick(distribution, i)..., sim.calculator.model.n_states, distribution.state)
 end
 
 function run_dissociation_ensemble(

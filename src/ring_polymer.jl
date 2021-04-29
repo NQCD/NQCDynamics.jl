@@ -102,6 +102,15 @@ function transform_from_normal_modes!(p::RingPolymerParameters, R::AbstractArray
     end
 end
 
+function transform!(p::RingPolymerParameters, A::RingPolymerArray)
+    if A.normal
+        transform_from_normal_modes!(p, A)
+    else
+        transform_to_normal_modes!(p, A)
+    end
+    A.normal = !A.normal
+end
+
 Base.length(beads::RingPolymerParameters) = beads.n_beads
 Base.range(beads::RingPolymerParameters) = range(1; length=length(beads))
 
