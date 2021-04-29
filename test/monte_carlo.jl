@@ -1,6 +1,6 @@
 using Test
 using NonadiabaticMolecularDynamics
-using NonadiabaticMolecularDynamics.InitialConditions
+using NonadiabaticMolecularDynamics.MetropolisHastings
 using Unitful
 using StatsBase
 
@@ -36,7 +36,7 @@ end
 
 @testset "write_output!" begin
     Rₚ = fill(0.1, sim.DoFs, length(sim.atoms))
-    output = InitialConditions.MetropolisHastings.MonteCarloOutput(Rₚ, sim.atoms)
+    output = MetropolisHastings.MonteCarloOutput(Rₚ, sim.atoms)
     MetropolisHastings.write_output!(output, Rₚ, 1.0)
     Rₚ .+= 1
     MetropolisHastings.write_output!(output, Rₚ, 1.1)
@@ -60,7 +60,7 @@ end
 
 @testset "run_monte_carlo_sampling" begin
     R0 = rand(sim.DoFs, length(sim.atoms))
-    out = InitialConditions.run_monte_carlo_sampling(sim, R0, Δ, 10)
+    out = MetropolisHastings.run_monte_carlo_sampling(sim, R0, Δ, 10)
     @test !(out.R[1] ≈ out.R[10])
     @test !(out.energy[1] ≈ out.energy[20])
 end
