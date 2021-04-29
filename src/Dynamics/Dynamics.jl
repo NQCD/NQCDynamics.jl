@@ -91,7 +91,6 @@ include("nrpmd.jl")
 include("algorithms/mdef_baoab.jl")
 include("algorithms/bcocb.jl")
 
-include("ensembles.jl")
 include("callbacks.jl")
 include("output.jl")
 include("plot.jl")
