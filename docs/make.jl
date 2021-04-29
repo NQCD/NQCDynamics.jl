@@ -20,6 +20,7 @@ makedocs(sitename="NonadiabaticMolecularDynamics.jl",
             "examples/mdef.md"
             "examples/fssh.md"
             "examples/nrpmd.md"
+            "examples/quantisation.md"
         ]
     ])
 

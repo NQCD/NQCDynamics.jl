@@ -70,3 +70,8 @@ end
     output = Ensembles.OutputDiabaticPopulation(sim)
 end
 
+@testset "OutputQuantisedDiatomic" begin
+    output = Ensembles.OutputQuantisedDiatomic(sim; height=1, normal_vector = [1, 1, 1])
+    output = Ensembles.OutputQuantisedDiatomic(sim)
+end
+

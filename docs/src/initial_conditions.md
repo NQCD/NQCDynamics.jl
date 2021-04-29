@@ -73,7 +73,7 @@ number of monte carlo passes we perform (`passes*n_atoms` steps total).
 Δ = Dict([(:N, 0.1), (:O, 0.1)])
 R0 = [1.0 0.0; 0.0 0.0; 0.0 0.0]
 passes = 1000
-output = InitialConditions.run_monte_carlo_sampling(sim, R0, Δ, passes)
+output = MetropolisHastings.run_monte_carlo_sampling(sim, R0, Δ, passes)
 nothing # hide
 ```
 
