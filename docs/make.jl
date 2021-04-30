@@ -7,15 +7,15 @@ makedocs(sitename="NonadiabaticMolecularDynamics.jl",
         "getting_started.md"
         "initial_conditions.md"
         "ensemble_simulations.md"
-        "calculators.md"
-        "Models" => [
-            "models/overview.md"
-        ]
-        "Dynamics" => [
-            "dynamics/overview.md"
-            "dynamics/classical.md"
-            "dynamics/mdef.md"
-        ]
+        # "calculators.md"
+        # "Models" => [
+        #     "models/overview.md"
+        # ]
+        # "Dynamics" => [
+        #     "dynamics/overview.md"
+        #     "dynamics/classical.md"
+        #     "dynamics/mdef.md"
+        # ]
         "Examples" => [
             "examples/mdef.md"
             "examples/fssh.md"
