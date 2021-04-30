@@ -60,3 +60,20 @@ plot!(0:10:3000, [p[2] for p in solution.u])
 ylabel!("Population difference")
 xlabel!("Time")
 ```
+
+If instead it is preferred to output many quantities for each trajectory, this is
+also possible.
+Here the output is specified in the same way as for single trajectories.
+```@example ensemble
+ensemble = Ensembles.run_ensemble_standard_output(sim, (0.0, 3000.0), selection;
+    output=(:population), trajectories=50)
+
+p = plot(legend=(false))
+for e in ensemble
+    plot!(e.t, [pop[2] for pop in e.population])
+end
+p
+```
+Here we see the population of the second diabatic state for every trajectory.
+This is useful for checking the simulation is providing sensible results
+before scaling up and outputting only the necessary data.
