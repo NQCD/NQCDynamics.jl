@@ -22,15 +22,17 @@ end
 
 # See Eq. 12 of Shenvi, Tully paper.
 function acceleration!(dv, v, r, sim::Simulation{<:IESH}, t; state=1)
+    # Checked, forces should be okay
     #println("ping6")
     # Goes over direction 2
+    u = 0
     for i in axes(dv, 2)
         for j in axes(dv, 1)
-            #sim.calculator.adiabatic_derivative[j,i] .= 0.0
+            dv[j,i] = 0.0
             for k in 1:length(state)
+                # This is presumably wrong, but I need to figure out how to do it right.
                 # Calculate as the sum of the momenta of occupied states
-                dv[j,i] = sim.calculator.adiabatic_derivative[j,i][k, k]-
-                          sim.calculator.adiabatic_derivative[j,i][k, k]*
+                dv[j,i] = dv[j,i] - sim.calculator.adiabatic_derivative[j,i][k, k]*
                           state[k] / sim.atoms.masses[i]
             end
         end
@@ -50,7 +52,7 @@ function evaluate_hopping_probability!(sim::Simulation{<:IESH}, u, dt)
     sumer = 0
     first = true
     random_number = rand()
-    sum_before = sumer
+    sum_before = 0.0
 
     sim.method.hopping_probability .= 0 # Set all entries to 0
     for l = 1:n_st
@@ -58,7 +60,7 @@ function evaluate_hopping_probability!(sim::Simulation{<:IESH}, u, dt)
         if(s[l] == 1)
             for m = 1:n_st
                 # Is unoccupied?
-                if (s[m] == state)
+                if (s[m] == 0)
                     for I in eachindex(v)
                         #sim.method.hopping_probability[m] += 2v[I]*real(σ[m,s]/σ[s,s])*d[I][s,m] * dt
                         hop_mat[l,m] = 2*v[I]*real(σ[m,l]/σ[l,l])*d[I][l,m] * dt
@@ -123,8 +125,9 @@ function rescale_velocity!(sim::AbstractSimulation{<:IESH}, u)::Bool
     end
     a, b = evaluate_a_and_b(sim, velocity, state_diff)
     discriminant = b.^2 .- 2a.*c
-
-    any(discriminant .< 0) && println("Frustrated!") && return false
+    
+    any(discriminant .< 0) && println("Frustrated!")
+    any(discriminant .< 0) && return false
 
     root = sqrt.(discriminant)
     velocity_rescale = min.(abs.((b .+ root) ./ a), abs.((b .- root) ./ a))

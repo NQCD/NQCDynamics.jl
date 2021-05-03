@@ -22,11 +22,13 @@ function motion!(du, u, sim::AbstractSimulation{<:SurfaceHopping}, t)
     dv = get_velocities(du)
     dσ = get_density_matrix(du)
 
+
     r = get_positions(u)
     v = get_velocities(u)
     σ = get_density_matrix(u)
 
     velocity!(dr, v, r, sim, t)
+    # src/Calculators/Calculators.jl
     Calculators.update_electronics!(sim.calculator, r)
     acceleration!(dv, v, r, sim, t; state=u.state)
     set_density_matrix_derivative!(dσ, v, σ, sim)
@@ -51,13 +53,13 @@ function check_hop!(u, t, integrator)::Bool
         integrator.p,
         u,
         get_proposed_dt(integrator))
-    
+
     integrator.p.method.new_state = select_new_state(integrator.p, u)
     return integrator.p.method.new_state != u.state
 end
 
 function execute_hop!(integrator)
-    #println("ping5")
+    println("ping5")
     rescale_velocity!(integrator.p, integrator.u) && (integrator.u.state = integrator.p.method.new_state)
     return nothing
 end
@@ -84,7 +86,8 @@ This only needs to be implemented if the velocity should be modified during a ho
 """
 rescale_velocity!(::AbstractSimulation{<:SurfaceHopping}, u) = true
 
-create_problem(u0, tspan, sim::AbstractSimulation{<:SurfaceHopping}) = ODEProblem(motion!, u0, tspan, sim)
+create_problem(u0, tspan, sim::AbstractSimulation{<:SurfaceHopping}) = 
+               ODEProblem(motion!, u0, tspan, sim)
 
 include("surface_hopping_variables.jl")
 include("fssh.jl")
