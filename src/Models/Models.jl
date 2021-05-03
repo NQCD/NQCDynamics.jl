@@ -138,7 +138,10 @@ include("EANN/EANN_H2Ag.jl")
 include("EANN/EANN_NOAu.jl")
 
 function __init__()
-    @require PyCall="438e738f-606a-5dbb-bf0a-cddfbfd45ab0" @eval include("ML/ML.jl")
+    @require PyCall="438e738f-606a-5dbb-bf0a-cddfbfd45ab0" begin
+        @eval include("ML/ML.jl")
+        @eval include("LDFA/LDFA.jl")
+    end
     @require JuLIP="945c410c-986d-556a-acb1-167a618e0462" @eval include("julip.jl")
 end
 
