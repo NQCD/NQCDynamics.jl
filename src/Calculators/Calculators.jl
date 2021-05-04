@@ -29,7 +29,7 @@ obtained from the model.
 abstract type AbstractCalculator{M<:Model} end
 abstract type AbstractAdiabaticCalculator{M<:AdiabaticModel} <: AbstractCalculator{M} end
 abstract type AbstractDiabaticCalculator{M<:Union{DiabaticFrictionModel,DiabaticModel}} <: AbstractCalculator{M} end
-abstract type AbstractFrictionCalculator{M<:FrictionModel} <: AbstractCalculator{M} end
+abstract type AbstractFrictionCalculator{M<:AdiabaticFrictionModel} <: AbstractCalculator{M} end
 
 struct AdiabaticCalculator{T,M} <: AbstractAdiabaticCalculator{M}
     model::M
@@ -149,7 +149,7 @@ end
 function Calculator(model::AdiabaticModel, DoFs::Integer, atoms::Integer, T::Type=Float64)
     AdiabaticCalculator{T}(model, DoFs, atoms)
 end
-function Calculator(model::FrictionModel, DoFs::Integer, atoms::Integer, T::Type=Float64)
+function Calculator(model::AdiabaticFrictionModel, DoFs::Integer, atoms::Integer, T::Type=Float64)
     FrictionCalculator{T}(model, DoFs, atoms)
 end
 function Calculator(model::DiabaticFrictionModel, DoFs::Integer, atoms::Integer, T::Type=Float64)
@@ -161,7 +161,7 @@ end
 function Calculator(model::AdiabaticModel, DoFs::Integer, atoms::Integer, beads::Integer, T::Type=Float64)
     RingPolymerAdiabaticCalculator{T}(model, DoFs, atoms, beads)
 end
-function Calculator(model::FrictionModel, DoFs::Integer, atoms::Integer, beads::Integer, T::Type=Float64)
+function Calculator(model::AdiabaticFrictionModel, DoFs::Integer, atoms::Integer, beads::Integer, T::Type=Float64)
     RingPolymerFrictionCalculator{T}(model, DoFs, atoms, beads)
 end
 

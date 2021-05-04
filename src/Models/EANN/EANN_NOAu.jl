@@ -3,7 +3,7 @@ export EANN_NOAu
 """
 ...
 """
-struct EANN_NOAu <: FrictionModel
+struct EANN_NOAu <: AdiabaticFrictionModel
     path::String
     n_atoms::Int
     function EANN_NOAu(path::String, atoms::Atoms)
