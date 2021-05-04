@@ -4,7 +4,7 @@ using NonadiabaticMolecularDynamics.Models
 using LinearAlgebra
 using FiniteDiff
 
-function finite_difference_gradient(model::Union{AdiabaticModel, FrictionModel}, R)
+function finite_difference_gradient(model::AdiabaticModel, R)
     function f(x)
         out = [0.0]
         potential!(model, out, x)
@@ -48,7 +48,7 @@ function test_model(model::DiabaticModel, DoFs, atoms)
     @test finite_difference_gradient(model, R) ≈ D rtol=1e-3
 end
 
-function test_model(model::FrictionModel, DoFs, atoms)
+function test_model(model::AdiabaticFrictionModel, DoFs, atoms)
     R = rand(DoFs, atoms)
     V = zeros(1)
     D = zero(R)
