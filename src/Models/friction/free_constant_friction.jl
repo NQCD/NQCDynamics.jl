@@ -2,7 +2,7 @@ using LinearAlgebra: diagind
 
 export FreeConstantFriction
 
-struct FreeConstantFriction{T} <: FrictionModel
+struct FreeConstantFriction{T} <: AdiabaticFrictionModel
     γ::T
 end
 
