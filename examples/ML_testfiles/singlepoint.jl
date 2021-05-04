@@ -1,7 +1,7 @@
 using NonadiabaticMolecularDynamics
 using NonadiabaticMolecularDynamics.Models
 using PyCall
-ase = pyimport("ase")
+ase = pyimport("ase") # is this needed?
 model_path = "examples/ML_testfiles"
 
 # model 1 : H2 in gas pahse
