@@ -22,7 +22,7 @@ export Model
 export AdiabaticModel
 export DiabaticModel
 export DiabaticFrictionModel
-export FrictionModel
+export AdiabaticFrictionModel
 
 export potential!
 export derivative!
@@ -82,7 +82,7 @@ and calculation of nonadiabatic couplings.
 abstract type DiabaticFrictionModel <: DiabaticModel end
 
 """
-    AdiabaticModel <: Model
+    AdiabaticFrictionModel <: AdiabaticModel
 
 This model implements `potential!`, `derivative!`, and `friction!`
 
@@ -90,7 +90,7 @@ This model implements `potential!`, `derivative!`, and `friction!`
 
 `friction!` must fill an `AbstractMatrix` with `size = (DoFs*atoms, DoFs*atoms)`.
 """
-abstract type FrictionModel <: Model end
+abstract type AdiabaticFrictionModel <: AdiabaticModel end
 
 """
     potential!(model::Model, V, R::AbstractMatrix)
@@ -111,27 +111,27 @@ This must be implemented for all models.
 function derivative! end
 
 """
-    friction!(model::FrictionModel, F, R:AbstractMatrix)
+    friction!(model::AdiabaticFrictionModel, F, R:AbstractMatrix)
 
 Fill `F` with the electronic friction as a function of the positions `R`.
 
-This need only be implemented for `FrictionModel`s.
+This need only be implemented for `AdiabaticFrictionModel`s.
 """
 function friction! end
 
-include("analytic_models/free.jl")
-include("analytic_models/harmonic.jl")
-include("analytic_models/diatomic_harmonic.jl")
+include("adiabatic/free.jl")
+include("adiabatic/harmonic.jl")
+include("adiabatic/diatomic_harmonic.jl")
 
-include("analytic_models/double_well.jl")
-include("analytic_models/tully_models.jl")
-include("analytic_models/three_state_morse.jl")
-include("analytic_models/spin_boson.jl")
-include("analytic_models/scattering_anderson_holstein.jl")
-include("analytic_models/1D_scattering.jl")
+include("friction/friction_harmonic.jl")
+include("friction/free_constant_friction.jl")
 
-include("analytic_models/friction_harmonic.jl")
-include("analytic_models/free_constant_friction.jl")
+include("diabatic/double_well.jl")
+include("diabatic/tully_models.jl")
+include("diabatic/three_state_morse.jl")
+include("diabatic/spin_boson.jl")
+include("diabatic/scattering_anderson_holstein.jl")
+include("diabatic/1D_scattering.jl")
 
 include("EANN/EANN_H2Cu.jl")
 include("EANN/EANN_H2Ag.jl")
@@ -140,18 +140,18 @@ include("EANN/EANN_NOAu.jl")
 function __init__()
     @require PyCall="438e738f-606a-5dbb-bf0a-cddfbfd45ab0" begin
         @eval include("ML/ML.jl")
-        @eval include("LDFA/LDFA.jl")
+        @eval include("friction/LDFA/LDFA.jl")
     end
-    @require JuLIP="945c410c-986d-556a-acb1-167a618e0462" @eval include("julip.jl")
+    @require JuLIP="945c410c-986d-556a-acb1-167a618e0462" @eval include("adiabatic/julip.jl")
 end
 
-function energy(model::Union{AdiabaticModel, FrictionModel}, R::AbstractMatrix)
+function energy(model::AdiabaticModel, R::AbstractMatrix)
     energy = [0.0]
     potential!(model, energy, R)
     energy[1]
 end
 
-function forces(model::Union{AdiabaticModel, FrictionModel}, R::AbstractMatrix)
+function forces(model::AdiabaticModel, R::AbstractMatrix)
     forces = zero(R)
     derivative!(model, forces, R)
     -forces

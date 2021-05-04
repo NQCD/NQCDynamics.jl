@@ -2,7 +2,7 @@ using Random
 
 export FrictionHarmonic
 
-struct FrictionHarmonic <: FrictionModel
+struct FrictionHarmonic <: AdiabaticFrictionModel
     mass::Float64
     ω::Float64
     r₀::Float64

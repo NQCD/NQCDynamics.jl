@@ -6,7 +6,7 @@ using Libdl
 J. Phys. Chem. Lett. 2019, 10, 4962−4967
 J. Phys. Chem. C 2020, 124, 186−195
 """
-struct EANN_H₂Ag{S,T} <: FrictionModel
+struct EANN_H₂Ag{S,T} <: AdiabaticFrictionModel
     potential_function::Ptr{Nothing}
     force_function::Ptr{Nothing}
     friction_function::Ptr{Nothing}
