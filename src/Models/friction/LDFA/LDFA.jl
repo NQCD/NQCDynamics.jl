@@ -5,7 +5,7 @@ using Dierckx
 using DelimitedFiles
 using DocStringExtensions
 using ..Models
-using PyCall
+using ..PyCall
 
 export CubeLDFAModel
 
@@ -16,7 +16,7 @@ function __init__()
     copy!(cube, pyimport("cube"))
 end
 
-abstract type LDFAModel <: Models.FrictionModel end
+abstract type LDFAModel <: Models.AdiabaticFrictionModel end
 
 """
 $(TYPEDEF)
