@@ -1,8 +1,9 @@
 
-const torch = PyNULL() # Julia torch module
+#const torch = PyNULL() # Julia torch module
 
 function update_schnet_input!(schnet_inputs::Dict, periodic_cell::PeriodicCell, atoms::Atoms, R::AbstractMatrix, model_args::PyObject, ML_units::Dict)
     ase = pyimport("ase")
+    torch = pyimport("torch")
     spk = pyimport("schnetpack")
     cell = ustrip.(auconvert.(u"Å", periodic_cell.vectors))
     positions = ustrip.(auconvert.(uparse(ML_units["R"]), R'))
