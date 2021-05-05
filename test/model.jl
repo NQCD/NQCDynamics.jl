@@ -133,3 +133,13 @@ end
     model = JuLIPModel(atoms, PeriodicCell(vcat(x,y,z)), JuLIP.StillingerWeber())
     test_model(model, 3, 2)
 end
+
+# Commented because it requires a cube file to test.
+# @testset "LDFA" begin
+#     import PyCall
+#     free = Free()
+#     atoms = Atoms([:H, :H])
+#     cube_file_here = "This should be a cube file"
+#     model = Models.LDFA.CubeLDFAModel(free, cube_file_here, atoms, [2])
+#     test_model(model, 3, 2)
+# end
