@@ -16,7 +16,7 @@ end
 DynamicalDistribution(velocity, position, size; state=0) =
     DynamicalDistribution(velocity, position, size, state)
 
-Base.eltype(s::DynamicalDistribution{<:Sampleable,R}) where {R} = eltype(austrip.(s.velocity))
+Base.eltype(s::DynamicalDistribution{<:Sampleable,R}) where {R} = eltype(s.velocity)
 Base.eltype(s::DynamicalDistribution{<:AbstractArray,R} where {R}) = eltype(austrip.(s.velocity[1]))
 Base.size(s::DynamicalDistribution) = s.size
 
