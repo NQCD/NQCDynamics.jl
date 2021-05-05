@@ -1,12 +1,27 @@
 
-using .PyCall
+module SchNetPackModels
+
+using ..PyCall
+using ....NonadiabaticMolecularDynamics: PeriodicCell, Atoms
+using ..Models
 using PeriodicTable
+using Unitful, UnitfulAtomic
 
 export SchNetPackModel
 
+const torch = PyNULL() # Julia torch module
+const ase = PyNULL()
+const spk = PyNULL()
+
+function __init__()
+    copy!(torch, pyimport_conda("torch", "torch"))
+    copy!(spk, pyimport_conda("schnetpack", "schnetpack", "conda-forge"))
+    copy!(ase, pyimport_conda("ase", "ase=3.21.1", "conda-forge"))
+end
+
 include("ML_descriptor.jl")
 
-struct SchNetPackModel <: AdiabaticModel
+struct SchNetPackModel <: Models.AdiabaticModel
     cell::PeriodicCell
     atoms::Atoms
     input::Dict{String, PyObject}
@@ -43,13 +58,11 @@ function initialize_MLmodel(path::String, cell::PeriodicCell, atoms::Atoms)
 end
 
 function torch_load(path::String)
-    torch = pyimport("torch")
     device = "cpu"
     torch.load(joinpath(path, "best_model"), map_location=torch.device(device)).to(device)
 end
 
 function get_param_model(path::String)
-    spk = pyimport("schnetpack")
     model_args = spk.utils.read_from_json(joinpath(path,"args.json"))
     if model_args.cuda == true && torch.cuda.is_available() == true
         model_args.device = "cuda"
@@ -61,7 +74,6 @@ function get_param_model(path::String)
 end
 
 function get_metadata(path::String, model_args::PyObject)
-    spk = pyimport("schnetpack")
     dataset = spk.data.AtomsData(string(joinpath(path,model_args.datapath)),collect_triples=model_args=="wacsf")
     if in("units",keys(dataset.get_metadata()))
         ML_units = dataset.get_metadata("units")
@@ -90,3 +102,5 @@ function get_properties(model_path, atoms, args...)
 
     return (energy,forces)
 end
+
+end # module

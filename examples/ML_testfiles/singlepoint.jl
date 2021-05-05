@@ -8,7 +8,7 @@ model_path = "examples/ML_testfiles"
 
 # model 1 : H2 in gas phase
 cell, atoms, positions = read_system("examples/ML_testfiles/H2.xyz")
-model = SchNetPackModel(model_path, cell, atoms)
+model = Models.SchNetPackModels.SchNetPackModel(model_path, cell, atoms)
 
 V = [0.0]
 potential!(model, V, positions)
