@@ -41,11 +41,19 @@ function run_ensemble(
 
     problem = Dynamics.create_problem(select_u0(sim, rand(selection.distribution)..., selection.distribution.state), austrip.(tspan), sim)
     problem = remake(problem, callback=Dynamics.get_callbacks(sim))
+
+    if hasfield(typeof(reduction), :u_init)
+        u_init = reduction.u_init
+    else
+        u_init = []
+    end
+
     ensemble_problem = EnsembleProblem(
         problem,
         prob_func=selection,
         output_func=output,
-        reduction=reduction
+        reduction=reduction,
+        u_init=u_init
     )
 
     solve(ensemble_problem, Dynamics.select_algorithm(sim), ensemble_algorithm; stripped_kwargs...)
