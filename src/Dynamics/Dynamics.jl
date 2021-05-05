@@ -70,7 +70,7 @@ function run_trajectory(u0::DynamicalVariables, tspan::Tuple, sim::AbstractSimul
     problem = create_problem(u0, austrip.(tspan), sim)
     problem = remake(problem, callback=callback_set)
     solve(problem, select_algorithm(sim); stripped_kwargs...)
-    Table(t=auconvert.(u"fs", vals.t), vals.saveval)
+    Table(t=vals.t, vals.saveval)
 end
 
 """
