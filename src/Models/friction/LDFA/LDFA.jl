@@ -1,4 +1,8 @@
 
+"""
+Models within attach friction coefficients to existing models by fitting the data
+provided by Gerrits et al. in PHYSICAL REVIEW B 102, 155130 (2020).
+"""
 module LDFA
 
 using Dierckx
@@ -22,13 +26,21 @@ abstract type LDFAModel <: Models.AdiabaticFrictionModel end
 $(TYPEDEF)
 
 Wrapper for existing models that adds LDFA friction.
+
+This model uses a cube file to evaluate the electron density used to calculate the friction.
 """
 struct CubeLDFAModel{T,M,S} <: LDFAModel
+    """Model that provides the energies and forces."""
     model::M
+    """Splines fitted to the numerical LDFA data."""
     splines::S
+    """Cube object provided by `cube.py`."""
     cube::PyObject
+    """Temporary array for storing the electron density."""
     ρ::Vector{T}
+    """Temporary array for the Wigner-Seitz radii."""
     radii::Vector{T}
+    """Indices of atoms that should have friction applied."""
     friction_atoms::Vector{Int}
 end
 
