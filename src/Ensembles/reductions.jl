@@ -10,7 +10,7 @@ Sum the outputs from each trajectory.
 struct SumReduction{T} <: AbstractReduction
     "Template for the reduction variable."
     u_init::T
-    SumReduction(u_init) = new{typeof(u_init)}(zero(u_init))
+    SumReduction(u_init) = new{typeof(u_init)}(u_init)
 end
 SumReduction() = SumReduction(0.0)
 
