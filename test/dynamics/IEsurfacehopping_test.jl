@@ -7,10 +7,10 @@ using UnitfulAtomic
 using Revise
 using Random, Distributions
 using Plots
-using DelimitedFiles
-using Profile
+#using DelimitedFiles
+#using Profile
 # using DataFrames
-using BenchmarkTools
+#using BenchmarkTools
 
 
 # IESH should proceed by the following steps:
@@ -54,19 +54,22 @@ atoms = Atoms{Float64}([:H])
 ###############################################################################
 
 # create Boltzmann distribution of momenta
-# temperature = 300u"K"
-# temperature = 2.5*298u"K"
-# boltzmann = Normal(0.0, austrip(temperature) / atoms.masses[1])
-# boltzmann = Normal(0.0, austrip(temperature))
+temperature = 2.5*298u"K"
 
 # create distribution of atomic positions from Monte Carlo sampling of the PESs
 # for the number of trajectories and atoms
-### SOMETHING HERE IS BROKEN
-# Δ = Dict([(:H, 0.3)])
-# tsim = Simulation(atoms, model; DoFs=1, temperature=temperature)
-# outbolz = InitialConditions.run_monte_carlo_sampling(tsim, zeros(1, length(tsim.atoms)), Δ, ntrajes)
-# # If sampled, gives an array of momenta and positions from the above initialized sampling
-# bolz_pos_momenta = DynamicalDistribution(boltzmann, outbolz.R, (1, 1))
+# atoms and step size
+Δ = Dict([(:H, 0.3)])
+tsim = Simulation{Classical}(atoms, model; DoFs=1, temperature=temperature)
+R0 = zeros(3, length(tsim.atoms))
+Δ = Dict([(:H, 0.3)])
+R0 = zeros(1, length(tsim.atoms))
+passes = 1000
+outbolz = MetropolisHastings.run_monte_carlo_sampling(tsim, R0, Δ, passes)
+
+
+# If sampled, gives an array of momenta and positions from the above initialized sampling
+#bolz_pos_momenta = DynamicalDistribution(boltzmann, outbolz.R, (1, 1))
 
 
 
@@ -82,8 +85,9 @@ sim = Simulation{IESH}(atoms, model; DoFs=1)
 #     v = -v
 #     println(i," ", r, " ", v)
 
-r = fill(-5.0, sim.DoFs, length(sim.atoms))
-v = fill(8.9, sim.DoFs, length(sim.atoms)) ./ sim.atoms.masses[1]
+    #r = fill(-5.0, sim.DoFs, length(sim.atoms))
+    r = rand(outbolz.R)
+    v = fill(sqrt(rand(outbolz.energy)*2/sim.atoms.masses[1]), sim.DoFs, length(sim.atoms))
     println(r, v)
 
     # intial state (how to initialize a vector that shows which states are occupied)
@@ -103,9 +107,9 @@ v = fill(8.9, sim.DoFs, length(sim.atoms)) ./ sim.atoms.masses[1]
     # callbacks defined in: src/Dynamics/callbacks.jl and src/Models/Models.jl
 #    @time solution = Dynamics.run_trajectory(z, (0.0, 100.0), sim; output=(:density_matrix, :state))
     # Save impurity does not seem to be defined at the moment?
-    #@time solution = Dynamics.run_trajectory(z, (0.0, 5000.0), sim; output=(:save_impurity))
-    @time solution = Dynamics.run_trajectory(z, (0.0, 100000.0), sim, dt=1, 
-                                             adaptive=false; output=(:position, :save_impurity))
+    #@time solution = Dynamics.run_trajectory(z, (0.0, 10000000.0), sim; output=(:save_impurity))
+    @time solution = Dynamics.run_trajectory(z, (0.0, 2000000.0), sim;# dt=1, adaptive=false; 
+                                             output=(:position, :save_impurity))
     
     #@time solution = Dynamics.run_trajectory(z, (0.0, 12000000.0), sim)
     println("Finished")
@@ -113,15 +117,23 @@ v = fill(8.9, sim.DoFs, length(sim.atoms)) ./ sim.atoms.masses[1]
 
     #open("trajectory_$nname.txt", "w") do fi
     #    write(fi, "step, r (a.u.), epot (a.u.), state, impurity population\n")
-        outarray = zeros(length(solution), 5)
+    aka = Int(ceil(length(solution)/100))-1
+    #aka = Int(length(solution))
+    j = 0
+    println(aka)
+        outarray = zeros(aka, 5)
         for i = 1:length(solution)
-            outarray[i,1] = solution.t[i]
-            outarray[i,2] = solution.position[i][1]
-            outarray[i,3] = solution.save_impurity[i][2]
-            # outarray[i,2] = solution.save_impurity[i][1]
+            if (mod(i,100)==0)
+                j = j + 1
+                outarray[j,1] = solution.t[i]
+                outarray[j,2] = solution.position[i][1]
+                outarray[j,3] = solution.save_impurity[i][2]
+                outarray[j,4] = solution.save_impurity[i][3]
+                outarray[j,5] = solution.save_impurity[i][4]
             # outarray[i,3] = solution.save_impurity[i][2]
             # outarray[i,4] = solution.save_impurity[i][3]
             # outarray    [i,5] = solution.save_impurity[i][4]
+            end
         end
     #    writedlm(fi, outarray,'\t')
     #end
@@ -130,17 +142,12 @@ v = fill(8.9, sim.DoFs, length(sim.atoms)) ./ sim.atoms.masses[1]
 b = plot(outarray[:,2], outarray[:,3], label="energy", marker=2)
 xlabel!("x")
 ylabel!("Energy (a.u.)")
+a = plot(outarray[:,1], outarray[:,5], label="energy", marker=2)
+xlabel!("time")
+ylabel!("Impurity Population")
 
-# # # a = plot(vals.t, outarray[:,4], label="Impurity pop", marker=2)
-# # # xlabel!("time")
-# # # ylabel!("Impurity Population (a.u.)")
-# # # # # b = plot(solution.t[1:2:end], imp_pop, label="current surface", marker=2)
-# # # # #    # plot!(outarray[:,2], outarray[:,3], label="current surface", marker =1)
-# # # # # # a=plot(solution.t, [real(Dynamics.get_density_matrix(u)[20,20]) for u in solution.u], label="σ[1,1]", marker =2)
-# # # # # # plot!(solution.t, [real(Dynamics.get_density_matrix(u)[21,21]) for u in solution.u], label="σ[2,2]", marker =2)
-# # # # # # plot!(solution.t, [u.state[21] for u in solution.u].-1, label="current surface")
-# # # display(plot(a))
 display(plot(b))
+display(plot(a))
 
 end
 # # # savefig(a,"traj_subA_G4Em4_W10G_test5.png")
