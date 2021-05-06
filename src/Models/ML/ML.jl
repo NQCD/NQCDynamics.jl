@@ -8,6 +8,7 @@ using PeriodicTable
 using Unitful, UnitfulAtomic
 
 export SchNetPackModel
+export FrictionSchNetPackModel
 
 const torch = PyNULL() # Julia torch module
 const ase = PyNULL()
@@ -30,6 +31,10 @@ struct SchNetPackModel <: Models.AdiabaticModel
     model::PyObject
 end
 
+struct FrictionSchNetPackModel <: AdiabaticFrictionModel
+    model::SchNetPackModel
+end
+
 function SchNetPackModel(path::String, cell::PeriodicCell, atoms::Atoms)
     model, model_args, ML_units = initialize_MLmodel(path, cell, atoms)
     input = Dict{String, PyObject}()
@@ -43,7 +48,21 @@ end
 
 function Models.derivative!(model::SchNetPackModel, D::AbstractMatrix, R::AbstractMatrix)
     update_schnet_input!(model.input, model.cell, model.atoms, R, model.model_args, model.ML_units)
-    D .= austrip.(-model.model(model.input)["forces"].detach().numpy()[1,:,:]' .* uparse(model.ML_units["forces"]))
+    sign = model.model_args.sign # spk already multiplies with -1 if forces are trained
+    D .= austrip.(sign*model.model(model.input)["forces"].detach().numpy()[1,:,:]' .* uparse(model.ML_units["forces"]))
+end
+
+function FrictionSchNetPackModel(path, cell, atoms)
+    model = SchNetPackModel(path, cell, atoms)
+    FrictionSchNetPackModel(model)
+end
+
+#friction model contains only friction and no energies or forces
+#Models.potential!(model::FrictionSchNetPackModel, V, R) = Models.potential!(model.model, V, R)
+#Models.derivative!(model::FrictionSchNetPackModel, D, R) = Models.derivative!(model.model, D, R)
+function Models.friction!(model::FrictionSchNetPackModel, F, R)
+    update_schnet_input!(model.input, model.cell, model.atoms, R, model.model_args, model.ML_units)
+    F .= austrip.(model.model(model.input)["friction_tensor"].detach().numpy()[1,:,:]' .* uparse(model.ML_units["EFT"]))
 end
 
 function initialize_MLmodel(path::String, cell::PeriodicCell, atoms::Atoms)
@@ -52,6 +71,13 @@ function initialize_MLmodel(path::String, cell::PeriodicCell, atoms::Atoms)
     #get metadata
     ML_units = get_metadata(path, model_args)
     force_mask = false
+    print(model_args.force)
+    #James, could you please check if "nothing" is correct to use in this case? If there is a None in model_args.force (see args.json) and if negative_dr is false, then we need to multiply with one, otherwise spk should take care of that
+    if model_args.force == nothing && model_args.negative_dr == false
+        model_args.sign = -1
+    else
+        model_args.sign = +1
+    end
     model_args.atomic_charges = [elements[type].number for type in atoms.types]
     model_args.pbc = cell.periodicity
     return model, model_args, ML_units
@@ -77,6 +103,7 @@ function get_metadata(path::String, model_args::PyObject)
     dataset = spk.data.AtomsData(string(joinpath(path,model_args.datapath)),collect_triples=model_args=="wacsf")
     if in("units",keys(dataset.get_metadata()))
         ML_units = dataset.get_metadata("units")
+        print(ML_units)
     else
         println("Attention! No units found in the data set. Atomic units are used.")
         ML_units = Dict()
