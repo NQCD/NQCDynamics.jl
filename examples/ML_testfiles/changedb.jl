@@ -17,6 +17,6 @@ metadata["units"]={}
 metadata["units"]["energy"] = "eV"
 metadata["units"]["forces"] = "eV/Å"
 metadata["units"]["R"] = "Å"
-metadata["units"]["EFT"] = None
+metadata["units"]["EFT"] = "1/ps"
 db2.metadata=metadata
 """

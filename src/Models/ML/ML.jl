@@ -62,6 +62,7 @@ end
 #Models.derivative!(model::FrictionSchNetPackModel, D, R) = Models.derivative!(model.model, D, R)
 function Models.friction!(model::FrictionSchNetPackModel, F, R)
     update_schnet_input!(model.input, model.cell, model.atoms, R, model.model_args, model.ML_units)
+    print(model.model(model.input))
     F .= austrip.(model.model(model.input)["friction_tensor"].detach().numpy()[1,:,:]' .* uparse(model.ML_units["EFT"]))
 end
 
@@ -121,6 +122,8 @@ function get_properties(model_path, atoms, args...)
     #only for energy and properties with simple spk
     atoms.set_calculator(calculator)
     energy = atoms.get_total_energy()
+    #TODO 
+    #friction = atoms.get_properties()
     if force_mask == false
         forces = atoms.get_forces()
     else
