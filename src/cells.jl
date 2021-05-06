@@ -62,7 +62,7 @@ function apply_cell_boundaries!(cell::PeriodicCell, R::AbstractMatrix)
         mul!(R[:,i], cell.vectors, cell.tmp_vector1)
     end
 end
-apply_cell_boundaries!(::InfiniteCell, ::AbstractMatrix) = nothing
+apply_cell_boundaries!(::InfiniteCell, ::AbstractArray) = nothing
 
 function apply_cell_boundaries!(cell::PeriodicCell, R::AbstractVector)
     mul!(cell.tmp_vector1, cell.inverse, R)

@@ -173,16 +173,23 @@ function impurity_summary(model::DiabaticModel, R::AbstractMatrix, state::Abstra
     # calculate diabatic density matrix
     σdia .= eig_vec *σ * ieig
     # Set impurity population according to Miao, Subontik, JCP, 2019, Eq. 21
-    eig_array[4] = (real(σdia[2,2]) + imag(σdia[2,2]))^2#*state[2]
+    #eig_array[4] = (real(σdia[2,2]) + imag(σdia[2,2]))^2*state[2]
+    println("ping-ping-ping")
+    println(eig_array[4])
+    eig_array[4] = (real(σdia[2,2]))^2*state[2]
+    println(σdia[2,2]^2, " ")
 
     # save position
     eig_array[1] = R[1]
+    aabc = 0.0
     for i = 1:length(state)
         # Energy
         eig_array[2] = eig_array[2] + state[i]*eival[i]
+        aabc = aabc + σ[i,i]
         # Hopping prob. by hopping array
         eig_array[3] = eig_array[3] + state[i]
     end
+    println(aabc)
 
     # Export an array of eigenvalues with last two elements being hopping prob
     eig_array = eig_array
