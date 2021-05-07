@@ -34,7 +34,14 @@ end
 struct FrictionSchNetPackModel <: AdiabaticFrictionModel
     model::SchNetPackModel
 end
+#function Base.getproperty(model::FrictionSchNetPackModel, property::Symbol)
+#    property === :model ? getfield(model, property) : getfield(model.model, property)
+#end
 
+function FrictionSchNetPackModel(path, cell, atoms)
+    model = SchNetPackModel(path, cell, atoms)
+    FrictionSchNetPackModel(model)
+end
 function SchNetPackModel(path::String, cell::PeriodicCell, atoms::Atoms)
     model, model_args, ML_units = initialize_MLmodel(path, cell, atoms)
     input = Dict{String, PyObject}()
@@ -52,18 +59,14 @@ function Models.derivative!(model::SchNetPackModel, D::AbstractMatrix, R::Abstra
     D .= austrip.(sign*model.model(model.input)["forces"].detach().numpy()[1,:,:]' .* uparse(model.ML_units["forces"]))
 end
 
-function FrictionSchNetPackModel(path, cell, atoms)
-    model = SchNetPackModel(path, cell, atoms)
-    FrictionSchNetPackModel(model)
-end
 
 #friction model contains only friction and no energies or forces
 #Models.potential!(model::FrictionSchNetPackModel, V, R) = Models.potential!(model.model, V, R)
 #Models.derivative!(model::FrictionSchNetPackModel, D, R) = Models.derivative!(model.model, D, R)
 function Models.friction!(model::FrictionSchNetPackModel, F, R)
-    update_schnet_input!(model.input, model.cell, model.atoms, R, model.model_args, model.ML_units)
-    print(model.model(model.input))
-    F .= austrip.(model.model(model.input)["friction_tensor"].detach().numpy()[1,:,:]' .* uparse(model.ML_units["EFT"]))
+    update_schnet_input!(model.model.input, model.model.cell, model.model.atoms, R, model.model.model_args, model.model.ML_units)
+    print(model.model.model(model.model.input))
+    F .= austrip.(model.model.model(model.model.input)["friction_tensor"].detach().numpy()[1,:,:]' .* uparse(model.model.ML_units["EFT"]))
 end
 
 function initialize_MLmodel(path::String, cell::PeriodicCell, atoms::Atoms)
@@ -72,17 +75,16 @@ function initialize_MLmodel(path::String, cell::PeriodicCell, atoms::Atoms)
     #get metadata
     ML_units = get_metadata(path, model_args)
     force_mask = false
-    print(model_args.force)
-    #James, could you please check if "nothing" is correct to use in this case? If there is a None in model_args.force (see args.json) and if negative_dr is false, then we need to multiply with one, otherwise spk should take care of that
     if model_args.force == nothing && model_args.negative_dr == false
         model_args.sign = -1
     else
-        model_args.sign = +1
+       model_args.sign = +1
     end
     model_args.atomic_charges = [elements[type].number for type in atoms.types]
     model_args.pbc = cell.periodicity
     return model, model_args, ML_units
 end
+
 
 function torch_load(path::String)
     device = "cpu"
@@ -120,17 +122,18 @@ end
 function get_properties(model_path, atoms, args...)
     #get energy and forces and other relevant properties
     #only for energy and properties with simple spk
+    # we don't give any units here, as we will do the unit conversion in Julia
+    # otherwise spk would convert to eV, eV/A, eV/A/A, and eV/A/A/A for energy, forces, eft, and stress, respectively
     atoms.set_calculator(calculator)
+    print("HERE")
     energy = atoms.get_total_energy()
-    #TODO 
-    #friction = atoms.get_properties()
     if force_mask == false
         forces = atoms.get_forces()
     else
         forces = atoms.get_forces() * force_mask
     end
-
-    return (energy,forces)
+    friction = atoms.get_friction()
+    return (energy,forces,friction)
 end
 
 end # module

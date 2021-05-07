@@ -32,6 +32,10 @@ function update_schnet_input!(schnet_inputs::Dict, periodic_cell::PeriodicCell, 
     schnet_inputs["_neighbors"] = (torch.LongTensor(nbh_idx) * mask.long()).unsqueeze(0).to(model_args.device)
     schnet_inputs["_cell"] = torch.FloatTensor(cell).unsqueeze(0).to(model_args.device)
     schnet_inputs["_cell_offset"] = torch.FloatTensor(offsets).unsqueeze(0).to(model_args.device).contiguous()
+    #manually defined for 2 atoms
+    # this should be an additional input the user has to provide otherwise it gets messy
+    schnet_inputs["friction_indices"] = torch.Tensor([[0,1]]).int()
+    print(schnet_inputs["friction_indices"])
     schnet_inputs
 end
 
