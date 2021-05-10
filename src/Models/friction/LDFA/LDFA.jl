@@ -99,7 +99,7 @@ end
 function Models.friction!(model::LDFAModel, F::AbstractMatrix, R::AbstractMatrix)
     density!(model, model.ρ, R)
     clamp!(model.ρ, 0, Inf)
-    @. model.radii = 1 / (4/3 * π * model.ρ)^3
+    @. model.radii = 1 / cbrt(4/3 * π * model.ρ)
     DoFs = size(R, 1)
     for i in model.friction_atoms
         η = model.radii[i] < 10 ? model.splines[i](model.radii[i]) : 0.0
