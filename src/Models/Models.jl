@@ -15,6 +15,7 @@ using UnitfulAtomic
 using LinearAlgebra
 using Reexport
 using Requires
+using DocStringExtensions
 
 using ..NonadiabaticMolecularDynamics
 

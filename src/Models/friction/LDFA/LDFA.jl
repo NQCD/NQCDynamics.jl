@@ -5,9 +5,11 @@ provided by Gerrits et al. in PHYSICAL REVIEW B 102, 155130 (2020).
 """
 module LDFA
 
-using Dierckx
+using DataInterpolations
 using DelimitedFiles
 using DocStringExtensions
+using UnitfulAtomic, Unitful
+using ....NonadiabaticMolecularDynamics: PeriodicCell, au_to_ang, apply_cell_boundaries!
 using ..Models
 using ..PyCall
 
@@ -28,6 +30,8 @@ $(TYPEDEF)
 Wrapper for existing models that adds LDFA friction.
 
 This model uses a cube file to evaluate the electron density used to calculate the friction.
+
+$(FIELDS)
 """
 struct CubeLDFAModel{T,M,S} <: LDFAModel
     """Model that provides the energies and forces."""
@@ -42,9 +46,19 @@ struct CubeLDFAModel{T,M,S} <: LDFAModel
     radii::Vector{T}
     """Indices of atoms that should have friction applied."""
     friction_atoms::Vector{Int}
+    "Optional vector that specifies offset that should be applied."
+    cube_offset::Vector{T}
+    "Periodic cell containing the electron density."
+    cell::PeriodicCell{T}
+    function CubeLDFAModel(model, splines, cube, ρ, radii, friction_atoms, cube_offset, cell)
+        new{eltype(cell),typeof(model),typeof(splines)}(
+            model, splines, cube, ρ, radii, friction_atoms, cube_offset, cell)
+    end
 end
 
-function CubeLDFAModel(model::Models.Model, filename, atoms, friction_atoms=range(atoms))
+function CubeLDFAModel(model::Models.Model, filename, atoms, cell;
+                       friction_atoms=collect(range(atoms)),
+                       cube_offset=zeros(3).*u"Å")
     cube_object = cube.cube()
     cube_object.read(filename)
 
@@ -54,16 +68,17 @@ function CubeLDFAModel(model::Models.Model, filename, atoms, friction_atoms=rang
     for i in range(atoms)
         η = ldfa_data[:,atoms.numbers[i].+1]
         indices = η .!= ""
-        ri = r[indices]
-        η = η[indices]
-        k = length(ri) > 3 ? 3 : length(ri) - 1
-        push!(splines, Spline1D(ri, η; k=k))
+        ri = convert(Vector{Float64}, r[indices])
+        η = convert(Vector{Float64}, η[indices])
+        push!(ri, 10.0) # Ensure it goes through 0.0 for large r.
+        push!(η, 0.0)
+        push!(splines, CubicSpline(η, ri))
     end
 
     ρ = zeros(length(atoms))
     radii = zero(ρ)
 
-    CubeLDFAModel(model, splines, cube_object, ρ, radii, friction_atoms)
+    CubeLDFAModel(model, splines, cube_object, ρ, radii, friction_atoms, ustrip.(uconvert.(u"Å", cube_offset)), cell)
 end
 
 Models.potential!(model::LDFAModel, V::AbstractVector, R::AbstractMatrix) =
@@ -74,20 +89,25 @@ Models.derivative!(model::LDFAModel, D::AbstractMatrix, R::AbstractMatrix) =
 
 function density!(model::CubeLDFAModel, ρ::AbstractVector, R::AbstractMatrix)
     for (i, r) in enumerate(eachcol(R))
-        ρ[i] = model.cube(r...)
+        r_copy = copy(r)
+        apply_cell_boundaries!(model.cell, r_copy)
+        r_copy .= au_to_ang.(r_copy)
+        ρ[i] = model.cube((r_copy .+ model.cube_offset)...)
     end
 end
 
 function Models.friction!(model::LDFAModel, F::AbstractMatrix, R::AbstractMatrix)
     density!(model, model.ρ, R)
+    clamp!(model.ρ, 0, Inf)
     @. model.radii = 1 / (4/3 * π * model.ρ)^3
     DoFs = size(R, 1)
     for i in model.friction_atoms
-        η = model.splines[i](model.radii[i])
+        η = model.radii[i] < 10 ? model.splines[i](model.radii[i]) : 0.0
         for j in axes(R, 1)
             F[(i-1)*DoFs+j, (i-1)*DoFs+j] = η
         end
     end
+    return F
 end
 
 end # module

@@ -1,11 +1,20 @@
 export Harmonic
 
 """
-The 1-state harmonic model
+$(TYPEDEF)
+
+Adiabatic harmonic potential
+
+``V(R) = 1/2 m \\omega^2 R^2``
+
+$(FIELDS)
 """
 struct Harmonic <: AdiabaticModel
+    "Mass of oscillator"
     mass::Float64
+    "Frequency"
     ω::Float64
+    "Location of minimum"
     r₀::Float64
 end
 

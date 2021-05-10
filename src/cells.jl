@@ -34,6 +34,8 @@ struct PeriodicCell{T<:AbstractFloat} <: AbstractCell
     end
 end
 
+Base.eltype(::PeriodicCell{T}) where {T} = T
+
 function PeriodicCell(vectors::AbstractMatrix{T}) where {T<:AbstractFloat}
     PeriodicCell{T}(vectors, [true, true, true]) 
 end
