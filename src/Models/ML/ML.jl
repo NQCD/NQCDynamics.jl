@@ -1,6 +1,10 @@
 
 module SchNetPackModels
 
+# Attention
+# in order to make spk work in julia, you need to change the following line after installation
+# in src/schnetpack/nn/cfconv.py change line 78 to "nbh = neighbors.reshape(1,nbh_size[1]*nbh_size[2],1)"
+
 using ..PyCall
 using ....NonadiabaticMolecularDynamics: PeriodicCell, Atoms
 using ..Models
@@ -33,14 +37,15 @@ end
 
 struct FrictionSchNetPackModel <: AdiabaticFrictionModel
     model::SchNetPackModel
+    F_idx::Array
 end
 #function Base.getproperty(model::FrictionSchNetPackModel, property::Symbol)
 #    property === :model ? getfield(model, property) : getfield(model.model, property)
 #end
 
-function FrictionSchNetPackModel(path, cell, atoms)
+function FrictionSchNetPackModel(path, cell, atoms, F_idx)
     model = SchNetPackModel(path, cell, atoms)
-    FrictionSchNetPackModel(model)
+    FrictionSchNetPackModel(model,F_idx)
 end
 function SchNetPackModel(path::String, cell::PeriodicCell, atoms::Atoms)
     model, model_args, ML_units = initialize_MLmodel(path, cell, atoms)
@@ -64,8 +69,8 @@ end
 #Models.potential!(model::FrictionSchNetPackModel, V, R) = Models.potential!(model.model, V, R)
 #Models.derivative!(model::FrictionSchNetPackModel, D, R) = Models.derivative!(model.model, D, R)
 function Models.friction!(model::FrictionSchNetPackModel, F, R)
-    update_schnet_input!(model.model.input, model.model.cell, model.model.atoms, R, model.model.model_args, model.model.ML_units)
-    print(model.model.model(model.model.input))
+
+    update_schnet_input_friction!(model.model.input, model.model.cell, model.model.atoms, R, model.model.model_args, model.model.ML_units,model.F_idx)
     F .= austrip.(model.model.model(model.model.input)["friction_tensor"].detach().numpy()[1,:,:]' .* uparse(model.model.ML_units["EFT"]))
 end
 
@@ -106,7 +111,6 @@ function get_metadata(path::String, model_args::PyObject)
     dataset = spk.data.AtomsData(string(joinpath(path,model_args.datapath)),collect_triples=model_args=="wacsf")
     if in("units",keys(dataset.get_metadata()))
         ML_units = dataset.get_metadata("units")
-        print(ML_units)
     else
         println("Attention! No units found in the data set. Atomic units are used.")
         ML_units = Dict()
@@ -125,7 +129,6 @@ function get_properties(model_path, atoms, args...)
     # we don't give any units here, as we will do the unit conversion in Julia
     # otherwise spk would convert to eV, eV/A, eV/A/A, and eV/A/A/A for energy, forces, eft, and stress, respectively
     atoms.set_calculator(calculator)
-    print("HERE")
     energy = atoms.get_total_energy()
     if force_mask == false
         forces = atoms.get_forces()

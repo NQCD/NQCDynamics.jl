@@ -1,8 +1,11 @@
 
 function update_schnet_input!(schnet_inputs::Dict, periodic_cell::PeriodicCell, atoms::Atoms, R::AbstractMatrix, model_args::PyObject, ML_units::Dict)
     cell = ustrip.(auconvert.(u"Å", periodic_cell.vectors))
+    #cutoff radius should always be in the correct units - this should not be changed
     positions = ustrip.(auconvert.(uparse(ML_units["R"]), R'))
     molecule = ase.atoms.Atoms(atoms.types,positions)
+    molecule.set_cell(cell)
+    molecule.set_pbc(model_args.pbc)
     # We might want to get Julia versions of these, also we should remove the if statement.
     if model_args.environment_provider == "simple"
         nbh_idx, offsets = spk.environment.SimpleEnvironmentProvider().get_environment(molecule)
@@ -14,11 +17,8 @@ function update_schnet_input!(schnet_inputs::Dict, periodic_cell::PeriodicCell, 
         nbh_idx,offsets = spk.environment.TorchEnvironmentProvider(model_args.cutoff,model_args.device).get_environment(molecule)
         #py"get_torch_environment"(length(atoms), model_args.atomic_charges, positions, model_args.pbc, cell, model_args)
     end
-    # Some of these will not change and do not need to be updated every time.
-    schnet_inputs["_atomic_numbers"] =  torch.LongTensor(model_args.atomic_charges).unsqueeze(0).to(model_args.device)
+    schnet_inputs["_atomic_numbers"] =  torch.LongTensor(molecule.get_atomic_numbers()).unsqueeze(0).to(model_args.device)
     if model_args.contributions == true
-        #manual for 2 atoms
-        #TODO update if we ever use larger molecules 
         schnet_inputs["_atom_mask"] = torch.zeros_like(schnet_inputs["_atomic_numbers"]).float()
         schnet_inputs["_atom_mask"][0,2].fill_(1.0)
         schnet_inputs["_atom_mask"][0,1].fill_(1.0)
@@ -32,14 +32,33 @@ function update_schnet_input!(schnet_inputs::Dict, periodic_cell::PeriodicCell, 
     schnet_inputs["_neighbors"] = (torch.LongTensor(nbh_idx) * mask.long()).unsqueeze(0).to(model_args.device)
     schnet_inputs["_cell"] = torch.FloatTensor(cell).unsqueeze(0).to(model_args.device)
     schnet_inputs["_cell_offset"] = torch.FloatTensor(offsets).unsqueeze(0).to(model_args.device).contiguous()
-    #manually defined for 2 atoms
-    # this should be an additional input the user has to provide otherwise it gets messy
-    schnet_inputs["friction_indices"] = torch.Tensor([[0,1]]).int()
-    print(schnet_inputs["friction_indices"])
-    schnet_inputs
 end
 
+function update_schnet_input_friction!(schnet_inputs::Dict, periodic_cell::PeriodicCell, atoms::Atoms, R::AbstractMatrix, model_args::PyObject, ML_units::Dict,friction_indices::Vector{Int64})
+    
+    update_schnet_input!(schnet_inputs::Dict, periodic_cell::PeriodicCell, atoms::Atoms, R::AbstractMatrix, model_args::PyObject, ML_units::Dict)
+    schnet_inputs["friction_indices"] = torch.zeros((1,length(friction_indices)))
+    it=0
+    for i in friction_indices
+        it+=1
+        schnet_inputs["friction_indices"][0,i+1]=Int8(friction_indices[it])
+    end
+    schnet_inputs["friction_indices"]=schnet_inputs["friction_indices"].int()
+    schnet_inputs["_idx"]=torch.Tensor(1,1).int()
+    #torch_friction_indices = schnet_inputs["friction_indices"][0].int()
+    #friction_input = torch.index_select(schnet_inputs["_positions"],1,torch_friction_indices)
+    #friction_input.requires_grad = true
+    #julia starts to count from 1
+    #it=0
+    #for i in friction_indices
+    #    it+=1
+    #    schnet_inputs["_positions"][0,i+1] = friction_input[0,it]
+    #end
+    #setindex does not work with pyobjects
+    #schnet_inputs["_positions"][:,friction_indices,:] .= friction_input
+    #schnet_inputs["friction_positions"] = friction_input
 
+end
 #     py"""
 #     import schnetpack as spk
 #     from schnetpack import Properties
