@@ -42,6 +42,7 @@ function set_density_matrix_derivative!(dσ, v, σ, sim::Simulation{<:SurfaceHop
     for I in eachindex(v)
         @. V -= im * v[I] * sim.calculator.nonadiabatic_coupling[I]
     end
+
     mul!(sim.calculator.tmp_mat_complex1, V, σ)
     mul!(sim.calculator.tmp_mat_complex2, σ, V)
     @. dσ = -im * (sim.calculator.tmp_mat_complex1 - sim.calculator.tmp_mat_complex2)
@@ -59,7 +60,7 @@ function check_hop!(u, t, integrator)::Bool
 end
 
 function execute_hop!(integrator)
-    println("ping5")
+    #println("ping5")
     rescale_velocity!(integrator.p, integrator.u) && (integrator.u.state = integrator.p.method.new_state)
     return nothing
 end
