@@ -6,6 +6,8 @@ export IESH
 """This module controles how IESH is executed. For a description of IESH, see e.g.
 Roy, Shenvi, Tully, J. Chem. Phys. 130, 174716 (2009) and 
 Shenvi, Roy, Tully, J. Chem. Phys. 130, 174107 (2009).
+
+The density matrix is set up in surface_hopping_variables.jl
 """
 
 mutable struct IESH{T} <: SurfaceHopping
@@ -13,7 +15,7 @@ mutable struct IESH{T} <: SurfaceHopping
     hopping_probability::Vector{T}
     new_state::Vector{Int}
     function IESH{T}(states::Integer) where {T}
-        density_propagator = zeros(states, states)
+        density_propagator = zeros(states^2, states^2)
         hopping_probability = zeros(3)
         new_state = zeros(states) # this probably needs to be modified
         new{T}(density_propagator, hopping_probability, new_state)
@@ -21,8 +23,8 @@ mutable struct IESH{T} <: SurfaceHopping
 end
 
 # See Eq. 12 of Shenvi, Tully paper.
+# This is part of the adiabatic propagation of the nuclei.
 function acceleration!(dv, v, r, sim::Simulation{<:IESH}, t; state=1)
-    # Checked, forces should be okay
     #println("ping6")
     # Goes over direction 2
     u = 0
@@ -30,7 +32,6 @@ function acceleration!(dv, v, r, sim::Simulation{<:IESH}, t; state=1)
         for j in axes(dv, 1)
             dv[j,i] = 0.0
             for k in 1:length(state)
-                # This is presumably wrong, but I need to figure out how to do it right.
                 # Calculate as the sum of the momenta of occupied states
                 dv[j,i] = dv[j,i] - sim.calculator.adiabatic_derivative[j,i][k, k]*
                           state[k] / sim.atoms.masses[i]
@@ -38,6 +39,35 @@ function acceleration!(dv, v, r, sim::Simulation{<:IESH}, t; state=1)
         end
     end
     return nothing
+end
+
+function set_density_matrix_derivative!(dσ, v, σ, sim::Simulation{<:SurfaceHopping})
+    #println("ping3")
+    V = sim.method.density_propagator
+
+    #V .= diagm(sim.calculator.eigenvalues)
+    n_states = sim.calculator.model.n_states
+    c = 0
+    for j in 1:n_states
+        c1 = (j-1)*n_states + 1
+        c2 = j*n_states
+        V[c1:c2,c1:c2] .= diagm(sim.calculator.eigenvalues)
+        # Subtract velocties
+        for I in eachindex(v)
+            @. V[c1:c2,c1:c2] -= im * v[I] * sim.calculator.nonadiabatic_coupling[I]
+            #println(v[I], " ", sim.calculator.nonadiabatic_coupling[I])
+        end
+        mul!(sim.calculator.tmp_mat_complex1, V[c1:c2,c1:c2], σ[c1:c2,c1:c2])
+        mul!(sim.calculator.tmp_mat_complex2, σ[c1:c2,c1:c2], V[c1:c2,c1:c2])
+        @. dσ[c1:c2,c1:c2] = -im * (sim.calculator.tmp_mat_complex1 - 
+                                    sim.calculator.tmp_mat_complex2)
+        
+        #end
+    end
+    #println("`Up until here, things look sensible")
+    #mul!(sim.calculator.tmp_mat_complex3, V, σ)
+    #mul!(sim.calculator.tmp_mat_complex4, σ, V)
+    #@. dσ = -im * (sim.calculator.tmp_mat_complex3 - sim.calculator.tmp_mat_complex4)
 end
 
 function evaluate_hopping_probability!(sim::Simulation{<:IESH}, u, dt)
@@ -49,12 +79,28 @@ function evaluate_hopping_probability!(sim::Simulation{<:IESH}, u, dt)
     n_st = sim.calculator.model.n_states
 
     hop_mat = zeros(n_st, n_st)
+    sim.calculator.tmp_mat_complex1 .= 0
     sumer = 0
     first = true
     random_number = rand()
     sum_before = 0.0
+    lc = 0
+    mc = 0
 
     sim.method.hopping_probability .= 0 # Set all entries to 0
+    # Assemble independent matrices to do hopping probability by adding them up.
+    #println(σ)
+    for l = 1:n_st
+        for m = 1: n_st
+            for i = 1:n_st
+                lc = (i-1)*n_st + l
+                mc = (i-1)*n_st + m            
+                #println(l, " ", m, " ", lc," ", mc)
+                sim.calculator.tmp_mat_complex1[l,m] += σ[lc,mc]
+            end
+        end
+    end
+
     for l = 1:n_st
         # Is occupied?
         if(s[l] == 1)
@@ -63,9 +109,11 @@ function evaluate_hopping_probability!(sim::Simulation{<:IESH}, u, dt)
                 if (s[m] == 0)
                     for I in eachindex(v)
                         #sim.method.hopping_probability[m] += 2v[I]*real(σ[m,s]/σ[s,s])*d[I][s,m] * dt
-                        hop_mat[l,m] = 2*v[I]*real(σ[m,l]/σ[l,l])*d[I][l,m] * dt
+                        # This is not correct, yet.
+                        hop_mat[l,m] = 2*v[I]*real(sim.calculator.tmp_mat_complex1[m,l]/
+                                                   sim.calculator.tmp_mat_complex1[l,l])*d[I][l,m] * dt
                     end
-                end
+                end # end if 
                 clamp(hop_mat[l,m], 0, 1)
                 # Calculate the hopping probability. Hopping occures for
                 # the transition that's first above the random number.

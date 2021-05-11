@@ -159,6 +159,7 @@ function impurity_summary(model::DiabaticModel, R::AbstractMatrix, state::Abstra
 
     eig_vec = zeros(model.n_states,model.n_states)
     eival = zeros(model.n_states)
+    σad = zeros(Complex, model.n_states, model.n_states)
     σdia = zeros(Complex, model.n_states, model.n_states)
     eig_array = zeros(4)
     V = Hermitian(zeros(model.n_states,model.n_states))
@@ -169,27 +170,33 @@ function impurity_summary(model::DiabaticModel, R::AbstractMatrix, state::Abstra
     eival .= eigvals(V)
     eig_vec .= eigvecs(V)
     ieig = inv(eig_vec)
+
+    #Collect density matrix
+    for l = 1:model.n_states
+        for m = 1: model.n_states
+            for i = 1:model.n_states
+                lc = (i-1)*model.n_states + l
+                mc = (i-1)*model.n_states + m            
+                #println(l, " ", m, " ", lc," ", mc)
+                σad[l,m] += σ[lc,mc]
+            end
+        end
+    end
     
     # calculate diabatic density matrix
-    σdia .= eig_vec *σ * ieig
+    σdia .= eig_vec *σad * ieig
     # Set impurity population according to Miao, Subontik, JCP, 2019, Eq. 21
-    #eig_array[4] = (real(σdia[2,2]) + imag(σdia[2,2]))^2*state[2]
-    println("ping-ping-ping")
-    println(eig_array[4])
-    eig_array[4] = (real(σdia[2,2]))^2*state[2]
-    println(σdia[2,2]^2, " ")
+    eig_array[4] = (real(σdia[2,2]) + imag(σdia[2,2]))^2*state[2]
+    #eig_array[4] = (real(σdia[2,2]))^2*state[2]
 
     # save position
     eig_array[1] = R[1]
-    aabc = 0.0
     for i = 1:length(state)
         # Energy
         eig_array[2] = eig_array[2] + state[i]*eival[i]
-        aabc = aabc + σ[i,i]
         # Hopping prob. by hopping array
         eig_array[3] = eig_array[3] + state[i]
     end
-    println(aabc)
 
     # Export an array of eigenvalues with last two elements being hopping prob
     eig_array = eig_array

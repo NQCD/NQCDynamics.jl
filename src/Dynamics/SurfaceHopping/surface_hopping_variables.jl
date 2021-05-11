@@ -1,6 +1,7 @@
 export SurfaceHoppingVariables
 export get_density_matrix
 
+
 mutable struct SurfaceHoppingVariables{T,D,S}  <: DynamicalVariables{T}
     x::ArrayPartition{Complex{T}, Tuple{D,D,Matrix{Complex{T}}}}
     state::S
@@ -16,11 +17,21 @@ function SurfaceHoppingVariables(v::AbstractArray, r::AbstractArray, n_states::I
     SurfaceHoppingVariables(ArrayPartition(v, r, σ), state)
 end
 
+# function SurfaceHoppingVariables(v::AbstractArray, r::AbstractArray, n_states::Integer, state::Vector{Int})
+#     σ = zeros(Complex{eltype(r)}, n_states, n_states)
+#     for i=1:n_states/2
+#         σ[Int(i), Int(i)] = 1
+#     end
+#     SurfaceHoppingVariables(ArrayPartition(v, r, σ), state)
+# end
+
 function SurfaceHoppingVariables(v::AbstractArray, r::AbstractArray, n_states::Integer, state::Vector{Int})
-    σ = zeros(Complex{eltype(r)}, n_states, n_states)
-    for i=1:n_states/2
-        σ[Int(i), Int(i)] = 1
+    σ = zeros(Complex{eltype(r)}, n_states*n_states, n_states*n_states)
+    for i=1:(n_states/2)
+        c = (i-1)*n_states + i
+        σ[Int(c), Int(c)] = 1
     end
+    #println(σ)
     SurfaceHoppingVariables(ArrayPartition(v, r, σ), state)
 end
 

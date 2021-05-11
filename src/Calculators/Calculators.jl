@@ -285,10 +285,15 @@ function evaluate_nonadiabatic_coupling!(coupling::Matrix, adiabatic_derivative:
 end
 
 function update_electronics!(calculator::AbstractDiabaticCalculator, r::AbstractArray)
+    # nuclear DoF
     evaluate_potential!(calculator, r)
+    # nuclear DoF
     evaluate_derivative!(calculator, r)
+    # nuclear DoF
     eigen!(calculator)
+    # nuclear DoF
     transform_derivative!(calculator)
+    # electronic DoF
     evaluate_nonadiabatic_coupling!(calculator)
 end
 
