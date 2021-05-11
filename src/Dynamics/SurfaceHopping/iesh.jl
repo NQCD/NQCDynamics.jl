@@ -41,28 +41,50 @@ function acceleration!(dv, v, r, sim::Simulation{<:IESH}, t; state=1)
     return nothing
 end
 
-function set_density_matrix_derivative!(dσ, v, σ, sim::Simulation{<:SurfaceHopping})
+function motion!(du, u, sim::AbstractSimulation{<:SurfaceHopping}, t)
+    #println("ping2")
+    dr = get_positions(du)
+    dv = get_velocities(du)
+    dσ = get_density_matrix(du)
+
+
+    r = get_positions(u)
+    v = get_velocities(u)
+    σ = get_density_matrix(u)
+
+    velocity!(dr, v, r, sim, t)
+    # src/Calculators/Calculators.jl
+    Calculators.update_electronics!(sim.calculator, r)
+    acceleration!(dv, v, r, sim, t; state=u.state)
+    set_density_matrix_derivative!(dσ, v, σ, sim, u)
+end
+
+function set_density_matrix_derivative!(dσ, v, σ, sim::Simulation{<:SurfaceHopping}, u)
     #println("ping3")
     V = sim.method.density_propagator
+    s = u.state
 
     #V .= diagm(sim.calculator.eigenvalues)
     n_states = sim.calculator.model.n_states
     c = 0
     for j in 1:n_states
-        c1 = (j-1)*n_states + 1
-        c2 = j*n_states
-        V[c1:c2,c1:c2] .= diagm(sim.calculator.eigenvalues)
-        # Subtract velocties
-        for I in eachindex(v)
-            @. V[c1:c2,c1:c2] -= im * v[I] * sim.calculator.nonadiabatic_coupling[I]
-            #println(v[I], " ", sim.calculator.nonadiabatic_coupling[I])
+        # According to point (3) of Shenvi, Tully, 2009, only the occupied wave functions
+        # Are integrated
+        if (s[j] > 0.1)
+            println(s[j], " ", j)
+            c1 = (j-1)*n_states + 1
+            c2 = j*n_states
+            V[c1:c2,c1:c2] .= diagm(sim.calculator.eigenvalues)
+            # Subtract velocties
+            for I in eachindex(v)
+                @. V[c1:c2,c1:c2] -= im * v[I] * sim.calculator.nonadiabatic_coupling[I]
+                #println(v[I], " ", sim.calculator.nonadiabatic_coupling[I])
+            end
+            mul!(sim.calculator.tmp_mat_complex1, V[c1:c2,c1:c2], σ[c1:c2,c1:c2])
+            mul!(sim.calculator.tmp_mat_complex2, σ[c1:c2,c1:c2], V[c1:c2,c1:c2])
+            @. dσ[c1:c2,c1:c2] = -im * (sim.calculator.tmp_mat_complex1 - 
+                                        sim.calculator.tmp_mat_complex2)
         end
-        mul!(sim.calculator.tmp_mat_complex1, V[c1:c2,c1:c2], σ[c1:c2,c1:c2])
-        mul!(sim.calculator.tmp_mat_complex2, σ[c1:c2,c1:c2], V[c1:c2,c1:c2])
-        @. dσ[c1:c2,c1:c2] = -im * (sim.calculator.tmp_mat_complex1 - 
-                                    sim.calculator.tmp_mat_complex2)
-        
-        #end
     end
     #println("`Up until here, things look sensible")
     #mul!(sim.calculator.tmp_mat_complex3, V, σ)
@@ -76,9 +98,9 @@ function evaluate_hopping_probability!(sim::Simulation{<:IESH}, u, dt)
     σ = get_density_matrix(u)
     s = u.state
     d = sim.calculator.nonadiabatic_coupling
-    n_st = sim.calculator.model.n_states
+    n_states = sim.calculator.model.n_states
 
-    hop_mat = zeros(n_st, n_st)
+    hop_mat = zeros(n_states, n_states)
     sim.calculator.tmp_mat_complex1 .= 0
     sumer = 0
     first = true
@@ -90,21 +112,21 @@ function evaluate_hopping_probability!(sim::Simulation{<:IESH}, u, dt)
     sim.method.hopping_probability .= 0 # Set all entries to 0
     # Assemble independent matrices to do hopping probability by adding them up.
     #println(σ)
-    for l = 1:n_st
-        for m = 1: n_st
-            for i = 1:n_st
-                lc = (i-1)*n_st + l
-                mc = (i-1)*n_st + m            
+    for l = 1:n_states
+        for m = 1: n_states
+            for i = 1:n_states
+                lc = (i-1)*n_states + l
+                mc = (i-1)*n_states + m            
                 #println(l, " ", m, " ", lc," ", mc)
                 sim.calculator.tmp_mat_complex1[l,m] += σ[lc,mc]
             end
         end
     end
 
-    for l = 1:n_st
+    for l = 1:n_states
         # Is occupied?
         if(s[l] == 1)
-            for m = 1:n_st
+            for m = 1:n_states
                 # Is unoccupied?
                 if (s[m] == 0)
                     for I in eachindex(v)

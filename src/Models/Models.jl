@@ -177,7 +177,6 @@ function impurity_summary(model::DiabaticModel, R::AbstractMatrix, state::Abstra
             for i = 1:model.n_states
                 lc = (i-1)*model.n_states + l
                 mc = (i-1)*model.n_states + m            
-                #println(l, " ", m, " ", lc," ", mc)
                 σad[l,m] += σ[lc,mc]
             end
         end
@@ -186,8 +185,8 @@ function impurity_summary(model::DiabaticModel, R::AbstractMatrix, state::Abstra
     # calculate diabatic density matrix
     σdia .= eig_vec *σad * ieig
     # Set impurity population according to Miao, Subontik, JCP, 2019, Eq. 21
-    eig_array[4] = (real(σdia[2,2]) + imag(σdia[2,2]))^2*state[2]
-    #eig_array[4] = (real(σdia[2,2]))^2*state[2]
+    #eig_array[4] = (real(σdia[2,2]) + imag(σdia[2,2]))^2*state[2]
+    eig_array[4] = (real(σdia[2,2]))^2*state[2]
 
     # save position
     eig_array[1] = R[1]
