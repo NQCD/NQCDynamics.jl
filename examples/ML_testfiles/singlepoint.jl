@@ -12,16 +12,16 @@ model_path = "examples/ML_testfiles"
 frictionmodel_path = "examples/ML_testfiles/friction/"
 
 # model 1 : H2 in gas phase
-#cell, atoms, positions = read_system("examples/ML_testfiles/friction/H2Ag.xyz")
-#model = Models.SchNetPackModels.SchNetPackModel(model_path, cell, atoms)
+cell, atoms, positions = read_system("examples/ML_testfiles/friction/H2Ag.xyz")
+model = Models.SchNetPackModels.SchNetPackModel(model_path, cell, atoms)
 
-#V = [0.0]
-#potential!(model, V, positions)
-#display(V)
+V = [0.0]
+potential!(model, V, positions)
+display(V)
 
-#D = zero(positions)
-#derivative!(model, D, positions)
-#display(D)
+D = zero(positions)
+derivative!(model, D, positions)
+display(D)
 
 #test for friction model
 
@@ -32,7 +32,7 @@ frictionmodel_path = "examples/ML_testfiles/friction/"
 
 #for two atoms manually. could this be changed somehow to the size 3*natoms times 3*natoms? but 
 # this should be an input
-friction_indices = [0,1]
+friction_indices = [0,1]    
 F = Array{Float64}(undef,length(friction_indices)*3,length(friction_indices)*3)
 cell_friction, atoms_friction, positions_friction = read_system("examples/ML_testfiles/friction/H2Ag.xyz")
 frictionmodel = Models.SchNetPackModels.FrictionSchNetPackModel(frictionmodel_path, cell_friction, atoms_friction, friction_indices)

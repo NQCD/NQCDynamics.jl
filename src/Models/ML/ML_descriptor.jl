@@ -43,6 +43,7 @@ function update_schnet_input_friction!(schnet_inputs::Dict, periodic_cell::Perio
         it+=1
         schnet_inputs["friction_indices"][0,i+1]=Int8(friction_indices[it])
     end
+    schnet_inputs["_atom_mask"] = schnet_inputs["_atom_mask"].reshape(1,-1)
     schnet_inputs["friction_indices"]=schnet_inputs["friction_indices"].int()
     schnet_inputs["_idx"]=torch.Tensor(1,1).int()
     #torch_friction_indices = schnet_inputs["friction_indices"][0].int()
