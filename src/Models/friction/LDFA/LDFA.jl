@@ -88,11 +88,11 @@ Models.derivative!(model::LDFAModel, D::AbstractMatrix, R::AbstractMatrix) =
     Models.derivative!(model.model, D, R)
 
 function density!(model::CubeLDFAModel, ρ::AbstractVector, R::AbstractMatrix)
-    for (i, r) in enumerate(eachcol(R))
-        r_copy = copy(r)
-        apply_cell_boundaries!(model.cell, r_copy)
-        r_copy .= au_to_ang.(r_copy)
-        ρ[i] = model.cube((r_copy .+ model.cube_offset)...)
+    for i in model.friction_atoms
+        r = R[:,i]
+        apply_cell_boundaries!(model.cell, r)
+        r .= au_to_ang.(r)
+        ρ[i] = model.cube((r .+ model.cube_offset)...)
     end
 end
 
