@@ -92,7 +92,7 @@ function density!(model::CubeLDFAModel, ρ::AbstractVector, R::AbstractMatrix)
         r = R[:,i]
         apply_cell_boundaries!(model.cell, r)
         r .= au_to_ang.(r)
-        ρ[i] = model.cube((r .+ model.cube_offset)...)
+        ρ[i] = austrip(model.cube((r .+ model.cube_offset)...) * u"Å^-3")
     end
 end
 
