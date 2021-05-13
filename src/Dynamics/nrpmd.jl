@@ -2,6 +2,8 @@ export NRPMD
 export RingPolymerMappingVariables
 export get_population
 
+using LinearAlgebra: tr
+
 """
 $(TYPEDEF)
 
@@ -104,4 +106,19 @@ function get_population(::RingPolymerSimulation{<:NRPMD}, u::RingPolymerMappingV
     qmap = get_mapping_positions(u)
     pmap = get_mapping_momenta(u)
     sum(qmap.^2 + pmap.^2 .- 1; dims=2) / 2size(qmap, 2)
+end
+
+function NonadiabaticMolecularDynamics.evaluate_hamiltonian(sim::RingPolymerSimulation{<:NRPMD}, u::RingPolymerMappingVariables)
+    r = get_positions(u)
+    v = get_velocities(u)
+    Calculators.evaluate_potential!(sim.calculator, r)
+    V = sim.calculator.potential
+
+    H = get_spring_energy(sim, r) + evaluate_kinetic_energy(sim.atoms.masses, v)
+    for i in range(sim.beads)
+        qmap = get_mapping_positions(u, i)
+        pmap = get_mapping_momenta(u, i)
+        H += 0.5 * (pmap'V[i]*pmap + qmap'V[i]*qmap - tr(V[i]))
+    end
+    H
 end
