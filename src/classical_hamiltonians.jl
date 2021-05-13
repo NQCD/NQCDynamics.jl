@@ -3,24 +3,13 @@ export get_spring_energy
 export evaluate_potential_energy
 export evaluate_kinetic_energy
 
-function evaluate_hamiltonian(sim::AbstractSimulation, u::DynamicalVariables)
+evaluate_hamiltonian(sim::AbstractSimulation, u) =
     evaluate_hamiltonian(sim, get_velocities(u), get_positions(u))
-end
 
-function evaluate_hamiltonian(sim::AbstractSimulation, u::ArrayPartition)
-    evaluate_hamiltonian(sim, get_velocities(u), get_positions(u))
-end
-
-function evaluate_hamiltonian(sim::AbstractSimulation, v::AbstractMatrix, r::AbstractMatrix)
+function evaluate_hamiltonian(sim::AbstractSimulation, v, r)
     k = evaluate_kinetic_energy(sim.atoms.masses, v)
     e = evaluate_potential_energy(sim, r)
     k + e
-end
-
-function evaluate_hamiltonian(sim::RingPolymerSimulation, v::RingPolymerArray, r::RingPolymerArray)
-    E = evaluate_kinetic_energy(sim.atoms.masses, v)
-    E += evaluate_potential_energy(sim, r)
-    E / length(sim.beads)
 end
 
 evaluate_kinetic_energy(masses, v) = sum(masses' .* v.^2)/2
@@ -32,24 +21,22 @@ function evaluate_kinetic_energy(masses, v::RingPolymerArray)
     E
 end
 
-function evaluate_potential_energy(sim::AbstractSimulation, R::AbstractMatrix)
+function evaluate_potential_energy(sim::Simulation, R)
     Calculators.evaluate_potential!(sim.calculator, R)
     sim.calculator.potential[1]
 end
 
-function evaluate_potential_energy(sim::RingPolymerSimulation, R::RingPolymerArray)
+function evaluate_potential_energy(sim::RingPolymerSimulation, R)
     Calculators.evaluate_potential!(sim.calculator, R)
-    get_spring_energy(sim, R) + sum(sim.calculator.potential)[1]
+    sum(sim.calculator.potential)[1] + get_spring_energy(sim, R)
 end
 
 """
-    get_spring_energy(system::RingPolymerSystem, R::RingPolymerArray)
+    get_spring_energy(system::RingPolymerSimulation, R)
     
 Calculate the ring polymer spring potential.
-
-I don't like having to write these loops but it seems faster than any alternative.
 """
-function get_spring_energy(sim::RingPolymerSimulation, R::RingPolymerArray)
+function get_spring_energy(sim::RingPolymerSimulation, R)
     E = 0.0
     for bead=1:length(sim.beads)-1
         for i in sim.beads.quantum_atoms # Only for quantum nuclei

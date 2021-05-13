@@ -19,6 +19,13 @@ end
     !(b[1,2,2] ≈ 1.0) # Test quantum atoms not all 1
 end
 
+@testset "similar" begin
+    c = similar(b)
+    @test c.quantum_atoms == b.quantum_atoms
+    @test c.classical_atoms == b.classical_atoms
+    @test c.normal == b.normal
+end
+
 @testset "get_centroid" begin
     b_original = deepcopy(b)
     centroid_original = get_centroid(b)
@@ -30,4 +37,18 @@ end
     centroid_final = get_centroid(b)
 
     @test centroid_original ≈ centroid_middle ≈ centroid_final
+end
+
+@testset "broadcasting" begin
+    data = rand(2,3,4)
+    A = RingPolymerArray(data, quantum=[2])
+
+    test_data = copy(data)
+    NonadiabaticMolecularDynamics.constrain_classical_atoms!(test_data, A.classical_atoms)
+
+    B = A ./ 10
+    @test test_data ./ 10 ≈ B.data
+
+    A ./= 10
+    @test test_data ./ 10 ≈ A.data
 end
