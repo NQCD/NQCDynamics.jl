@@ -6,34 +6,33 @@ include("utils.jl")
 
 atoms = Atoms([:H])
 model = Models.Harmonic()
-sim = Simulation{Classical}(atoms, model; DoFs=1)
 
-v = rand(1, length(atoms))
-r = rand(1, length(atoms))
-dr = zero(r)
-dv = zero(v)
+@testset "Classical" begin
+    sim = Simulation{Classical}(atoms, model; DoFs=1)
 
-test_velocity!(sim)
-test_acceleration!(sim)
-test_motion!(sim)
+    test_velocity!(sim)
+    test_acceleration!(sim)
+    test_motion!(sim)
 
-u0 = ClassicalDynamicals(v, r)
-sol = Dynamics.run_trajectory(u0, (0.0, 1000.0), sim; dt=0.1)
+    v = get_blank(sim)
+    r = get_blank(sim)
+    u0 = ClassicalDynamicals(v, r)
 
-e0 = evaluate_hamiltonian(sim, ClassicalDynamicals(sol.u[1]))
-e1 = evaluate_hamiltonian(sim, ClassicalDynamicals(sol.u[end]))
-@test e0 ≈ e1 rtol=1e-2
+    sol = Dynamics.run_trajectory(u0, (0.0, 1000.0), sim; dt=0.1, output=(:hamiltonian))
+    @test sol.hamiltonian[1] ≈ sol.hamiltonian[end] rtol=1e-2
+end
 
-sim = RingPolymerSimulation{Classical}(atoms, model, 10; DoFs=1, temperature=100u"K")
+@testset "Ring polymer classical" begin
+    sim = RingPolymerSimulation{Classical}(atoms, model, 10; DoFs=1, temperature=10000u"K")
 
-v = RingPolymerArray(rand(1, length(atoms), length(sim.beads)))
-r = RingPolymerArray(rand(1, length(atoms), length(sim.beads)))
-dv = zero(v)
-dr = zero(r)
+    test_velocity!(sim)
+    test_acceleration!(sim)
+    test_motion!(sim)
 
-u0 = ClassicalDynamicals(v, r)
-sol = Dynamics.run_trajectory(u0, (0.0, 1000.0), sim; dt=0.1)
+    v = get_blank(sim)
+    r = get_blank(sim)
+    u0 = ClassicalDynamicals(v, r)
 
-e0 = evaluate_hamiltonian(sim, ClassicalDynamicals(sol.u[1]))
-e1 = evaluate_hamiltonian(sim, ClassicalDynamicals(sol.u[end]))
-@test e0 ≈ e1 rtol=1e-2
+    sol = Dynamics.run_trajectory(u0, (0.0, 1000.0), sim; dt=0.1, output=(:hamiltonian))
+    @test sol.hamiltonian[1] ≈ sol.hamiltonian[end] rtol=1e-2
+end

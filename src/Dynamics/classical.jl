@@ -11,8 +11,6 @@ struct Classical <: Method end
     motion!(du, u, sim::AbstractSimulation{<:Classical}, t)
     
 Sets the time derivative for the positions and momenta contained within `u`.
-
-This is defined for the abstract types and acts as a fallback for all other dynamics methods.
 """
 function motion!(du, u, sim::AbstractSimulation{<:Classical}, t)
     dr = get_positions(du)
@@ -59,7 +57,7 @@ Applies the force that arises from the harmonic springs between adjacent beads.
 
 Only applies the force for atoms labelled as quantum within the `RingPolymerParameters`.
 """
-function apply_interbead_coupling!(dr::RingPolymerArray, r::RingPolymerArray, sim::RingPolymerSimulation)
+function apply_interbead_coupling!(dr::AbstractArray{T,3}, r::AbstractArray{T,3}, sim::RingPolymerSimulation) where {T}
     for i in sim.beads.quantum_atoms
         for j=1:sim.DoFs
             dr[j,i,:] .-= 2sim.beads.springs*r[j,i,:]
