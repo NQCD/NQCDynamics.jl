@@ -16,7 +16,7 @@ function select_u0(::RingPolymerSimulation{<:Classical}, v, r, state)
     RingPolymerClassicalDynamicals(v, r)
 end
 
-function select_u0(sim::Simulation{<:FSSH}, v, r, state)
+function select_u0(sim::AbstractSimulation{<:FSSH}, v, r, state)
     SurfaceHoppingVariables(v, r, sim.calculator.model.n_states, state)
 end
 
