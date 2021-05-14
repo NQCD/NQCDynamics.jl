@@ -5,8 +5,10 @@ module SchNetPackModels
 # in order to make spk work in julia, you need to change the following line after installation
 # in src/schnetpack/nn/cfconv.py change line 78 to "nbh = neighbors.reshape(1,nbh_size[1]*nbh_size[2],1)"
 
+using DocStringExtensions
+using UnPack
 using ..PyCall
-using ....NonadiabaticMolecularDynamics: PeriodicCell, Atoms
+using ....NonadiabaticMolecularDynamics: AbstractCell, PeriodicCell, Atoms
 using ..Models
 using PeriodicTable
 using Unitful, UnitfulAtomic
@@ -26,117 +28,123 @@ end
 
 include("ML_descriptor.jl")
 
-struct SchNetPackModel <: Models.AdiabaticModel
-    cell::PeriodicCell
-    atoms::Atoms
-    input::Dict{String, PyObject}
-    model_args::PyObject
-    ML_units::Dict{Any, Any}
+"""
+$(TYPEDEF)
+
+Internal type for storing parameters, inputs and the model from SchNetPack.
+"""
+struct SchNetPackInterface{C<:AbstractCell,A<:Atoms}
+    cell::C
+    atoms::A
+    input::Dict{String,PyObject}
+    args::PyObject
+    units::Dict{String,Unitful.Units}
     model::PyObject
 end
 
-struct FrictionSchNetPackModel <: AdiabaticFrictionModel
-    model::SchNetPackModel
-    F_idx::Array
-end
-#function Base.getproperty(model::FrictionSchNetPackModel, property::Symbol)
-#    property === :model ? getfield(model, property) : getfield(model.model, property)
-#end
-
-function FrictionSchNetPackModel(path, cell, atoms, F_idx)
-    model = SchNetPackModel(path, cell, atoms)
-    FrictionSchNetPackModel(model,F_idx)
-end
-function SchNetPackModel(path::String, cell::PeriodicCell, atoms::Atoms)
-    model, model_args, ML_units = initialize_MLmodel(path, cell, atoms)
-    input = Dict{String, PyObject}()
-    SchNetPackModel(cell, atoms, input, model_args, ML_units, model)
-end
-
-function Models.potential!(model::SchNetPackModel, V::AbstractVector, R::AbstractMatrix)
-    update_schnet_input!(model.input, model.cell, model.atoms, R, model.model_args, model.ML_units)
-    V .= austrip.(model.model(model.input)["energy"].detach().numpy()[1] .* uparse(model.ML_units["energy"]))
-end
-
-function Models.derivative!(model::SchNetPackModel, D::AbstractMatrix, R::AbstractMatrix)
-    update_schnet_input!(model.input, model.cell, model.atoms, R, model.model_args, model.ML_units)
-    sign = model.model_args.sign # spk already multiplies with -1 if forces are trained
-    D .= austrip.(sign*model.model(model.input)["forces"].detach().numpy()[1,:,:]' .* uparse(model.ML_units["forces"]))
-end
-
-
-#friction model contains only friction and no energies or forces
-#Models.potential!(model::FrictionSchNetPackModel, V, R) = Models.potential!(model.model, V, R)
-#Models.derivative!(model::FrictionSchNetPackModel, D, R) = Models.derivative!(model.model, D, R)
-function Models.friction!(model::FrictionSchNetPackModel, F, R)
-
-    update_schnet_input_friction!(model.model.input, model.model.cell, model.model.atoms, R, model.model.model_args, model.model.ML_units,model.F_idx)
-    F .= austrip.(model.model.model(model.model.input)["friction_tensor"].detach().numpy()[1,:,:]' .* uparse(model.model.ML_units["EFT"]))
-end
-
-function initialize_MLmodel(path::String, cell::PeriodicCell, atoms::Atoms)
+function SchNetPackInterface(path, atoms, cell)
     model = torch_load(path)
-    model_args = get_param_model(path)
-    #get metadata
-    ML_units = get_metadata(path, model_args)
-    force_mask = false
-    if model_args.force == nothing && model_args.negative_dr == false
-        model_args.sign = -1
-    else
-       model_args.sign = +1
-    end
-    model_args.atomic_charges = [elements[type].number for type in atoms.types]
-    model_args.pbc = cell.periodicity
-    return model, model_args, ML_units
+    args = get_model_args(path)
+    units = get_units(path, args)
+
+    args.atomic_charges = atoms.numbers
+    args.pbc = cell.periodicity
+    
+    input = Dict{String, PyObject}()
+    SchNetPackInterface(cell, atoms, input, args, units, model)
 end
 
-
+"Load model using torch from file."
 function torch_load(path::String)
     device = "cpu"
     torch.load(joinpath(path, "best_model"), map_location=torch.device(device)).to(device)
 end
 
-function get_param_model(path::String)
-    model_args = spk.utils.read_from_json(joinpath(path,"args.json"))
-    if model_args.cuda == true && torch.cuda.is_available() == true
-        model_args.device = "cuda"
+"Read the arguments for the model from `args.json`."
+function get_model_args(path::String)
+    args = spk.utils.read_from_json(joinpath(path,"args.json"))
+    if args.cuda == true && torch.cuda.is_available() == true
+        args.device = "cuda"
     else 
-        model_args.device = "cpu"
+        args.device = "cpu"
     end
-    #environment_provider = spk.utils.script_utils.settings.get_environment_provider(model_args,device=device)
-    return model_args #, environment_provider
+
+    if args.force === nothing && args.negative_dr == false
+        args.sign = -1
+    else
+       args.sign = +1
+    end
+
+    return args
 end
 
-function get_metadata(path::String, model_args::PyObject)
-    dataset = spk.data.AtomsData(string(joinpath(path,model_args.datapath)),collect_triples=model_args=="wacsf")
+"Extract the units from the model args and convert to `Unitful.Units`."
+function get_units(path::String, args::PyObject)::Dict{String,Unitful.Units}
+    dataset = spk.data.AtomsData(string(joinpath(path, args.datapath)),collect_triples=args=="wacsf")
     if in("units",keys(dataset.get_metadata()))
-        ML_units = dataset.get_metadata("units")
+        units = dataset.get_metadata("units")
+        map!(u->uparse(u), values(units))
+        map!(u-> u isa Unitful.Units ? u : unit(u), values(units))
     else
         println("Attention! No units found in the data set. Atomic units are used.")
-        ML_units = Dict()
-        ML_units["energy"] = "Eₕ"
-        ML_units["forces"] = "Eₕ/a₀"
+        units = Dict()
+        units["energy"] = u"hartree"
+        units["forces"] = u"hartree/bohr"
         #TODO check EFT units
-        ML_units["EFT"] = "Eₕ/a₀/a₀"
-        ML_units["R"] = "a₀"
+        units["EFT"] = u"hartree/bohr^2"
+        units["R"] = u"bohr"
     end
-    return ML_units
+    return units
 end
 
-function get_properties(model_path, atoms, args...)
-    #get energy and forces and other relevant properties
-    #only for energy and properties with simple spk
-    # we don't give any units here, as we will do the unit conversion in Julia
-    # otherwise spk would convert to eV, eV/A, eV/A/A, and eV/A/A/A for energy, forces, eft, and stress, respectively
-    atoms.set_calculator(calculator)
-    energy = atoms.get_total_energy()
-    if force_mask == false
-        forces = atoms.get_forces()
-    else
-        forces = atoms.get_forces() * force_mask
-    end
-    friction = atoms.get_friction()
-    return (energy,forces,friction)
+"""
+$(TYPEDEF)
+
+Model for adiabatic dynamics with a SchNetPack trained model.
+"""
+struct SchNetPackModel{I} <: Models.AdiabaticModel
+    pes_interface::I
+end
+
+function SchNetPackModel(path::String, cell::PeriodicCell, atoms::Atoms)
+    pes_interface = SchNetPackInterface(path, atoms, cell)
+    SchNetPackModel(pes_interface)
+end
+
+"""
+$(TYPEDEF)
+
+Model for MDEF with a SchNetPackFriction model.
+"""
+struct FrictionSchNetPackModel{I1,I2} <: AdiabaticFrictionModel
+    pes_interface::I1
+    friction_interface::I2
+    F_idx::Vector{Int}
+end
+
+function FrictionSchNetPackModel(pes_path, friction_path, cell, atoms, F_idx)
+    pes_interface = SchNetPackInterface(pes_path, atoms, cell)
+    friction_interface = SchNetPackInterface(friction_path, atoms, cell)
+    FrictionSchNetPackModel(pes_interface, friction_interface, F_idx)
+end
+
+function Models.potential!(model::Union{SchNetPackModel,FrictionSchNetPackModel}, V::AbstractVector, R::AbstractMatrix)
+    @unpack input, cell, atoms, args, units = model.pes_interface
+    update_schnet_input!(input, cell, atoms, R, args, units)
+    V .= austrip.(model.pes_interface.model(input)["energy"].detach().numpy()[1] .* units["energy"])
+end
+
+function Models.derivative!(model::Union{SchNetPackModel,FrictionSchNetPackModel}, D::AbstractMatrix, R::AbstractMatrix)
+    @unpack input, cell, atoms, args, units = model.pes_interface
+    update_schnet_input!(input, cell, atoms, R, args, units)
+    sign = args.sign # spk already multiplies with -1 if forces are trained
+    D .= austrip.(sign*model.pes_interface.model(input)["forces"].detach().numpy()[1,:,:]' .* units["forces"])
+end
+
+function Models.friction!(model::FrictionSchNetPackModel, F::AbstractMatrix, R::AbstractMatrix)
+    @unpack input, cell, atoms, args, units = model.friction_interface
+    update_schnet_input_friction!(input, cell, atoms, R, args, units, model.F_idx)
+    F .= austrip.(model.friction_interface.model(input)["friction_tensor"].detach().numpy()[1,:,:]' .* units["EFT"])
 end
 
 end # module
