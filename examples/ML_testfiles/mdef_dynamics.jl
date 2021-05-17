@@ -6,7 +6,7 @@ model_path = "examples/ML_testfiles"
 friction_path = "examples/ML_testfiles/friction/"
 
 cell, atoms, positions = read_system("examples/ML_testfiles/friction/H2Ag.xyz")
-model = Models.SchNetPackModels.FrictionSchNetPackModel(model_path, friction_path, cell, atoms, [1,2])
+model = Models.SchNetPackModels.FrictionSchNetPackModel(Models.Free(), friction_path, cell, atoms, [1,2])
 
 sim = Simulation{MDEF}(atoms, model; cell=cell, temperature=500u"K")
 z = ClassicalDynamicals(zero(positions), positions)

@@ -116,30 +116,32 @@ $(TYPEDEF)
 
 Model for MDEF with a SchNetPackFriction model.
 """
-struct FrictionSchNetPackModel{I1,I2} <: AdiabaticFrictionModel
-    pes_interface::I1
+struct FrictionSchNetPackModel{M,I2} <: AdiabaticFrictionModel
+    pes_model::M
     friction_interface::I2
     F_idx::Vector{Int}
 end
 
-function FrictionSchNetPackModel(pes_path, friction_path, cell, atoms, F_idx)
-    pes_interface = SchNetPackInterface(pes_path, atoms, cell)
+function FrictionSchNetPackModel(pes_model, friction_path, cell, atoms, F_idx)
     friction_interface = SchNetPackInterface(friction_path, atoms, cell)
-    FrictionSchNetPackModel(pes_interface, friction_interface, F_idx)
+    FrictionSchNetPackModel(pes_model, friction_interface, F_idx)
 end
 
-function Models.potential!(model::Union{SchNetPackModel,FrictionSchNetPackModel}, V::AbstractVector, R::AbstractMatrix)
+function Models.potential!(model::SchNetPackModel, V::AbstractVector, R::AbstractMatrix)
     @unpack input, cell, atoms, args, units = model.pes_interface
     update_schnet_input!(input, cell, atoms, R, args, units)
     V .= austrip.(model.pes_interface.model(input)["energy"].detach().numpy()[1] .* units["energy"])
 end
 
-function Models.derivative!(model::Union{SchNetPackModel,FrictionSchNetPackModel}, D::AbstractMatrix, R::AbstractMatrix)
+function Models.derivative!(model::SchNetPackModel, D::AbstractMatrix, R::AbstractMatrix)
     @unpack input, cell, atoms, args, units = model.pes_interface
     update_schnet_input!(input, cell, atoms, R, args, units)
     sign = args.sign # spk already multiplies with -1 if forces are trained
     D .= austrip.(sign*model.pes_interface.model(input)["forces"].detach().numpy()[1,:,:]' .* units["forces"])
 end
+
+Models.potential!(model::FrictionSchNetPackModel, V, R) = Models.potential!(model.pes_model, V, R)
+Models.derivative!(model::FrictionSchNetPackModel, D, R) = Models.derivative!(model.pes_model, D, R)
 
 function Models.friction!(model::FrictionSchNetPackModel, F::AbstractMatrix, R::AbstractMatrix)
     @unpack input, cell, atoms, args, units = model.friction_interface

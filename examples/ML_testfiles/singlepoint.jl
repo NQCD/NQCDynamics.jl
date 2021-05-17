@@ -35,7 +35,7 @@ display(D)
 friction_indices = [1,2]    
 F = zeros(length(atoms)*3,length(atoms)*3)
 cell_friction, atoms_friction, positions_friction = read_system("examples/ML_testfiles/friction/H2Ag.xyz")
-frictionmodel = Models.SchNetPackModels.FrictionSchNetPackModel(model_path, frictionmodel_path, cell_friction, atoms_friction, friction_indices)
+frictionmodel = Models.SchNetPackModels.FrictionSchNetPackModel(model, frictionmodel_path, cell_friction, atoms_friction, friction_indices)
 potential!(frictionmodel, V, positions)
 display(V)
 derivative!(frictionmodel, D, positions)
