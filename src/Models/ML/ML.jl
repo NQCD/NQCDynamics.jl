@@ -70,9 +70,9 @@ function get_model_args(path::String)
     end
 
     if args.force === nothing && args.negative_dr == false
-        args.sign = -1
+        args.sign = 1 # Positive sign if trained on gradients.
     else
-       args.sign = +1
+       args.sign = -1 # Negative if trained on forces.
     end
 
     return args
