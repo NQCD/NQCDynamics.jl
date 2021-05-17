@@ -33,13 +33,12 @@ display(D)
 #for two atoms manually. could this be changed somehow to the size 3*natoms times 3*natoms? but 
 # this should be an input
 friction_indices = [0,1]    
-F = Array{Float64}(undef,length(friction_indices)*3,length(friction_indices)*3)
+F = zeros(length(friction_indices)*3,length(friction_indices)*3)
 cell_friction, atoms_friction, positions_friction = read_system("examples/ML_testfiles/friction/H2Ag.xyz")
-frictionmodel = Models.SchNetPackModels.FrictionSchNetPackModel(frictionmodel_path, cell_friction, atoms_friction, friction_indices)
-#frictionmodel = Models.SchNetPackModels.SchNetPackModel(frictionmodel_path, cell_friction, atoms_friction)
+frictionmodel = Models.SchNetPackModels.FrictionSchNetPackModel(model_path, frictionmodel_path, cell_friction, atoms_friction, friction_indices)
+potential!(frictionmodel, V, positions)
+display(V)
+derivative!(frictionmodel, D, positions)
+display(D)
 friction!(frictionmodel, F, positions_friction)
 display(F)
-
-#D = zero(positions)
-#derivative!(model, D, positions)
-#display(D)
