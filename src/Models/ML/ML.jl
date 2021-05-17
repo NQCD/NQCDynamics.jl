@@ -144,7 +144,22 @@ end
 function Models.friction!(model::FrictionSchNetPackModel, F::AbstractMatrix, R::AbstractMatrix)
     @unpack input, cell, atoms, args, units = model.friction_interface
     update_schnet_input_friction!(input, cell, atoms, R, args, units, model.F_idx)
-    F .= austrip.(model.friction_interface.model(input)["friction_tensor"].detach().numpy()[1,:,:]' .* units["EFT"])
+    friction = model.friction_interface.model(input)["friction_tensor"].detach().numpy()
+    indices = model.F_idx
+    @views for (m,j) in enumerate(indices)
+        for (n,i) in enumerate(indices)
+            F[3(i-1)+1:3i, 3(j-1)+1:3j] .= austrip.(friction[1,3(n-1)+1:3n, 3(m-1)+1:3m] .* units["EFT"])
+        end
+    end
+
+    masses = model.friction_interface.atoms.masses
+    for j in indices
+        for i in indices
+            F[3(i-1)+1:3i, 3(j-1)+1:3j] .*= sqrt(masses[i] * masses[j])
+        end
+    end
+
+    return F
 end
 
 end # module

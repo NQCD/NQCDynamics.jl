@@ -34,18 +34,12 @@ function update_schnet_input!(schnet_inputs::Dict, periodic_cell::PeriodicCell, 
     schnet_inputs["_cell_offset"] = torch.FloatTensor(offsets).unsqueeze(0).to(model_args.device).contiguous()
 end
 
-function update_schnet_input_friction!(schnet_inputs::Dict, periodic_cell::PeriodicCell, atoms::Atoms, R::AbstractMatrix, model_args::PyObject, ML_units::Dict,friction_indices::Vector{Int64})
+function update_schnet_input_friction!(inputs::Dict, periodic_cell::PeriodicCell, atoms::Atoms, R::AbstractMatrix, model_args::PyObject, ML_units::Dict,friction_indices::Vector{Int64})
     
-    update_schnet_input!(schnet_inputs, periodic_cell, atoms, R, model_args, ML_units)
-    schnet_inputs["friction_indices"] = torch.zeros((1,length(friction_indices)))
-    it=0
-    for i in friction_indices
-        it+=1
-        schnet_inputs["friction_indices"][0,i+1]=Int8(friction_indices[it])
-    end
-    schnet_inputs["_atom_mask"] = schnet_inputs["_atom_mask"].reshape(1,-1)
-    schnet_inputs["friction_indices"]=schnet_inputs["friction_indices"].int()
-    schnet_inputs["_idx"]=torch.Tensor(1,1).int()
+    update_schnet_input!(inputs, periodic_cell, atoms, R, model_args, ML_units)
+    inputs["friction_indices"] = torch.IntTensor(friction_indices .- 1).unsqueeze(0)
+    inputs["_atom_mask"] = inputs["_atom_mask"].reshape(1,-1)
+    inputs["_idx"]=torch.Tensor(1,1).int()
     #torch_friction_indices = schnet_inputs["friction_indices"][0].int()
     #friction_input = torch.index_select(schnet_inputs["_positions"],1,torch_friction_indices)
     #friction_input.requires_grad = true
