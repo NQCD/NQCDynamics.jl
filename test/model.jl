@@ -5,20 +5,12 @@ using LinearAlgebra
 using FiniteDiff
 
 function finite_difference_gradient(model::AdiabaticModel, R)
-    function f(x)
-        out = [0.0]
-        potential!(model, out, x)
-        out[1]
-    end
+    f(x) = potential(model, x)[1]
     FiniteDiff.finite_difference_gradient(f, R)
 end
 
 function finite_difference_gradient(model::DiabaticModel, R)
-    function f(x, i, j)
-        out = Hermitian(zeros(model.n_states, model.n_states))
-        potential!(model, out, x)
-        out[i,j]
-    end
+    f(x, i, j) = potential(model, x)[i,j]
     grad = [Hermitian(zeros(model.n_states, model.n_states)) for i in CartesianIndices(R)]
     for k in eachindex(R)
         for i=1:model.n_states
@@ -32,31 +24,21 @@ end
 
 function test_model(model::AdiabaticModel, DoFs, atoms)
     R = rand(DoFs, atoms)
-    V = zeros(1)
-    D = zero(R)
-    potential!(model, V, R)
-    derivative!(model, D, R)
+    D = derivative(model, R)
     @test finite_difference_gradient(model, R) ≈ D
 end
 
 function test_model(model::DiabaticModel, DoFs, atoms)
     R = rand(DoFs, atoms)
-    V = Hermitian(zeros(model.n_states, model.n_states))
-    D = [Hermitian(zeros(model.n_states, model.n_states)) for i=1:DoFs, j=1:atoms]
-    potential!(model, V, R)
-    derivative!(model, D, R)
+    D = derivative(model, R)
     @test finite_difference_gradient(model, R) ≈ D rtol=1e-3
 end
 
 function test_model(model::AdiabaticFrictionModel, DoFs, atoms)
     R = rand(DoFs, atoms)
-    V = zeros(1)
-    D = zero(R)
-    F = zeros(DoFs*atoms, DoFs*atoms)
-    potential!(model, V, R)
-    derivative!(model, D, R)
+    D = derivative(model, R)
+    friction(model, R)
     @test finite_difference_gradient(model, R) ≈ D
-    friction!(model, F, R)
 end
 
 @testset "Harmonic" begin
