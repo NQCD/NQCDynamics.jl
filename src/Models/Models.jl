@@ -16,6 +16,8 @@ using LinearAlgebra
 using Reexport
 using Requires
 using DocStringExtensions
+using UnPack
+using Parameters
 
 using ..NonadiabaticMolecularDynamics
 
@@ -28,6 +30,10 @@ export AdiabaticFrictionModel
 export potential!
 export derivative!
 export friction!
+
+export potential
+export derivative
+export friction
 
 """
     Model
@@ -156,6 +162,30 @@ function forces(model::AdiabaticModel, R::AbstractMatrix)
     forces = zero(R)
     derivative!(model, forces, R)
     -forces
+end
+
+zero_potential(::AdiabaticModel) = zeros(1)
+zero_potential(model::DiabaticModel) = Hermitian(zeros(model.n_states, model.n_states))
+zero_derivative(::AdiabaticModel, R) = zero(R)
+zero_derivative(model::DiabaticModel, R) = [zero_potential(model) for _ in CartesianIndices(R)]
+zero_friction(::AdiabaticFrictionModel, R) = zeros(length(R), length(R))
+
+function potential(model::Model, R)
+    V = zero_potential(model)
+    potential!(model, V, R)
+    return V
+end
+
+function derivative(model::Model, R)
+    D = zero_derivative(model, R)
+    derivative!(model, D, R)
+    return D
+end
+
+function friction(model::Model, R)
+    F = zero_friction(model, R)
+    friction!(model, F, R)
+    return F
 end
 
 include("plot.jl")
