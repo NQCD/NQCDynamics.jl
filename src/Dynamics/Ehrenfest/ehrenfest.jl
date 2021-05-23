@@ -5,8 +5,8 @@ export Ehrenfest
 
 struct Ehrenfest{T} <: AbstractEhrenfest
     density_propagator::Matrix{Complex{T}}
-    function Ehrenfest{T}(n_states) where {T}
-        density_propagator = zeros(n_states, n_states) #states, states
+    function Ehrenfest{T}(n_states::Integer) where {T}
+        density_propagator = zeros(n_states, n_states)
         new{T}(density_propagator)
     end
 end
