@@ -2,12 +2,11 @@ using Test
 using NonadiabaticMolecularDynamics
 using OrdinaryDiffEq
 
-@test Dynamics.ehrenfest_basic{Float64}(2) isa Dynamics.ehrenfest_basic
+@test Dynamics.Ehrenfest{Float64}(2) isa Dynamics.Ehrenfest
 atoms = Atoms(1)
 
 @testset "Ehrenfest" begin
-    sim = Simulation(atoms, Models.DoubleWell(), Dynamics.ehrenfest_basic{Float64}(2); DoFs=1)
-    #sim.method.state = 1
+    sim = Simulation(atoms, Models.DoubleWell(), Dynamics.Ehrenfest{Float64}(2); DoFs=1)
 
     r = zeros(sim.DoFs, length(sim.atoms)) 
     v = rand(sim.DoFs, length(sim.atoms)) 
@@ -33,15 +32,9 @@ atoms = Atoms(1)
         @test population ≈ [0.5, 0.5]
     end
 
-    @testset "calculate_potential_energy_change" begin
-        integrator.p.calculator.eigenvalues .= [0.9, -0.3]
-        @test 1.2 ≈ Dynamics.calculate_potential_energy_change(integrator.p.calculator, 1, 2)
-        @test -1.2 ≈ Dynamics.calculate_potential_energy_change(integrator.p.calculator, 2, 1)
-    end
-
     @testset "run_trajectory" begin
         atoms = Atoms(2000)
-        sim = Simulation{ehrenfest_basic}(atoms, Models.TullyModelTwo(); DoFs=1)
+        sim = Simulation{Ehrenfest}(atoms, Models.TullyModelTwo(); DoFs=1)
         v = hcat(100 / 2000)
         r = hcat(-10.0)
         u = EhrenfestVariables(v, r, 2, 1)
