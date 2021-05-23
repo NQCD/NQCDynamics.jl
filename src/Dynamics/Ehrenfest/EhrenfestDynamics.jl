@@ -1,22 +1,12 @@
 """
     $(TYPEDEF)
 
-Abstract type for all Ehrenfest methods.
+Abstract type for Ehrenfest method.
 
-Surface hopping methods follow the structure set out in this file.
-The nuclear and electronic variables are propagated by the `motion!` function.
-The surface hopping procedure is handled by the `HoppingCallback` which
-uses the functions `check_hop!` and `execute_hop!` as its `condition` and `affect!`.
-
-To add a new surface hopping scheme, you must create a new struct
-and define methods for `evaluate_hopping_probability!`, `select_new_state`,
-and `rescale_velocity!`.
-
-See `fssh.jl` for an example implementation.
 """
-abstract type Ehrenfest <: Method end
+abstract type AbstractEhrenfest <: Method end
 
-function motion!(du, u, sim::AbstractSimulation{<:Ehrenfest}, t)
+function motion!(du, u, sim::AbstractSimulation{<:AbstractEhrenfest}, t)
     dr = get_positions(du)
     dv = get_velocities(du)
     dσ = get_density_matrix(du)
@@ -29,7 +19,7 @@ function motion!(du, u, sim::AbstractSimulation{<:Ehrenfest}, t)
     set_density_matrix_derivative!(dσ, v, σ, sim)
 end
 
-function set_density_matrix_derivative!(dσ, v, σ, sim::Simulation{<:Ehrenfest})
+function set_density_matrix_derivative!(dσ, v, σ, sim::Simulation{<:AbstractEhrenfest})
     V = sim.method.density_propagator
 
     V .= diagm(sim.calculator.eigenvalues)
@@ -41,8 +31,7 @@ function set_density_matrix_derivative!(dσ, v, σ, sim::Simulation{<:Ehrenfest}
     @. dσ = -im * (sim.calculator.tmp_mat_complex1 - sim.calculator.tmp_mat_complex2)
 end
 
-function create_problem(u0, tspan, sim::AbstractSimulation{<:Ehrenfest})
-    sim.method.state = u0.state
+function create_problem(u0, tspan, sim::AbstractSimulation{<:AbstractEhrenfest})
     ODEProblem(motion!, u0, tspan, sim)
 end
 
