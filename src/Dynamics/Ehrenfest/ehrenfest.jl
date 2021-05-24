@@ -15,7 +15,7 @@ end
 function acceleration!(dv, v, r, sim::Simulation{<:Ehrenfest}, t, σ)
     for i in axes(dv, 2)
         for j in axes(dv, 1)
-            dv[j,i] = -round(sum(sim.calculator.adiabatic_derivative[j,i] .* σ) / sim.atoms.masses[i])
+            dv[j,i] = -real(sum(sim.calculator.adiabatic_derivative[j,i] .* σ) / sim.atoms.masses[i])
         end
     end
     return nothing
