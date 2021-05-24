@@ -32,13 +32,20 @@ atoms = Atoms(1)
         @test population ≈ [0.5, 0.5]
     end
 
+
+    sim1 = Simulation{Ehrenfest}(atoms, Models.TullyModelOne(); DoFs=1)
+    r = fill(-5.0, sim1.DoFs, length(sim1.atoms))
+    v1 = fill(8.9, sim1.DoFs, length(sim1.atoms)) ./ sim1.atoms.masses[1]
+    z1 = EhrenfestVariables(v1, r, 2, 1)
+    solution1 = Dynamics.run_trajectory(z1, (0.0, 2500.0), sim1; output=(:population))
+
     @testset "run_trajectory" begin
         atoms = Atoms(2000)
         sim = Simulation{Ehrenfest}(atoms, Models.TullyModelTwo(); DoFs=1)
         v = hcat(100 / 2000)
         r = hcat(-10.0)
         u = EhrenfestVariables(v, r, 2, 1)
-        solution = Dynamics.run_trajectory(u, (0.0, 500.0), sim, output=(:hamiltonian, :state), reltol=1e-6)
+        solution = Dynamics.run_trajectory(u, (0.0, 500.0), sim, output=(:hamiltonian), reltol=1e-6)
         @test solution.hamiltonian[1] ≈ solution.hamiltonian[end]
     end
 end
