@@ -18,6 +18,7 @@ using Requires
 using DocStringExtensions
 using UnPack
 using Parameters
+using ReverseDiff
 
 using ..NonadiabaticMolecularDynamics
 
@@ -117,6 +118,12 @@ This must be implemented for all models.
 """
 function derivative! end
 
+"ReverseDiff fallback derivative for adiabatic models."
+function derivative!(model::AdiabaticModel, D, R)
+    f(R) = potential(model, R)
+    D .= ReverseDiff.gradient(f, R)
+end
+
 """
     friction!(model::AdiabaticFrictionModel, F, R:AbstractMatrix)
 
@@ -167,14 +174,14 @@ function forces(model::AdiabaticModel, R::AbstractMatrix)
     -forces
 end
 
-zero_potential(::AdiabaticModel) = zeros(1)
-zero_potential(model::DiabaticModel) = Hermitian(zeros(model.n_states, model.n_states))
+zero_potential(::AdiabaticModel, R) = zeros(eltype(R), 1)
+zero_potential(model::DiabaticModel, R) = Hermitian(zeros(eltype(R), model.n_states, model.n_states))
 zero_derivative(::AdiabaticModel, R) = zero(R)
-zero_derivative(model::DiabaticModel, R) = [zero_potential(model) for _ in CartesianIndices(R)]
-zero_friction(::AdiabaticFrictionModel, R) = zeros(length(R), length(R))
+zero_derivative(model::DiabaticModel, R) = [zero_potential(model, R) for _ in CartesianIndices(R)]
+zero_friction(::AdiabaticFrictionModel, R) = zeros(eltype(R), length(R), length(R))
 
 function potential(model::Model, R)
-    V = zero_potential(model)
+    V = zero_potential(model, R)
     potential!(model, V, R)
     return V
 end
