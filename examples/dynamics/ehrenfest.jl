@@ -7,9 +7,9 @@ sim1 = Simulation{Ehrenfest}(atoms, Models.TullyModelOne(); DoFs=1)
 sim2 = Simulation{Ehrenfest}(atoms, Models.TullyModelTwo(); DoFs=1)
 r = fill(-5.0, sim1.DoFs, length(sim1.atoms))
 v1 = fill(8.9, sim1.DoFs, length(sim1.atoms)) ./ sim1.atoms.masses[1]
-v2 = fill(16, sim1.DoFs, length(sim1.atoms)) ./ sim1.atoms.masses[1]
-z1 = EhrenfestVariables(v1, r, 2)#, 1)
-z2 = EhrenfestVariables(v2, r, 2)#, 1)
+v2 = fill(16, sim2.DoFs, length(sim2.atoms)) ./ sim2.atoms.masses[1]
+z1 = EhrenfestVariables(v1, r, 2)
+z2 = EhrenfestVariables(v2, r, 2)
 solution1 = Dynamics.run_trajectory(z1, (0.0, 2500.0), sim1; output=(:population))
 plot1 = plot(solution1.t, [p[1] for p in solution1.population], title="Tully model 1", label="Ehrenfest P1")
 plot!(solution1.t, [p[2] for p in solution1.population], label="Ehrenfest P2")
