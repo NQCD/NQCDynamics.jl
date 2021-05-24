@@ -39,6 +39,6 @@ function NonadiabaticMolecularDynamics.evaluate_hamiltonian(sim::Simulation{<:Eh
     k = evaluate_kinetic_energy(sim.atoms.masses, get_velocities(u))
     Calculators.evaluate_potential!(sim.calculator, get_positions(u))
     Calculators.eigen!(sim.calculator)
-    p = diag(get_density_matrix(u)) .* sim.calculator.eigenvalues
+    p = sum(diag(get_density_matrix(u)) .* sim.calculator.eigenvalues)
     return k + p
 end
