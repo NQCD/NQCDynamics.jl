@@ -1,5 +1,5 @@
 using StatsBase: mean
-using .Calculators: DiabaticCalculator, RingPolymerDiabaticCalculator
+using .Calculators: AbstractDiabaticCalculator
 
 export FSSH
 
@@ -106,7 +106,7 @@ function perform_rescaling!(sim::Simulation{<:FSSH}, velocity, velocity_rescale,
     return nothing
 end
 
-function calculate_potential_energy_change(calc::DiabaticCalculator, new_state::Integer, current_state::Integer)
+function calculate_potential_energy_change(calc::AbstractDiabaticCalculator, new_state::Integer, current_state::Integer)
     return calc.eigenvalues[new_state] - calc.eigenvalues[current_state]
 end
 

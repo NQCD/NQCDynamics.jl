@@ -8,19 +8,26 @@ using DocStringExtensions
 using RecursiveArrayTools: ArrayPartition
 using TypedTables
 
-function select_u0(::Simulation{<:Union{Classical, AbstractMDEF}}, v, r, state)
+function select_u0(::Simulation{<:Union{Classical, AbstractMDEF}}, v, r, state, type)
     ArrayPartition(v, r)
 end
 
-function select_u0(::RingPolymerSimulation{<:Classical}, v, r, state)
+function select_u0(::RingPolymerSimulation{<:Classical}, v, r, state, type)
     RingPolymerClassicalDynamicals(v, r)
 end
 
-function select_u0(sim::AbstractSimulation{<:FSSH}, v, r, state)
-    SurfaceHoppingVariables(v, r, sim.calculator.model.n_states, state)
+function select_u0(sim::AbstractSimulation{<:FSSH}, v, r, state, type)
+    if type == :adiabatic
+        return SurfaceHoppingVariables(v, r, sim.calculator.model.n_states, state)
+    elseif type == :diabatic
+        return SurfaceHoppingVariables(sim, v, r, state)
+    else
+        throw(ArgumentError("$type is not a recognised type argument.
+            Try `:adiabatic` or `diabatic`."))
+    end
 end
 
-function select_u0(sim::RingPolymerSimulation{<:NRPMD}, v, r, state)
+function select_u0(sim::RingPolymerSimulation{<:NRPMD}, v, r, state, type)
     RingPolymerMappingVariables(v, r, sim.calculator.model.n_states, state)
 end
 
@@ -65,7 +72,12 @@ function run_ensemble_standard_output(
 
     stripped_kwargs = austrip_kwargs(;kwargs...)
 
-    problem = Dynamics.create_problem(select_u0(sim, rand(selection.distribution)..., selection.distribution.state), austrip.(tspan), sim)
+    problem = Dynamics.create_problem(
+        select_u0(sim, rand(selection.distribution)...,
+            selection.distribution.state, selection.distribution.type),
+        austrip.(tspan),
+        sim)
+
     problem = remake(problem, callback=Dynamics.get_callbacks(sim))
 
     new_selection = SelectWithCallbacks(selection, Dynamics.get_callbacks(sim), output, kwargs[:trajectories])
