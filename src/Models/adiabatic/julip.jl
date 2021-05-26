@@ -4,6 +4,25 @@ using StaticArrays
 
 export JuLIPModel
 
+"""
+    JuLIPModel(atoms::Atoms{N,T}, cell::PeriodicCell,
+               calculator::JuLIP.AbstractCalculator) where {N,T}
+
+Interface to [`JuLIP.jl`](https://github.com/JuliaMolSim/JuLIP.jl).
+This might be broken due to updates in JuLIP.
+
+```julia
+import JuLIP
+at = JuLIP.bulk(:Si, cubic=true)
+
+R = ang_to_au.(Matrix(hcat(at.X...)))
+atoms = Atoms(JuLIP.chemical_symbol.(at.Z))
+cell = PeriodicCell(ang_to_au.(at.cell))
+calculator = JuLIP.StillingerWeber()
+
+model = Models.JuLIPModel(atoms, cell, calculator)
+```
+"""
 mutable struct JuLIPModel{T,A<:NamedTuple,B<:NamedTuple} <: AdiabaticModel
     atoms::JuLIP.Atoms{T}
     tmp::A
@@ -38,6 +57,7 @@ function potential!(model::JuLIPModel, V::AbstractVector, R::AbstractMatrix)
         end
     end
     V[1] = eV_to_au(V[1])
+    return V
 end
 
 function derivative!(model::JuLIPModel, D::AbstractMatrix, R::AbstractMatrix)
@@ -51,4 +71,5 @@ function derivative!(model::JuLIPModel, D::AbstractMatrix, R::AbstractMatrix)
         end
     end
     D .= -eV_per_ang_to_au.(D)
+    return D
 end

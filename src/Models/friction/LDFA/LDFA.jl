@@ -25,13 +25,15 @@ end
 abstract type LDFAModel <: Models.AdiabaticFrictionModel end
 
 """
-$(TYPEDEF)
+    CubeLDFAModel(model::Models.Model, filename, atoms, cell;
+                  friction_atoms=collect(range(atoms)),
+                  cube_offset=zeros(3).*u"Å")
 
 Wrapper for existing models that adds LDFA friction.
 
 This model uses a cube file to evaluate the electron density used to calculate the friction.
-
-$(FIELDS)
+This model assumes that the cube file has units of bohr for the grid and cell distances,
+but provides the density in ``Å^{-3}``, as is the default in `FHI-aims`.
 """
 struct CubeLDFAModel{T,M,S} <: LDFAModel
     """Model that provides the energies and forces."""

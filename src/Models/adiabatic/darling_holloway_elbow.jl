@@ -2,9 +2,9 @@
 export DarlingHollowayElbow
 
 """
-$(TYPEDEF)
+    DarlingHollowayElbow()
 
-1-state elbow potential from Darling and Holloway 1993.
+Adiabatic elbow potential from Darling and Holloway: [Faraday Discuss., 1993, 96, 43-54](https://doi.org/10.1039/FD9939600043)
 """
 @with_kw struct DarlingHollowayElbow <: AdiabaticModel
 

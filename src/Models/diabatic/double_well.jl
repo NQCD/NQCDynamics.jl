@@ -1,17 +1,18 @@
 export DoubleWell
 
 """
-The 2-state double well model often used in the literature.
-"""
-struct DoubleWell <: DiabaticModel
-    n_states::UInt8
-    mass::Float64
-    ω::Float64
-    γ::Float64
-    Δ::Float64
-end
+    DoubleWell(mass=1, ω=1, γ=1, Δ=1)
 
-DoubleWell(;mass=1, ω=1, γ=1, Δ=1) = DoubleWell(2, mass, ω, γ, Δ)
+Two state double well, also called the one-dimensional spin-boson model.
+See: [J. Chem. Phys. 150, 244102 (2019)](https://doi.org/10.1063/1.5096276)
+"""
+@with_kw struct DoubleWell{M,W,Y,D} <: DiabaticModel
+    n_states::UInt8 = 2
+    mass::M = 1
+    ω::W = 1
+    γ::Y = 1
+    Δ::D = 1
+end
 
 function potential!(model::DoubleWell, V::Hermitian, R::AbstractMatrix)
 

@@ -1,11 +1,10 @@
 export OuyangModelOne
 
 """
-$(TYPEDEF)
+    OuyangModelOne(A=0.01, B=1.6, Γ=1e-4, N=10, ΔE=1.6e-2, D=1.0)
 
-These models are from Ouyang and Subotnik:
-http://aip.scitation.org/doi/10.1063/1.4908032
-https://repository.upenn.edu/edissertations/2508/
+Model #1 from [Ouyang and Subotnik](http://aip.scitation.org/doi/10.1063/1.4908032).
+See also [Ouyang's thesis](https://repository.upenn.edu/edissertations/2508/).
 """
 @with_kw struct OuyangModelOne <: DiabaticFrictionModel
     A::Float64 = 0.01

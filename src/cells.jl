@@ -28,7 +28,7 @@ struct PeriodicCell{T<:AbstractFloat} <: AbstractCell
     tmp_vector1::Vector{T}
     tmp_vector2::Vector{T}
     tmp_bools::Vector{Bool}
-    function PeriodicCell{T}(vectors::Matrix, periodicity::Vector{Bool}) where {T}
+    function PeriodicCell{T}(vectors::AbstractMatrix{T}, periodicity::Vector{Bool}) where {T}
         new(vectors, inv(vectors), periodicity,
             zeros(size(vectors)[1]), zeros(size(vectors)[1]), zeros(Bool, size(vectors)[1]))
     end

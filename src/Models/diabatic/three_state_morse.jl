@@ -1,9 +1,13 @@
-using Parameters
 
 export ThreeStateMorse
 
 """
-The 3-state morse potential J.Chem.Phys. 150, 244102(2019)
+    ThreeStateMorse()
+
+Three state morse potential referred to as Model IA here:
+[J. Chem. Phys. 150, 244102 (2019)](https://doi.org/10.1063/1.5096276) 
+
+Models IB and IC retain the same functional form and need only a change of parameters.
 """
 @with_kw struct ThreeStateMorse <: DiabaticModel
     n_states::UInt8 = 3
