@@ -2,26 +2,25 @@ export DebyeSpinBoson
 export DebyeBosonBath
 
 """
-    DebyeSpinBoson <: DiabaticModel
-
-P. Huo and D. F. Coker, Mol. Phys. 110, 1035 (2012).
-Rekik et al. J. Chem. Phys. 138, 144106 (2013).
-"""
-struct DebyeSpinBoson <: DiabaticModel
-    n_states::UInt8
-    ϵ::Float64
-    Δ::Float64
-    η::Float64
-    ωᶜ::Float64
-    ωⱼ::Vector{Float64}
-    cⱼ::Vector{Float64}
-end
-
-"""
     DebyeSpinBoson(Nᵇ; ϵ=0, Δ=1, η=0.09, ωᶜ=2.5)
 
+Spin boson model with `Nᵇ` bosons with Debye spectral density:
 `J(ω) = η * ω * ωᶜ / (ω^2 + ωᶜ^2)`
+
+# References
+[P. Huo and D. F. Coker, Mol. Phys. 110, 1035 (2012)](https://doi.org/10.1080/00268976.2012.684896)
+[Rekik et al. J. Chem. Phys. 138, 144106 (2013)](http://aip.scitation.org/doi/10.1063/1.4799272)
 """
+struct DebyeSpinBoson{E,D,N,W} <: DiabaticModel
+    n_states::UInt8
+    ϵ::E
+    Δ::D
+    η::N
+    ωᶜ::W
+    ωⱼ::Vector{W}
+    cⱼ::Vector{W}
+end
+
 function DebyeSpinBoson(Nᵇ; ϵ=0, Δ=1, η=0.09, ωᶜ=2.5)
 
     ωᵐ = 10ωᶜ
@@ -31,7 +30,7 @@ function DebyeSpinBoson(Nᵇ; ϵ=0, Δ=1, η=0.09, ωᶜ=2.5)
     ωⱼ = ω.(1:Nᵇ)
     cⱼ = c.(ωⱼ)
 
-    DebyeSpinBoson(2, ϵ, Δ, η, ωᶜ, ωⱼ, cⱼ)
+    DebyeSpinBoson(UInt8(2), ϵ, Δ, η, ωᶜ, ωⱼ, cⱼ)
 end
 
 function potential!(model::DebyeSpinBoson, V::Hermitian, R::AbstractMatrix)
@@ -62,10 +61,16 @@ function derivative!(model::DebyeSpinBoson, D::AbstractMatrix{<:Hermitian}, R::A
     end
 end
 
-struct DebyeBosonBath <: AdiabaticModel
+"""
+    DebyeBosonBath(Nᵇ; ωᶜ=2.5)
+
+Bosonic bath with Debye spectral density.
+Useful for sampling the bath uncoupled from the spin for spin-boson dynamics.
+"""
+struct DebyeBosonBath{W} <: AdiabaticModel
     n_states::UInt8
-    ωᶜ::Float64
-    ωⱼ::Vector{Float64}
+    ωᶜ::W
+    ωⱼ::Vector{W}
 end
 
 function DebyeBosonBath(Nᵇ; ωᶜ=2.5)
@@ -74,7 +79,7 @@ function DebyeBosonBath(Nᵇ; ωᶜ=2.5)
     ω(j) = tan(j * atan(ωᵐ / ωᶜ) / Nᵇ) * ωᶜ
     ωⱼ = ω.(1:Nᵇ)
 
-    DebyeBosonBath(2, ωᶜ, ωⱼ)
+    DebyeBosonBath(UInt8(2), ωᶜ, ωⱼ)
 end
 
 function potential!(model::DebyeBosonBath, V::Vector, R::AbstractMatrix)

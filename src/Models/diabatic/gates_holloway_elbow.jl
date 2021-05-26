@@ -2,9 +2,13 @@
 export GatesHollowayElbow
 
 """
-$(TYPEDEF)
+    GatesHollowayElbow()
 
-Simple 2-state elbow potential from Gates and Holloway 1993.
+Simple two state elbow potential from Gates and Holloway:
+[Journal of Electron Spectroscopy and Related Phenomena, 64/65 (1993) 633-639](https://doi.org/10.1016/0368-2048(93)80131-5)
+
+Has two diabatic states each comprised of the sum of a Morse and a repulsive potential.
+The coupling between them is an exponential function of `z` (distance from the surface).
 """
 @with_kw struct GatesHollowayElbow <: DiabaticModel
     n_states::UInt8 = 2

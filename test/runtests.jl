@@ -1,5 +1,15 @@
 using Test
 using SafeTestsets
+using Documenter
+using NonadiabaticMolecularDynamics
+
+doctestsetup = quote
+    using NonadiabaticMolecularDynamics
+    using Plots
+    using Symbolics
+end 
+DocMeta.setdocmeta!(NonadiabaticMolecularDynamics, :DocTestSetup, doctestsetup; recursive=true)
+doctest(NonadiabaticMolecularDynamics)
 
 @time @safetestset "Atom Tests" begin include("atoms.jl") end
 @time @safetestset "Cell Tests" begin include("cells.jl") end
