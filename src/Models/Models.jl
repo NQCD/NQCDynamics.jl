@@ -157,36 +157,39 @@ end
 function impurity_summary(model::DiabaticModel, R::AbstractMatrix, state::AbstractArray, σ::AbstractArray)
     """Calculate impurity population according to MiaoSubotnik_JChemPhys_150_041711_2019"""
 
-    eig_vec = zeros(model.n_states,model.n_states)
+    #eig_vec = zeros(model.n_states,model.n_states)
     eival = zeros(model.n_states)
-    σad = zeros(Complex, model.n_states, model.n_states)
-    σdia = zeros(Complex, model.n_states, model.n_states)
+    #σad = zeros(Complex, model.n_states, model.n_states)
+    #σdia = zeros(Complex, model.n_states, model.n_states)
     eig_array = zeros(4)
     V = Hermitian(zeros(model.n_states,model.n_states))
+    dvect = zeros(model.n_states)
+    dvect[2] = 1
     
     # Get diabatic matrix
     potential!(model,V,R)
     # Get the eigenvectors and values
     eival .= eigvals(V)
-    eig_vec .= eigvecs(V)
-    ieig = inv(eig_vec)
+    #eig_vec .= eigvecs(V)
+    #ieig = inv(eig_vec)
 
     #Collect density matrix
-    for l = 1:model.n_states
-        for m = 1: model.n_states
-            for i = 1:model.n_states
-                lc = (i-1)*model.n_states + l
-                mc = (i-1)*model.n_states + m            
-                σad[l,m] += σ[lc,mc]
-            end
-        end
-    end
+    # for l = 1:model.n_states
+    #     for m = 1: model.n_states
+    #         for i = 1:model.n_states
+    #             lc = (i-1)*model.n_states + l
+    #             mc = (i-1)*model.n_states + m            
+    #             σad[l,m] += σ[lc,mc]
+    #         end
+    #     end
+    # end
     
     # calculate diabatic density matrix
-    σdia .= eig_vec *σad * ieig
+    #σdia .= eig_vec *σad * ieig
     # Set impurity population according to Miao, Subontik, JCP, 2019, Eq. 21
     #eig_array[4] = (real(σdia[2,2]) + imag(σdia[2,2]))^2*state[2]
-    eig_array[4] = (real(σdia[2,2]))^2*state[2]
+    #eig_array[4] = (real(σdia[2,2]))^2*state[2]
+    # Get 
 
     # save position
     eig_array[1] = R[1]
@@ -195,6 +198,7 @@ function impurity_summary(model::DiabaticModel, R::AbstractMatrix, state::Abstra
         eig_array[2] = eig_array[2] + state[i]*eival[i]
         # Hopping prob. by hopping array
         eig_array[3] = eig_array[3] + state[i]
+        eig_array[4] = dot(dvect, σ[i,:])
     end
 
     # Export an array of eigenvalues with last two elements being hopping prob

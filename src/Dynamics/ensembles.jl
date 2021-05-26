@@ -59,6 +59,10 @@ function select_u0(sim::Simulation{<:IESH}, distribution::DynamicalDistribution,
     SurfaceHoppingDynamicals(rand(distribution)..., sim.calculator.model.n_states, state)
 end
 
+function select_u0(sim::Simulation{<:wave_IESH}, distribution::DynamicalDistribution, state::Vector{Int})
+    SurfaceHoppingDynamicals(rand(distribution)..., sim.calculator.model.n_states, state)
+end
+
 function select_u0(sim::RingPolymerSimulation{<:NRPMD}, distribution::DynamicalDistribution, state::Integer)
     RingPolymerMappingDynamicals(rand(distribution)..., sim.calculator.model.n_states, state)
 end

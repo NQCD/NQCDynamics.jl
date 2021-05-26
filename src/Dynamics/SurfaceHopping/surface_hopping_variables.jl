@@ -18,11 +18,11 @@ function SurfaceHoppingVariables(v::AbstractArray, r::AbstractArray, n_states::I
 end
 
 # function SurfaceHoppingVariables(v::AbstractArray, r::AbstractArray, n_states::Integer, state::Vector{Int})
-#     σ = zeros(Complex{eltype(r)}, n_states, n_states)
+#     wave_mat = zeros(Complex{eltype(r)}, n_states, n_states)
 #     for i=1:n_states/2
-#         σ[Int(i), Int(i)] = 1
+#         wave_mat[Int(i), Int(i)] = 1
 #     end
-#     SurfaceHoppingVariables(ArrayPartition(v, r, σ), state)
+#     SurfaceHoppingVariables(ArrayPartition(v, r, wave_mat), state)
 # end
 
 function SurfaceHoppingVariables(v::AbstractArray, r::AbstractArray, n_states::Integer, state::Vector{Int})

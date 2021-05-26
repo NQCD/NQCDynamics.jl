@@ -275,6 +275,8 @@ function evaluate_nonadiabatic_coupling!(calc::RingPolymerDiabaticCalculator)
     end
 end
 
+# See e.g. HammesSchifferTully_JChemPhys_101_4657_1994 Eq. (32)
+# Or SubotnikBellonzi_AnnuRevPhyschem_67_387_2016, section 2.3
 function evaluate_nonadiabatic_coupling!(coupling::Matrix, adiabatic_derivative::Matrix, eigenvalues::Vector)
     for i=1:length(eigenvalues)
         for j=i+1:length(eigenvalues)
@@ -289,11 +291,12 @@ function update_electronics!(calculator::AbstractDiabaticCalculator, r::Abstract
     evaluate_potential!(calculator, r)
     # nuclear DoF
     evaluate_derivative!(calculator, r)
-    # nuclear DoF
+    # nuclear DoF; gets eigenvector
     eigen!(calculator)
-    # nuclear DoF
+    # nuclear DoF; calculates adiabatic derivative, bcs H set up diabatically:
+    # eigenvect'*derivatives*eigenvect
     transform_derivative!(calculator)
-    # electronic DoF
+    # electronic DoF (but based on nuclear forces and eigenvalues)
     evaluate_nonadiabatic_coupling!(calculator)
 end
 
