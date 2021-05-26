@@ -1,5 +1,4 @@
 using Documenter, NonadiabaticMolecularDynamics
-import JuLIP
 using PyCall
 
 doctestsetup = quote
