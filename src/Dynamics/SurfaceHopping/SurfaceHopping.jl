@@ -17,7 +17,7 @@ See `fssh.jl` for an example implementation.
 abstract type SurfaceHopping <: Method end
 
 function motion!(du, u, sim::AbstractSimulation{<:SurfaceHopping}, t)
-    #println("ping2")
+    println("ping2")
     dr = get_positions(du)
     dv = get_velocities(du)
     dσ = get_density_matrix(du)
@@ -35,7 +35,7 @@ function motion!(du, u, sim::AbstractSimulation{<:SurfaceHopping}, t)
 end
 
 function set_density_matrix_derivative!(dσ, v, σ, sim::Simulation{<:SurfaceHopping})
-    #println("ping3")
+    println("ping3")
     V = sim.method.density_propagator
 
     V .= diagm(sim.calculator.eigenvalues)
@@ -49,7 +49,7 @@ function set_density_matrix_derivative!(dσ, v, σ, sim::Simulation{<:SurfaceHop
 end
 
 function check_hop!(u, t, integrator)::Bool
-    #println("ping4")
+    println("ping4")
     evaluate_hopping_probability!(
         integrator.p,
         u,
@@ -60,7 +60,7 @@ function check_hop!(u, t, integrator)::Bool
 end
 
 function execute_hop!(integrator)
-    #println("ping5")
+    println("ping5")
     rescale_velocity!(integrator.p, integrator.u) && (integrator.u.state = integrator.p.method.new_state)
     return nothing
 end
@@ -93,4 +93,5 @@ create_problem(u0, tspan, sim::AbstractSimulation{<:SurfaceHopping}) =
 include("surface_hopping_variables.jl")
 include("fssh.jl")
 include("iesh.jl")
+include("wave_iesh.jl")
 include("rpsh.jl")

@@ -71,7 +71,6 @@ function set_density_matrix_derivative!(dσ, v, σ, sim::Simulation{<:SurfaceHop
         # According to point (3) of Shenvi, Tully, 2009, only the occupied wave functions
         # Are integrated
         if (s[j] > 0.1)
-            println(s[j], " ", j)
             c1 = (j-1)*n_states + 1
             c2 = j*n_states
             V[c1:c2,c1:c2] .= diagm(sim.calculator.eigenvalues)
