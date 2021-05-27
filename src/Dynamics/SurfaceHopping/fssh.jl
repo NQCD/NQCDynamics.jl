@@ -111,11 +111,11 @@ function calculate_potential_energy_change(calc::AbstractDiabaticCalculator, new
 end
 
 """
-    get_population(sim::Simulation{<:FSSH}, u)
+    get_diabatic_population(sim::Simulation{<:FSSH}, u)
 
 Diabatic populations recommended from J. Chem. Phys. 139, 211101 (2013).
 """
-function get_population(sim::Simulation{<:FSSH}, u)
+function get_diabatic_population(sim::Simulation{<:FSSH}, u)
     Calculators.evaluate_potential!(sim.calculator, get_positions(u))
     Calculators.eigen!(sim.calculator)
     U = sim.calculator.eigenvectors
@@ -125,6 +125,23 @@ function get_population(sim::Simulation{<:FSSH}, u)
     σ[u.state, u.state] = 1
 
     return real.(diag(U * σ * U'))
+end
+
+"""
+    get_adiabatic_population(sim::Simulation{<:FSSH}, u)
+
+Adiabatic populations recommended from J. Chem. Phys. 139, 211101 (2013).
+"""
+function get_adiabatic_population(sim::Simulation{<:FSSH}, u)
+    Calculators.evaluate_potential!(sim.calculator, get_positions(u))
+    Calculators.eigen!(sim.calculator)
+    U = sim.calculator.eigenvectors
+
+    σ = copy(get_density_matrix(u))
+    σ[diagind(σ)] .= 0
+    σ[u.state, u.state] = 1
+
+    return real.(diag(σ))
 end
 
 function NonadiabaticMolecularDynamics.evaluate_hamiltonian(sim::Simulation{<:FSSH}, u)

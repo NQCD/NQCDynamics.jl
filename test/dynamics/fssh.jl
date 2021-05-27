@@ -29,8 +29,8 @@ atoms = Atoms(1)
     dσ = zero(σ)
     Dynamics.set_density_matrix_derivative!(dσ, v, σ, sim)
 
-    @testset "get_population" begin
-        population = Dynamics.get_population(sim, u)
+    @testset "get_diabatic_population" begin
+        population = Dynamics.get_diabatic_population(sim, u)
         @test population ≈ [0.5, 0.5]
     end
 

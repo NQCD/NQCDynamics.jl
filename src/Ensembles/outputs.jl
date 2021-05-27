@@ -44,7 +44,17 @@ Output the population of each diabatic state.
 struct OutputDiabaticPopulation{S} <: AbstractOutput
     sim::S
 end
-(output::OutputDiabaticPopulation)(sol, i) = (Dynamics.get_population.(output.sim, sol.u), false)
+(output::OutputDiabaticPopulation)(sol, i) = (Dynamics.get_diabatic_population.(output.sim, sol.u), false)
+
+"""
+$(TYPEDEF)
+
+Output the population of each adiabatic state.
+"""
+struct OutputAdiabaticPopulation{S} <: AbstractOutput
+    sim::S
+end
+(output::OutputAdiabaticPopulation)(sol, i) = (Dynamics.get_adiabatic_population.(output.sim, sol.u), false)
 
 """
 $(TYPEDEF)
