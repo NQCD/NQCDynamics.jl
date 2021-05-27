@@ -109,46 +109,47 @@ i = 1
     # callbacks defined in: src/Dynamics/callbacks.jl and src/Models/Models.jl
     # Save impurity does not seem to be defined at the moment?
     #@time solution = Dynamics.run_trajectory(z, (0.0, 10000000.0), sim; output=(:save_impurity))
-    @time solution = Dynamics.run_trajectory(z, (0.0, 10.0), sim, dt=1, adaptive=false; 
-                                             output=(:position))
+    @time solution = Dynamics.run_trajectory(z, (0.0, 100000.0), sim, dt=1, adaptive=false; 
+                                             output=(:position, :save_impurity))
     println("Finished")
     println(length(solution.t))
 
-#     #open("trajectory_$nname.txt", "w") do fi
-#     #    write(fi, "step, r (a.u.), epot (a.u.), state, impurity population\n")
-#     aka = Int(ceil(length(solution)/100))#-1
-#     #aka = Int(length(solution))
-#     j = 0
-#     println(aka)
-#         outarray = zeros(aka, 5)
-#         for i = 1:length(solution)
-#             if (mod(i,100)==0)
-#                 global j = j + 1
-#                 outarray[j,1] = solution.t[i]
-#                 outarray[j,2] = solution.position[i][1]
-#                 #outarray[j,3] = solution.save_impurity[i][2]
-#                 #outarray[j,4] = solution.save_impurity[i][3]
-#                 #outarray[j,5] = solution.save_impurity[i][4]
-#             # outarray[i,3] = solution.save_impurity[i][2]
-#             # outarray[i,4] = solution.save_impurity[i][3]
-#             # outarray    [i,5] = solution.save_impurity[i][4]
-#             end
-#         end
-#     #    writedlm(fi, outarray,'\t')
-#     #end
+    #open("trajectory_$nname.txt", "w") do fi
+    #    write(fi, "step, r (a.u.), epot (a.u.), state, impurity population\n")
+    aka = Int(ceil(length(solution)/100))-1
+    #aka = Int(length(solution))
+    j = 0
+    println(aka)
+        outarray = zeros(aka, 5)
+        for i = 1:length(solution)
+            if (mod(i,100)==0)
+                global j = j + 1
+                outarray[j,1] = solution.t[i]
+                outarray[j,2] = solution.position[i][1]
+                outarray[j,3] = solution.save_impurity[i][2]
+                outarray[j,4] = solution.save_impurity[i][3]
+                outarray[j,5] = solution.save_impurity[i][4]
+            # outarray[i,3] = solution.save_impurity[i][2]
+            # outarray[i,4] = solution.save_impurity[i][3]
+            # outarray    [i,5] = solution.save_impurity[i][4]
+            end
+        end
+    #    writedlm(fi, outarray,'\t')
+    #end
 
 
-# b = plot(outarray[:,1], outarray[:,2], label="energy", marker=2)
-# xlabel!("t")
-# ylabel!("x")
-# # xlabel!("x")
-# # ylabel!("Energy (a.u.)")
-# # a = plot(outarray[:,1], outarray[:,5], label="energy", marker=2)
-# # xlabel!("time")
-# # ylabel!("Impurity Population")
+b = plot(outarray[:,1], outarray[:,2], label="energy", marker=2)
+xlabel!("t")
+ylabel!("x")
+a = plot(outarray[:,2], outarray[:,3], label="energy", marker=2)
+ xlabel!("x")
+ ylabel!("Energy (a.u.)")
+# a = plot(outarray[:,1], outarray[:,5], label="energy", marker=2)
+# xlabel!("time")
+# ylabel!("Impurity Population")
 
-# # display(plot(b))
-# # display(plot(a))
+display(plot(b))
+display(plot(a))
 
 #end
 # # # savefig(a,"traj_subA_G4Em4_W10G_test5.png")
