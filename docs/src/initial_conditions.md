@@ -97,7 +97,7 @@ ylabel!("Bond length") # hide
 ```
 
 The result of this simulation seamlessly interfaces with the `DynamicalDistribution`
-presented in the previously section and `output.R` can be readily passed to provide
+presented in the previous section and `output.R` can be readily passed to provide
 the position distribution.
 The Monte Carlo sampling does not include velocities but these can be readily
 obtained from the Maxwell-Boltzmann distribution.
