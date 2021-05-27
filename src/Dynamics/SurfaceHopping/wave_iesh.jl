@@ -41,7 +41,8 @@ end
 See ShenviRoyTully_JChemPhys_130_174107_2009"""
 function SurfaceHoppingVariablesIESH(v::AbstractArray, r::AbstractArray, n_states::Integer, state::Vector{Int})
     wave_mat = zeros(Complex{eltype(r)}, n_states, n_states)
-    for i=1:n_states/2
+    #for i=1:n_states/2
+    for i=1:n_states
         wave_mat[Int(i), Int(i)] = 1
     end
     SurfaceHoppingVariablesIESH(ArrayPartition(v, r, wave_mat), state)
@@ -49,6 +50,7 @@ end
 
 get_wavefunction_matrix(u::SurfaceHoppingVariablesIESH) = u.x.x[3]
 
+"""motion! is given to ODE Problem and propagated by the timestep there"""
 function motion!(du, u, sim::AbstractSimulation{<:SurfaceHoppingIESH}, t)
     #println("ping2")
     dr = get_positions(du)
@@ -102,7 +104,8 @@ end
    functions have been defined in the adiabatic basis. This should be the case here and
    justifies why we only use the eigenvalues in the electronic Hamiltonian V.
    Also, according to point (3) of the algorithm of Shenvi, Tully, 2009, only the occupied
-   wave functions are integrated.
+   wave functions are integrated. j, I believe, should run other the unoccupied
+   nonetheless (not the least, because otherwise, the hopping probability will be zero)
    """
 function set_wavefunction_derivative!(dσ, v, σ, sim::Simulation{<:SurfaceHoppingIESH}, u)
     #println("ping4")
@@ -122,13 +125,15 @@ function set_wavefunction_derivative!(dσ, v, σ, sim::Simulation{<:SurfaceHoppi
         if (s[k] == 1)
             for j = 1:n_states
                 # occupied?
-                if (s[j] == 1)
+                #if (s[j] == 1)
                     for I in eachindex(v)
-                        dσ[k,:] .= dσ[k,:] + σ[j,:]*(V[k,j] - im*v[I]*
-                                   sim.calculator.nonadiabatic_coupling[I][k,j])
-                                    #println(im*v[I]*sim.calculator.nonadiabatic_coupling[I][k,j])
+                        dσ[k,:] .= dσ[k,:] + σ[j,:]*(V[j,k] - im*v[I]*
+                                   sim.calculator.nonadiabatic_coupling[I][j,k])
+                                   bbb = σ[j,:]*(V[j,k] - im*v[I]*
+                                   sim.calculator.nonadiabatic_coupling[I][j,k])
+                        #println(k, " ", j," ",σ[j,:]," ",sim.calculator.nonadiabatic_coupling[I][j,k], " ", V[j,k], " ", real(bbb))
                     end
-                end
+                #end
             end
         end
     end
@@ -165,11 +170,11 @@ function evaluate_hopping_probability!(sim::Simulation{<:wave_IESH}, u, dt)
     mc = 0
 
     sim.method.hopping_probability .= 0 # Set all entries to 0
-    # Assemble density matrix
+    # Assemble density matrix (multiplied by occuplation)
     for i = 1:n_states
-        #sim.calculator.tmp_mat_complex1 += sim.calculator.tmp_mat_complex1 .+ Ψ[i,:] * Ψ[i,:]'
-        sim.calculator.tmp_mat_complex1 .+= Ψ[i,:] * Ψ[i,:]'
+        sim.calculator.tmp_mat_complex1 .+= (Ψ[i,:] * Ψ[i,:]')*s[i]
     end
+    #println(real(sim.calculator.tmp_mat_complex1))
 
     for l = 1:n_states
         # Is occupied?
@@ -183,6 +188,7 @@ function evaluate_hopping_probability!(sim::Simulation{<:wave_IESH}, u, dt)
                                                    sim.calculator.tmp_mat_complex1[l,l])*d[I][l,m] * dt
                         #println(v[I], " ", real(sim.calculator.tmp_mat_complex1[m,l]), " ",
                         #real(sim.calculator.tmp_mat_complex1[l,l]), " ", d[I][l,m], " ", dt)
+                        #println(real(sim.calculator.tmp_mat_complex1[l,m]))
                     end
                 end # end if 
                 clamp(hop_mat[l,m], 0, 1)
@@ -190,6 +196,7 @@ function evaluate_hopping_probability!(sim::Simulation{<:wave_IESH}, u, dt)
                 # the transition that's first above the random number.
                 # See: Tully_JChemPhys_93_1061_1990
                 sumer = sumer + abs(hop_mat[l,m]) # cumulative sum.
+                #println(sumer)
                 # If sum of hopping probabilities is larger than random number,
                 # hopping can occur
                 if (random_number > sumer && first)
