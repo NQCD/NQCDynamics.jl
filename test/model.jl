@@ -41,11 +41,6 @@ function test_model(model::AdiabaticFrictionModel, DoFs, atoms)
     @test finite_difference_gradient(model, R) ≈ D
 end
 
-@testset "Harmonic" begin
-    model = Harmonic()
-    test_model(model, 3, 10)
-end
-
 @testset "DiatomicHarmonic" begin
     model = DiatomicHarmonic()
     test_model(model, 3, 2)
@@ -56,54 +51,27 @@ end
     @test Models.energy(model, R) ≈ 2
 end
 
-@testset "Free" begin
-    model = Free()
-    test_model(model, 3, 10)
+@testset "AdiabaticModels" begin
+    test_model(Harmonic(), 3, 10)
+    test_model(Free(), 3, 10)
+    test_model(DebyeBosonBath(10), 1, 10)
+    test_model(DarlingHollowayElbow(), 1, 2)
 end
 
-@testset "DoubleWell" begin
-    model = DoubleWell()
-    test_model(model, 1, 1)
+@testset "DiabaticModels" begin
+    test_model(DoubleWell(), 1, 1)
+    test_model(TullyModelOne(), 1, 1)
+    test_model(TullyModelTwo(), 1, 1)
+    test_model(ScatteringAndersonHolstein(), 1, 1)
+    test_model(Scattering1D(), 1, 1)
+    test_model(ThreeStateMorse(), 1, 1)
+    test_model(DebyeSpinBoson(10), 1, 10)
+    test_model(OuyangModelOne(), 1, 1)
+    test_model(GatesHollowayElbow(), 1, 2)
 end
 
-@testset "TullyModelOne" begin
-    model = TullyModelOne()
-    test_model(model, 1, 1)
-end
-
-@testset "TullyModelTwo" begin
-    model = TullyModelTwo()
-    test_model(model, 1, 1)
-end
-
-@testset "FrictionHarmonic" begin
-    model = FrictionHarmonic()
-    test_model(model, 1, 3)
-end
-
-@testset "ScatteringAndersonHolstein" begin
-    model = ScatteringAndersonHolstein()
-    test_model(model, 1, 1)
-end
-
-@testset "Scattering1D" begin
-    model = Scattering1D()
-    test_model(model, 1, 1)
-end
-
-@testset "ThreeStateMorse" begin
-    model = ThreeStateMorse()
-    test_model(model, 1, 1)
-end
-
-@testset "DebyeSpinBoson" begin
-    model = DebyeSpinBoson(10)
-    test_model(model, 1, 10)
-end
-
-@testset "DebyeBosonBath" begin
-    model = DebyeBosonBath(10)
-    test_model(model, 1, 10)
+@testset "FrictionModels" begin
+    test_model(FrictionHarmonic(), 1, 3)
 end
 
 @testset "JuLIP" begin

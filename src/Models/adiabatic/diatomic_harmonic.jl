@@ -2,11 +2,14 @@ export DiatomicHarmonic
 
 using LinearAlgebra
 
-struct DiatomicHarmonic <: AdiabaticModel
-    r₀::Float64
-end
+"""
+    DiatomicHarmonic(r₀=1.0)
 
-DiatomicHarmonic(;r₀=1) = DiatomicHarmonic(r₀)
+Harmonic interaction between two particles.
+"""
+@with_kw struct DiatomicHarmonic <: AdiabaticModel
+    r₀::Float64 = 1.0
+end
 
 function potential!(model::DiatomicHarmonic, V::Vector, R::AbstractMatrix)
     V .= (norm(R[:,1] .- R[:,2]) - model.r₀)^2 / 2
