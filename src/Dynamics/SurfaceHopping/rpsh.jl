@@ -1,3 +1,4 @@
+using .Calculators: RingPolymerDiabaticCalculator
 
 function acceleration!(dv, v, r, sim::RingPolymerSimulation{<:FSSH}, t, state)
     for i in axes(dv, 3)

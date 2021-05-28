@@ -130,6 +130,9 @@ struct DiabaticFrictionCalculator{T,M} <: AbstractDiabaticCalculator{M}
     adiabatic_derivative::Matrix{Matrix{T}}
     nonadiabatic_coupling::Matrix{Matrix{T}}
     friction::Matrix{T}
+    tmp_mat::Matrix{T}
+    tmp_mat_complex1::Matrix{Complex{T}}
+    tmp_mat_complex2::Matrix{Complex{T}}
     function DiabaticFrictionCalculator{T}(model::M, DoFs::Integer, atoms::Integer) where {T,M<:Model}
         potential = Hermitian(zeros(model.n_states, model.n_states))
         derivative = [Hermitian(zeros(model.n_states, model.n_states)) for i=1:DoFs, j=1:atoms]
@@ -138,8 +141,12 @@ struct DiabaticFrictionCalculator{T,M} <: AbstractDiabaticCalculator{M}
         adiabatic_derivative = [zeros(model.n_states, model.n_states) for i=1:DoFs, j=1:atoms]
         nonadiabatic_coupling = [zeros(model.n_states, model.n_states) for i=1:DoFs, j=1:atoms]
         friction = zeros(DoFs*atoms, DoFs*atoms)
+        tmp_mat = zeros(T, model.n_states, model.n_states)
+        tmp_mat_complex1 = zeros(Complex{T}, model.n_states, model.n_states)
+        tmp_mat_complex2 = zeros(Complex{T}, model.n_states, model.n_states)
         new{T,M}(model, potential, derivative, eigenvalues, eigenvectors,
-                 adiabatic_derivative, nonadiabatic_coupling, friction)
+                 adiabatic_derivative, nonadiabatic_coupling, friction,
+                 tmp_mat, tmp_mat_complex1, tmp_mat_complex2)
     end
 end
 
@@ -263,7 +270,7 @@ function transform_derivative!(calc::RingPolymerDiabaticCalculator)
     end
 end
 
-function evaluate_nonadiabatic_coupling!(calc::DiabaticCalculator)
+function evaluate_nonadiabatic_coupling!(calc::AbstractDiabaticCalculator)
     evaluate_nonadiabatic_coupling!.(calc.nonadiabatic_coupling, calc.adiabatic_derivative,
                                      Ref(calc.eigenvalues))
 end

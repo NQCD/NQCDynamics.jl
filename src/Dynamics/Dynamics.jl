@@ -87,6 +87,7 @@ include("mdef.jl")
 include("SurfaceHopping/SurfaceHopping.jl")
 include("fermionic_ring_polymer.jl")
 include("nrpmd.jl")
+include("Ehrenfest/EhrenfestDynamics.jl")
 
 include("algorithms/mdef_baoab.jl")
 include("algorithms/bcocb.jl")

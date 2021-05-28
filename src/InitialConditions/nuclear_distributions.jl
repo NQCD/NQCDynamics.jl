@@ -12,9 +12,10 @@ struct DynamicalDistribution{V,R,S,N} <: Sampleable{DynamicalVariate,Continuous}
     position::R
     size::NTuple{S,Int}
     state::N
+    type::Symbol
 end
-DynamicalDistribution(velocity, position, size; state=0) =
-    DynamicalDistribution(velocity, position, size, state)
+DynamicalDistribution(velocity, position, size; state=0, type=:adiabatic) =
+    DynamicalDistribution(velocity, position, size, state, type)
 
 Base.eltype(s::DynamicalDistribution{<:Sampleable,R}) where {R} = eltype(s.velocity)
 Base.eltype(s::DynamicalDistribution{<:AbstractArray,R} where {R}) = eltype(austrip.(s.velocity[1]))

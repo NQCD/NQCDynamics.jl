@@ -1,5 +1,6 @@
 using LinearAlgebra
 using RecipesBase
+using Unitful, UnitfulRecipes
 
 @recipe function f(x, model::AdiabaticModel)
     V = [0.0]
@@ -13,40 +14,44 @@ using RecipesBase
         derivative[i] = D[1]
     end
 
-    xguide --> "r /a₀"
+    xguide --> "r"
 
     @series begin
-        label := "V(r) /Eₕ"
-        x, potential
+        label := "V(r)"
+        x .* u"bohr", potential .* u"hartree"
     end
 
     @series begin
-        label := "dV(r)dr /Eₕ/a₀"
-        x, derivative
+        label := "dV(r)dr"
+        x .* u"bohr", derivative .* u"hartree / bohr"
     end
 end
 
-@recipe function f(x, model::DiabaticModel)
+@recipe function f(x, model::DiabaticModel; adiabats=true, diabats=true)
     V = Hermitian(zeros(model.n_states, model.n_states))
     eigs = zeros(length(x), model.n_states)
-    diabats = zeros(length(x), model.n_states)
+    diabatic = zeros(length(x), model.n_states)
     for i=1:length(x)
         potential!(model, V, hcat(x[i]))
         eigs[i,:] .= eigvals(V)
-        diabats[i,:] .= diag(V)
+        diabatic[i,:] .= diag(V)
     end
 
     legend --> false
-    xguide --> "r /a₀"
-    yguide --> "V(r) /eV"
+    xguide --> "r"
+    yguide --> "V(r)"
 
-    @series begin
-        linecolor := :black
-        x, au_to_eV.(eigs)
+    if adiabats
+        @series begin
+            linecolor := :black
+            x .* u"bohr", eigs .* u"hartree"
+        end
     end
 
-    @series begin
-        linecolor := :red
-        x, au_to_eV.(diabats)
+    if diabats
+        @series begin
+            linecolor := :red
+            x .* u"bohr", diabatic .* u"hartree"
+        end
     end
 end
