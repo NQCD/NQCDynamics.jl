@@ -150,8 +150,7 @@ function select_random_bond_lengths(E, bounds, probability_function, μ, samples
     for i=1:samples
         keep_going = true
         while keep_going
-            r = rand(distribution)
-            P = probability_function(r)
+            r, P = pick_radius(distribution, probability_function, 1)
             if rand() < P0 / P
                 bonds[i] = r
                 momenta[i] = rand([-1, 1]) * P
@@ -160,6 +159,25 @@ function select_random_bond_lengths(E, bounds, probability_function, μ, samples
         end
     end
     bonds, momenta
+end
+
+function pick_radius(distribution, func, count)
+    r = rand(distribution)
+    try
+        P = func(r)
+        return r, P
+    catch e
+        if e isa DomainError
+            if count > 100
+                throw(ArgumentError("Something is seriously wrong, a rejected bond length was generated 100 times in a row?
+                    Check the model."))
+            else
+                return pick_radius(distribution, func, count+1)
+            end
+        else
+            throw(e)
+        end
+    end
 end
 
 """
