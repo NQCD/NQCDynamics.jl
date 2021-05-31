@@ -16,7 +16,7 @@ to evaluate the quantities for each bead.
 module Calculators
 
 using LinearAlgebra
-using ..Models
+using NonadiabaticModels
 
 """
     AbstractCalculator{M<:Model}
@@ -173,32 +173,32 @@ function Calculator(model::AdiabaticFrictionModel, DoFs::Integer, atoms::Integer
 end
 
 function evaluate_potential!(calc::AbstractCalculator, R::AbstractMatrix)
-    Models.potential!(calc.model, calc.potential, R)
+    potential!(calc.model, calc.potential, R)
 end
 
 function evaluate_potential!(calc::AbstractCalculator, R::AbstractArray{T,3}) where {T}
     @views for i in axes(R, 3)
-        Models.potential!(calc.model, calc.potential[i], R[:,:,i])
+        potential!(calc.model, calc.potential[i], R[:,:,i])
     end
 end
 
 function evaluate_derivative!(calc::AbstractCalculator, R::AbstractMatrix)
-    Models.derivative!(calc.model, calc.derivative, R)
+    derivative!(calc.model, calc.derivative, R)
 end
 
 function evaluate_derivative!(calc::AbstractCalculator, R::AbstractArray{T,3}) where {T}
     @views for i in axes(R, 3)
-        Models.derivative!(calc.model, calc.derivative[:,:,i], R[:,:,i])
+        derivative!(calc.model, calc.derivative[:,:,i], R[:,:,i])
     end
 end
 
 function evaluate_friction!(calc::AbstractFrictionCalculator, R::AbstractMatrix)
-    Models.friction!(calc.model, calc.friction, R)
+    friction!(calc.model, calc.friction, R)
 end
 
 function evaluate_friction!(calc::AbstractFrictionCalculator, R::AbstractArray{T,3}) where {T}
     @views for i in axes(R, 3)
-        Models.friction!(calc.model, calc.friction[:,:,i], R[:,:,i])
+        friction!(calc.model, calc.friction[:,:,i], R[:,:,i])
     end
 end
 

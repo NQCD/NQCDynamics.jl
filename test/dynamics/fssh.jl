@@ -6,7 +6,7 @@ using OrdinaryDiffEq
 atoms = Atoms(1)
 
 @testset "FSSH" begin
-    sim = Simulation(atoms, Models.DoubleWell(), Dynamics.FSSH{Float64}(2); DoFs=1)
+    sim = Simulation(atoms, NonadiabaticModels.DoubleWell(), Dynamics.FSSH{Float64}(2); DoFs=1)
     sim.method.state = 1
 
     r = zeros(sim.DoFs, length(sim.atoms)) 
@@ -87,7 +87,7 @@ atoms = Atoms(1)
 
     @testset "run_trajectory" begin
         atoms = Atoms(2000)
-        sim = Simulation{FSSH}(atoms, Models.TullyModelTwo(); DoFs=1)
+        sim = Simulation{FSSH}(atoms, NonadiabaticModels.TullyModelTwo(); DoFs=1)
         v = hcat(100 / 2000)
         r = hcat(-10.0)
         u = SurfaceHoppingVariables(v, r, 2, 1)
@@ -97,7 +97,7 @@ atoms = Atoms(1)
 end
 
 @testset "RPSH" begin
-    sim = RingPolymerSimulation{FSSH}(atoms, Models.DoubleWell(), 5; DoFs=1)
+    sim = RingPolymerSimulation{FSSH}(atoms, NonadiabaticModels.DoubleWell(), 5; DoFs=1)
 
     r = RingPolymerArray(zeros(sim.DoFs, length(sim.atoms), 5))
     v = RingPolymerArray(rand(sim.DoFs, length(sim.atoms), 5))
@@ -151,7 +151,7 @@ end
 
     @testset "run_trajectory" begin
         atoms = Atoms(2000)
-        sim = RingPolymerSimulation{FSSH}(atoms, Models.TullyModelTwo(), 5; DoFs=1, temperature=0.01)
+        sim = RingPolymerSimulation{FSSH}(atoms, NonadiabaticModels.TullyModelTwo(), 5; DoFs=1, temperature=0.01)
         v = RingPolymerArray(fill(100 / 2000, 1, 1, 5))
         r = RingPolymerArray(fill(-10.0, 1, 1, 5)) .+ randn(1,1,5)
         u = SurfaceHoppingVariables(v, r, 2, 1)
