@@ -3,6 +3,7 @@ module NonadiabaticMolecularDynamics
 using Reexport
 using Requires
 using DocStringExtensions
+@reexport using NonadiabaticModels
 
 include("unit_conversions.jl")
 
@@ -12,8 +13,6 @@ include("ring_polymer.jl")
 include("cells.jl")
 include("dynamical_variables.jl")
 
-include("Models/Models.jl")
-export Models
 include("Calculators/Calculators.jl")
 export Calculators
 
