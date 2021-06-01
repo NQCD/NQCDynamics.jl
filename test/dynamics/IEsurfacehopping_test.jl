@@ -109,20 +109,20 @@ i = 1
     # callbacks defined in: src/Dynamics/callbacks.jl and src/Models/Models.jl
     # Save impurity does not seem to be defined at the moment?
     #@time solution = Dynamics.run_trajectory(z, (0.0, 10000000.0), sim; output=(:save_impurity))
-    @time solution = Dynamics.run_trajectory(z, (0.0, 100000.0), sim, dt=1, adaptive=false; 
+    @time solution = Dynamics.run_trajectory(z, (0.0, 20000.0), sim, dt=10, adaptive=false; 
                                              output=(:position, :save_impurity))
     println("Finished")
     println(length(solution.t))
 
     #open("trajectory_$nname.txt", "w") do fi
     #    write(fi, "step, r (a.u.), epot (a.u.), state, impurity population\n")
-    aka = Int(ceil(length(solution)/100))-1
+    aka = Int(ceil(length(solution)/10))-1
     #aka = Int(length(solution))
     j = 0
     println(aka)
         outarray = zeros(aka, 5)
         for i = 1:length(solution)
-            if (mod(i,100)==0)
+            if (mod(i,10)==0)
                 global j = j + 1
                 outarray[j,1] = solution.t[i]
                 outarray[j,2] = solution.position[i][1]
