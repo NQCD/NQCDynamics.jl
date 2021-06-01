@@ -20,6 +20,7 @@ mutable struct wave_IESH{T} <: SurfaceHoppingIESH
     new_state::Vector{Int}
     function wave_IESH{T}(states::Integer) where {T}
 
+    
         wavefunction_propagator = zeros(states, states)
         hopping_probability = zeros(3)
         new_state = zeros(states) # this probably needs to be modified
@@ -38,7 +39,9 @@ function SurfaceHoppingVariablesIESH(x::ArrayPartition{T}, state) where {T<:Abst
 end
 
 """Set up matrix that stores wave vectors for propagation
-See ShenviRoyTully_JChemPhys_130_174107_2009"""
+See ShenviRoyTully_JChemPhys_130_174107_200
+Note that different from the density matrix, wave_mat defines vectors for a state, 
+where 1 indicated the state, but not whether occupied or not."""
 function SurfaceHoppingVariablesIESH(v::AbstractArray, r::AbstractArray, n_states::Integer, state::Vector{Int})
     wave_mat = zeros(Complex{eltype(r)}, n_states, n_states)
     #for i=1:n_states/2
@@ -61,6 +64,7 @@ function motion!(du, u, sim::AbstractSimulation{<:SurfaceHoppingIESH}, t)
     r = get_positions(u)
     v = get_velocities(u)
     σ = get_wavefunction_matrix(u)
+    println(dσ[1,1], σ[1,1])
 
     # presumably comes from DifferentialEquations-Julia module
     velocity!(dr, v, r, sim, t)
@@ -99,13 +103,11 @@ end
    in the Shenvi, Tully paper (JCP 2009)
    The extended formula is taken from HammesSchifferTully_JChemPhys_101_4657_1994, Eq. (16):
    iħ d ψ_{k}/dt = ∑_j ψ_{j}(V_{kj} - i v d_{kj})
-   Where v is the velocity. See also Tully_JChemPhys_93_1061_1990, Eq. (7). In this paper,
-   shortly after Eq. (9), it is remarked that V_{kj} will be zero if the electronic basis
-   functions have been defined in the adiabatic basis. This should be the case here and
-   justifies why we only use the eigenvalues in the electronic Hamiltonian V.
-   Also, according to point (3) of the algorithm of Shenvi, Tully, 2009, only the occupied
-   wave functions are integrated. j, I believe, should run other the unoccupied
-   nonetheless (not the least, because otherwise, the hopping probability will be zero)
+   Where v is the velocity. See also Tully_JChemPhys_93_1061_1990, Eq. (7). 
+   According to point (3) of the algorithm of Shenvi, Tully, 2009, only the occupied
+   wave functions are integrated. j, I believe, should however run other the unoccupied
+   nonetheless, because still, even if not propagated, all wavefunctions should contribute
+   to dσ (also, otherwise, no hopping probability)
    """
 function set_wavefunction_derivative!(dσ, v, σ, sim::Simulation{<:SurfaceHoppingIESH}, u)
     #println("ping4")
@@ -114,9 +116,11 @@ function set_wavefunction_derivative!(dσ, v, σ, sim::Simulation{<:SurfaceHoppi
 
     # Get the eigenvalues
     # Electronic H.
-    # Quaere: Is our electronic basis indeed adiabatic or does V need to be 
-    #         transformed into a diabatic representation? I'm pretty sure we are adiabatic.
     V .= diagm(sim.calculator.eigenvalues)
+    ## Try the diabatic representation of V
+    ##V1 = zeros(length(s),length(s))
+    ##V1 .= diagm(sim.calculator.eigenvalues)
+    ##V .= sim.calculator.eigenvectors * V1 * sim.calculator.eigenvectors'
     n_states = sim.calculator.model.n_states
     dσ .= 0.0
     # Inner loop over j may not be necessary, since V_{j,i} should be zero.
