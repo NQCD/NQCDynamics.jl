@@ -23,6 +23,8 @@ jobs:
       - uses: actions/checkout@v2
       - uses: julia-actions/setup-julia@latest
       - name: Add NonadiabaticRegistry
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: julia -e 'using Pkg; Pkg.Registry.add(RegistrySpec(url="https://github.com/maurergroup/NonadiabaticRegistry"))'
       - name: Install dependencies
         run: julia --project=docs/ -e 'using Pkg; Pkg.develop(PackageSpec(path=pwd())); Pkg.instantiate()'
