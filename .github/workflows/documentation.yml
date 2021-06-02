@@ -28,6 +28,9 @@ jobs:
 
       - name: Add NonadiabaticRegistry
         run: julia -e 'using Pkg; Pkg.Registry.add(RegistrySpec(url="git@github.com:maurergroup/NonadiabaticRegistry.git"))'
+      
+      - name: Add General registry
+        run: julia -e 'using Pkg; Pkg.Registry.add(RegistrySpec("General"))'
 
       - name: Install dependencies
         run: julia --project=docs/ -e 'using Pkg; Pkg.develop(PackageSpec(path=pwd())); Pkg.instantiate()'
