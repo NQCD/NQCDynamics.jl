@@ -17,6 +17,9 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
+      - name: Ensure Pkg uses ssh rather than https
+        run: julia -e 'using Pkg; Pkg.setprotocol!(domain="github.com", protocol="ssh")'
+
       - name: Add NonadiabaticRegistry
         run: julia -e 'using Pkg; Pkg.Registry.add(RegistrySpec(url="git@github.com:maurergroup/NonadiabaticRegistry.git"))'
       - name: Add JuliaMolSim registry
