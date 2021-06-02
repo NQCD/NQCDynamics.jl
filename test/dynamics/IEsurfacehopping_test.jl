@@ -88,7 +88,7 @@ i = 1
 
     #r = fill(-5.0, sim.DoFs, length(sim.atoms))
     r = rand(outbolz.R)
-    v = fill(sqrt(rand(outbolz.energy)*20/sim.atoms.masses[1]), sim.DoFs, length(sim.atoms))
+    v = fill(sqrt(rand(outbolz.energy)*2/sim.atoms.masses[1]), sim.DoFs, length(sim.atoms))
     #v = fill(5/sim.atoms.masses[1], sim.DoFs, length(sim.atoms))
     println(r, v)
 
@@ -109,7 +109,7 @@ i = 1
     # callbacks defined in: src/Dynamics/callbacks.jl and src/Models/Models.jl
     # Save impurity does not seem to be defined at the moment?
     #@time solution = Dynamics.run_trajectory(z, (0.0, 10000000.0), sim; output=(:save_impurity))
-    @time solution = Dynamics.run_trajectory(z, (0.0, 10000.0), sim, dt=1, adaptive=false; 
+    @time solution = Dynamics.run_trajectory(z, (0.0, 1000.0), sim, dt=1, adaptive=false; 
                                              output=(:position, :save_impurity))
     println("Finished")
     println(length(solution.t))

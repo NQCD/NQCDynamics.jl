@@ -198,7 +198,7 @@ function impurity_summary(model::DiabaticModel, R::AbstractMatrix, state::Abstra
         eig_array[2] = eig_array[2] + state[i]*eival[i]
         # Hopping prob. by hopping array
         eig_array[3] = eig_array[3] + state[i]
-        eig_array[4] = dot(dvect, real(σ[i,:]))
+        #eig_array[4] = dot(dvect, real(σ[i,:]))
     end
 
     # Export an array of eigenvalues with last two elements being hopping prob
