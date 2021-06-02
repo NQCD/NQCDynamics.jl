@@ -24,7 +24,7 @@ jobs:
         with:
           app_id: ${{ secrets.APP_ID }}
           private_key: ${{ secrets.PRIVATE_KEY }}
-          repository: maurergroup/NonadiabaticModels.jl
+          repository: https://github.com/maurergroup/NonadiabaticModels.jl
 
       - name: Add NonadiabaticRegistry
         env:
