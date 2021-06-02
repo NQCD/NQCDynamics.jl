@@ -22,12 +22,16 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
       - uses: julia-actions/setup-julia@latest
+      - uses: webfactory/ssh-agent@v0.5.2
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
       - name: Add NonadiabaticRegistry
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: julia -e 'using Pkg; Pkg.Registry.add(RegistrySpec(url="git@github.com/maurergroup/NonadiabaticRegistry.git"))'
+        run: julia -e 'using Pkg; Pkg.Registry.add(RegistrySpec(url="git@github.com:maurergroup/NonadiabaticRegistry.git"))'
+
       - name: Install dependencies
         run: julia --project=docs/ -e 'using Pkg; Pkg.develop(PackageSpec(path=pwd())); Pkg.instantiate()'
+
       - name: Build and deploy
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
