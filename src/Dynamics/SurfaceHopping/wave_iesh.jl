@@ -43,7 +43,7 @@ See ShenviRoyTully_JChemPhys_130_174107_200
 Note that different from the density matrix, wave_mat defines vectors for a state, 
 where 1 indicated the state, but not whether occupied or not."""
 function SurfaceHoppingVariablesIESH(v::AbstractArray, r::AbstractArray, n_states::Integer, state::Vector{Int})
-    wave_mat = zeros(Complex{eltype(r)}, n_states, n_states)
+    wave_mat = zeros(Complex{eltype(r)}, Int(n_states/2), n_states)
     #for i=1:n_states/2
     for i=1:n_states/2
         wave_mat[Int(i), Int(i)] = 1
@@ -192,17 +192,6 @@ function evaluate_hopping_probability!(sim::Simulation{<:wave_IESH}, u, dt)
     mc = 0
 
     sim.method.hopping_probability .= 0 # Set all entries to 0
-    # Assemble density matrix (multiplied by occuplation)
-    for i = 1:n_states
-        for j = 1:n_states
-            for k = 1:Int(n_states/2)
-                #sim.calculator.tmp_mat_complex1 .+= (Ψ[i,:] * Ψ[i,:]')*s[i]
-                sim.calculator.tmp_mat_complex1[i,j] = 
-                    sim.calculator.tmp_mat_complex1[i,j]+ (Ψ[k,i] * conj(Ψ[k,j]))
-            end
-        end
-    end
-    #println(real(sim.calculator.tmp_mat_complex1))
 
     for l = 1:n_states
         # Is occupied?
@@ -210,13 +199,15 @@ function evaluate_hopping_probability!(sim::Simulation{<:wave_IESH}, u, dt)
             for m = 1:n_states
                 # Is unoccupied?
                 if (s[m] == 0)
-                    for I in eachindex(v)
-                        #sim.method.hopping_probability[m] += 2v[I]*real(σ[m,s]/σ[s,s])*d[I][s,m] * dt
-                        hop_mat[l,m] = 2*v[I]*real(sim.calculator.tmp_mat_complex1[m,l]/
-                                                   sim.calculator.tmp_mat_complex1[l,l])*d[I][l,m] * dt
-                        #println(v[I], " ", real(sim.calculator.tmp_mat_complex1[m,l]), " ",
-                        #real(sim.calculator.tmp_mat_complex1[l,l]), " ", d[I][l,m], " ", dt)
-                        #println(real(sim.calculator.tmp_mat_complex1[l,m]))
+                    for k = 1:Int(n_states/2)
+                        for I in eachindex(v)
+                            #sim.method.hopping_probability[m] += 2v[I]*real(σ[m,s]/σ[s,s])*d[I][s,m] * dt
+                            hop_mat[l,m] = hop_mat[l,m] + 2*v[I]*real(Ψ[k,m]*conj(Ψ[k,l])/
+                                           Ψ[k,l]*conj(Ψ[k,l]))*d[I][l,m] * dt
+                            #println(v[I], " ", real(sim.calculator.tmp_mat_complex1[m,l]), " ",
+                            #real(sim.calculator.tmp_mat_complex1[l,l]), " ", d[I][l,m], " ", dt)
+                            #println(real(sim.calculator.tmp_mat_complex1[l,m]))
+                        end
                     end
                 end # end if 
                 clamp(hop_mat[l,m], 0, 1)
