@@ -25,7 +25,7 @@ jobs:
       - name: Add NonadiabaticRegistry
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: julia -e 'using Pkg; Pkg.Registry.add(RegistrySpec(url="https://github.com/maurergroup/NonadiabaticRegistry"))'
+        run: julia -e 'using Pkg; Pkg.Registry.add(RegistrySpec(url="git@github.com/maurergroup/NonadiabaticRegistry.git"))'
       - name: Install dependencies
         run: julia --project=docs/ -e 'using Pkg; Pkg.develop(PackageSpec(path=pwd())); Pkg.instantiate()'
       - name: Build and deploy
