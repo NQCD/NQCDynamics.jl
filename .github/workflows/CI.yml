@@ -20,7 +20,7 @@ jobs:
 
       - uses: webfactory/ssh-agent@v0.5.2
         with:
-          ssh-private-key: ${{ secrets.DOCUMENTER_KEY }}
+          ssh-private-key: ${{ secrets.PRIVATE_KEY }}
 
       # - name: Generate token
       #   id: generate_token
