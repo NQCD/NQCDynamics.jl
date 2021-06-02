@@ -18,12 +18,16 @@ jobs:
       - name: Add JuliaMolSim registry
         run: julia -e 'using Pkg; Pkg.Registry.add(RegistrySpec(url="https://github.com/JuliaMolSim/MolSim"))'
 
-      - name: Generate token
-        id: generate_token
-        uses: getsentry/action-github-app-token@v1
+      - uses: webfactory/ssh-agent@v0.5.2
         with:
-          app_id: ${{ secrets.APP_ID }}
-          private_key: ${{ secrets.PRIVATE_KEY }}
+          ssh-private-key: ${{ secrets.DOCUMENTER_KEY }}
+
+      # - name: Generate token
+      #   id: generate_token
+      #   uses: getsentry/action-github-app-token@v1
+      #   with:
+      #     app_id: ${{ secrets.APP_ID }}
+      #     private_key: ${{ secrets.PRIVATE_KEY }}
 
       - name: Add NonadiabaticRegistry
         env:
