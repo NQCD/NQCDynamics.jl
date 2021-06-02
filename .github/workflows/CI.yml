@@ -20,7 +20,7 @@ jobs:
 
       - uses: webfactory/ssh-agent@v0.5.2
         with:
-          ssh-private-key: ${{ secrets.PRIVATE_KEY }}
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
       # - name: Generate token
       #   id: generate_token
@@ -32,7 +32,7 @@ jobs:
       - name: Add NonadiabaticRegistry
         env:
           token: ${{ steps.generate_token.outputs.token }}
-        run: julia -e 'using Pkg; Pkg.Registry.add(RegistrySpec(url="git@github.com:maurergroup/NonadiabaticRegistry.git"))'
+        run: julia -e 'using Pkg; Pkg.Registry.add(RegistrySpec(url="https://github.com/maurergroup/NonadiabaticRegistry"))'
 
       - uses: julia-actions/julia-buildpkg@v1
       - uses: julia-actions/julia-runtest@v1
