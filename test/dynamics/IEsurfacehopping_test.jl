@@ -109,7 +109,7 @@ i = 1
     # callbacks defined in: src/Dynamics/callbacks.jl and src/Models/Models.jl
     # Save impurity does not seem to be defined at the moment?
     #@time solution = Dynamics.run_trajectory(z, (0.0, 10000000.0), sim; output=(:save_impurity))
-    @time solution = Dynamics.run_trajectory(z, (0.0, 20000.0), sim, dt=10, adaptive=false; 
+    @time solution = Dynamics.run_trajectory(z, (0.0, 10000.0), sim, dt=1, adaptive=false; 
                                              output=(:position, :save_impurity))
     println("Finished")
     println(length(solution.t))

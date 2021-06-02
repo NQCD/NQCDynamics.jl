@@ -45,7 +45,7 @@ where 1 indicated the state, but not whether occupied or not."""
 function SurfaceHoppingVariablesIESH(v::AbstractArray, r::AbstractArray, n_states::Integer, state::Vector{Int})
     wave_mat = zeros(Complex{eltype(r)}, n_states, n_states)
     #for i=1:n_states/2
-    for i=1:n_states
+    for i=1:n_states/2
         wave_mat[Int(i), Int(i)] = 1
     end
     SurfaceHoppingVariablesIESH(ArrayPartition(v, r, wave_mat), state)
@@ -64,7 +64,7 @@ function motion!(du, u, sim::AbstractSimulation{<:SurfaceHoppingIESH}, t)
     r = get_positions(u)
     v = get_velocities(u)
     σ = get_wavefunction_matrix(u)
-    println(dσ[1,1], σ[1,1])
+    println(dσ[1,1]," ", σ[1,1])
 
     # presumably comes from DifferentialEquations-Julia module
     velocity!(dr, v, r, sim, t)
@@ -124,23 +124,41 @@ function set_wavefunction_derivative!(dσ, v, σ, sim::Simulation{<:SurfaceHoppi
     n_states = sim.calculator.model.n_states
     dσ .= 0.0
     # Inner loop over j may not be necessary, since V_{j,i} should be zero.
+    # for k = 1:n_states
+    #     # is occupied?
+    #     if (s[k] == 1)
+    #         for j = 1:n_states
+    #             # occupied?
+    #             #if (s[j] == 1)
+    #                 for I in eachindex(v)
+    #                     dσ[k,:] .= dσ[k,:] + σ[j,:]*(V[j,k] - im*v[I]*
+    #                                sim.calculator.nonadiabatic_coupling[I][j,k])
+    #                                #bbb = σ[j,:]*(V[j,k] - im*v[I]*
+    #                                #sim.calculator.nonadiabatic_coupling[I][j,k])
+    #                     #println(k, " ", j," ",σ[j,:]," ",sim.calculator.nonadiabatic_coupling[I][j,k], " ", V[j,k], " ", real(bbb))
+    #                 end
+    #             #end
+    #         end
+    #     end
+    # end
+
+    # Over states
     for k = 1:n_states
-        # is occupied?
-        if (s[k] == 1)
+            # Over states
             for j = 1:n_states
-                # occupied?
-                #if (s[j] == 1)
+                # Over electrons
+                for ii = 1:Int(n_states/2)
                     for I in eachindex(v)
-                        dσ[k,:] .= dσ[k,:] + σ[j,:]*(V[j,k] - im*v[I]*
-                                   sim.calculator.nonadiabatic_coupling[I][j,k])
-                                   bbb = σ[j,:]*(V[j,k] - im*v[I]*
-                                   sim.calculator.nonadiabatic_coupling[I][j,k])
-                        #println(k, " ", j," ",σ[j,:]," ",sim.calculator.nonadiabatic_coupling[I][j,k], " ", V[j,k], " ", real(bbb))
+                        dσ[ii,k] = dσ[ii,k] + σ[ii,j]*(V[k,j] - im*v[I]*
+                                   sim.calculator.nonadiabatic_coupling[I][k,j])
+                                   #bbb = σ[ii,j]*(V[k,j] - im*v[I]*
+                                   #sim.calculator.nonadiabatic_coupling[I][k,j])
+                        #println("k ", k, "j ", j,"i ", ii, "cji ",σ[j,ii],"dkj ",sim.calculator.nonadiabatic_coupling[I][k,j], "Vkj ", V[k,j], "el ", real(bbb))
                     end
-                #end
+                end
             end
-        end
     end
+    #println(dσ)
 end
 
 function check_hop!(u, t, integrator)::Bool
@@ -176,7 +194,13 @@ function evaluate_hopping_probability!(sim::Simulation{<:wave_IESH}, u, dt)
     sim.method.hopping_probability .= 0 # Set all entries to 0
     # Assemble density matrix (multiplied by occuplation)
     for i = 1:n_states
-        sim.calculator.tmp_mat_complex1 .+= (Ψ[i,:] * Ψ[i,:]')*s[i]
+        for j = 1:n_states
+            for k = 1:Int(n_states/2)
+                #sim.calculator.tmp_mat_complex1 .+= (Ψ[i,:] * Ψ[i,:]')*s[i]
+                sim.calculator.tmp_mat_complex1[i,j] = 
+                    sim.calculator.tmp_mat_complex1[i,j]+ (Ψ[k,i] * conj(Ψ[k,j]))
+            end
+        end
     end
     #println(real(sim.calculator.tmp_mat_complex1))
 
