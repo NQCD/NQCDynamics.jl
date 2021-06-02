@@ -32,7 +32,7 @@ jobs:
       - name: Add NonadiabaticRegistry
         env:
           token: ${{ steps.generate_token.outputs.token }}
-        run: julia -e 'using Pkg; Pkg.Registry.add(RegistrySpec(url="https://github.com/maurergroup/NonadiabaticRegistry"))'
+        run: julia -e 'using Pkg; Pkg.Registry.add(RegistrySpec(url="git@github.com:maurergroup/NonadiabaticRegistry.git"))'
 
       - uses: julia-actions/julia-buildpkg@v1
       - uses: julia-actions/julia-runtest@v1
