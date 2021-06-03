@@ -43,7 +43,7 @@ See ShenviRoyTully_JChemPhys_130_174107_200
 Note that different from the density matrix, wave_mat defines vectors for a state, 
 where 1 indicated the state, but not whether occupied or not."""
 function SurfaceHoppingVariablesIESH(v::AbstractArray, r::AbstractArray, n_states::Integer, state::Vector{Int})
-    wave_mat = zeros(Complex{eltype(r)}, Int(n_states/2), n_states)
+    wave_mat = zeros(Complex{eltype(r)}, n_states, Int(n_states/2))
     #for i=1:n_states/2
     for i=1:n_states/2
         wave_mat[Int(i), Int(i)] = 1
@@ -64,7 +64,6 @@ function motion!(du, u, sim::AbstractSimulation{<:SurfaceHoppingIESH}, t)
     r = get_positions(u)
     v = get_velocities(u)
     σ = get_wavefunction_matrix(u)
-    println(dσ[1,1]," ", σ[1,1])
 
     # presumably comes from DifferentialEquations-Julia module
     velocity!(dr, v, r, sim, t)
@@ -102,63 +101,35 @@ end
 """Propagation of electronic wave function happens according to Eq. (14) 
    in the Shenvi, Tully paper (JCP 2009)
    The extended formula is taken from HammesSchifferTully_JChemPhys_101_4657_1994, Eq. (16):
-   iħ d ψ_{k}/dt = ∑_j ψ_{j}(V_{kj} - i v d_{kj})
+   iħ d ψ_{j}/dt = ∑_j ψ_{m}(V_{jm} - i v d_{jm})
    Where v is the velocity. See also Tully_JChemPhys_93_1061_1990, Eq. (7). 
-   According to point (3) of the algorithm of Shenvi, Tully, 2009, only the occupied
-   wave functions are integrated. j, I believe, should however run other the unoccupied
-   nonetheless, because still, even if not propagated, all wavefunctions should contribute
-   to dσ (also, otherwise, no hopping probability)
+   For the IESH case, since each electron is treated independently, the equation
+   above needs to be evaluated for each electron, so it becomes:
+   iħ d ψ^{K}_j/dt =  V_{j,j}ψ^{K}_j - i v ∑_m d_{m,j}*ψ^{K}_m)
+   K is the number of the electron and 
+   j, m run over the number of states
    """
 function set_wavefunction_derivative!(dσ, v, σ, sim::Simulation{<:SurfaceHoppingIESH}, u)
-    #println("ping4")
-    V = sim.method.wavefunction_propagator
-    s = u.state
-
-    # Get the eigenvalues
-    # Electronic H.
-    V .= diagm(sim.calculator.eigenvalues)
-    ## Try the diabatic representation of V
-    ##V1 = zeros(length(s),length(s))
-    ##V1 .= diagm(sim.calculator.eigenvalues)
-    ##V .= sim.calculator.eigenvectors * V1 * sim.calculator.eigenvectors'
-    n_states = sim.calculator.model.n_states
-    dσ .= 0.0
-    # Inner loop over j may not be necessary, since V_{j,i} should be zero.
-    # for k = 1:n_states
-    #     # is occupied?
-    #     if (s[k] == 1)
-    #         for j = 1:n_states
-    #             # occupied?
-    #             #if (s[j] == 1)
-    #                 for I in eachindex(v)
-    #                     dσ[k,:] .= dσ[k,:] + σ[j,:]*(V[j,k] - im*v[I]*
-    #                                sim.calculator.nonadiabatic_coupling[I][j,k])
-    #                                #bbb = σ[j,:]*(V[j,k] - im*v[I]*
-    #                                #sim.calculator.nonadiabatic_coupling[I][j,k])
-    #                     #println(k, " ", j," ",σ[j,:]," ",sim.calculator.nonadiabatic_coupling[I][j,k], " ", V[j,k], " ", real(bbb))
-    #                 end
-    #             #end
-    #         end
-    #     end
-    # end
-
-    # Over states
-    for k = 1:n_states
-            # Over states
-            for j = 1:n_states
-                # Over electrons
-                for ii = 1:Int(n_states/2)
-                    for I in eachindex(v)
-                        dσ[ii,k] = dσ[ii,k] + σ[ii,j]*(V[k,j] - im*v[I]*
-                                   sim.calculator.nonadiabatic_coupling[I][k,j])
-                                   #bbb = σ[ii,j]*(V[k,j] - im*v[I]*
-                                   #sim.calculator.nonadiabatic_coupling[I][k,j])
-                        #println("k ", k, "j ", j,"i ", ii, "cji ",σ[j,ii],"dkj ",sim.calculator.nonadiabatic_coupling[I][k,j], "Vkj ", V[k,j], "el ", real(bbb))
-                    end
-                end
-            end
+    V = sim.calculator.eigenvalues
+    d = sim.calculator.nonadiabatic_coupling
+    @views for i in axes(dσ, 2)
+        set_single_electron_derivative!(dσ[:,i], σ[:,i], V, v, d)
     end
-    #println(dσ)
+end
+
+function set_single_electron_derivative!(dc, cK, V, v, d)
+    # Element times element product.
+    #@. dc = -im*V * c
+    @. dc = -im*V * cK
+    # goes over number of states
+    for m in 1:length(cK)
+        # eachindex(v) is here going over the DOF and the number of atoms
+        for I in eachindex(v)
+            dc .-= v[I]*d[I][:,m]*cK[m]
+            #println(m, " ", v[I], " ", d[I][:,m], " ",cK[m], " ",v[I]*d[I][:,m]*cK[m])
+        end
+    end
+    return nothing
 end
 
 function check_hop!(u, t, integrator)::Bool
@@ -173,7 +144,13 @@ function check_hop!(u, t, integrator)::Bool
 end
 
 """Hopping probability according to Eq.s (21), (17), (18) in Shenvi/Roy/Tully JCP 2009 paper.
-   The density matrix is used there, so I am setting up the density matrix here, too"""
+   The density matrix is used there:
+   σ_{i,j} = ∑_K c_{K,i}*c_{K,j}^*
+   K is the index of the independent electrons
+   i,j are the electronic states.
+   The equation for the hopping probability is:
+   g_{k,j} = Max(\frac{-2 Real(σ_{k,j} v d_{j,k})}{σ_{k,k}})
+   """
 function evaluate_hopping_probability!(sim::Simulation{<:wave_IESH}, u, dt)
     #println("ping6")
     v = get_velocities(u)
@@ -183,15 +160,14 @@ function evaluate_hopping_probability!(sim::Simulation{<:wave_IESH}, u, dt)
     n_states = sim.calculator.model.n_states
 
     hop_mat = zeros(n_states, n_states)
-    sim.calculator.tmp_mat_complex1 .= 0
+    #sim.calculator.tmp_mat_complex1 .= 0
     sumer = 0
     first = true
     random_number = rand()
     sum_before = 0.0
-    lc = 0
-    mc = 0
-
     sim.method.hopping_probability .= 0 # Set all entries to 0
+    σlm = 0
+    σll = 0
 
     for l = 1:n_states
         # Is occupied?
@@ -199,23 +175,21 @@ function evaluate_hopping_probability!(sim::Simulation{<:wave_IESH}, u, dt)
             for m = 1:n_states
                 # Is unoccupied?
                 if (s[m] == 0)
-                    for k = 1:Int(n_states/2)
-                        for I in eachindex(v)
-                            #sim.method.hopping_probability[m] += 2v[I]*real(σ[m,s]/σ[s,s])*d[I][s,m] * dt
-                            hop_mat[l,m] = hop_mat[l,m] + 2*v[I]*real(Ψ[k,m]*conj(Ψ[k,l])/
-                                           Ψ[k,l]*conj(Ψ[k,l]))*d[I][l,m] * dt
-                            #println(v[I], " ", real(sim.calculator.tmp_mat_complex1[m,l]), " ",
-                            #real(sim.calculator.tmp_mat_complex1[l,l]), " ", d[I][l,m], " ", dt)
-                            #println(real(sim.calculator.tmp_mat_complex1[l,m]))
+                    σlm = 0
+                    σll = 0
+                    for I in eachindex(v)
+                        for k = 1:Int(n_states/2)
+                            σlm = σlm + Ψ[m,k]*conj(Ψ[l,k])
+                            σll = σll + Ψ[l,k]*conj(Ψ[l,k])
                         end
+                            hop_mat[l,m] = hop_mat[l,m] + 2*v[I]*real(σlm*
+                                           d[I][m,l] * dt)/σll
                     end
                 end # end if 
                 clamp(hop_mat[l,m], 0, 1)
                 # Calculate the hopping probability. Hopping occures for
                 # the transition that's first above the random number.
-                # See: Tully_JChemPhys_93_1061_1990
                 sumer = sumer + abs(hop_mat[l,m]) # cumulative sum.
-                #println(sumer)
                 # If sum of hopping probabilities is larger than random number,
                 # hopping can occur
                 if (random_number > sumer && first)
