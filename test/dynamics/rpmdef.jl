@@ -4,11 +4,11 @@ using Unitful
 using UnitfulAtomic
 using RecursiveArrayTools
 using LinearAlgebra: diag
+using StatsBase
 using StochasticDiffEq
-using BenchmarkTools
 
 atoms = Atoms([:H, :C])
-sim = RingPolymerSimulation{MDEF}(atoms, Models.FreeConstantFriction(1), 3; temperature=10u"K")
+sim = RingPolymerSimulation{MDEF}(atoms, NonadiabaticModels.ConstantFriction(Free(), 1), 3; temperature=10u"K")
 
 v = RingPolymerArray(rand(sim.DoFs, length(sim.atoms), length(sim.beads)))
 r = RingPolymerArray(rand(sim.DoFs, length(sim.atoms), length(sim.beads)))
@@ -48,7 +48,7 @@ end
 
 @testset "ThermalLangevin" begin
     atoms = Atoms([:H, :C])
-    sim = RingPolymerSimulation{ThermalLangevin}(atoms, Models.Free(), 3; temperature=100u"K", γ=0.01, DoFs=1)
+    sim = RingPolymerSimulation{ThermalLangevin}(atoms, NonadiabaticModels.Free(), 3; temperature=100u"K", γ=0.01, DoFs=1)
 
     v = RingPolymerArray(zeros(sim.DoFs, length(sim.atoms), length(sim.beads)))
     r = RingPolymerArray(zeros(sim.DoFs, length(sim.atoms), length(sim.beads)))
@@ -59,7 +59,7 @@ end
 
 @testset "MDEF" begin
     atoms = Atoms([:H, :C])
-    sim = RingPolymerSimulation{MDEF}(atoms, Models.FrictionHarmonic(), 3; temperature=100u"K", DoFs=1)
+    sim = RingPolymerSimulation{MDEF}(atoms, RandomFriction(Harmonic()), 3; temperature=100u"K", DoFs=1)
 
     v = RingPolymerArray(zeros(sim.DoFs, length(sim.atoms), length(sim.beads)))
     r = RingPolymerArray(zeros(sim.DoFs, length(sim.atoms), length(sim.beads)))

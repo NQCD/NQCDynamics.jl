@@ -18,7 +18,7 @@ N = 4
 atoms = Atoms(fill(1, N))
 T = 1 / 16
 n_beads = 5
-model = Models.DebyeSpinBoson(N)
+model = DebyeSpinBoson(N)
 sim = RingPolymerSimulation{NRPMD}(atoms, model, n_beads; temperature=T, DoFs=1)
 nothing # hide
 ```
@@ -30,7 +30,7 @@ boson bath in isolation from the spin.
 This is done most easily by defining a second model that includes only the boson
 degrees of freedom.
 ```@example nrpmd
-bath = Models.DebyeBosonBath(N)
+bath = DebyeBosonBath(N)
 nothing # hide
 ```
 

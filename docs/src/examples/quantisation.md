@@ -14,7 +14,7 @@ v = 2 # Vibrational quantum number
 J = 0 # Rotational quantum number
 
 atoms = Atoms([:C, :O])
-model = Models.DiatomicHarmonic()
+model = DiatomicHarmonic()
 sim = Simulation(atoms, model)
 
 configs = QuantisedDiatomic.generate_configurations(sim, v, J;

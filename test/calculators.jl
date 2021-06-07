@@ -1,10 +1,9 @@
 using Test
 using NonadiabaticMolecularDynamics
-using NonadiabaticMolecularDynamics.Models
 using NonadiabaticMolecularDynamics.Calculators
 
 @testset "Adiabatic" begin
-    model = Models.Free()
+    model = NonadiabaticModels.Free()
     @test Calculators.AdiabaticCalculator{Float64}(model, 3, 5) isa Calculators.AdiabaticCalculator
     @test Calculators.RingPolymerAdiabaticCalculator{Float64}(model, 3, 5, 10) isa Calculators.RingPolymerAdiabaticCalculator
 
@@ -18,7 +17,7 @@ using NonadiabaticMolecularDynamics.Calculators
 end
 
 @testset "Diabatic" begin
-    model = Models.DoubleWell()
+    model = NonadiabaticModels.DoubleWell()
     @test Calculators.DiabaticCalculator{Float64}(model, 3, 5) isa Calculators.DiabaticCalculator
     @test Calculators.RingPolymerDiabaticCalculator{Float64}(model, 3, 5, 10) isa Calculators.RingPolymerDiabaticCalculator
 
@@ -36,10 +35,10 @@ end
 end
 
 @testset "General constructors" begin
-    model = Models.DoubleWell()
+    model = NonadiabaticModels.DoubleWell()
     @test Calculators.Calculator(model, 1, 1) isa Calculators.DiabaticCalculator
     @test Calculators.Calculator(model, 1, 1, 2) isa Calculators.RingPolymerDiabaticCalculator
-    model = Models.Free()
+    model = NonadiabaticModels.Free()
     @test Calculators.Calculator(model, 1, 1) isa Calculators.AdiabaticCalculator
     @test Calculators.Calculator(model, 1, 1, 2) isa Calculators.RingPolymerAdiabaticCalculator
 end

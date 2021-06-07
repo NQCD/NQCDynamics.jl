@@ -217,12 +217,17 @@ function apply_random_rotation!(x, y)
     end
 end
 
-function position_above_surface!(r, height, cell)
+function position_above_surface!(r, height, cell::PeriodicCell)
     r[3,:] .+= height
     a1 = cell.vectors[:,1]
     a2 = cell.vectors[:,2]
     displacement = rand()*a1+rand()*a2
     r .+= displacement
+    return nothing
+end
+
+function position_above_surface!(r, height, ::InfiniteCell)
+    r[3,:] .+= height
     return nothing
 end
 

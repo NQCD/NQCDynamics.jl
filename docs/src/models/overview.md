@@ -1,7 +1,7 @@
 # Overview
 
 ```@docs
-Models
+NonadiabaticModels
 ```
 
 ## Abstract types
@@ -9,10 +9,10 @@ Models
 Models are categorised based upon the quantities that they provide.
 Each of these abstract types defines a specific kind of model.
 ```@docs
-Models.AdiabaticModel
-Models.DiabaticModel
-Models.AdiabaticFrictionModel
-Models.DiabaticFrictionModel
+NonadiabaticModels.AdiabaticModel
+NonadiabaticModels.DiabaticModel
+NonadiabaticModels.AdiabaticFrictionModel
+NonadiabaticModels.DiabaticFrictionModel
 ```
 
 ## Implementing a new model
@@ -20,9 +20,9 @@ To add a new model the first step is to select the abstract type that it falls u
 After this, the new type should be created (see above for example)
 and the following functions should be implemented:
 ```@docs
-Models.potential!
-Models.derivative!
-Models.friction!
+NonadiabaticModels.potential!
+NonadiabaticModels.derivative!
+NonadiabaticModels.friction!
 ```
 
 !!! note
@@ -34,7 +34,7 @@ Models.friction!
 After the above non-allocating versions have been implemented,
 allocating versions are automatically provided for testing and plotting convenience:
 ```@docs
-Models.potential
-Models.derivative
-Models.friction
+NonadiabaticModels.potential
+NonadiabaticModels.derivative
+NonadiabaticModels.friction
 ```

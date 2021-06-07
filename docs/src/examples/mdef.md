@@ -18,7 +18,7 @@ where the electronic temperature is 300 K.
 The friction provided by this model is a random positive definite tensor.
 ```@example mdef
 atoms = Atoms([:H])
-model = Models.FrictionHarmonic()
+model = RandomFriction(Harmonic())
 sim = Simulation{MDEF}(atoms, model; temperature=300u"K")
 nothing # hide
 ```
