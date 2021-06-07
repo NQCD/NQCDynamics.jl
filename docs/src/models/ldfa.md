@@ -7,10 +7,10 @@ BO dynamics, where a Langevin equation is used to model the dynamics of the mole
 within the metal electron density.
 
 ```@raw html
-<img src="../assets/ldfa_motion.png">
+<img src="./assets/ldfa_motion.png">
 ```
 ```@raw html
-<img src="../assets/ldfa_dissociate.png">
+<img src="./assets/ldfa_dissociate.png">
 ```
 
 The LDFA provides a simple way to relate the electron density to a friction coefficient
@@ -24,7 +24,7 @@ A cubic spline interpolation is performed which provides a continuous function
 for the friction coefficient. 
 
 ```@raw html
-<img src="../assets/ldfa_graph.png">
+<img src="./assets/ldfa_graph.png">
 ```
 
 Currently provided is the `CubeLDFAModel` which attaches LDFA friction to an existing
