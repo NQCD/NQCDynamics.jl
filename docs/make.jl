@@ -1,13 +1,18 @@
 using Documenter, NonadiabaticMolecularDynamics
+using NonadiabaticModels
+import CubeLDFAModel
 using PyCall
+using JuLIP
 
 doctestsetup = quote
     using NonadiabaticMolecularDynamics
+    using NonadiabaticModels
 end 
 DocMeta.setdocmeta!(NonadiabaticMolecularDynamics, :DocTestSetup, doctestsetup; recursive=true)
+DocMeta.setdocmeta!(NonadiabaticModels, :DocTestSetup, :(using NonadiabaticModels); recursive=true)
 
 @time makedocs(sitename="NonadiabaticMolecularDynamics.jl",
-    modules=[NonadiabaticMolecularDynamics],
+    modules=[NonadiabaticMolecularDynamics, NonadiabaticModels, CubeLDFAModel],
     format=Documenter.HTML(prettyurls=true, assets=["assets/custom.css"]),
     pages=[
         "index.md"
