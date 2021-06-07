@@ -2,7 +2,7 @@ using Test
 using NonadiabaticMolecularDynamics
 
 atoms = Atoms([:C])
-model = Models.Harmonic()
+model = NonadiabaticModels.Harmonic()
 cell = PeriodicCell(hcat(1))
 sim = Simulation(atoms, model, Classical(); DoFs=1, cell=cell)
 

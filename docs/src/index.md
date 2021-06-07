@@ -25,3 +25,23 @@ the simulations:
 
 - Metropolis-Hastings Markov chain Monte Carlo thermal sampling
 - Langevin dynamics
+
+## Installation
+
+The easiest way to install the package is to the install the `NonadiabaticRegistry`:
+```julia
+pkg> registry add "https://github.com/maurergroup/NonadiabaticRegistry"
+```
+
+Then you can easily add the package with:
+```julia
+pkg> add NonadiabaticMolecularDynamics
+```
+
+Included in the registry alongside the main package are a few others that provide extra
+models and add-ons. Here is an overview of the currently existing packages included in
+the registry:
+
+```@raw html
+<img src="./assets/registry.png">
+```

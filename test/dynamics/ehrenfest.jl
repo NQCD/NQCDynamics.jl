@@ -6,7 +6,7 @@ using OrdinaryDiffEq
 atoms = Atoms(1)
 
 @testset "Ehrenfest" begin
-    sim = Simulation(atoms, Models.DoubleWell(), Dynamics.Ehrenfest{Float64}(2); DoFs=1)
+    sim = Simulation(atoms, NonadiabaticModels.DoubleWell(), Dynamics.Ehrenfest{Float64}(2); DoFs=1)
 
     r = zeros(sim.DoFs, length(sim.atoms)) 
     v = rand(sim.DoFs, length(sim.atoms)) 
@@ -33,7 +33,7 @@ atoms = Atoms(1)
     end
 
 
-    sim1 = Simulation{Ehrenfest}(atoms, Models.TullyModelOne(); DoFs=1)
+    sim1 = Simulation{Ehrenfest}(atoms, NonadiabaticModels.TullyModelOne(); DoFs=1)
     r = fill(-5.0, sim1.DoFs, length(sim1.atoms))
     v1 = fill(8.9, sim1.DoFs, length(sim1.atoms)) ./ sim1.atoms.masses[1]
     z1 = EhrenfestVariables(v1, r, 2, 1)
@@ -41,7 +41,7 @@ atoms = Atoms(1)
 
     @testset "run_trajectory" begin
         atoms = Atoms(2000)
-        sim = Simulation{Ehrenfest}(atoms, Models.TullyModelTwo(); DoFs=1)
+        sim = Simulation{Ehrenfest}(atoms, NonadiabaticModels.TullyModelTwo(); DoFs=1)
         v = hcat(100 / 2000)
         r = hcat(-10.0)
         u = EhrenfestVariables(v, r, 2, 1)

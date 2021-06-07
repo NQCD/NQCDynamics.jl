@@ -5,7 +5,7 @@ using Unitful
 include("utils.jl")
 
 atoms = Atoms([:H])
-model = Models.Harmonic()
+model = NonadiabaticModels.Harmonic()
 
 @testset "Classical" begin
     sim = Simulation{Classical}(atoms, model; DoFs=1)

@@ -5,7 +5,7 @@ using Unitful
 atoms = Atoms([:C, :H])
 cell = InfiniteCell()
 
-model = Models.Free()
+model = NonadiabaticModels.Free()
 
 @test Simulation(3, 100, cell, atoms, model, Classical()) isa Simulation
 @test RingPolymerSimulation(3, 100, cell, atoms, model, Classical(), 10, [:H]) isa RingPolymerSimulation
@@ -19,9 +19,9 @@ model = Models.Free()
 
 # @test Simulation{MDEF}(atoms, model) isa Simulation{<:MDEF}
 
-@test RingPolymerSimulation{NRPMD}(atoms, Models.DoubleWell(), 10) isa RingPolymerSimulation{<:NRPMD}
+@test RingPolymerSimulation{NRPMD}(atoms, NonadiabaticModels.DoubleWell(), 10) isa RingPolymerSimulation{<:NRPMD}
 @test Simulation{Langevin}(atoms, model) isa Simulation{<:Langevin}
-@test Simulation{FSSH}(atoms, Models.DoubleWell()) isa Simulation{<:FSSH}
+@test Simulation{FSSH}(atoms, NonadiabaticModels.DoubleWell()) isa Simulation{<:FSSH}
 
 @testset "get_temperature" begin
     sim = Simulation(atoms, model; temperature=10u"K")

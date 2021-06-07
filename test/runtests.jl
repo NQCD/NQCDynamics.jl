@@ -11,8 +11,6 @@ end
 DocMeta.setdocmeta!(NonadiabaticMolecularDynamics, :DocTestSetup, doctestsetup; recursive=true)
 doctest(NonadiabaticMolecularDynamics)
 
-@time @safetestset "Atom Tests" begin include("atoms.jl") end
-@time @safetestset "Cell Tests" begin include("cells.jl") end
 @time @safetestset "Calculator Tests" begin include("calculators.jl") end
 @time @safetestset "Simulation Tests" begin include("simulations.jl") end
 @time @safetestset "Ring Polymer Tests" begin include("ring_polymers.jl") end
@@ -21,6 +19,5 @@ doctest(NonadiabaticMolecularDynamics)
 @time @safetestset "Dynamical Variables Tests" begin include("dynamical_variables.jl") end
 include("dynamics/dynamics.jl")
 @time @safetestset "IO Tests" begin include("io/io.jl") end
-@time @safetestset "Model Tests" begin include("model.jl") end
 @time @safetestset "Distribution Tests" begin include("nuclear_distributions.jl") end
 @time @safetestset "Ensemble Tests" begin include("ensembles.jl") end

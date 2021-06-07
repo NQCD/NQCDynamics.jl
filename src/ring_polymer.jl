@@ -131,3 +131,25 @@ function cayley_propagator(beads::RingPolymerParameters{T}, dt::Real; half::Bool
     end
     prop
 end
+
+"""
+    apply_cell_boundaries!(cell::PeriodicCell, R::AbstractArray{T,3}, beads::RingPolymerParameters) where {T}
+    
+Apply cell boundaries to the ring polymer system.
+
+This converts to normal mode coordinates and restricts only the centroid.
+This means that replicas can exit the cell but the centroid cannot.
+The reasoning for this is to avoid complications in the computation of the spring potential.
+Proper treatment would require accounting for the periodic cell in this function which I have
+not yet done.
+
+The modification by a factor of ``\\sqrt{N}`` is to convert to real space centroid. 
+"""
+function NonadiabaticDynamicsBase.apply_cell_boundaries!(cell::PeriodicCell, R::AbstractArray{T,3}, beads::RingPolymerParameters) where {T}
+    transform_to_normal_modes!(beads, R)
+    R[:,beads.quantum_atoms,1] ./= sqrt(length(beads))
+    @views apply_cell_boundaries!(cell, R[:,:,1])
+    R[:,beads.quantum_atoms,1] .*= sqrt(length(beads))
+    transform_from_normal_modes!(beads, R)
+end
+NonadiabaticDynamicsBase.apply_cell_boundaries!(::InfiniteCell, ::AbstractArray{T,3}, ::RingPolymerParameters) where {T} = nothing

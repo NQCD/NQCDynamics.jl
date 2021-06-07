@@ -18,7 +18,7 @@ nothing # hide
 To illustrate the fewest-switches dynamics we can use a popular three state Morse potential.
 ```@example fssh
 atoms = Atoms(20000)
-model = Models.ThreeStateMorse()
+model = ThreeStateMorse()
 sim = Simulation{FSSH}(atoms, model; DoFs=1)
 nothing # hide
 ```
