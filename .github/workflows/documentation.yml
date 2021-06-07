@@ -32,6 +32,8 @@ jobs:
         run: julia -e 'using Pkg; Pkg.Registry.add(RegistrySpec(url="https://github.com/JuliaMolSim/MolSim"))'
       - name: Add General registry
         run: julia -e 'using Pkg; Pkg.Registry.add(RegistrySpec("General"))'
+      - name: Install ase
+        run: pip install ase
 
       - name: Install dependencies
         run: julia --project=docs/ -e 'using Pkg; Pkg.develop(PackageSpec(path=pwd())); Pkg.instantiate()'
