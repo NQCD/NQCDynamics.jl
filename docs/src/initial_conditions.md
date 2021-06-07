@@ -60,7 +60,7 @@ Notice that we use `Unitful.jl` to specify the temperature.
 using Unitful
 
 atoms = Atoms([:N, :O])
-model = Models.DiatomicHarmonic(1.0)
+model = DiatomicHarmonic(1.0)
 
 sim = Simulation{Classical}(atoms, model; temperature=300u"K")
 nothing # hide

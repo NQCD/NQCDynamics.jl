@@ -11,21 +11,20 @@ algorithms. Here you can find descriptions of the models and examples of their u
     extensible with custom types.
 
 ```@setup model
-using NonadiabaticMolecularDynamics
-using NonadiabaticMolecularDynamics.Models
+using NonadiabaticModels
 using Plots: plot, contour
 ```
 
 ## Adiabatic models
 These models are used for classical dynamics and provide a single potential energy surface.
 ```@docs
-Models.Free
-Models.Harmonic
-Models.JuLIPModel
+NonadiabaticModels.Free
+NonadiabaticModels.Harmonic
+NonadiabaticModels.JuLIPModel
 ```
 
 ```@docs
-Models.DiatomicHarmonic
+NonadiabaticModels.DiatomicHarmonic
 ```
 ```@example model
 model = DiatomicHarmonic(r₀=1.0)
@@ -34,11 +33,11 @@ contour(-10:0.1:10, -10:0.1:10, f, fill=true)
 ```
 
 ```@docs
-Models.DarlingHollowayElbow
+NonadiabaticModels.DarlingHollowayElbow
 ```
 ```@example
-using NonadiabaticMolecularDynamics.Models # hide
-using NonadiabaticMolecularDynamics # hide
+using NonadiabaticModels # hide
+using NonadiabaticDynamicsBase: eV_to_au
 using CairoMakie
 
 model = DarlingHollowayElbow()
@@ -59,46 +58,46 @@ fig
 ```
 
 ```@docs
-Models.DebyeBosonBath
+NonadiabaticModels.DebyeBosonBath
 ```
 ## Diabatic models
 These models define a Hermitian potential operator in a diabatic basis.
 These can be used for various forms of nonadiabatic dynamics.
 ```@docs
-Models.TullyModelOne
+NonadiabaticModels.TullyModelOne
 ```
 ```@example model
 plot(-10:0.1:10, TullyModelOne())
 ```
 ```@docs
-Models.TullyModelTwo
+NonadiabaticModels.TullyModelTwo
 ```
 ```@example model
 plot(-10:0.1:10, TullyModelTwo())
 ```
 ```@docs
-Models.ThreeStateMorse
+NonadiabaticModels.ThreeStateMorse
 ```
 ```@example model
 plot(2:0.01:12, ThreeStateMorse(), ylims=(0, 0.06))
 ```
 ```@docs
-Models.OuyangModelOne
+NonadiabaticModels.OuyangModelOne
 ```
 ```@example model
 plot(-10:0.1:10, OuyangModelOne())
 ```
 ```@docs
-Models.DoubleWell
+NonadiabaticModels.DoubleWell
 ```
 ```@example model
 plot(-5:0.1:5, DoubleWell())
 ```
 ```@docs
-Models.GatesHollowayElbow
+NonadiabaticModels.GatesHollowayElbow
 ```
 ```@example
-using NonadiabaticMolecularDynamics.Models # hide
+using NonadiabaticModels # hide
 using CairoMakie
 
 model = GatesHollowayElbow()
@@ -120,5 +119,5 @@ fig
 ```
 
 ```@docs
-Models.DebyeSpinBoson
+NonadiabaticModels.DebyeSpinBoson
 ```

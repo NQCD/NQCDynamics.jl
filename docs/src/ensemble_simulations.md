@@ -8,7 +8,7 @@ As usual we set up our system, this time we'll be doing FSSH dynamics:
 using NonadiabaticMolecularDynamics # hide
 
 atoms = NonadiabaticMolecularDynamics.Atoms([:H])
-model = Models.TullyModelOne()
+model = TullyModelOne()
 sim = Simulation{FSSH}(atoms, model; DoFs=1)
 nothing # hide
 ```
