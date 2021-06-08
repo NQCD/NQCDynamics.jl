@@ -4,7 +4,7 @@ using RecursiveArrayTools
 using OrdinaryDiffEq
 
 atoms = Atoms([:H])
-model = Models.Harmonic()
+model = NonadiabaticModels.Harmonic()
 sim = Simulation(atoms, model; DoFs=1)
 
 positions = [randn(1, length(atoms)) for i=1:10]
@@ -57,7 +57,7 @@ end
 end
 
 @testset "OutputDiabaticPopulation" begin
-    sim = Simulation{FSSH}(atoms, Models.TullyModelTwo(); DoFs=1)
+    sim = Simulation{FSSH}(atoms, NonadiabaticModels.TullyModelTwo(); DoFs=1)
     output = Ensembles.OutputDiabaticPopulation(sim)
 end
 

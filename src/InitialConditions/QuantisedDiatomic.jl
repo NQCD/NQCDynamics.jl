@@ -47,7 +47,7 @@ These allow the molecule to be placed at a distance `height` in the direction
 `normal_vector` when performing potential evaluations.
 """
 function generate_configurations(sim, ν, J; samples=1000, height=10, normal_vector=[0, 0, 1],
-    translational_energy=0, direction=[0, 0, -1], position=[0, 0, height])
+    translational_energy=0, direction=[0, 0, -1])
     E, bounds = extract_energy_and_bounds(sim, ν, J; height=height, normal_vector=normal_vector)
     μ = reduced_mass(sim.atoms)
 
@@ -57,7 +57,7 @@ function generate_configurations(sim, ν, J; samples=1000, height=10, normal_vec
 
     bonds, momenta = select_random_bond_lengths(E, bounds, radial_momentum, μ, samples)
 
-    configure_diatomic.(sim, bonds, momenta, J, μ, Ref(direction), translational_energy, Ref(position))
+    configure_diatomic.(sim, bonds, momenta, J, μ, Ref(direction), translational_energy,height)
 end
 
 """
@@ -150,8 +150,7 @@ function select_random_bond_lengths(E, bounds, probability_function, μ, samples
     for i=1:samples
         keep_going = true
         while keep_going
-            r = rand(distribution)
-            P = probability_function(r)
+            r, P = pick_radius(distribution, probability_function, 1)
             if rand() < P0 / P
                 bonds[i] = r
                 momenta[i] = rand([-1, 1]) * P
@@ -162,10 +161,29 @@ function select_random_bond_lengths(E, bounds, probability_function, μ, samples
     bonds, momenta
 end
 
+function pick_radius(distribution, func, count)
+    r = rand(distribution)
+    try
+        P = func(r)
+        return r, P
+    catch e
+        if e isa DomainError
+            if count > 100
+                throw(ArgumentError("Something is seriously wrong, a rejected bond length was generated 100 times in a row?
+                    Check the model."))
+            else
+                return pick_radius(distribution, func, count+1)
+            end
+        else
+            throw(e)
+        end
+    end
+end
+
 """
 Randomly orient molecule in space for a given bond length and radial momentum
 """
-function configure_diatomic(sim, bond, momentum, J, μ, direction, translational_energy, position)
+function configure_diatomic(sim, bond, momentum, J, μ, direction, translational_energy,height)
     r = zeros(3,2)
     v = zeros(3,2)
     r[1,1] = bond
@@ -182,7 +200,7 @@ function configure_diatomic(sim, bond, momentum, J, μ, direction, translational
     v[:,2] .+= cross(ω, r[:,2])
 
     apply_random_rotation!(v, r)
-    position_above_surface!(r, position)
+    position_above_surface!(r, height, sim.cell)
     apply_translational_impulse!(v, sim.atoms.masses, translational_energy, direction)
 
     v, r
@@ -199,7 +217,19 @@ function apply_random_rotation!(x, y)
     end
 end
 
-position_above_surface!(r, position) = r .+= position
+function position_above_surface!(r, height, cell::PeriodicCell)
+    r[3,:] .+= height
+    a1 = cell.vectors[:,1]
+    a2 = cell.vectors[:,2]
+    displacement = rand()*a1+rand()*a2
+    r .+= displacement
+    return nothing
+end
+
+function position_above_surface!(r, height, ::InfiniteCell)
+    r[3,:] .+= height
+    return nothing
+end
 
 function velocity_from_energy(masses, energy)
     m = sum(masses)

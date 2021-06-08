@@ -14,11 +14,11 @@ v = 2 # Vibrational quantum number
 J = 0 # Rotational quantum number
 
 atoms = Atoms([:C, :O])
-model = Models.DiatomicHarmonic()
+model = DiatomicHarmonic()
 sim = Simulation(atoms, model)
 
 configs = QuantisedDiatomic.generate_configurations(sim, v, J;
-    samples=1000, translational_energy=10)
+    samples=10, translational_energy=10)
 
 v = first.(configs)
 r = last.(configs)
@@ -29,7 +29,7 @@ nothing # hide
 ```@example quantise
 selection = Ensembles.RandomSelection(distribution)
 output = Ensembles.OutputQuantisedDiatomic(sim)
-ensemble = Ensembles.run_ensemble(sim, (0.0, 100.0), selection;
+ensemble = Ensembles.run_ensemble(sim, (0.0, 10.0), selection;
     output=output, trajectories=10, dt=0.1)
 (first.(ensemble.u), last.(ensemble.u))
 ```

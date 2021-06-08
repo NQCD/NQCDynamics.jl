@@ -4,7 +4,7 @@ using FiniteDiff
 
 @test Dynamics.NRPMD{Float64}(10) isa Dynamics.NRPMD
 atoms = Atoms(1.0)
-sim = RingPolymerSimulation{NRPMD}(atoms, Models.DoubleWell(), 10; DoFs=1, temperature=1e-1)
+sim = RingPolymerSimulation{NRPMD}(atoms, NonadiabaticModels.DoubleWell(), 10; DoFs=1, temperature=1e-1)
 
 v = RingPolymerArray(zeros(sim.DoFs, length(sim.atoms), length(sim.beads)))
 r = RingPolymerArray(randn(sim.DoFs, length(sim.atoms), length(sim.beads)))

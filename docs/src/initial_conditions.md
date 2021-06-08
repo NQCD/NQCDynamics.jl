@@ -60,7 +60,7 @@ Notice that we use `Unitful.jl` to specify the temperature.
 using Unitful
 
 atoms = Atoms([:N, :O])
-model = Models.DiatomicHarmonic(1.0)
+model = DiatomicHarmonic(1.0)
 
 sim = Simulation{Classical}(atoms, model; temperature=300u"K")
 nothing # hide
@@ -97,7 +97,7 @@ ylabel!("Bond length") # hide
 ```
 
 The result of this simulation seamlessly interfaces with the `DynamicalDistribution`
-presented in the previously section and `output.R` can be readily passed to provide
+presented in the previous section and `output.R` can be readily passed to provide
 the position distribution.
 The Monte Carlo sampling does not include velocities but these can be readily
 obtained from the Maxwell-Boltzmann distribution.
