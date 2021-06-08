@@ -1,5 +1,4 @@
 using .Calculators: AbstractCalculator, Calculator
-using .Models: Model
 using Unitful
 using UnitfulAtomic
 

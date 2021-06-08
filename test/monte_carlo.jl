@@ -6,7 +6,7 @@ using StatsBase
 
 atoms = Atoms{Float64}([:H, :H, :C])
 cell = PeriodicCell(hcat(1))
-model = Models.Harmonic()
+model = NonadiabaticModels.Harmonic()
 
 Δ = Dict([(:H, 0.1), (:C, 0.1)])
 monte_carlo = MonteCarlo{Float64}(Δ, length(atoms), 100, Int[], x->true)

@@ -1,8 +1,15 @@
 [deps]
+CairoMakie = "13f3f980-e62b-5c42-98c6-ff1f3baf88f0"
+CubeLDFAModel = "56146587-2a70-4d59-809c-88d5ba27a8d3"
 Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
+JuLIP = "945c410c-986d-556a-acb1-167a618e0462"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+NonadiabaticModels = "c814dc9f-a51f-4eaf-877f-82eda4edad48"
+NonadiabaticMolecularDynamics = "36248dfb-79eb-4f4d-ab9c-e29ea5f33e14"
 Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
+PyCall = "438e738f-606a-5dbb-bf0a-cddfbfd45ab0"
+Symbolics = "0c5d862f-8b57-4792-8d23-62f2024744c7"
 Unitful = "1986cc42-f94f-5a68-af5c-568840ba703d"
 UnitfulRecipes = "42071c24-d89e-48dd-8a24-8a12d9b8861f"
 

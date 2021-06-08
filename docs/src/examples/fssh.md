@@ -18,7 +18,7 @@ nothing # hide
 To illustrate the fewest-switches dynamics we can use a popular three state Morse potential.
 ```@example fssh
 atoms = Atoms(20000)
-model = Models.ThreeStateMorse()
+model = ThreeStateMorse()
 sim = Simulation{FSSH}(atoms, model; DoFs=1)
 nothing # hide
 ```
@@ -34,7 +34,7 @@ nothing # hide
 Now let's run an ensemble of trajectories that sample from this distribution.
 ```@example fssh
 solution = Ensembles.run_ensemble(sim, (0.0, 3000.0), Ensembles.RandomSelection(distribution);
-    saveat=50, trajectories=2e3,
+    saveat=50, trajectories=5e2,
     output=Ensembles.OutputDiabaticPopulation(sim), reduction=Ensembles.MeanReduction())
 
 plot(0:50:3000, [p[1] for p in solution.u], label="State 1")
