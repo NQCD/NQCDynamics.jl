@@ -130,18 +130,12 @@ end
 """
     get_adiabatic_population(sim::Simulation{<:FSSH}, u)
 
-Adiabatic populations recommended from J. Chem. Phys. 139, 211101 (2013).
+Adiabatic population directly from discrete state variable.
 """
 function get_adiabatic_population(sim::Simulation{<:FSSH}, u)
-    Calculators.evaluate_potential!(sim.calculator, get_positions(u))
-    Calculators.eigen!(sim.calculator)
-    U = sim.calculator.eigenvectors
-
-    σ = copy(get_density_matrix(u))
-    σ[diagind(σ)] .= 0
-    σ[u.state, u.state] = 1
-
-    return real.(diag(σ))
+    population = zeros(sim.calculator.model.n_states)
+    population[u.state] = 1
+    return population
 end
 
 function NonadiabaticMolecularDynamics.evaluate_hamiltonian(sim::Simulation{<:FSSH}, u)
