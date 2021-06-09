@@ -1,5 +1,4 @@
 Manifest.toml
-Project.toml
 *.xyz
 docs/build
 dev/
