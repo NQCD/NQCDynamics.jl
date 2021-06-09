@@ -76,26 +76,16 @@ function (output::OutputQuantisedDiatomic)(sol, i)
     return ((ν, J), false)
 end
 
-struct OutputScatteringEhrenfest <: AbstractOutput end
-function (output::OutputScatteringEhrenfest)(sol, i)
-    final= last(sol.u) # get final configuration from trajectory
-    σ = get_density_matrix(final)
-    populations = real.(diag(σ)) # Get adiabatic populations from diagonal of density matrix
-    output = zeros(2, 2) # Initialise output, left column reflection on state 1/2, right column transmission
-    x = get_positions(final)[1]
-    if x > 0 # If final position past 0 then we count as transmission 
-        output[:,2] .= populations
-    else # If final position left of 0 then we count as reflection
-        output[:,1] .= populations
-    end
-    return (output, false)
+"""
+Output a matrix with `size=(n_states, 2)` with transmission/reflection probabilities for
+each state.
+"""
+struct OutputStateResolvedScattering1D{S} <: AbstractOutput
+    sim::S
 end
-
-struct OutputScatteringFSSH <: AbstractOutput end
-function (output::OutputScatteringFSSH)(sol, i)
-    final= last(sol.u) # get final configuration from trajectory
-    populations = zeros(2)
-    populations[final.state] = 1
+function (output::OutputStateResolvedScattering1D)(sol, i)
+    final = last(sol.u) # get final configuration from trajectory
+    populations = Dynamics.get_adiabatic_population(output.sim, final)
     output = zeros(2, 2) # Initialise output, left column reflection on state 1/2, right column transmission
     x = get_positions(final)[1]
     if x > 0 # If final position past 0 then we count as transmission 
