@@ -20,14 +20,8 @@ function acceleration!(dv, v, r, sim::Simulation{<:Ehrenfest}, t, σ)
     return nothing
 end
 
-
-function get_adiabatic_population(sim::Simulation{<:Ehrenfest}, u)
-    Calculators.evaluate_potential!(sim.calculator, get_positions(u))
-    Calculators.eigen!(sim.calculator)
-    U = sim.calculator.eigenvectors
-
+function get_adiabatic_population(::Simulation{<:Ehrenfest}, u)
     σ = get_density_matrix(u)
-
     return real.(diag(σ))
 end
 
