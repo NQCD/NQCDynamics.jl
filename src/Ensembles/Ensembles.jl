@@ -27,6 +27,17 @@ function select_u0(sim::AbstractSimulation{<:FSSH}, v, r, state, type)
     end
 end
 
+function select_u0(sim::Simulation{<:Ehrenfest}, v, r, state, type)
+    if type == :adiabatic
+        return EhrenfestVariables(v, r, sim.calculator.model.n_states, state)
+    elseif type == :diabatic
+        return EhrenfestVariables(sim, v, r, state)
+    else
+        throw(ArgumentError("$type is not a recognised type argument.
+            Try `:adiabatic` or `diabatic`."))
+    end
+end
+
 function select_u0(sim::RingPolymerSimulation{<:NRPMD}, v, r, state, type)
     RingPolymerMappingVariables(v, r, sim.calculator.model.n_states, state)
 end

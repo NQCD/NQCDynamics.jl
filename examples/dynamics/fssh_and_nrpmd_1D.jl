@@ -31,6 +31,6 @@ nrpmd_z = Dynamics.RingPolymerMappingDynamicals(v, r, 1, 2, 1)
 
 nrpmd_solution = Dynamics.run_trajectory(nrpmd_z, (0.0, 2500.0), nrpmd_sim)
 
-plot!(nrpmd_solution.t, hcat(Dynamics.get_population.(nrpmd_sim, nrpmd_solution.u)...)', label="nrpmd")
+plot!(nrpmd_solution.t, hcat(Dynamics.get_diabatic_population.(nrpmd_sim, nrpmd_solution.u)...)', label="nrpmd")
 
 xlabel!("time")
