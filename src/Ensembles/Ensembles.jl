@@ -12,7 +12,7 @@ function select_u0(::Simulation{<:Union{Classical, AbstractMDEF}}, v, r, state, 
     ArrayPartition(v, r)
 end
 
-function select_u0(::RingPolymerSimulation{<:Classical}, v, r, state, type)
+function select_u0(::RingPolymerSimulation, v, r, state, type)
     RingPolymerClassicalDynamicals(v, r)
 end
 
