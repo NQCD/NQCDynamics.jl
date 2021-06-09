@@ -21,7 +21,7 @@ end
 force(u, t, integrator) = -copy(integrator.p.calculator.derivative)
 velocity(u, t, integrator) = copy(get_velocities(u))
 position(u, t, integrator) = copy(get_positions(u))
-potential(u, t, integrator) = Models.energy(integrator.p.calculator.model, get_positions(u))
+potential(u, t, integrator) = NonadiabaticModels.potential(integrator.p.calculator.model, get_positions(u))[1]
 hamiltonian(u, t, integrator) = evaluate_hamiltonian(integrator.p, u)
 kinetic(u, t, integrator) = evaluate_kinetic_energy(integrator.p.atoms.masses, get_velocities(u))
 u(u, t, integrator) = copy(u)
