@@ -27,7 +27,7 @@ struct ThermalLangevin{T<:Real} <: Method
     γ::T
 end
 
-function create_problem(u0::ClassicalDynamicals, tspan::Tuple, sim::AbstractSimulation{<:ThermalLangevin})
+function create_problem(u0, tspan::Tuple, sim::AbstractSimulation{<:ThermalLangevin})
     DynamicalSDEProblem(acceleration!, velocity!, friction!, get_velocities(u0), get_positions(u0), tspan, sim)
 end
 select_algorithm(::RingPolymerSimulation{<:ThermalLangevin}) = BCOCB()
