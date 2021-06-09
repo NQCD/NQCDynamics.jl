@@ -44,7 +44,17 @@ Output the population of each diabatic state.
 struct OutputDiabaticPopulation{S} <: AbstractOutput
     sim::S
 end
-(output::OutputDiabaticPopulation)(sol, i) = (Dynamics.get_population.(output.sim, sol.u), false)
+(output::OutputDiabaticPopulation)(sol, i) = (Dynamics.get_diabatic_population.(output.sim, sol.u), false)
+
+"""
+$(TYPEDEF)
+
+Output the population of each adiabatic state.
+"""
+struct OutputAdiabaticPopulation{S} <: AbstractOutput
+    sim::S
+end
+(output::OutputAdiabaticPopulation)(sol, i) = (Dynamics.get_adiabatic_population.(output.sim, sol.u), false)
 
 """
 $(TYPEDEF)
@@ -64,4 +74,24 @@ function (output::OutputQuantisedDiatomic)(sol, i)
         Dynamics.get_velocities(final), Dynamics.get_positions(final);
         height=output.height, normal_vector=output.normal_vector)
     return ((ν, J), false)
+end
+
+"""
+Output a matrix with `size=(n_states, 2)` with transmission/reflection probabilities for
+each state.
+"""
+struct OutputStateResolvedScattering1D{S} <: AbstractOutput
+    sim::S
+end
+function (output::OutputStateResolvedScattering1D)(sol, i)
+    final = last(sol.u) # get final configuration from trajectory
+    populations = Dynamics.get_adiabatic_population(output.sim, final)
+    output = zeros(2, 2) # Initialise output, left column reflection on state 1/2, right column transmission
+    x = get_positions(final)[1]
+    if x > 0 # If final position past 0 then we count as transmission 
+        output[:,2] .= populations
+    else # If final position left of 0 then we count as reflection
+        output[:,1] .= populations
+    end
+    return (output, false)
 end

@@ -11,7 +11,6 @@ struct Ehrenfest{T} <: AbstractEhrenfest
     end
 end
 
-
 function acceleration!(dv, v, r, sim::Simulation{<:Ehrenfest}, t, σ)
     for i in axes(dv, 2)
         for j in axes(dv, 1)
@@ -21,11 +20,12 @@ function acceleration!(dv, v, r, sim::Simulation{<:Ehrenfest}, t, σ)
     return nothing
 end
 
-"""
-    get_population(sim::Simulation{<:Ehrenfest}, u)
+function get_adiabatic_population(::Simulation{<:Ehrenfest}, u)
+    σ = get_density_matrix(u)
+    return real.(diag(σ))
+end
 
-"""
-function get_population(sim::Simulation{<:Ehrenfest}, u)
+function get_diabatic_population(sim::Simulation{<:Ehrenfest}, u)
     Calculators.evaluate_potential!(sim.calculator, get_positions(u))
     Calculators.eigen!(sim.calculator)
     U = sim.calculator.eigenvectors
