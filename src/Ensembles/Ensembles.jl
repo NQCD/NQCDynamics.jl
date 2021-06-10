@@ -84,9 +84,10 @@ end
 
 function run_ensemble_standard_output(
     sim::AbstractSimulation, tspan,
-    selection; output=(:u), ensemble_algorithm=EnsembleThreads(), kwargs...)
+    selection; output=(:u), ensemble_algorithm=EnsembleThreads(), saveat=[], kwargs...)
 
     stripped_kwargs = austrip_kwargs(;kwargs...)
+    saveat = austrip.(saveat)
 
     problem = Dynamics.create_problem(
         select_u0(sim, rand(selection.distribution)...,
@@ -96,11 +97,11 @@ function run_ensemble_standard_output(
 
     problem = remake(problem, callback=Dynamics.get_callbacks(sim))
 
-    new_selection = SelectWithCallbacks(selection, Dynamics.get_callbacks(sim), output, kwargs[:trajectories])
+    new_selection = SelectWithCallbacks(selection, Dynamics.get_callbacks(sim), output, kwargs[:trajectories], saveat=saveat)
 
     ensemble_problem = EnsembleProblem(problem, prob_func=new_selection)
 
-    solve(ensemble_problem, Dynamics.select_algorithm(sim), ensemble_algorithm; stripped_kwargs...)
+    solve(ensemble_problem, Dynamics.select_algorithm(sim), ensemble_algorithm; saveat=saveat, stripped_kwargs...)
     [Table(t=vals.t, vals.saveval) for vals in new_selection.values]
 end
 

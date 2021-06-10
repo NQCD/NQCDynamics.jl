@@ -39,12 +39,12 @@ struct SelectWithCallbacks{S<:AbstractSelection,C1,C2,V} <: AbstractSelection
     standard_callbacks::C1
     changing_callbacks::C2
     values::V
-    function SelectWithCallbacks(selection, standard_callbacks, output, trajectories)
+    function SelectWithCallbacks(selection, standard_callbacks, output, trajectories; saveat=[])
 
         callbacks = []
         values = []
         for i=1:trajectories
-            cb, vals = Dynamics.create_saving_callback(output)
+            cb, vals = Dynamics.create_saving_callback(output; saveat=saveat)
             push!(callbacks, cb)
             push!(values, vals)
         end
