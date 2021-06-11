@@ -20,7 +20,7 @@ function acceleration!(dv, v, r, sim::Simulation{<:Ehrenfest}, t, σ)
     return nothing
 end
 
-function get_adiabatic_population(::Simulation{<:Ehrenfest}, u)
+function get_adiabatic_population(::AbstractSimulation{<:Ehrenfest}, u)
     σ = get_density_matrix(u)
     return real.(diag(σ))
 end

@@ -27,7 +27,7 @@ atoms = Atoms(1)
     dσ = zero(σ)
     Dynamics.set_density_matrix_derivative!(dσ, v, σ, sim)
 
-    @testset "get_diabatic_opulation" begin
+    @testset "get_diabatic_population" begin
         population = Dynamics.get_diabatic_population(sim, u)
         @test population ≈ [0.5, 0.5]
     end
@@ -48,4 +48,14 @@ atoms = Atoms(1)
         solution = Dynamics.run_trajectory(u, (0.0, 500.0), sim, output=(:hamiltonian), reltol=1e-6)
         @test solution.hamiltonian[1] ≈ solution.hamiltonian[end]
     end
+end
+
+@testset "Ehrenfest RPMD" begin
+    atoms = Atoms(2000)
+    sim = RingPolymerSimulation{Ehrenfest}(atoms, NonadiabaticModels.TullyModelTwo(), 10; DoFs=1)
+    v = fill(100 / 2000, 1, 1, 10)
+    r = fill(-10.0, 1, 1, 10)
+    u = EhrenfestVariables(v, r, 2, 1)
+    solution = Dynamics.run_trajectory(u, (0.0, 500.0), sim, output=(:hamiltonian), reltol=1e-6)
+    @test solution.hamiltonian[1] ≈ solution.hamiltonian[end]
 end

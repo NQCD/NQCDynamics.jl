@@ -37,3 +37,4 @@ end
 
 include("ehrenfest_variables.jl")
 include("ehrenfest.jl")
+include("ehrenfest_rpmd.jl")
