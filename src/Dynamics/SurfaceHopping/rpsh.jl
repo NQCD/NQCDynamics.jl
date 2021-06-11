@@ -17,10 +17,12 @@ function set_density_matrix_derivative!(dσ, v, σ, sim::RingPolymerSimulation{<
 
     V .= diagm(sum(sim.calculator.eigenvalues))
     for I in eachindex(v)
-        V .-= im .* v[I] * sim.calculator.nonadiabatic_coupling[I]
+        @. V -= im * v[I] * sim.calculator.nonadiabatic_coupling[I]
     end
     V ./= length(sim.beads)
-    dσ .= -im*(V*σ - σ*V)
+    mul!(sim.calculator.tmp_mat_complex1, V, σ)
+    mul!(sim.calculator.tmp_mat_complex2, σ, V)
+    @. dσ = -im * (sim.calculator.tmp_mat_complex1 - sim.calculator.tmp_mat_complex2)
     return nothing
 end
 
@@ -106,17 +108,6 @@ function get_diabatic_population(sim::RingPolymerSimulation{<:FSSH}, u)
     σ[u.state, u.state] = 1
 
     return real.(diag(U * σ * U'))
-end
-
-function get_adiabatic_population(sim::RingPolymerSimulation{<:FSSH}, u)
-    Models.potential!(sim.calculator.model, sim.calculator.potential[1], dropdims(mean(get_positions(u); dims=3), dims=3))
-    vals, U = eigen!(sim.calculator.potential[1])
-
-    σ = copy(get_density_matrix(u))
-    σ[diagind(σ)] .= 0
-    σ[u.state, u.state] = 1
-
-    return real.(diag(σ))
 end
 
 function NonadiabaticMolecularDynamics.evaluate_hamiltonian(sim::RingPolymerSimulation{<:FSSH}, u)

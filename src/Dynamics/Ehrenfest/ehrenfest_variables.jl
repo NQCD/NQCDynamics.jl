@@ -1,6 +1,5 @@
 export EhrenfestVariables
 export get_density_matrix
-using StatsBase: sample, Weights
 
 mutable struct EhrenfestVariables{T,D}  <: DynamicalVariables{T}
     x::ArrayPartition{Complex{T}, Tuple{D,D,Matrix{Complex{T}}}}

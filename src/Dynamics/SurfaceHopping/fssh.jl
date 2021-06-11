@@ -128,11 +128,11 @@ function get_diabatic_population(sim::Simulation{<:FSSH}, u)
 end
 
 """
-    get_adiabatic_population(sim::Simulation{<:FSSH}, u)
+    get_adiabatic_population(sim::AbstractSimulation{<:FSSH}, u)
 
 Adiabatic population directly from discrete state variable.
 """
-function get_adiabatic_population(sim::Simulation{<:FSSH}, u)
+function get_adiabatic_population(sim::AbstractSimulation{<:FSSH}, u)
     population = zeros(sim.calculator.model.n_states)
     population[u.state] = 1
     return population

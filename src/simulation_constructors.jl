@@ -35,3 +35,6 @@ RingPolymerSimulation{ThermalLangevin}(atoms::Atoms, model::Model, n_beads::Inte
 
 Simulation{Ehrenfest}(atoms::Atoms{S,T}, model::Model; kwargs...) where {S,T} =
     Simulation(atoms, model, Ehrenfest{T}(model.n_states); kwargs...)
+
+RingPolymerSimulation{Ehrenfest}(atoms::Atoms{S,T}, model::Model, n_beads::Integer; kwargs...) where {S,T} =
+    RingPolymerSimulation(atoms, model, Ehrenfest{T}(model.n_states), n_beads; kwargs...)
