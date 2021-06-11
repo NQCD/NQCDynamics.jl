@@ -11,7 +11,7 @@ r = RingPolymerArray(randn(sim.DoFs, length(sim.atoms), length(sim.beads)))
 u = Dynamics.RingPolymerMappingVariables(v, r, 2, 2)
 
 @testset "get_population" begin
-    population = Dynamics.get_population(sim, u)
+    population = Dynamics.get_diabatic_population(sim, u)
     @test population[1] ≈ 0 atol=1e-10
     @test population[2] ≈ 1
 end
