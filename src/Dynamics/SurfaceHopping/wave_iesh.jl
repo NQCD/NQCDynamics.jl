@@ -55,7 +55,7 @@ get_wavefunction_matrix(u::SurfaceHoppingVariablesIESH) = u.x.x[3]
 
 """motion! is given to ODE Problem and propagated by the timestep there"""
 function motion!(du, u, sim::AbstractSimulation{<:SurfaceHoppingIESH}, t)
-    #println("ping2")
+    #println("ping1")
     dr = get_positions(du)
     dv = get_velocities(du)
     dσ = get_wavefunction_matrix(du)
@@ -78,8 +78,7 @@ end
 """This is part of the adiabatic propagation of the nuclei.
    See Eq. 12 of Shenvi, Tully JCP 2009 paper."""
 function acceleration!(dv, v, r, sim::Simulation{<:wave_IESH}, t; state=1)
-    #println("ping3")
-    # This seems to look all right
+    #println("ping2")
     # Goes over direction 2
     dv .= 0.0
     for i in axes(dv, 2)
@@ -112,34 +111,49 @@ end
 function set_wavefunction_derivative!(dσ, v, σ, sim::Simulation{<:SurfaceHoppingIESH}, u)
     V = sim.calculator.eigenvalues
     d = sim.calculator.nonadiabatic_coupling
-    @views for i in axes(dσ, 2)
-        set_single_electron_derivative!(dσ[:,i], σ[:,i], V, v, d)
-    end
-end
-
-function set_single_electron_derivative!(dc, cK, V, v, d)
-    # Element times element product.
-    #@. dc = -im*V * c
-    @. dc = -im*V * cK
-    # goes over number of states
-    for m in 1:length(cK)
+    # # This is slower
+    # @views for i in axes(dσ, 2)       
+    #     set_single_electron_derivative!(dσ[:,i], σ[:,i], V, v, d)
+    # end
+    @views for i in axes(dσ, 2) 
+         @. dσ[:,i] = -im*V * σ[:,i]
+        # goes over number of states
+        for m in 1:length(σ[:,i])
         # eachindex(v) is here going over the DOF and the number of atoms
         for I in eachindex(v)
-            dc .-= v[I]*d[I][:,m]*cK[m]
+            dσ[:,i] .-= v[I]*d[I][:,m]*σ[m,i]
             #println(m, " ", v[I], " ", d[I][:,m], " ",cK[m], " ",v[I]*d[I][:,m]*cK[m])
+            end
         end
     end
-    return nothing
 end
 
+#This is slower compared to implementing it directly in set_wavefunction_derivative!
+# function set_single_electron_derivative!(dc, cK, V, v, d)
+#     # Element times element product.
+#     #@. dc = -im*V * c
+#     @. dc = -im*V * cK
+#     # goes over number of states
+#     for m in 1:length(cK)
+#         # eachindex(v) is here going over the DOF and the number of atoms
+#         for I in eachindex(v)
+#             dc .-= v[I]*d[I][:,m]*cK[m]
+#             #println(m, " ", v[I], " ", d[I][:,m], " ",cK[m], " ",v[I]*d[I][:,m]*cK[m])
+#         end
+#     end
+#     return nothing
+# end
+
 function check_hop!(u, t, integrator)::Bool
-    #println("ping5")
+    #println("ping4")
+    #@time begin
     evaluate_hopping_probability!(
         integrator.p,
         u,
         get_proposed_dt(integrator))
 
     integrator.p.method.new_state = select_new_state(integrator.p, u)
+    #end
     return integrator.p.method.new_state != u.state
 end
 

@@ -7,7 +7,7 @@ using UnitfulAtomic
 using Revise
 using Random, Distributions
 using Plots
-#using DelimitedFiles
+using DelimitedFiles
 #using Profile
 # using DataFrames
 #using BenchmarkTools
@@ -24,21 +24,21 @@ using Plots
 ps = 98.22694788464062
 Random.seed!(13)
 #n_states = 202
-n_states = 4
+n_states = 42
 #n_states = 502
 # # number of electronic n_states
 vinit = 0.005 # initial velocity
 mass = 1.5 # atomic mass#
 B_na = 1.0 # parameter that defines nonadiabatic coupling strength
 n_DOF = 1
-#ntrajes = 1
+ntrajes = 20
 tspan = (0.0, 5.0u"ps")
 
 # 1a) Define adiabatic model, fom Model/scattering_anderson_holsteins.jl
 # model = Models.ScatteringAndersonHolstein(N=n_states, a0=1, Bg=B_na, 
 # Cg=1, alpha=-5.0, beta=.5)
 #model = Models.MiaoSubotnik(n_states=n_states, W=0.064, Gamma=0.0064)
-model = Models.MiaoSubotnik(n_states=n_states, W=0.0064, Gamma=0.064)
+model = Models.MiaoSubotnik(n_states=n_states, W=0.064, Gamma=0.0064)
 #model = Models.TullyModelOne()
 #println(model.n_states)
 
@@ -54,7 +54,8 @@ atoms = Atoms{Float64}([:H])
 ###############################################################################
 
 # create Boltzmann distribution of momenta
-temperature = 2.5*298u"K"
+# kT = 9.5*10^-4 a.u. = 300 K
+temperature = 5*298u"K"
 
 # create distribution of atomic positions from Monte Carlo sampling of the PESs
 # for the number of trajectories and atoms
@@ -79,8 +80,8 @@ sim = Simulation{wave_IESH}(atoms, model; DoFs=1)
 
 
 # # Do dynamics
-#for i=1:ntrajes
-i = 1
+for i=1:ntrajes
+    #i = 1
      nname=lpad(i,8,"0")
 #     r, v = rand(bolz_pos_momenta)
 #     v = -v
@@ -88,7 +89,7 @@ i = 1
 
     #r = fill(-5.0, sim.DoFs, length(sim.atoms))
     r = rand(outbolz.R)
-    v = fill(sqrt(rand(outbolz.energy)*20/sim.atoms.masses[1]), sim.DoFs, length(sim.atoms))
+    v = fill(sqrt(rand(outbolz.energy)*2/sim.atoms.masses[1]), sim.DoFs, length(sim.atoms))
     #v = fill(5/sim.atoms.masses[1], sim.DoFs, length(sim.atoms))
     println(r, v)
 
@@ -109,33 +110,38 @@ i = 1
     # callbacks defined in: src/Dynamics/callbacks.jl and src/Models/Models.jl
     # Save impurity does not seem to be defined at the moment?
     #@time solution = Dynamics.run_trajectory(z, (0.0, 10000000.0), sim; output=(:save_impurity))
-    @time solution = Dynamics.run_trajectory(z, (0.0, 1000000.0), sim;#, dt=1, adaptive=false; 
+    @time solution = Dynamics.run_trajectory(z, (0.0, 100000.0), sim, dt=10, adaptive=false; 
                                              output=(:position, :save_impurity))
     println("Finished")
     println(length(solution.t))
 
-    #open("trajectory_$nname.txt", "w") do fi
-    #    write(fi, "step, r (a.u.), epot (a.u.), state, impurity population\n")
+
     aka = Int(ceil(length(solution)/10))-1
-    #aka = Int(length(solution))
     j = 0
+    #aka = Int(length(solution)
     println(aka)
-        outarray = zeros(aka, 5)
-        for i = 1:length(solution)
-            if (mod(i,10)==0)
-                global j = j + 1
-                outarray[j,1] = solution.t[i]
-                outarray[j,2] = solution.position[i][1]
-                outarray[j,3] = solution.save_impurity[i][2]
-                outarray[j,4] = solution.save_impurity[i][3]
-                outarray[j,5] = solution.save_impurity[i][4]
+    outarray = zeros(aka, Int(5 + model.n_states))
+    open("trajectory_$nname.txt", "w") do fi
+        write(fi, "step, r (a.u.), epot (a.u.), state, impurity population\n")
+        for k = 1:length(solution)
+            if (mod(k,10)==0)
+                j = j + 1
+                outarray[j,1] = solution.t[k]
+                outarray[j,2] = solution.position[k][1]
+                outarray[j,3] = solution.save_impurity[k][2]
+                outarray[j,4] = solution.save_impurity[k][3]
+                outarray[j,5] = solution.save_impurity[k][4]
+                for imp in 1:model.n_states
+                    outarray[j,5+imp] = solution.save_impurity[k][4+imp]
+                end
+
             # outarray[i,3] = solution.save_impurity[i][2]
             # outarray[i,4] = solution.save_impurity[i][3]
             # outarray    [i,5] = solution.save_impurity[i][4]
             end
         end
-    #    writedlm(fi, outarray,'\t')
-    #end
+        writedlm(fi, outarray,'\t')
+    end
 
 
 # b = plot(outarray[:,1], outarray[:,2], label="energy", marker=2)
@@ -144,14 +150,14 @@ i = 1
 a = plot(outarray[:,2], outarray[:,3], label="energy", marker=2)
 xlabel!("x")
 ylabel!("Energy (a.u.)")
-b = plot(outarray[:,1], outarray[:,5], label="energy", marker=2)
+b = plot(outarray[:,1], outarray[:,Int(5+42/2)], label="energy", marker=2)
 xlabel!("time")
 ylabel!("Impurity Population")
 
 display(plot(b))
 display(plot(a))
 
-#end
+end
 # # # savefig(a,"traj_subA_G4Em4_W10G_test5.png")
 # # # savefig(b,"traj_imppop_G4Em4_W10G_test2.png")
 
