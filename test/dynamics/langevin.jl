@@ -2,7 +2,7 @@ using Test
 using NonadiabaticMolecularDynamics
 
 atoms = Atoms([:H])
-model = Models.Harmonic()
+model = NonadiabaticModels.Harmonic()
 
 sim = Simulation{Langevin}(atoms, model; DoFs=1, temperature=1, γ=1)
 

@@ -14,7 +14,7 @@ atoms = Atoms([:H, :C])
 Next we should define the potential energy surface our forces will be derived from.
 This is a simple harmonic potential that imposes a harmonic force on each our atoms.
 ```@example classical
-model = Models.Harmonic(ω=50.0, r₀=0.0)
+model = Harmonic(ω=50.0, r₀=0.0)
 ```
 
 We can now combine these two objects inside our `Simulation`.

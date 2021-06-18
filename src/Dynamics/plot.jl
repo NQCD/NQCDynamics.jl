@@ -2,7 +2,7 @@ using RecipesBase
 using TypedTables
 
 @recipe function f(table::Table, quantity::Symbol)
-    xguide --> "t /a.u."
+    xguide --> "t"
     yguide --> String(quantity)
 
     for i in eachindex(eval(:($table.$quantity[1])))

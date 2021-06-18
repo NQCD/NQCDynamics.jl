@@ -16,7 +16,7 @@ to evaluate the quantities for each bead.
 module Calculators
 
 using LinearAlgebra
-using ..Models
+using NonadiabaticModels
 
 """
     AbstractCalculator{M<:Model}
@@ -29,7 +29,7 @@ obtained from the model.
 abstract type AbstractCalculator{M<:Model} end
 abstract type AbstractAdiabaticCalculator{M<:AdiabaticModel} <: AbstractCalculator{M} end
 abstract type AbstractDiabaticCalculator{M<:Union{DiabaticFrictionModel,DiabaticModel}} <: AbstractCalculator{M} end
-abstract type AbstractFrictionCalculator{M<:FrictionModel} <: AbstractCalculator{M} end
+abstract type AbstractFrictionCalculator{M<:AdiabaticFrictionModel} <: AbstractCalculator{M} end
 
 struct AdiabaticCalculator{T,M} <: AbstractAdiabaticCalculator{M}
     model::M
@@ -130,6 +130,9 @@ struct DiabaticFrictionCalculator{T,M} <: AbstractDiabaticCalculator{M}
     adiabatic_derivative::Matrix{Matrix{T}}
     nonadiabatic_coupling::Matrix{Matrix{T}}
     friction::Matrix{T}
+    tmp_mat::Matrix{T}
+    tmp_mat_complex1::Matrix{Complex{T}}
+    tmp_mat_complex2::Matrix{Complex{T}}
     function DiabaticFrictionCalculator{T}(model::M, DoFs::Integer, atoms::Integer) where {T,M<:Model}
         potential = Hermitian(zeros(model.n_states, model.n_states))
         derivative = [Hermitian(zeros(model.n_states, model.n_states)) for i=1:DoFs, j=1:atoms]
@@ -138,8 +141,12 @@ struct DiabaticFrictionCalculator{T,M} <: AbstractDiabaticCalculator{M}
         adiabatic_derivative = [zeros(model.n_states, model.n_states) for i=1:DoFs, j=1:atoms]
         nonadiabatic_coupling = [zeros(model.n_states, model.n_states) for i=1:DoFs, j=1:atoms]
         friction = zeros(DoFs*atoms, DoFs*atoms)
+        tmp_mat = zeros(T, model.n_states, model.n_states)
+        tmp_mat_complex1 = zeros(Complex{T}, model.n_states, model.n_states)
+        tmp_mat_complex2 = zeros(Complex{T}, model.n_states, model.n_states)
         new{T,M}(model, potential, derivative, eigenvalues, eigenvectors,
-                 adiabatic_derivative, nonadiabatic_coupling, friction)
+                 adiabatic_derivative, nonadiabatic_coupling, friction,
+                 tmp_mat, tmp_mat_complex1, tmp_mat_complex2)
     end
 end
 
@@ -149,7 +156,7 @@ end
 function Calculator(model::AdiabaticModel, DoFs::Integer, atoms::Integer, T::Type=Float64)
     AdiabaticCalculator{T}(model, DoFs, atoms)
 end
-function Calculator(model::FrictionModel, DoFs::Integer, atoms::Integer, T::Type=Float64)
+function Calculator(model::AdiabaticFrictionModel, DoFs::Integer, atoms::Integer, T::Type=Float64)
     FrictionCalculator{T}(model, DoFs, atoms)
 end
 function Calculator(model::DiabaticFrictionModel, DoFs::Integer, atoms::Integer, T::Type=Float64)
@@ -161,37 +168,37 @@ end
 function Calculator(model::AdiabaticModel, DoFs::Integer, atoms::Integer, beads::Integer, T::Type=Float64)
     RingPolymerAdiabaticCalculator{T}(model, DoFs, atoms, beads)
 end
-function Calculator(model::FrictionModel, DoFs::Integer, atoms::Integer, beads::Integer, T::Type=Float64)
+function Calculator(model::AdiabaticFrictionModel, DoFs::Integer, atoms::Integer, beads::Integer, T::Type=Float64)
     RingPolymerFrictionCalculator{T}(model, DoFs, atoms, beads)
 end
 
 function evaluate_potential!(calc::AbstractCalculator, R::AbstractMatrix)
-    Models.potential!(calc.model, calc.potential, R)
+    potential!(calc.model, calc.potential, R)
 end
 
 function evaluate_potential!(calc::AbstractCalculator, R::AbstractArray{T,3}) where {T}
     @views for i in axes(R, 3)
-        Models.potential!(calc.model, calc.potential[i], R[:,:,i])
+        potential!(calc.model, calc.potential[i], R[:,:,i])
     end
 end
 
 function evaluate_derivative!(calc::AbstractCalculator, R::AbstractMatrix)
-    Models.derivative!(calc.model, calc.derivative, R)
+    derivative!(calc.model, calc.derivative, R)
 end
 
 function evaluate_derivative!(calc::AbstractCalculator, R::AbstractArray{T,3}) where {T}
     @views for i in axes(R, 3)
-        Models.derivative!(calc.model, calc.derivative[:,:,i], R[:,:,i])
+        derivative!(calc.model, calc.derivative[:,:,i], R[:,:,i])
     end
 end
 
 function evaluate_friction!(calc::AbstractFrictionCalculator, R::AbstractMatrix)
-    Models.friction!(calc.model, calc.friction, R)
+    friction!(calc.model, calc.friction, R)
 end
 
 function evaluate_friction!(calc::AbstractFrictionCalculator, R::AbstractArray{T,3}) where {T}
     @views for i in axes(R, 3)
-        Models.friction!(calc.model, calc.friction[:,:,i], R[:,:,i])
+        friction!(calc.model, calc.friction[:,:,i], R[:,:,i])
     end
 end
 
@@ -263,7 +270,7 @@ function transform_derivative!(calc::RingPolymerDiabaticCalculator)
     end
 end
 
-function evaluate_nonadiabatic_coupling!(calc::DiabaticCalculator)
+function evaluate_nonadiabatic_coupling!(calc::AbstractDiabaticCalculator)
     evaluate_nonadiabatic_coupling!.(calc.nonadiabatic_coupling, calc.adiabatic_derivative,
                                      Ref(calc.eigenvalues))
 end
