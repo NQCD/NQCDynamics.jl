@@ -25,12 +25,11 @@ function motion!(du, u, sim::AbstractSimulation{<:SurfaceHopping}, t)
     r = get_positions(u)
     v = get_velocities(u)
     σ = get_density_matrix(u)
-    u.state = sim.method.state
 
     velocity!(dr, v, r, sim, t)
     # src/Calculators/Calculators.jl
     Calculators.update_electronics!(sim.calculator, r)
-    acceleration!(dv, v, r, sim, t, u.state)
+    acceleration!(dv, v, r, sim, t, sim.method.state)
     set_density_matrix_derivative!(dσ, v, σ, sim)
 end
 
@@ -54,7 +53,7 @@ function check_hop!(u, t, integrator)::Bool
         get_proposed_dt(integrator))
 
     integrator.p.method.new_state = select_new_state(integrator.p, u)
-    return integrator.p.method.new_state != u.state
+    return integrator.p.method.new_state != integrator.p.method.state
 end
 
 function execute_hop!(integrator)
@@ -94,6 +93,6 @@ end
 
 include("surface_hopping_variables.jl")
 include("fssh.jl")
-include("iesh.jl")
+# include("iesh.jl")
 include("wave_iesh.jl")
 include("rpsh.jl")
