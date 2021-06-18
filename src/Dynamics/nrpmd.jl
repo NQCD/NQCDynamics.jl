@@ -1,6 +1,8 @@
 export NRPMD
-export RingPolymerMappingDynamicals
+export RingPolymerMappingVariables
 export get_population
+
+using LinearAlgebra: tr
 
 """
 $(TYPEDEF)
@@ -19,14 +21,12 @@ end
 $(TYPEDEF)
 
 Type for containing the classical variables for ring polymer mapping methods.
-
-Can be used for both NRPMD and MVRPMD.
 """
-mutable struct RingPolymerMappingDynamicals{T,D} <: DynamicalVariables{T}
-    x::ArrayPartition{T, Tuple{D,D, Matrix{T}, Matrix{T}}}
+mutable struct RingPolymerMappingVariables{T} <: DynamicalVariables{T}
+    x::ArrayPartition{T, Tuple{RingPolymerArray{T},RingPolymerArray{T}, Matrix{T}, Matrix{T}}}
 end
 
-function RingPolymerMappingDynamicals(v::RingPolymerArray{T}, r::RingPolymerArray{T},
+function RingPolymerMappingVariables(v::RingPolymerArray{T}, r::RingPolymerArray{T},
                                       n_states::Integer, state::Integer) where {T}
 
     n_beads = size(r)[3]
@@ -38,22 +38,26 @@ function RingPolymerMappingDynamicals(v::RingPolymerArray{T}, r::RingPolymerArra
     qmap[state,:] .*= sqrt(3)
     pmap = qmap .* tan.(-θ)
 
-    RingPolymerMappingDynamicals{T,RingPolymerArray{T}}(ArrayPartition(v, r, pmap, qmap))
+    RingPolymerMappingVariables{T}(ArrayPartition(v, r, pmap, qmap))
 end
 
-function RingPolymerMappingDynamicals(v::Matrix, r::Matrix, n_beads::Integer,
+function RingPolymerMappingVariables(v::Matrix, r::Matrix, n_beads::Integer,
         n_states::Integer, state::Integer)
     v = RingPolymerArray(cat([v for i=1:n_beads]..., dims=3))
     r = RingPolymerArray(cat([r for i=1:n_beads]..., dims=3))
-    RingPolymerMappingDynamicals(v, r, n_states, state)
+    RingPolymerMappingVariables(v, r, n_states, state)
 end
 
-get_mapping_positions(z::RingPolymerMappingDynamicals) = z.x.x[4]
-get_mapping_momenta(z::RingPolymerMappingDynamicals) = z.x.x[3]
-get_mapping_positions(z::RingPolymerMappingDynamicals, i::Integer) = @view z.x.x[4][:,i]
-get_mapping_momenta(z::RingPolymerMappingDynamicals, i::Integer) = @view z.x.x[3][:,i]
+function RingPolymerMappingVariables(v::Array{T,3}, r::Array{T,3}, n_states, state) where {T}
+    RingPolymerMappingVariables(RingPolymerArray(v), RingPolymerArray(r), n_states, state)
+end
 
-function motion!(du::RingPolymerMappingDynamicals, u::RingPolymerMappingDynamicals,
+get_mapping_positions(z::RingPolymerMappingVariables) = z.x.x[4]
+get_mapping_momenta(z::RingPolymerMappingVariables) = z.x.x[3]
+get_mapping_positions(z::RingPolymerMappingVariables, i::Integer) = @view z.x.x[4][:,i]
+get_mapping_momenta(z::RingPolymerMappingVariables, i::Integer) = @view z.x.x[3][:,i]
+
+function motion!(du::RingPolymerMappingVariables, u::RingPolymerMappingVariables,
         sim::RingPolymerSimulation{<:NRPMD}, t)
     dr = get_positions(du)
     dv = get_velocities(du)
@@ -64,7 +68,7 @@ function motion!(du::RingPolymerMappingDynamicals, u::RingPolymerMappingDynamica
     set_mapping_force!(du, u, sim)
 end
 
-function acceleration!(dv, u::RingPolymerMappingDynamicals,
+function acceleration!(dv, u::RingPolymerMappingVariables,
         sim::RingPolymerSimulation{<:NRPMD})
 
     Calculators.evaluate_derivative!(sim.calculator, get_positions(u))
@@ -86,8 +90,8 @@ function acceleration!(dv, u::RingPolymerMappingDynamicals,
     apply_interbead_coupling!(dv, get_positions(u), sim)
 end
 
-function set_mapping_force!(du::RingPolymerMappingDynamicals,
-        u::RingPolymerMappingDynamicals, sim::RingPolymerSimulation{<:NRPMD})
+function set_mapping_force!(du::RingPolymerMappingVariables,
+        u::RingPolymerMappingVariables, sim::RingPolymerSimulation{<:NRPMD})
 
     Calculators.evaluate_potential!(sim.calculator, get_positions(u))
     for i in range(sim.beads)
@@ -98,8 +102,23 @@ function set_mapping_force!(du::RingPolymerMappingDynamicals,
     end
 end
 
-function get_population(u::RingPolymerMappingDynamicals)
+function get_diabatic_population(::RingPolymerSimulation{<:NRPMD}, u::RingPolymerMappingVariables)
     qmap = get_mapping_positions(u)
     pmap = get_mapping_momenta(u)
     sum(qmap.^2 + pmap.^2 .- 1; dims=2) / 2size(qmap, 2)
+end
+
+function NonadiabaticMolecularDynamics.evaluate_hamiltonian(sim::RingPolymerSimulation{<:NRPMD}, u::RingPolymerMappingVariables)
+    r = get_positions(u)
+    v = get_velocities(u)
+    Calculators.evaluate_potential!(sim.calculator, r)
+    V = sim.calculator.potential
+
+    H = get_spring_energy(sim, r) + evaluate_kinetic_energy(sim.atoms.masses, v)
+    for i in range(sim.beads)
+        qmap = get_mapping_positions(u, i)
+        pmap = get_mapping_momenta(u, i)
+        H += 0.5 * (pmap'V[i]*pmap + qmap'V[i]*qmap - tr(V[i]))
+    end
+    H
 end

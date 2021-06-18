@@ -338,3 +338,68 @@ rescale_velocity!(::AbstractSimulation{<:SurfaceHoppingIESH}, u) = true
 create_problem(u0, tspan, sim::AbstractSimulation{<:SurfaceHoppingIESH}) = 
                ODEProblem(motion!, u0, tspan, sim)
 
+function impurity_summary(model::DiabaticModel, R::AbstractMatrix, state::AbstractArray, σ::AbstractArray)
+    """Calculate impurity population according to MiaoSubotnik_JChemPhys_150_041711_2019"""
+
+    eig_vec = zeros(model.n_states,model.n_states)
+
+    eival = zeros(model.n_states)
+    σad = zeros(Complex, model.n_states, model.n_states)
+    tmp = 0
+    σdia = zeros(Complex, model.n_states, model.n_states)
+    eig_array = zeros(4+model.n_states)
+    V = Hermitian(zeros(model.n_states,model.n_states))
+    dvect = zeros(model.n_states)
+    dvect[2] = 1
+    
+    # get potential
+    potential!(model,V,R)
+    eig_vec .= eigvecs(V)
+    ieig = inv(eig_vec)
+    # Get density matrix matrix
+    for i = 1:length(state)
+        eig_array[4 + i] = norm(σ[i,:])
+        for j = 1:length(state)
+            for k in axes(σ,2)
+                σad[i,j] = σad[i,j] + σ[i,k]*σ[j,k]
+            end
+        end
+    end
+
+
+    #Turn into diabatic matrix for impurity population
+    σdia .= eig_vec *σad * ieig
+    eig_array[4] = real(σdia[2,2])^2 + imag(σdia[2,2])^2
+
+    # eig_array[4] = 0
+    # for k in axes(σ,2)
+    #     for i = 1:length(state)
+    #         σad[i,i] = σ[i,k]
+    #     end
+    #     σdia .= 0
+    #     σdia .= eig_vec *σad * ieig
+    #     eig_array[4] = eig_array[4] + real(σdia[2,2])^2 + imag(σdia[2,2])^2
+    # end
+    
+
+    # Get the eigenvectors and values
+    eival .= eigvals(V)
+
+    # save position
+    eig_array[1] = R[1]
+    for i = 1:length(state)
+        # Energy
+        eig_array[2] = eig_array[2] + state[i]*eival[i]
+        # Hopping prob. by hopping array
+        eig_array[3] = eig_array[3] + state[i]
+        
+    end
+
+    # # over electrons. This is adiabatic.
+    # for i in axes(σ, 2)
+    #     eig_array[4] = eig_array[4] + real(σ[2,i])^2 + imag(σ[2,i])^2
+    # end
+
+    # Export an array of eigenvalues with last two elements being hopping prob
+    eig_array = eig_array
+end

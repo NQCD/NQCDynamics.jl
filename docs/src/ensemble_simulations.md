@@ -2,15 +2,13 @@
 
 Typically we'll be interested in computing observables based upon the statistics
 obtained from many trajectories.
-We take advantage of the `EnsembleProblem` interface from `DifferentialEquations.jl` to
-help us with this.
 
 As usual we set up our system, this time we'll be doing FSSH dynamics:
 ```@example ensemble
 using NonadiabaticMolecularDynamics # hide
 
 atoms = NonadiabaticMolecularDynamics.Atoms([:H])
-model = Models.TullyModelOne()
+model = TullyModelOne()
 sim = Simulation{FSSH}(atoms, model; DoFs=1)
 nothing # hide
 ```
@@ -18,29 +16,64 @@ nothing # hide
 When performing ensemble simulations, we provide our initial nuclear distribution in the
 `DynamicalDistribution` type.
 Let's create a distribution with a deterministic momentum of ``10`` a.u. and a
-gaussian position distribution with width 1 centered at ``-5`` a.u.:
+gaussian position distribution with width 1 centered at ``-8`` a.u.:
 ```@example ensemble
 using Distributions: Normal
 
 k = 10
-distribution = InitialConditions.DynamicalDistribution(k / atoms.masses[1], Normal(-5), (1,1))
+v = k / atoms.masses[1]
+r = Normal(-8)
+distribution = InitialConditions.DynamicalDistribution(v, r, (1,1); state=2)
 nothing # hide
 ```
-Recall that the final argument here is required to specific the size of each sample.
-Here we have one atom with one degree of freedom, so the size is `(1,1)`.
+!!! note
+
+    The keyword argument `state` used here is for nonadiabatic simulations and specifies the
+    initial electronic state.
+
+When sampling from a distribution there are two options: sampling randomly, or
+selecting each geometry in order. Here we select randomly:
+```@example ensemble
+selection = Ensembles.RandomSelection(distribution)
+nothing # hide
+```
+
+The ensemble interface allows for specific outputs and reductions
+that apply to these outputs.
+Here we choose to output the populations of each diabatic state and reduce by averaging
+the results over all trajectories.
+```@example ensemble
+output = Ensembles.OutputDiabaticPopulation(sim)
+reduction = Ensembles.MeanReduction()
+nothing # hide
+```
 
 Now we can run the ensemble of trajectories and visualise the surface hopping populations.
 ```@example ensemble
 using Plots
 
-solution = Dynamics.run_ensemble(distribution, (0.0, 3000.0), sim; trajectories=50, output=(:state))
+solution = Ensembles.run_ensemble(sim, (0.0, 3000.0), selection; trajectories=1e3,
+    output=output, reduction=reduction, saveat=10.0)
 
-plt = plot()
-for trajectory in solution
-    plot!(trajectory, :state)
-end
-plt
+plot(0:10:3000, [p[1] for p in solution.u], legend=false)
+plot!(0:10:3000, [p[2] for p in solution.u])
+ylabel!("Population difference")
+xlabel!("Time")
 ```
 
-For ensemble simulations, the result is the same as for a single trajectory, but returned in
-a vector. The solution can then be indexed to extract the information from each trajectory.
+If instead it is preferred to output many quantities for each trajectory, this is
+also possible.
+Here the output is specified in the same way as for single trajectories.
+```@example ensemble
+ensemble = Ensembles.run_ensemble_standard_output(sim, (0.0, 3000.0), selection;
+    output=(:population), trajectories=50)
+
+p = plot(legend=(false))
+for e in ensemble
+    plot!(e.t, [pop[2] for pop in e.population])
+end
+p
+```
+Here we see the population of the second diabatic state for every trajectory.
+This is useful for checking the simulation is providing sensible results
+before scaling up and outputting only the necessary data.

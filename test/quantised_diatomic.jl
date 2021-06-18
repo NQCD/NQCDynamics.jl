@@ -6,7 +6,7 @@ using Unitful
 using UnitfulAtomic
 
 atoms = Atoms([:N, :O])
-model = Models.DiatomicHarmonic()
+model = NonadiabaticModels.DiatomicHarmonic()
 sim = Simulation(atoms, model, Dynamics.Classical())
 
 @testset "calculate_diatomic_energy" begin
@@ -16,7 +16,7 @@ end
 
 @testset "calculate_force_constant" begin
     @test QuantisedDiatomic.calculate_force_constant(sim) ≈ 1
-    model2 = Models.DiatomicHarmonic(r₀=6.3)
+    model2 = NonadiabaticModels.DiatomicHarmonic(r₀=6.3)
     sim2 = Simulation(atoms, model2, Dynamics.Classical())
     @test QuantisedDiatomic.calculate_force_constant(sim2, bond_length=4.0) ≈ 1
 end
