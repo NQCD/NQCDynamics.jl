@@ -84,7 +84,6 @@ get_callbacks(::AbstractSimulation) = nothing
 include("classical.jl")
 include("langevin.jl")
 include("mdef.jl")
-include("SurfaceHopping/wave_iesh.jl")
 include("SurfaceHopping/SurfaceHopping.jl")
 include("fermionic_ring_polymer.jl")
 include("nrpmd.jl")

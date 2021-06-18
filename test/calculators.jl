@@ -32,6 +32,9 @@ end
     Calculators.evaluate_derivative!(calc, rand(1, 1, 10))
     Calculators.eigen!(calc)
     Calculators.transform_derivative!(calc)
+
+    model = NonadiabaticModels.MiaoSubotnik()
+    Calculators.DiabaticCalculator{Float64}(model, 1, 1)
 end
 
 @testset "General constructors" begin
