@@ -149,16 +149,19 @@ function evaluate_hopping_probability!(sim::Simulation{<:wave_IESH}, u, dt)
     prob = sim.method.hopping_probability
     d = sim.calculator.nonadiabatic_coupling
 
-    Akk = calculate_Akj(S, ψ, sim.method.state, sim.method.state)
+    compute_overlap!(S, ψ, sim.method.state)
+    det_current = det(S)
+    Akk = abs2(det_current)
 
+    fill!(prob, zero(eltype(prob)))
     for i in axes(prob, 2) # each electron
         for j in axes(prob, 1) # each basis state
             if j ∉ sim.method.state
                 copyto!(proposed_state, sim.method.state)
                 proposed_state[i] = j
-                Akj = calculate_Akj(S, ψ, sim.method.state, proposed_state)
+                Akj = calculate_Akj(S, ψ, det_current, proposed_state)
                 for I in eachindex(v)
-                    prob[j,i] += 2 * v[I] * real(Akj/Akk) * d[I][sim.method.state[i], proposed_state[i]] * dt
+                    prob[j,i] += 2 * v[I] * real(Akj/Akk) * d[I][sim.method.state[i], j] * dt
                 end
             end
         end
@@ -170,42 +173,36 @@ function evaluate_hopping_probability!(sim::Simulation{<:wave_IESH}, u, dt)
 end
 
 "Equation 17 in Shenvi, Roy, Tully 2009. Uses equations 19 and 20."
-function calculate_Akj(S, ψ, current_state, new_state)
-
-    compute_overlap!(S, ψ, current_state)
-    det_current = det(S)
+function calculate_Akj(S, ψ, detS, new_state)
 
     compute_overlap!(S, ψ, new_state)
     det_new = det(S)
 
-    return det_current*conj(det_new)
+    return detS*conj(det_new)
 end
 
 "Equation 20 in Shenvi, Roy, Tully 2009."
 function compute_overlap!(S::Matrix, ψ, state)
-    for i in axes(S, 2)
-        for j in axes(S, 1)
-            S[j,i] = ψ[state[i],j]
+    for i in axes(S, 2) # each electron
+        for j in axes(S, 1) # each electron
+            S[j,i] = ψ[state[j],i]
         end
     end
     return nothing
 end
 
-"""
-Set up new states for hopping
-"""
 function select_new_state(sim::AbstractSimulation{<:wave_IESH}, u)::Vector{Int}
 
     prob = sim.method.hopping_probability
 
-    randy = rand()
+    random = rand()
     cumulative = 0
     for i in axes(prob, 2) # each electron
         for j in axes(prob, 1) # each basis state
             if j ∉ sim.method.state
                 cumulative += prob[j,i]
-                if randy < cumulative
-                    copyto!(sim.method.new_state, sim.mdethod.state)
+                if random < cumulative
+                    copyto!(sim.method.new_state, sim.method.state)
                     sim.method.new_state[i] = j
                     return sim.method.new_state
                 end
@@ -214,6 +211,21 @@ function select_new_state(sim::AbstractSimulation{<:wave_IESH}, u)::Vector{Int}
     end
 
     return sim.method.state
+end
+
+function get_diabatic_population(sim::Simulation{<:wave_IESH}, u)
+    Calculators.evaluate_potential!(sim.calculator, get_positions(u))
+    Calculators.eigen!(sim.calculator)
+    U = sim.calculator.eigenvectors
+
+    ψ = get_wavefunction_matrix(u)
+    diabatic_ψ = zero(ψ)
+    @views for i in axes(ψ, 2) # each electron
+        diabatic_ψ[:,i] .= U*ψ[:,i]
+    end
+    diabatic_population = sum(abs2.(diabatic_ψ), dims=2)
+
+    return diabatic_population
 end
 
 # function rescale_velocity!(sim::AbstractSimulation{<:wave_IESH}, u)::Bool

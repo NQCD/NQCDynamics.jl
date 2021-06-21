@@ -63,13 +63,15 @@ function random_force! end
 
 Solve a single trajectory.
 """
-function run_trajectory(u0::DynamicalVariables, tspan::Tuple, sim::AbstractSimulation; output=(:u,), saveat=[], callback=nothing, kwargs...)
+function run_trajectory(u0::DynamicalVariables, tspan::Tuple, sim::AbstractSimulation;
+        output=(:u,), saveat=[], callback=nothing, algorithm=select_algorithm(sim),
+        kwargs...)
     stripped_kwargs = austrip_kwargs(;kwargs...)
     saving_callback, vals = create_saving_callback(output; saveat=austrip.(saveat))
     callback_set = CallbackSet(callback, saving_callback, get_callbacks(sim))
     problem = create_problem(u0, austrip.(tspan), sim)
     problem = remake(problem, callback=callback_set)
-    solve(problem, select_algorithm(sim); stripped_kwargs...)
+    solve(problem, algorithm; stripped_kwargs...)
     Table(t=vals.t, vals.saveval)
 end
 
