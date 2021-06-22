@@ -19,21 +19,19 @@ abstract type SurfaceHopping <: Method end
 function motion!(du, u, sim::AbstractSimulation{<:SurfaceHopping}, t)
     dr = get_positions(du)
     dv = get_velocities(du)
-    dσ = get_density_matrix(du)
-
+    dσ = get_quantum_subsystem(du)
 
     r = get_positions(u)
     v = get_velocities(u)
-    σ = get_density_matrix(u)
+    σ = get_quantum_subsystem(u)
 
     velocity!(dr, v, r, sim, t)
-    # src/Calculators/Calculators.jl
     Calculators.update_electronics!(sim.calculator, r)
     acceleration!(dv, v, r, sim, t, sim.method.state)
-    set_density_matrix_derivative!(dσ, v, σ, sim)
+    set_quantum_derivative!(dσ, v, σ, sim)
 end
 
-function set_density_matrix_derivative!(dσ, v, σ, sim::Simulation{<:SurfaceHopping})
+function set_quantum_derivative!(dσ, v, σ, sim::Simulation{<:SurfaceHopping})
     V = sim.method.density_propagator
 
     V .= diagm(sim.calculator.eigenvalues)
@@ -47,22 +45,25 @@ function set_density_matrix_derivative!(dσ, v, σ, sim::Simulation{<:SurfaceHop
 end
 
 function check_hop!(u, t, integrator)::Bool
-    evaluate_hopping_probability!(
-        integrator.p,
-        u,
-        get_proposed_dt(integrator))
-
-    integrator.p.method.new_state = select_new_state(integrator.p, u)
-    return integrator.p.method.new_state != integrator.p.method.state
+    sim = integrator.p
+    evaluate_hopping_probability!(sim, u, get_proposed_dt(integrator))
+    set_new_state!(sim.method, select_new_state(sim, u))
+    return sim.method.new_state != sim.method.state
 end
 
 function execute_hop!(integrator)
-    if rescale_velocity!(integrator.p, integrator.u)
-        integrator.u.state = integrator.p.method.new_state
-        integrator.p.method.state = integrator.p.method.new_state
+    sim = integrator.p
+    if rescale_velocity!(sim, integrator.u)
+        set_state!(integrator.u, sim.method.new_state)
+        set_state!(sim.method, sim.method.new_state)
     end
     return nothing
 end
+
+set_state!(container, new_state::Integer) = container.state = new_state
+set_state!(container, new_state::AbstractVector) = copyto!(container.state, new_state)
+set_new_state!(container, new_state::Integer) = container.new_state = new_state
+set_new_state!(container, new_state::AbstractVector) = copyto!(container.new_state, new_state)
 
 const HoppingCallback = DiscreteCallback(check_hop!, execute_hop!; save_positions=(false, false))
 get_callbacks(::AbstractSimulation{<:SurfaceHopping}) = HoppingCallback
@@ -87,12 +88,11 @@ This only needs to be implemented if the velocity should be modified during a ho
 rescale_velocity!(::AbstractSimulation{<:SurfaceHopping}, u) = true
 
 function create_problem(u0, tspan, sim::AbstractSimulation{<:SurfaceHopping})
-    sim.method.state = u0.state
+    set_state!(sim.method, u0.state)
     ODEProblem(motion!, u0, tspan, sim)
 end
 
 include("surface_hopping_variables.jl")
 include("fssh.jl")
-# include("iesh.jl")
 include("wave_iesh.jl")
 include("rpsh.jl")

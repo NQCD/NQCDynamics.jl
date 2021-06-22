@@ -36,7 +36,7 @@ Evaluates the probability of hopping from the current state to all other states
 """
 function evaluate_hopping_probability!(sim::Simulation{<:FSSH}, u, dt)
     v = get_velocities(u)
-    σ = get_density_matrix(u)
+    σ = get_quantum_subsystem(u)
     s = sim.method.state
     d = sim.calculator.nonadiabatic_coupling
 
@@ -87,7 +87,7 @@ function rescale_velocity!(sim::AbstractSimulation{<:FSSH}, u)::Bool
     return true
 end
 
-function evaluate_a_and_b(sim::Simulation{<:FSSH}, velocity, new_state, old_state)
+function evaluate_a_and_b(sim::Simulation{<:SurfaceHopping}, velocity, new_state, old_state)
     a = zeros(length(sim.atoms))
     b = zero(a)
     @views for i in range(sim.atoms)
@@ -98,7 +98,7 @@ function evaluate_a_and_b(sim::Simulation{<:FSSH}, velocity, new_state, old_stat
     return (a, b)
 end
 
-function perform_rescaling!(sim::Simulation{<:FSSH}, velocity, velocity_rescale, new_state, old_state)
+function perform_rescaling!(sim::Simulation{<:SurfaceHopping}, velocity, velocity_rescale, new_state, old_state)
     for i in range(sim.atoms)
         coupling = [sim.calculator.nonadiabatic_coupling[j,i][new_state, old_state] for j=1:sim.DoFs]
         velocity[:,i] .-= velocity_rescale[i] .* coupling ./ sim.atoms.masses[i]
@@ -120,7 +120,7 @@ function get_diabatic_population(sim::Simulation{<:FSSH}, u)
     Calculators.eigen!(sim.calculator)
     U = sim.calculator.eigenvectors
 
-    σ = copy(get_density_matrix(u))
+    σ = copy(get_quantum_subsystem(u))
     σ[diagind(σ)] .= 0
     σ[sim.method.state, sim.method.state] = 1
 

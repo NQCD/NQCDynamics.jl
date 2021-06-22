@@ -12,7 +12,7 @@ function acceleration!(dv, v, r, sim::RingPolymerSimulation{<:FSSH}, t, state)
     return nothing
 end
 
-function set_density_matrix_derivative!(dσ, v, σ, sim::RingPolymerSimulation{<:FSSH})
+function set_quantum_derivative!(dσ, v, σ, sim::RingPolymerSimulation{<:FSSH})
     V = sim.method.density_propagator
 
     V .= diagm(sum(sim.calculator.eigenvalues))
@@ -28,7 +28,7 @@ end
 
 function evaluate_hopping_probability!(sim::RingPolymerSimulation{<:FSSH}, u, dt)
     v = get_velocities(u)
-    σ = get_density_matrix(u)
+    σ = get_quantum_subsystem(u)
     s = u.state
     d = sim.calculator.nonadiabatic_coupling
 
@@ -103,7 +103,7 @@ function get_diabatic_population(sim::RingPolymerSimulation{<:FSSH}, u)
     Models.potential!(sim.calculator.model, sim.calculator.potential[1], dropdims(mean(get_positions(u); dims=3), dims=3))
     vals, U = eigen!(sim.calculator.potential[1])
 
-    σ = copy(get_density_matrix(u))
+    σ = copy(get_quantum_subsystem(u))
     σ[diagind(σ)] .= 0
     σ[u.state, u.state] = 1
 
