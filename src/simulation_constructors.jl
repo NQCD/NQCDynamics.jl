@@ -29,12 +29,8 @@ Simulation{FSSH}(atoms::Atoms{S,T}, model::Model; kwargs...) where {S,T} =
     Simulation(atoms, model, FSSH{T}(model.n_states); kwargs...)
 
 # IESH is defined in src/Dynamics/SurfaceHopping
-# Simulation{IESH}(atoms::Atoms{S,T}, model::Model; kwargs...) where {S,T} =
-#     Simulation(atoms, model, IESH{T}(model.n_states); kwargs...)
-
-# wave_IESH is defined in src/Dynamics/SurfaceHopping
-Simulation{wave_IESH}(atoms::Atoms{S,T}, model::Model; n_electrons, kwargs...) where {S,T} =
-    Simulation(atoms, model, wave_IESH{T}(model.n_states, n_electrons); kwargs...)
+Simulation{IESH}(atoms::Atoms{S,T}, model::Model; n_electrons, kwargs...) where {S,T} =
+    Simulation(atoms, model, IESH{T}(model.n_states, n_electrons); kwargs...)
 
 RingPolymerSimulation{FSSH}(atoms::Atoms{S,T}, model::Model, n_beads::Integer; kwargs...) where {S,T} =
     RingPolymerSimulation(atoms, model, FSSH{T}(model.n_states), n_beads; kwargs...)

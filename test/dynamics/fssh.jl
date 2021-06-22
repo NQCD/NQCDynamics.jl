@@ -14,7 +14,7 @@ atoms = Atoms(1)
     u = SurfaceHoppingVariables(v, r, 2, 1)
     du = zero(u)
 
-    @test Dynamics.get_density_matrix(u) ≈ Complex.([1 0; 0 0])
+    @test Dynamics.get_quantum_subsystem(u) ≈ Complex.([1 0; 0 0])
 
     Dynamics.motion!(du, u, sim, 0.0)
 
@@ -25,9 +25,9 @@ atoms = Atoms(1)
     integrator = init(problem, Tsit5(), callback=Dynamics.HoppingCallback)
     Dynamics.evaluate_hopping_probability!(sim, u, get_proposed_dt(integrator))
 
-    σ = get_density_matrix(u)
+    σ = get_quantum_subsystem(u)
     dσ = zero(σ)
-    Dynamics.set_density_matrix_derivative!(dσ, v, σ, sim)
+    Dynamics.set_quantum_derivative!(dσ, v, σ, sim)
 
     @testset "get_diabatic_population" begin
         population = Dynamics.get_diabatic_population(sim, u)

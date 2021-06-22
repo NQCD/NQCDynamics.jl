@@ -1,5 +1,5 @@
 export SurfaceHoppingVariables
-export get_density_matrix
+export get_quantum_subsystem
 using StatsBase: sample, Weights
 
 
@@ -32,14 +32,4 @@ function SurfaceHoppingVariables(sim::Simulation{<:SurfaceHopping}, v, r, state:
     SurfaceHoppingVariables(ArrayPartition(v, r, σ), adiabatic_state)
 end
 
-get_density_matrix(u::SurfaceHoppingVariables) = u.x.x[3]
-
-function SurfaceHoppingVariables(v::AbstractArray, r::AbstractArray, n_states::Integer, state::Vector{Int})
-    σ = zeros(Complex{eltype(r)}, n_states*n_states, n_states*n_states)
-    for i=1:(n_states/2)
-        c = (i-1)*n_states + i
-        σ[Int(c), Int(c)] = 1
-    end
-    #println(σ)
-    SurfaceHoppingVariables(ArrayPartition(v, r, σ), state)
-end
+get_quantum_subsystem(u::SurfaceHoppingVariables) = u.x.x[3]
