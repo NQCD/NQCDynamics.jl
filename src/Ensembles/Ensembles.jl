@@ -66,7 +66,6 @@ function run_ensemble(
     stripped_kwargs = austrip_kwargs(;kwargs...)
 
     u0 = select_u0(sim, rand(selection.distribution)..., selection.distribution.state, selection.distribution.type)
-    println("     HELLLLOOOO 1      ")
     problem = Dynamics.create_problem(u0, austrip.(tspan), sim)
     problem = remake(problem, callback=Dynamics.get_callbacks(sim))
 
