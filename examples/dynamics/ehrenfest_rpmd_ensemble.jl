@@ -1,6 +1,7 @@
 using NonadiabaticMolecularDynamics
 using Plots
 using Unitful
+using Distributions
 
 n_beads = 5
 atoms = Atoms([:H])
@@ -10,8 +11,8 @@ sim2 = Simulation{Ehrenfest}(atoms, TullyModelTwo(); DoFs=1)
 sim3 = RingPolymerSimulation{Ehrenfest}(atoms, TullyModelOne(), n_beads; DoFs=1) #, temperature=10u"K"
 sim4 = RingPolymerSimulation{Ehrenfest}(atoms, TullyModelTwo(), n_beads; DoFs=1)
 
-r = fill(-5.0, sim1.DoFs, length(sim1.atoms))
-rr = RingPolymerArray(fill(-5.0, sim3.DoFs, length(sim3.atoms), n_beads))
+r = fill(Normal(-5.0), sim1.DoFs, length(sim1.atoms))
+rr = RingPolymerArray(fill(Normal(-5.0), sim3.DoFs, length(sim3.atoms), n_beads))
 
 v1 = fill(8.9, sim1.DoFs, length(sim1.atoms)) ./ sim1.atoms.masses[1]
 v2 = fill(16, sim2.DoFs, length(sim2.atoms)) ./ sim2.atoms.masses[1]
@@ -25,8 +26,8 @@ output4 = Ensembles.OutputDiabaticPopulation(sim4)
 
 distribution1 = InitialConditions.DynamicalDistribution(v1,r,(1,1);state=1,type=:diabatic)
 distribution2 = InitialConditions.DynamicalDistribution(v2,r,(1,1);state=1,type=:diabatic)
-distribution3 = InitialConditions.DynamicalDistribution(vv1,rr,(1,1);state=1,type=:diabatic)
-distribution4 = InitialConditions.DynamicalDistribution(vv2,rr,(1,1);state=1,type=:diabatic)
+distribution3 = InitialConditions.DynamicalDistribution(vv1,rr,(1,1, n_beads);state=1,type=:diabatic)
+distribution4 = InitialConditions.DynamicalDistribution(vv2,rr,(1,1, n_beads);state=1,type=:diabatic)
 
 selection1 = Ensembles.RandomSelection(distribution1)
 selection2 = Ensembles.RandomSelection(distribution2)
