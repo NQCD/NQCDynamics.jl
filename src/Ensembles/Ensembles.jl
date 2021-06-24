@@ -31,7 +31,7 @@ function select_u0(sim::AbstractSimulation{<:FSSH}, v, r, state, type)
     end
 end
 
-function select_u0(sim::Simulation{<:Ehrenfest}, v, r, state, type)
+function select_u0(sim::AbstractSimulation{<:Ehrenfest}, v, r, state, type)
     if type == :adiabatic
         return EhrenfestVariables(v, r, sim.calculator.model.n_states, state)
     elseif type == :diabatic
@@ -44,6 +44,10 @@ end
 
 function select_u0(sim::RingPolymerSimulation{<:NRPMD}, v, r, state, type)
     RingPolymerMappingVariables(v, r, sim.calculator.model.n_states, state)
+end
+
+function select_u0(sim::RingPolymerSimulation{<:Ehrenfest}, v, r, state, type)
+    EhrenfestVariables(v, r, sim.calculator.model.n_states, state)
 end
 
 include("selections.jl")
@@ -62,6 +66,7 @@ function run_ensemble(
     stripped_kwargs = austrip_kwargs(;kwargs...)
 
     u0 = select_u0(sim, rand(selection.distribution)..., selection.distribution.state, selection.distribution.type)
+    println("     HELLLLOOOO 1      ")
     problem = Dynamics.create_problem(u0, austrip.(tspan), sim)
     problem = remake(problem, callback=Dynamics.get_callbacks(sim))
 

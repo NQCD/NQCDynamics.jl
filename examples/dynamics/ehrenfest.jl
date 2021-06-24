@@ -5,8 +5,8 @@ using Unitful
 
 
 atoms = Atoms([:H])
-sim1 = Simulation{Ehrenfest}(atoms, Models.TullyModelOne(); DoFs=1)
-sim2 = Simulation{Ehrenfest}(atoms, Models.TullyModelTwo(); DoFs=1)
+sim1 = Simulation{Ehrenfest}(atoms, TullyModelOne(); DoFs=1)
+sim2 = Simulation{Ehrenfest}(atoms, TullyModelTwo(); DoFs=1)
 r = fill(-5.0, sim1.DoFs, length(sim1.atoms))
 v1 = fill(8.9, sim1.DoFs, length(sim1.atoms)) ./ sim1.atoms.masses[1]
 v2 = fill(16, sim2.DoFs, length(sim2.atoms)) ./ sim2.atoms.masses[1]

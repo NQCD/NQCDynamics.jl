@@ -31,8 +31,8 @@ function temperature_function(t)
 end
 
 println("Initialize...")
-# model = Models.EANN_H₂Ag(model_path, atoms)
-model = Models.FrictionHarmonic()
+# model = EANN_H₂Ag(model_path, atoms)
+model = FrictionHarmonic()
 set_periodicity!(cell, [true, true, false])
 sim = Simulation{TwoTemperatureMDEF}(atoms, model, temperature_function; cell=cell)
 z = ClassicalDynamicals(vel_0, positions)
