@@ -21,21 +21,21 @@ z3 = EhrenfestVariables(vv1, rr, 2, 1)
 z4 = EhrenfestVariables(vv2, rr, 2, 1)
 
 #model 1
-#solution1 = Dynamics.run_trajectory(z1, (0.0, 2500.0), sim1; output=(:population))
-#plot1 = plot(solution1.t, [p[1] for p in solution1.population], title="Tully model 1", label="Ehrenfest P1", legend=:right)
-#plot!(solution1.t, [p[2] for p in solution1.population], label="Ehrenfest P2")
+solution1 = Dynamics.run_trajectory(z1, (0.0, 2500.0), sim1; output=(:population))
+plot1 = plot(solution1.t, [p[1] for p in solution1.population], title="Tully model 1", label="Ehrenfest P1", legend=:right)
+plot!(solution1.t, [p[2] for p in solution1.population], label="Ehrenfest P2")
 
 solution3 = Dynamics.run_trajectory(z3, (0.0, 2500.0), sim3; output=(:population))
 plot!(solution3.t, [p[1] for p in solution3.population], label="Ehrenfest RPMD P1")
 plot!(solution3.t, [p[2] for p in solution3.population], label="Ehrenfest RPMD P2")
 
 #model 2
-#solution2 = Dynamics.run_trajectory(z2, (0.0, 2500.0), sim2; output=(:population))
-#plot2 = plot(solution2.t, [p[1] for p in solution2.population], title="Tully model 2", label="Ehrenfest P1", legend=:right)
-#plot!(solution2.t, [p[2] for p in solution2.population], label="Ehrenfest P2")
+solution2 = Dynamics.run_trajectory(z2, (0.0, 2500.0), sim2; output=(:population))
+plot2 = plot(solution2.t, [p[1] for p in solution2.population], title="Tully model 2", label="Ehrenfest P1", legend=:right)
+plot!(solution2.t, [p[2] for p in solution2.population], label="Ehrenfest P2")
 
-#solution4 = Dynamics.run_trajectory(z4, (0.0, 2500.0), sim4; output=(:population))
-#plot!(solution4.t, [p[1] for p in solution4.population], label="Ehrenfest RPMD P1")
-#plot!(solution4.t, [p[2] for p in solution4.population], label="Ehrenfest RPMD P2")
+solution4 = Dynamics.run_trajectory(z4, (0.0, 2500.0), sim4; output=(:population))
+plot!(solution4.t, [p[1] for p in solution4.population], label="Ehrenfest RPMD P1")
+plot!(solution4.t, [p[2] for p in solution4.population], label="Ehrenfest RPMD P2")
 
-#plot(plot1, plot2, layout = (1, 2), size=(1000,400))
+plot(plot1, plot2, layout = (1, 2), size=(1000,400))
