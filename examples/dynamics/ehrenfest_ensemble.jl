@@ -4,7 +4,7 @@ using Unitful
 using UnitfulAtomic
 using Distributions
 
-model = Models.TullyModelOne()
+model = TullyModelOne()
 atoms = Atoms([:H])
 k = 8.9 
 sim = Simulation{Ehrenfest}(atoms, model; DoFs=1)

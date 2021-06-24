@@ -38,12 +38,12 @@ output_scattering_ehrenfest = zeros(2, 2, length(momenta))
     output_scattering_ehrenfest[:,:,i] .= solution_ehrenfest.u
 end
 
-plot_transmition1 = plot(momenta, output_scattering_ehrenfest[1,2,:], title="Transmission 1", label="Ehrenfest", legend=:topleft)
+plot_transmition1 = plot(momenta, output_scattering_ehrenfest[1,2,:], title="Transmission 1", label="Ehrenfest", legend=:topright)
 plot!(momenta, output_scattering_fssh[1,2,:], label="FSSH")
 ylabel!("Probability")
 xlabel!("k / a.u.")
 
-plot_scattering1 = plot(momenta, output_scattering_ehrenfest[1,1,:], title="Scattering 1", label="Ehrenfest", legend=:bottomleft)
+plot_scattering1 = plot(momenta, output_scattering_ehrenfest[1,1,:], title="Scattering 1", label="Ehrenfest", legend=:topright)
 plot!(momenta, output_scattering_fssh[1,1,:], label="FSSH")
 ylabel!("Probability")
 xlabel!("k / a.u.")
@@ -53,7 +53,7 @@ plot!(momenta, output_scattering_fssh[2,2,:], label="FSSH")
 ylabel!("Probability")
 xlabel!("k / a.u.")
 
-plot_scattering2 = plot(momenta, output_scattering_ehrenfest[2,1,:], title="Scattering 2", label="Ehrenfest", legend=:topleft)
+plot_scattering2 = plot(momenta, output_scattering_ehrenfest[2,1,:], title="Scattering 2", label="Ehrenfest", legend=:topright)
 plot!(momenta, output_scattering_fssh[2,1,:], label="FSSH")
 ylabel!("Probability")
 xlabel!("k / a.u.")
