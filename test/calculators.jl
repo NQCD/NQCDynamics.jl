@@ -29,7 +29,9 @@ end
     
     calc = Calculators.RingPolymerDiabaticCalculator{Float64}(model, 1, 1, 10)
     Calculators.evaluate_potential!(calc, rand(1, 1, 10))
+    Calculators.evaluate_centroid_potential!(calc, rand(1, 1, 10))
     Calculators.evaluate_derivative!(calc, rand(1, 1, 10))
+    Calculators.evaluate_centroid_derivative!(calc, rand(1, 1, 10))
     Calculators.eigen!(calc)
     Calculators.transform_derivative!(calc)
 end

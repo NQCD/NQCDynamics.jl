@@ -17,6 +17,7 @@ module Calculators
 
 using LinearAlgebra
 using NonadiabaticModels
+using ..NonadiabaticMolecularDynamics: get_centroid
 
 """
     AbstractCalculator{M<:Model}
@@ -182,6 +183,10 @@ function evaluate_potential!(calc::AbstractCalculator, R::AbstractArray{T,3}) wh
     end
 end
 
+function evaluate_centroid_potential!(calc::AbstractCalculator, R::AbstractArray{T,3}) where {T}
+    potential!(calc.model, calc.potential[1], get_centroid(R))
+end
+
 function evaluate_derivative!(calc::AbstractCalculator, R::AbstractMatrix)
     derivative!(calc.model, calc.derivative, R)
 end
@@ -190,6 +195,10 @@ function evaluate_derivative!(calc::AbstractCalculator, R::AbstractArray{T,3}) w
     @views for i in axes(R, 3)
         derivative!(calc.model, calc.derivative[:,:,i], R[:,:,i])
     end
+end
+
+function evaluate_centroid_derivative!(calc::AbstractCalculator, R::AbstractArray{T,3}) where {T}
+    @views derivative!(calc.model, calc.derivative[:,:,1], get_centroid(R))
 end
 
 function evaluate_friction!(calc::AbstractFrictionCalculator, R::AbstractMatrix)
