@@ -6,19 +6,20 @@ export transform_to_normal_modes!
 export transform_from_normal_modes!
 
 struct RingPolymerParameters{T<:AbstractFloat}
-    n_beads::UInt
+    n_beads::Int
     ω_n::T
-    springs::Symmetric{T}
+    ω_n²::T
+    springs::Symmetric{T,Matrix{T}}
     normal_mode_springs::Vector{T}
     U::Matrix{T}
-    quantum_atoms::Vector{UInt}
+    quantum_atoms::Vector{Int}
     tmp::Vector{T}
     function RingPolymerParameters{T}(
         n_beads::Integer, temperature::Real,
         quantum_atoms::Vector{<:Integer}) where {T<:AbstractFloat}
 
         ω_n = n_beads * temperature
-        new(n_beads, ω_n,
+        new(n_beads, ω_n, ω_n^2,
             get_spring_matrix(n_beads, ω_n),
             get_normal_mode_springs(n_beads, ω_n), 
             get_normal_mode_transformation(n_beads),
