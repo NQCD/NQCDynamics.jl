@@ -51,8 +51,8 @@ end
 
 struct DiabaticCalculator{T,M} <: AbstractDiabaticCalculator{M}
     model::M
-    potential::Hermitian{T}
-    derivative::Matrix{Hermitian{T}}
+    potential::Hermitian{T,Matrix{T}}
+    derivative::Matrix{Hermitian{T,Matrix{T}}}
     eigenvalues::Vector{T}
     eigenvectors::Matrix{T}
     adiabatic_derivative::Matrix{Matrix{T}}
@@ -77,8 +77,8 @@ end
 
 struct RingPolymerDiabaticCalculator{T,M} <: AbstractDiabaticCalculator{M}
     model::M
-    potential::Vector{Hermitian{T}}
-    derivative::Array{Hermitian{T},3}
+    potential::Vector{Hermitian{T,Matrix{T}}}
+    derivative::Array{Hermitian{T,Matrix{T}},3}
     eigenvalues::Vector{Vector{T}}
     eigenvectors::Vector{Matrix{T}}
     adiabatic_derivative::Array{Matrix{T},3}
@@ -123,8 +123,8 @@ end
 
 struct DiabaticFrictionCalculator{T,M} <: AbstractDiabaticCalculator{M}
     model::M
-    potential::Hermitian{T}
-    derivative::Matrix{Hermitian{T}}
+    potential::Hermitian{T,Matrix{T}}
+    derivative::Matrix{Hermitian{T,Matrix{T}}}
     eigenvalues::Vector{T}
     eigenvectors::Matrix{T}
     adiabatic_derivative::Matrix{Matrix{T}}
