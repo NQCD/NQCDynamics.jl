@@ -273,7 +273,8 @@ function transform_derivative!(calc::RingPolymerDiabaticCalculator)
     for i in axes(calc.derivative, 3) # Beads
         for j in axes(calc.derivative, 2) # Atoms
             for k in axes(calc.derivative, 1) # DoFs
-                calc.adiabatic_derivative[k,j,i] .= calc.eigenvectors[i]' * calc.derivative[k,j,i] * calc.eigenvectors[i]
+                mul!(calc.tmp_mat, calc.derivative[k,j,i], calc.eigenvectors[i])
+                mul!(calc.adiabatic_derivative[k,j,i], calc.eigenvectors[i]', calc.tmp_mat)
             end
         end
     end
@@ -285,7 +286,7 @@ function evaluate_nonadiabatic_coupling!(calc::AbstractDiabaticCalculator)
 end
 
 function evaluate_nonadiabatic_coupling!(calc::RingPolymerDiabaticCalculator)
-    for i in axes(calc.nonadiabatic_coupling, 3) # Beads
+    @views for i in axes(calc.nonadiabatic_coupling, 3) # Beads
         evaluate_nonadiabatic_coupling!.(calc.nonadiabatic_coupling[:,:,i], calc.adiabatic_derivative[:,:,i],
                                         Ref(calc.eigenvalues[i]))
     end
