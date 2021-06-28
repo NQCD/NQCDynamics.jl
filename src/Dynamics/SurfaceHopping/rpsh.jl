@@ -100,7 +100,7 @@ function calculate_potential_energy_change(calc::RingPolymerDiabaticCalculator, 
 end
 
 function get_diabatic_population(sim::RingPolymerSimulation{<:FSSH}, u)
-    Models.potential!(sim.calculator.model, sim.calculator.potential[1], dropdims(mean(get_positions(u); dims=3), dims=3))
+    potential!(sim.calculator.model, sim.calculator.potential[1], dropdims(mean(get_positions(u); dims=3), dims=3))
     vals, U = eigen!(sim.calculator.potential[1])
 
     σ = copy(get_density_matrix(u))

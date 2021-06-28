@@ -50,6 +50,10 @@ function select_u0(sim::RingPolymerSimulation{<:Ehrenfest}, v, r, state, type)
     EhrenfestVariables(v, r, sim.calculator.model.n_states, state)
 end
 
+function select_u0(sim::RingPolymerSimulation{<:FSSH}, v, r, state, type)
+    SurfaceHoppingVariables(v, r, sim.calculator.model.n_states, state)
+end
+
 include("selections.jl")
 include("reductions.jl")
 include("outputs.jl")

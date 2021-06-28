@@ -3,7 +3,7 @@ using Plots
 using Unitful
 n_beads = 5
 
-atoms = Atoms([:H])
+atoms = Atoms(2000)
 sim1 = Simulation{Ehrenfest}(atoms, TullyModelOne(); DoFs=1)
 sim2 = Simulation{Ehrenfest}(atoms, TullyModelTwo(); DoFs=1)
 r = fill(-5.0, sim1.DoFs, length(sim1.atoms))
@@ -11,9 +11,11 @@ v1 = fill(8.9, sim1.DoFs, length(sim1.atoms)) ./ sim1.atoms.masses[1]
 v2 = fill(16, sim2.DoFs, length(sim2.atoms)) ./ sim2.atoms.masses[1]
 z1 = EhrenfestVariables(v1, r, 2, 1)
 z2 = EhrenfestVariables(v2, r, 2, 1)
+e1=(k1^2)/(2*atoms.masses[1])
+e2=(k2^2)/(2*atoms.masses[1])
 
-sim3 = RingPolymerSimulation{Ehrenfest}(atoms, TullyModelOne(), n_beads; DoFs=1) #, temperature=10u"K"
-sim4 = RingPolymerSimulation{Ehrenfest}(atoms, TullyModelTwo(), n_beads; DoFs=1)
+sim3 = RingPolymerSimulation{Ehrenfest}(atoms, TullyModelOne(), n_beads; DoFs=1, temperature=e1)
+sim4 = RingPolymerSimulation{Ehrenfest}(atoms, TullyModelTwo(), n_beads; DoFs=1, temperature=e2)
 rr = RingPolymerArray(fill(-5.0, sim3.DoFs, length(sim3.atoms), n_beads))
 vv1 = RingPolymerArray(fill(8.9, sim3.DoFs, length(sim3.atoms), n_beads) ./ sim3.atoms.masses[1])
 vv2 = RingPolymerArray(fill(16, sim4.DoFs, length(sim4.atoms), n_beads) ./ sim4.atoms.masses[1])

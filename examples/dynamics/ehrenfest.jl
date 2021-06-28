@@ -4,7 +4,7 @@ using Unitful
 
 
 
-atoms = Atoms([:H])
+atoms = Atoms(2000)
 sim1 = Simulation{Ehrenfest}(atoms, TullyModelOne(); DoFs=1)
 sim2 = Simulation{Ehrenfest}(atoms, TullyModelTwo(); DoFs=1)
 r = fill(-5.0, sim1.DoFs, length(sim1.atoms))
