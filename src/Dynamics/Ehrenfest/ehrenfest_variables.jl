@@ -30,8 +30,8 @@ end
 
 function EhrenfestVariables(sim::RingPolymerSimulation{<:AbstractEhrenfest}, v, r, state::Integer)
     n_states = sim.calculator.model.n_states
-    potential!(sim.calculator.model, sim.calculator.potential[1], dropdims(mean(r; dims=3), dims=3))
-    vals, U = eigen!(sim.calculator.potential[1])
+    Calculators.evaluate_centroid_potential!(sim.calculator, r)
+    U = eigvecs(sim.calculator.potential[1])
 
     diabatic_density = zeros(Complex{eltype(r)}, n_states, n_states)
     diabatic_density[state, state] = 1
