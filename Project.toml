@@ -41,6 +41,7 @@ UnitfulRecipes = "42071c24-d89e-48dd-8a24-8a12d9b8861f"
 DiffEqBase = ">= 6.58.0"
 SciMLBase = ">= 1.7.3"
 StochasticDiffEq = ">= 6.33.1"
+NonadiabaticModels = ">= 0.4.0"
 
 [extras]
 DiffEqDevTools = "f3b72e0c-5b89-59e1-b016-84e28bfd966d"
