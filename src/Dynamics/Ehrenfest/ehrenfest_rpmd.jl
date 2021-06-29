@@ -26,7 +26,7 @@ function set_density_matrix_derivative!(dσ, v, σ, sim::RingPolymerSimulation{<
 end
 
 function get_diabatic_population(sim::RingPolymerSimulation{<:Ehrenfest}, u)
-    potential!(sim.calculator.model, sim.calculator.potential[1], dropdims(mean(get_positions(u); dims=3), dims=3))
+    Calculators.evaluate_centroid_potential!(sim.calculator, get_positions(u))
     vals, U = eigen!(sim.calculator.potential[1])
 
     σ = get_density_matrix(u)
