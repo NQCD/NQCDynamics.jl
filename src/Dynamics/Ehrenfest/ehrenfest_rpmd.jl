@@ -27,7 +27,7 @@ end
 
 function get_diabatic_population(sim::RingPolymerSimulation{<:Ehrenfest}, u)
     Calculators.evaluate_centroid_potential!(sim.calculator, get_positions(u))
-    vals, U = eigen!(sim.calculator.potential[1])
+    U = eigvecs(sim.calculator.potential[1])
 
     σ = get_density_matrix(u)
     return real.(diag(U * σ * U'))
