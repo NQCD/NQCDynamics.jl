@@ -101,7 +101,7 @@ end
 
 function get_diabatic_population(sim::RingPolymerSimulation{<:FSSH}, u)
     Calculators.evaluate_centroid_potential!(sim.calculator, get_positions(u))
-    vals, U = eigen!(sim.calculator.potential[1])
+    U = eigvecs(sim.calculator.potential[1])
 
     σ = copy(get_density_matrix(u))
     σ[diagind(σ)] .= 0
