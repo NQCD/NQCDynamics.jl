@@ -40,12 +40,16 @@ velocity!(dr, v, r, sim, t) = dr .= v
 """
 function acceleration!(dv, v, r, sim::AbstractSimulation, t)
     Calculators.evaluate_derivative!(sim.calculator, r)
-    dv .= -sim.calculator.derivative ./ sim.atoms.masses'
+    dv .= -sim.calculator.derivative
+    divide_by_mass!(dv, sim.atoms.masses)
 end
+
+divide_by_mass!(dv, masses) = dv ./= masses'
 
 function ring_polymer_acceleration!(dv, v, r, sim::RingPolymerSimulation, t)
     Calculators.evaluate_derivative!(sim.calculator, r)
-    dv .= -sim.calculator.derivative ./ sim.atoms.masses'
+    dv .= -sim.calculator.derivative
+    divide_by_mass!(dv, sim.atoms.masses)
     apply_interbead_coupling!(dv, r, sim)
 end
 
