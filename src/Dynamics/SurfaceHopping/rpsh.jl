@@ -100,8 +100,8 @@ function calculate_potential_energy_change(calc::RingPolymerDiabaticCalculator, 
 end
 
 function get_diabatic_population(sim::RingPolymerSimulation{<:FSSH}, u)
-    potential!(sim.calculator.model, sim.calculator.potential[1], dropdims(mean(get_positions(u); dims=3), dims=3))
-    vals, U = eigen!(sim.calculator.potential[1])
+    Calculators.evaluate_centroid_potential!(sim.calculator, get_positions(u))
+    U = eigvecs(sim.calculator.potential[1])
 
     σ = copy(get_density_matrix(u))
     σ[diagind(σ)] .= 0

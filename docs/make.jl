@@ -9,7 +9,7 @@ doctestsetup = quote
     using NonadiabaticModels
 end 
 DocMeta.setdocmeta!(NonadiabaticMolecularDynamics, :DocTestSetup, doctestsetup; recursive=true)
-DocMeta.setdocmeta!(NonadiabaticModels, :DocTestSetup, :(using NonadiabaticModels); recursive=true)
+DocMeta.setdocmeta!(NonadiabaticModels, :DocTestSetup, :(using NonadiabaticModels, Symbolics); recursive=true)
 
 @time makedocs(sitename="NonadiabaticMolecularDynamics.jl",
     modules=[NonadiabaticMolecularDynamics, NonadiabaticModels, CubeLDFAModel],
