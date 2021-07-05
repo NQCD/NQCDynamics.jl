@@ -1,12 +1,12 @@
 
 function acceleration!(dv, v, r, sim::RingPolymerSimulation{<:Ehrenfest}, t, σ)
-    for i in axes(dv, 3)
-        for j in axes(dv, 2)
-	    for k in axes(dv, 1)
-		dv[k,j,i] = -real(sum(sim.calculator.adiabatic_derivative[k,j,i] .* σ) / sim.atoms.masses[j])
-            end
+    dv .= zero(eltype(dv))
+    for I in eachindex(dv)
+        for J in eachindex(σ)
+            dv[I] -= sim.calculator.adiabatic_derivative[I][J] * real(σ[J])
         end
     end
+    divide_by_mass!(dv, sim.atoms.masses)
     apply_interbead_coupling!(dv, r, sim)
     return nothing
 end
@@ -26,8 +26,8 @@ function set_density_matrix_derivative!(dσ, v, σ, sim::RingPolymerSimulation{<
 end
 
 function get_diabatic_population(sim::RingPolymerSimulation{<:Ehrenfest}, u)
-    NonadiabaticModels.potential!(sim.calculator.model, sim.calculator.potential[1], dropdims(mean(get_positions(u); dims=3), dims=3))
-    vals, U = eigen!(sim.calculator.potential[1])
+    Calculators.evaluate_centroid_potential!(sim.calculator, get_positions(u))
+    U = eigvecs(sim.calculator.potential[1])
 
     σ = get_density_matrix(u)
     return real.(diag(U * σ * U'))

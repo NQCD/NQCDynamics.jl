@@ -22,11 +22,9 @@ $(TYPEDEF)
 
 Type for containing the classical variables for ring polymer mapping methods.
 """
-mutable struct RingPolymerMappingVariables{T} <: DynamicalVariables{T}
-    x::ArrayPartition{T, Tuple{RingPolymerArray{T},RingPolymerArray{T}, Matrix{T}, Matrix{T}}}
-end
+const RingPolymerMappingVariables{T} = ArrayPartition{T, Tuple{D,D, Matrix{T}, Matrix{T}}} where {D<:AbstractArray{T,3}}
 
-function RingPolymerMappingVariables(v::RingPolymerArray{T}, r::RingPolymerArray{T},
+function RingPolymerMappingVariables(v::AbstractArray{T,3}, r::AbstractArray{T,3},
                                       n_states::Integer, state::Integer) where {T}
 
     n_beads = size(r)[3]
@@ -38,24 +36,13 @@ function RingPolymerMappingVariables(v::RingPolymerArray{T}, r::RingPolymerArray
     qmap[state,:] .*= sqrt(3)
     pmap = qmap .* tan.(-θ)
 
-    RingPolymerMappingVariables{T}(ArrayPartition(v, r, pmap, qmap))
+    ArrayPartition(v, r, pmap, qmap)
 end
 
-function RingPolymerMappingVariables(v::Matrix, r::Matrix, n_beads::Integer,
-        n_states::Integer, state::Integer)
-    v = RingPolymerArray(cat([v for i=1:n_beads]..., dims=3))
-    r = RingPolymerArray(cat([r for i=1:n_beads]..., dims=3))
-    RingPolymerMappingVariables(v, r, n_states, state)
-end
-
-function RingPolymerMappingVariables(v::Array{T,3}, r::Array{T,3}, n_states, state) where {T}
-    RingPolymerMappingVariables(RingPolymerArray(v), RingPolymerArray(r), n_states, state)
-end
-
-get_mapping_positions(z::RingPolymerMappingVariables) = z.x.x[4]
-get_mapping_momenta(z::RingPolymerMappingVariables) = z.x.x[3]
-get_mapping_positions(z::RingPolymerMappingVariables, i::Integer) = @view z.x.x[4][:,i]
-get_mapping_momenta(z::RingPolymerMappingVariables, i::Integer) = @view z.x.x[3][:,i]
+get_mapping_positions(z::RingPolymerMappingVariables) = z.x[4]
+get_mapping_momenta(z::RingPolymerMappingVariables) = z.x[3]
+get_mapping_positions(z::RingPolymerMappingVariables, i::Integer) = @view z.x[4][:,i]
+get_mapping_momenta(z::RingPolymerMappingVariables, i::Integer) = @view z.x[3][:,i]
 
 function motion!(du::RingPolymerMappingVariables, u::RingPolymerMappingVariables,
         sim::RingPolymerSimulation{<:NRPMD}, t)

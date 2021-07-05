@@ -92,7 +92,15 @@ function get_centroid(A::RingPolymerArray{T})::Matrix{T} where {T}
         centroid = A[:,:,1]
         centroid[:,A.quantum_atoms] ./= sqrt(size(A,3))
     else
-        centroid = dropdims(mean(A.data; dims=3); dims=3)
+        centroid = get_centroid(A.data)
     end
     centroid
+end
+
+function get_centroid(A::AbstractArray{T,3})::Matrix{T} where {T}
+    out = zeros(T, size(A)[1:2])
+    @views for i in axes(A,3)
+        out .+= A[:,:,i]
+    end
+    return out ./ size(A,3)
 end
