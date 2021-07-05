@@ -71,7 +71,7 @@ mutable struct DiabaticCalculator{T,M,S,L} <: AbstractDiabaticCalculator{M}
         potential = Hermitian(matrix_template)
         derivative = [Hermitian(matrix_template) for _=1:DoFs, _=1:atoms]
         eigenvalues = vector_template
-        eigenvectors = matrix_template
+        eigenvectors = matrix_template + I
         adiabatic_derivative = [matrix_template for _ in CartesianIndices(derivative)]
         nonadiabatic_coupling = [matrix_template for _ in CartesianIndices(derivative)]
         tmp_mat = zeros(T, n, n)
@@ -104,7 +104,7 @@ mutable struct RingPolymerDiabaticCalculator{T,M,S,L} <: AbstractDiabaticCalcula
         potential = [Hermitian(matrix_template) for _=1:beads]
         derivative = [Hermitian(matrix_template) for _=1:DoFs, _=1:atoms, _=1:beads]
         eigenvalues = [vector_template for _=1:beads]
-        eigenvectors = [matrix_template for _=1:beads]
+        eigenvectors = [matrix_template + I for _=1:beads]
         adiabatic_derivative = [matrix_template for _=1:DoFs, _=1:atoms, _=1:beads]
         nonadiabatic_coupling = [matrix_template for _=1:DoFs, _=1:atoms, _=1:beads]
         tmp_mat = zeros(T, n, n)
@@ -154,24 +154,24 @@ end
 
 function eigen!(calc::DiabaticCalculator)
     eig = eigen(calc.potential)
-    correct_phase!(eig, calc.eigenvectors)
-    calc.eigenvectors = eig.vectors
     calc.eigenvalues = eig.values
+    calc.eigenvectors = correct_phase(eig.vectors, calc.eigenvectors)
+    return nothing
 end
 
 function eigen!(calc::RingPolymerDiabaticCalculator)
-    eigs = eigen.(calc.potential)
-    correct_phase!.(eigs, calc.eigenvectors)
-    calc.eigenvalues .= [eig.values for eig in eigs]
-    calc.eigenvectors .= [eig.vectors for eig in eigs]
+    for i=1:length(calc.potential)
+        eig = eigen(calc.potential[i])
+        calc.eigenvalues[i] = eig.values
+        calc.eigenvectors[i] = correct_phase(eig.vectors, calc.eigenvectors[i])
+    end
+    return nothing
 end
 
-function correct_phase!(eig::Eigen, old_eigenvectors::AbstractMatrix)
-    @views for i=1:length(eig.values)
-        if dot(eig.vectors[:,i], old_eigenvectors[:,i]) < 0
-            eig.vectors[:,i] .*= -1
-        end
-    end
+function correct_phase(new_vectors::SMatrix, old_vectors::SMatrix)
+    n = size(new_vectors, 1)
+    vect = SVector{n}(sign(dot(new_vectors[:,i], old_vectors[:,i])) for i=1:n)
+    return new_vectors .* vect'
 end
 
 function transform_derivative!(calc::AbstractDiabaticCalculator)

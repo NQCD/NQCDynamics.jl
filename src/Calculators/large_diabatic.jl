@@ -51,6 +51,14 @@ function eigen!(calc::LargeDiabaticCalculator)
     copyto!(calc.eigenvalues, eig.values)
 end
 
+function correct_phase!(eig::Eigen, old_eigenvectors::AbstractMatrix)
+    @views for i=1:length(eig.values)
+        if dot(eig.vectors[:,i], old_eigenvectors[:,i]) < 0
+            eig.vectors[:,i] .*= -1
+        end
+    end
+end
+
 function evaluate_nonadiabatic_coupling!(calc::LargeDiabaticCalculator)
     for I in eachindex(calc.adiabatic_derivative)
         evaluate_nonadiabatic_coupling!(calc.nonadiabatic_coupling[I], calc.adiabatic_derivative[I], calc.eigenvalues)
