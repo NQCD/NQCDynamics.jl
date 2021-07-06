@@ -42,6 +42,10 @@ function select_u0(sim::RingPolymerSimulation{<:NRPMD}, v, r, state, type)
     RingPolymerMappingVariables(v, r, sim.calculator.model.n_states, state)
 end
 
+function select_u0(sim::AbstractSimulation{<:IESH}, v, r, state, type)
+    SurfaceHoppingVariablesIESH(v, r, sim.calculator.model.n_states, sim.method.n_electrons)
+end
+
 include("selections.jl")
 include("reductions.jl")
 include("outputs.jl")

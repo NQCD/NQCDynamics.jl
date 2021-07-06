@@ -23,6 +23,9 @@ end
 
 function evaluate_potential_energy(sim::Simulation, R)
     Calculators.evaluate_potential!(sim.calculator, R)
+    #aaa = sim.calculator.potential
+    #println(aaa)
+    #aaa = aaa[1]
     sim.calculator.potential[1]
 end
 
