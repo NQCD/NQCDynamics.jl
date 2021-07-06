@@ -2,13 +2,16 @@
 export IESH
 export SurfaceHoppingVariablesIESH
 
-"""This module controles how IESH is executed. For a description of IESH, see e.g.
-Roy, Shenvi, Tully, J. Chem. Phys. 130, 174716 (2009) and 
-Shenvi, Roy, Tully, J. Chem. Phys. 130, 174107 (2009).
-
-The density matrix is set up in surface_hopping_variables.jl
 """
+    IESH{T} <: SurfaceHopping
 
+Independent electron surface hopping.
+
+# References
+- [Shenvi, Roy, Tully, J. Chem. Phys. 130, 174107 (2009)](https://doi.org/10.1063/1.3125436)
+- [Roy, Shenvi, Tully, J. Chem. Phys. 130, 174716 (2009)](https://doi.org/10.1063/1.3122989)
+
+"""
 struct IESH{T} <: SurfaceHopping
     hopping_probability::Matrix{T}
     state::Vector{Int}
@@ -41,32 +44,29 @@ function SurfaceHoppingVariablesIESH(v::AbstractArray, r::AbstractArray, n_state
     SurfaceHoppingVariables(ArrayPartition(v, r, ψ), state)
 end
 
-"""This is part of the adiabatic propagation of the nuclei.
-   See Eq. 12 of Shenvi, Tully JCP 2009 paper."""
+"""
+Set the acceleration due to the force from the currently occupied states.
+See Eq. 12 of Shenvi, Tully JCP 2009 paper.
+"""
 function acceleration!(dv, v, r, sim::Simulation{<:IESH}, t, state)
-    dv .= 0.0
-    for i in axes(dv, 2)
-        for j in axes(dv, 1)        
-            for k in state
-                # Contribution to the force from each occupied state `k`
-                dv[j,i] -= sim.calculator.adiabatic_derivative[j,i][k, k] / sim.atoms.masses[i]
-            end
+    dv .= zero(eltype(dv))
+    for I in eachindex(dv)
+        for k in state
+            # Contribution to the force from each occupied state `k`
+            dv[I] -= sim.calculator.adiabatic_derivative[I][k, k]
         end
     end
+    divide_by_mass!(dv, sim.atoms.masses)
     return nothing
 end
 
-"""Propagation of electronic wave function happens according to Eq. (14) 
-   in the Shenvi, Tully paper (JCP 2009)
-   The extended formula is taken from HammesSchifferTully_JChemPhys_101_4657_1994, Eq. (16):
-   iħ d ψ_{j}/dt = ∑_j ψ_{m}(V_{jm} - i v d_{jm})
-   Where v is the velocity. See also Tully_JChemPhys_93_1061_1990, Eq. (7). 
-   For the IESH case, since each electron is treated independently, the equation
-   above needs to be evaluated for each electron, so it becomes:
-   iħ d ψ^{K}_j/dt =  V_{j,j}ψ^{K}_j - i v ∑_m d_{m,j}*ψ^{K}_m)
-   K is the number of the electron and 
-   j, m run over the number of states
-   """
+"""
+Propagation of electronic wave function happens according to Eq. (14) 
+in the Shenvi, Tully paper (JCP 2009)
+
+In IESH each electron is independent so we can loop through electrons and set the
+derivative one at a time, in the standard way for FSSH.
+"""
 function set_quantum_derivative!(dσ, v, σ, sim::Simulation{<:IESH})
     V = sim.calculator.eigenvalues
     d = sim.calculator.nonadiabatic_coupling
@@ -75,6 +75,11 @@ function set_quantum_derivative!(dσ, v, σ, sim::Simulation{<:IESH})
     end
 end
 
+"""
+```math
+\\frac{d c_k}{dt} = -iV_{kk}c_k/\\hbar - \\sum_j v d_{kj} c_j
+```
+"""
 function set_single_electron_derivative!(dc, c, V, v, d, tmp)
     @. dc = -im*V * c
     for I in eachindex(v)
@@ -85,14 +90,9 @@ function set_single_electron_derivative!(dc, c, V, v, d, tmp)
     return nothing
 end
 
-"""Hopping probability according to Eq.s (21), (17), (18) in Shenvi/Roy/Tully JCP 2009 paper.
-   The density matrix is used there:
-   σ_{i,j} = ∑_K c_{K,i}*c_{K,j}^*
-   K is the index of the independent electrons
-   i,j are the electronic states.
-   The equation for the hopping probability is:
-   g_{k,j} = Max(\frac{-2 Real(σ_{k,j} v d_{j,k})}{σ_{k,k}})
-   """
+"""
+Hopping probability according to equation 21 in Shenvi, Roy, Tully 2009.
+"""
 function evaluate_hopping_probability!(sim::Simulation{<:IESH}, u, dt)
 
     ψ = get_quantum_subsystem(u)
