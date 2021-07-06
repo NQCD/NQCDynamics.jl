@@ -94,5 +94,5 @@ end
 
 include("surface_hopping_variables.jl")
 include("fssh.jl")
-include("wave_iesh.jl")
+include("iesh.jl")
 include("rpsh.jl")
