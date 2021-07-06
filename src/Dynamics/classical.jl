@@ -40,12 +40,16 @@ velocity!(dr, v, r, sim, t) = dr .= v
 """
 function acceleration!(dv, v, r, sim::AbstractSimulation, t)
     Calculators.evaluate_derivative!(sim.calculator, r)
-    dv .= -sim.calculator.derivative ./ sim.atoms.masses'
+    dv .= -sim.calculator.derivative
+    divide_by_mass!(dv, sim.atoms.masses)
 end
+
+divide_by_mass!(dv, masses) = dv ./= masses'
 
 function ring_polymer_acceleration!(dv, v, r, sim::RingPolymerSimulation, t)
     Calculators.evaluate_derivative!(sim.calculator, r)
-    dv .= -sim.calculator.derivative ./ sim.atoms.masses'
+    dv .= -sim.calculator.derivative
+    divide_by_mass!(dv, sim.atoms.masses)
     apply_interbead_coupling!(dv, r, sim)
 end
 
@@ -58,11 +62,16 @@ Applies the force that arises from the harmonic springs between adjacent beads.
 Only applies the force for atoms labelled as quantum within the `RingPolymerParameters`.
 """
 function apply_interbead_coupling!(dr::AbstractArray{T,3}, r::AbstractArray{T,3}, sim::RingPolymerSimulation) where {T}
-    for i in sim.beads.quantum_atoms
-        for j=1:sim.DoFs
-            dr[j,i,:] .-= 2sim.beads.springs*r[j,i,:]
+    for i in axes(dr, 3)
+        iplus = mod1(i+1, sim.beads.n_beads)
+        iminus = mod1(i-1, sim.beads.n_beads)
+        for j in sim.beads.quantum_atoms
+            for k in axes(dr, 1)
+                dr[k,j,i] -= sim.beads.ω_n² * (2r[k,j,i] - r[k,j,iplus] - r[k,j,iminus])
+            end
         end
     end
+    return nothing
 end
 
 function create_problem(u0, tspan::Tuple, sim::Simulation{<:Classical})

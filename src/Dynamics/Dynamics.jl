@@ -63,7 +63,7 @@ function random_force! end
 
 Solve a single trajectory.
 """
-function run_trajectory(u0::DynamicalVariables, tspan::Tuple, sim::AbstractSimulation;
+function run_trajectory(u0, tspan::Tuple, sim::AbstractSimulation;
         output=(:u,), saveat=[], callback=nothing, algorithm=select_algorithm(sim),
         kwargs...)
     stripped_kwargs = austrip_kwargs(;kwargs...)

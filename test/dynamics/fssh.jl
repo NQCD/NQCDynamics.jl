@@ -1,6 +1,7 @@
 using Test
 using NonadiabaticMolecularDynamics
 using OrdinaryDiffEq
+using StaticArrays
 
 @test Dynamics.FSSH{Float64}(2) isa Dynamics.FSSH
 atoms = Atoms(1)
@@ -58,7 +59,7 @@ atoms = Atoms(1)
     end
 
     @testset "calculate_potential_energy_change" begin
-        integrator.p.calculator.eigenvalues .= [0.9, -0.3]
+        integrator.p.calculator.eigenvalues = SVector{2}([0.9, -0.3])
         @test 1.2 ≈ Dynamics.calculate_potential_energy_change(integrator.p.calculator, 1, 2)
         @test -1.2 ≈ Dynamics.calculate_potential_energy_change(integrator.p.calculator, 2, 1)
     end

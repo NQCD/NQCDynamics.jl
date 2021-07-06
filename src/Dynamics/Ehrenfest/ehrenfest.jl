@@ -12,11 +12,13 @@ struct Ehrenfest{T} <: AbstractEhrenfest
 end
 
 function acceleration!(dv, v, r, sim::Simulation{<:Ehrenfest}, t, σ)
-    for i in axes(dv, 2)
-        for j in axes(dv, 1)
-            dv[j,i] = -real(sum(sim.calculator.adiabatic_derivative[j,i] .* σ) / sim.atoms.masses[i])
+    dv .= zero(eltype(dv))
+    for I in eachindex(dv)
+        for J in eachindex(σ)
+            dv[I] -= sim.calculator.adiabatic_derivative[I][J] * real(σ[J])
         end
     end
+    divide_by_mass!(dv, sim.atoms.masses)
     return nothing
 end
 
