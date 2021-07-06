@@ -36,8 +36,8 @@ Evaluates the probability of hopping from the current state to all other states
 """
 function evaluate_hopping_probability!(sim::Simulation{<:FSSH}, u, dt)
     v = get_velocities(u)
-    σ = get_density_matrix(u)
-    s = u.state
+    σ = get_quantum_subsystem(u)
+    s = sim.method.state
     d = sim.calculator.nonadiabatic_coupling
 
     sim.method.hopping_probability .= 0 # Set all entries to 0
@@ -58,17 +58,17 @@ function select_new_state(sim::AbstractSimulation{<:FSSH}, u)
 
     random_number = rand()
     for (i, prob) in enumerate(sim.method.hopping_probability)
-        if i != u.state # Avoid self-hops
+        if i != sim.method.state # Avoid self-hops
             if prob > random_number
                 return i
             end
         end
     end
-    return u.state
+    return sim.method.state
 end
 
 function rescale_velocity!(sim::AbstractSimulation{<:FSSH}, u)::Bool
-    old_state = u.state
+    old_state = sim.method.state
     new_state = sim.method.new_state
     velocity = get_velocities(u)
     
@@ -87,7 +87,7 @@ function rescale_velocity!(sim::AbstractSimulation{<:FSSH}, u)::Bool
     return true
 end
 
-function evaluate_a_and_b(sim::Simulation{<:FSSH}, velocity, new_state, old_state)
+function evaluate_a_and_b(sim::Simulation{<:SurfaceHopping}, velocity, new_state, old_state)
     a = zeros(length(sim.atoms))
     b = zero(a)
     @views for i in range(sim.atoms)
@@ -98,7 +98,7 @@ function evaluate_a_and_b(sim::Simulation{<:FSSH}, velocity, new_state, old_stat
     return (a, b)
 end
 
-function perform_rescaling!(sim::Simulation{<:FSSH}, velocity, velocity_rescale, new_state, old_state)
+function perform_rescaling!(sim::Simulation{<:SurfaceHopping}, velocity, velocity_rescale, new_state, old_state)
     for i in range(sim.atoms)
         coupling = [sim.calculator.nonadiabatic_coupling[j,i][new_state, old_state] for j=1:sim.DoFs]
         velocity[:,i] .-= velocity_rescale[i] .* coupling ./ sim.atoms.masses[i]
@@ -120,9 +120,9 @@ function get_diabatic_population(sim::Simulation{<:FSSH}, u)
     Calculators.eigen!(sim.calculator)
     U = sim.calculator.eigenvectors
 
-    σ = copy(get_density_matrix(u))
+    σ = copy(get_quantum_subsystem(u))
     σ[diagind(σ)] .= 0
-    σ[u.state, u.state] = 1
+    σ[sim.method.state, sim.method.state] = 1
 
     return real.(diag(U * σ * U'))
 end
@@ -134,7 +134,7 @@ Adiabatic population directly from discrete state variable.
 """
 function get_adiabatic_population(sim::AbstractSimulation{<:FSSH}, u)
     population = zeros(sim.calculator.model.n_states)
-    population[u.state] = 1
+    population[sim.method.state] = 1
     return population
 end
 
@@ -142,6 +142,6 @@ function NonadiabaticMolecularDynamics.evaluate_hamiltonian(sim::Simulation{<:FS
     k = evaluate_kinetic_energy(sim.atoms.masses, get_velocities(u))
     Calculators.evaluate_potential!(sim.calculator, get_positions(u))
     Calculators.eigen!(sim.calculator)
-    p = sim.calculator.eigenvalues[u.state]
+    p = sim.calculator.eigenvalues[sim.method.state]
     return k + p
 end

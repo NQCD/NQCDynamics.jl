@@ -204,6 +204,12 @@ function evaluate_nonadiabatic_coupling!(calc::RingPolymerDiabaticCalculator)
     end
 end
 
+"""
+# References
+
+- HammesSchifferTully_JChemPhys_101_4657_1994 Eq. (32)
+- SubotnikBellonzi_AnnuRevPhyschem_67_387_2016, section 2.3
+"""
 function evaluate_nonadiabatic_coupling(adiabatic_derivative::SMatrix, eigenvalues::SVector)
     n = length(eigenvalues)
     SMatrix{n,n}(
@@ -211,6 +217,16 @@ function evaluate_nonadiabatic_coupling(adiabatic_derivative::SMatrix, eigenvalu
         for j=1:n, i=1:n))
 end
 
+"""
+Evaluates all electronic properties for the current position `r`.
+
+# Properties evaluated:
+- Diabatic potential
+- Diabatic derivative
+- Eigenvalues and eigenvectors
+- Adiabatic derivative
+- Nonadiabatic coupling
+"""
 function update_electronics!(calculator::AbstractDiabaticCalculator, r::AbstractArray)
     evaluate_potential!(calculator, r)
     evaluate_derivative!(calculator, r)
