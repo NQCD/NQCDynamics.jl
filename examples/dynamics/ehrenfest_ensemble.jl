@@ -17,7 +17,7 @@ output1 = Ensembles.OutputDiabaticPopulation(sim)
 output2 = Ensembles.OutputDiabaticPopulation(sim2)
 v = k/sim.atoms.masses[1]
 v2 = k2/sim2.atoms.masses[1]
-r = Normal(-10)
+r = Normal(-4)
 r2 = Normal(-10)
 distribution = InitialConditions.DynamicalDistribution(v, r, (1,1); state=2, type=:diabatic)
 selection = Ensembles.RandomSelection(distribution)
@@ -25,14 +25,14 @@ reduction = Ensembles.MeanReduction()
 distribution2 = InitialConditions.DynamicalDistribution(v2, r2, (1,1); state=2, type=:diabatic)
 selection2 = Ensembles.RandomSelection(distribution2)
 
-solution = Ensembles.run_ensemble(sim, (0.0, 3000.0), selection; trajectories=1e3,
+@time solution = Ensembles.run_ensemble(sim, (0.0, 3000.0), selection; trajectories=1e3,
     output=output1, reduction=reduction, saveat=10.0)
 
 plot1 = plot(0:10:3000, [p[1] for p in solution.u], title="Tully model 1", legend=false)
 plot!(0:10:3000, [p[2] for p in solution.u])
 
 
-solution2 = Ensembles.run_ensemble(sim2, (0.0, 3000.0), selection2; trajectories=1e3,
+@time solution2 = Ensembles.run_ensemble(sim2, (0.0, 3000.0), selection2; trajectories=1e3,
     output=output2, reduction=reduction, saveat=10.0)
 
 plot2 = plot(0:10:3000, [p[1] for p in solution2.u], title="Tully model 2", legend=false)
