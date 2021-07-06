@@ -1,7 +1,7 @@
 name = "NonadiabaticMolecularDynamics"
 uuid = "36248dfb-79eb-4f4d-ab9c-e29ea5f33e14"
 authors = ["James <james.gardner1421@gmail.com>"]
-version = "0.3.0"
+version = "0.4.4"
 
 [deps]
 DiffEqBase = "2b5f629d-d688-5b77-993f-72d75c75574e"
@@ -28,6 +28,7 @@ Requires = "ae029012-a4dd-5104-9daa-d747884805df"
 Roots = "f2b01f46-fcfa-551c-844a-d8ac1e96c665"
 Rotations = "6038ab10-8711-5258-84ad-4b1120ba62dc"
 SciMLBase = "0bca4576-84f4-4d90-8ffe-ffa030f20462"
+StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
 StochasticDiffEq = "789caeaf-c7a9-5a7d-9973-96adeb23e2a0"
 TypedTables = "9d95f2ec-7b3d-5a63-8d20-e2491e220bb9"
@@ -40,6 +41,7 @@ UnitfulRecipes = "42071c24-d89e-48dd-8a24-8a12d9b8861f"
 DiffEqBase = ">= 6.58.0"
 SciMLBase = ">= 1.7.3"
 StochasticDiffEq = ">= 6.33.1"
+NonadiabaticModels = ">= 0.4.0"
 
 [extras]
 DiffEqDevTools = "f3b72e0c-5b89-59e1-b016-84e28bfd966d"

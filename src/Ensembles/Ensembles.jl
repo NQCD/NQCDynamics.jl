@@ -12,10 +12,6 @@ function select_u0(::Simulation{<:Union{Classical, AbstractMDEF}}, v, r, state, 
     ArrayPartition(v, r)
 end
 
-function select_u0(::RingPolymerSimulation, v, r, state, type)
-    ClassicalDynamicals(v, r)
-end
-
 function select_u0(::RingPolymerSimulation{<:ThermalLangevin}, v, r, state, type)
     ArrayPartition(RingPolymerArray(v), RingPolymerArray(r))
 end
@@ -31,7 +27,7 @@ function select_u0(sim::AbstractSimulation{<:FSSH}, v, r, state, type)
     end
 end
 
-function select_u0(sim::Simulation{<:Ehrenfest}, v, r, state, type)
+function select_u0(sim::AbstractSimulation{<:Ehrenfest}, v, r, state, type)
     if type == :adiabatic
         return EhrenfestVariables(v, r, sim.calculator.model.n_states, state)
     elseif type == :diabatic
