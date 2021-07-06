@@ -9,17 +9,17 @@ abstract type AbstractEhrenfest <: Method end
 function motion!(du, u, sim::AbstractSimulation{<:AbstractEhrenfest}, t)
     dr = get_positions(du)
     dv = get_velocities(du)
-    dσ = get_density_matrix(du)
+    dσ = get_quantum_subsystem(du)
     r = get_positions(u)
     v = get_velocities(u)
-    σ = get_density_matrix(u)
+    σ = get_quantum_subsystem(u)
     velocity!(dr, v, r, sim, t)
     Calculators.update_electronics!(sim.calculator, r)
     acceleration!(dv, v, r, sim, t, σ)
-    set_density_matrix_derivative!(dσ, v, σ, sim)
+    set_quantum_derivative!(dσ, v, σ, sim)
 end
 
-function set_density_matrix_derivative!(dσ, v, σ, sim::Simulation{<:AbstractEhrenfest})
+function set_quantum_derivative!(dσ, v, σ, sim::Simulation{<:AbstractEhrenfest})
     V = sim.method.density_propagator
 
     V .= diagm(sim.calculator.eigenvalues)
