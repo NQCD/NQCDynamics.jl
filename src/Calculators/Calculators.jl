@@ -93,6 +93,14 @@ mutable struct RingPolymerDiabaticCalculator{T,M,S,L} <: AbstractDiabaticCalcula
     eigenvectors::Vector{SMatrix{S,S,T,L}}
     adiabatic_derivative::Array{SMatrix{S,S,T,L},3}
     nonadiabatic_coupling::Array{SMatrix{S,S,T,L},3}
+
+    centroid_potential::Hermitian{T,SMatrix{S,S,T,L}}
+    centroid_derivative::Matrix{Hermitian{T,SMatrix{S,S,T,L}}}
+    centroid_eigenvalues::SVector{S,T}
+    centroid_eigenvectors::SMatrix{S,S,T,L}
+    centroid_adiabatic_derivative::Matrix{SMatrix{S,S,T,L}}
+    centroid_nonadiabatic_coupling::Matrix{SMatrix{S,S,T,L}}
+
     tmp_mat::Matrix{T}
     tmp_mat_complex1::Matrix{Complex{T}}
     tmp_mat_complex2::Matrix{Complex{T}}
@@ -107,10 +115,20 @@ mutable struct RingPolymerDiabaticCalculator{T,M,S,L} <: AbstractDiabaticCalcula
         eigenvectors = [matrix_template + I for _=1:beads]
         adiabatic_derivative = [matrix_template for _=1:DoFs, _=1:atoms, _=1:beads]
         nonadiabatic_coupling = [matrix_template for _=1:DoFs, _=1:atoms, _=1:beads]
+
+        centroid_potential = Hermitian(matrix_template)
+        centroid_derivative = [Hermitian(matrix_template) for _=1:DoFs, _=1:atoms]
+        centroid_eigenvalues = vector_template
+        centroid_eigenvectors = matrix_template + I
+        centroid_adiabatic_derivative = [matrix_template for _ in CartesianIndices(centroid_derivative)]
+        centroid_nonadiabatic_coupling = [matrix_template for _ in CartesianIndices(centroid_derivative)]
+
         tmp_mat = zeros(T, n, n)
         tmp_mat_complex1 = zeros(Complex{T}, n, n)
         tmp_mat_complex2 = zeros(Complex{T}, n, n)
         new{T,M,n,n^2}(model, potential, derivative, eigenvalues, eigenvectors, adiabatic_derivative, nonadiabatic_coupling,
+            centroid_potential, centroid_derivative, centroid_eigenvalues, centroid_eigenvectors, 
+            centroid_adiabatic_derivative, centroid_nonadiabatic_coupling,
             tmp_mat, tmp_mat_complex1, tmp_mat_complex2)
     end
 end
@@ -137,7 +155,7 @@ function evaluate_potential!(calc::AbstractCalculator, R::AbstractArray{T,3}) wh
 end
 
 function evaluate_centroid_potential!(calc::AbstractCalculator, R::AbstractArray{T,3}) where {T}
-    calc.potential[1] = potential(calc.model, get_centroid(R))
+    calc.centroid_potential = potential(calc.model, get_centroid(R))
 end
 
 evaluate_derivative!(calc::AbstractCalculator, R) = derivative!(calc.model, calc.derivative, R)
@@ -149,13 +167,22 @@ function evaluate_derivative!(calc::AbstractCalculator, R::AbstractArray{T,3}) w
 end
 
 function evaluate_centroid_derivative!(calc::AbstractCalculator, R::AbstractArray{T,3}) where {T}
-    @views derivative!(calc.model, calc.derivative[:,:,1], get_centroid(R))
+    derivative!(calc.model, calc.centroid_derivative, get_centroid(R))
 end
 
 function eigen!(calc::DiabaticCalculator)
     eig = eigen(calc.potential)
     calc.eigenvalues = eig.values
+    #calc.eigenvectors = eig.vectors 
     calc.eigenvectors = correct_phase(eig.vectors, calc.eigenvectors)
+    return nothing
+end
+
+function centroid_eigen!(calc::RingPolymerDiabaticCalculator)
+    eig = eigen(calc.centroid_potential)
+    calc.centroid_eigenvalues = eig.values
+    #calc.eigenvectors = eig.vectors 
+    calc.centroid_eigenvectors = correct_phase(eig.vectors, calc.centroid_eigenvectors)
     return nothing
 end
 
@@ -163,6 +190,7 @@ function eigen!(calc::RingPolymerDiabaticCalculator)
     for i=1:length(calc.potential)
         eig = eigen(calc.potential[i])
         calc.eigenvalues[i] = eig.values
+        #calc.eigenvectors[i] = eig.vectors 
         calc.eigenvectors[i] = correct_phase(eig.vectors, calc.eigenvectors[i])
     end
     return nothing
@@ -177,6 +205,12 @@ end
 function transform_derivative!(calc::AbstractDiabaticCalculator)
     for I in eachindex(calc.derivative)
         calc.adiabatic_derivative[I] = calc.eigenvectors' * calc.derivative[I] * calc.eigenvectors
+    end
+end
+
+function transform_centroid_derivative!(calc::RingPolymerDiabaticCalculator)
+    for I in eachindex(calc.centroid_derivative)
+        calc.centroid_adiabatic_derivative[I] = calc.centroid_eigenvectors' * calc.centroid_derivative[I] * calc.centroid_eigenvectors
     end
 end
 
@@ -196,8 +230,14 @@ function evaluate_nonadiabatic_coupling!(calc::AbstractDiabaticCalculator)
     end
 end
 
+function evaluate_centroid_nonadiabatic_coupling!(calc::RingPolymerDiabaticCalculator)
+    for I in eachindex(calc.centroid_adiabatic_derivative)
+        calc.centroid_nonadiabatic_coupling[I] = evaluate_nonadiabatic_coupling(calc.centroid_adiabatic_derivative[I], calc.centroid_eigenvalues)
+    end
+end
+
 function evaluate_nonadiabatic_coupling!(calc::RingPolymerDiabaticCalculator)
-    @views for i in axes(calc.nonadiabatic_coupling, 3) # Beads
+    for i in axes(calc.nonadiabatic_coupling, 3) # Beads
         for I in CartesianIndices(size(calc.adiabatic_derivative)[1:2])
             calc.nonadiabatic_coupling[I,i] = evaluate_nonadiabatic_coupling(calc.adiabatic_derivative[I,i], calc.eigenvalues[i])
         end
@@ -233,6 +273,14 @@ function update_electronics!(calculator::AbstractDiabaticCalculator, r::Abstract
     eigen!(calculator)
     transform_derivative!(calculator)
     evaluate_nonadiabatic_coupling!(calculator)
+end
+
+function update_centroid_electronics!(calculator::RingPolymerDiabaticCalculator, r::AbstractArray{T,3}) where {T}
+    evaluate_centroid_potential!(calculator, r)
+    evaluate_centroid_derivative!(calculator, r)
+    centroid_eigen!(calculator)
+    transform_centroid_derivative!(calculator)
+    evaluate_centroid_nonadiabatic_coupling!(calculator)
 end
 
 include("large_diabatic.jl")
