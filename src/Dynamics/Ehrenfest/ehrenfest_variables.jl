@@ -1,5 +1,5 @@
 export EhrenfestVariables
-export get_density_matrix
+export get_quantum_subsystem
 
 const EhrenfestVariables{T,D} = ArrayPartition{Complex{T}, Tuple{D,D,Matrix{Complex{T}}}}
 
@@ -34,4 +34,4 @@ function EhrenfestVariables(sim::RingPolymerSimulation{<:AbstractEhrenfest}, v, 
     ArrayPartition(v, r, σ)
 end
 
-get_density_matrix(u::EhrenfestVariables) = u.x[3]
+get_quantum_subsystem(u::EhrenfestVariables) = u.x[3]

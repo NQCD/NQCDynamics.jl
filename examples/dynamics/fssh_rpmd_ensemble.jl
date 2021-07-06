@@ -39,28 +39,29 @@ selection2 = Ensembles.RandomSelection(distribution2)
 selection3 = Ensembles.RandomSelection(distribution3)
 selection4 = Ensembles.RandomSelection(distribution4)
 
-reduction = Ensembles.MeanReduction()
+#reduction = Ensembles.MeanReduction()
+reduction = Ensembles.SumReduction([zeros(2) for _ in 1:251])
 
 rng=0:10:2500
 
 #model 1
-solution1 = Ensembles.run_ensemble(sim1, (0.0, 2500.0), selection1; trajectories=1e3,
+@time solution1 = Ensembles.run_ensemble(sim1, (0.0, 2500.0), selection1; trajectories=1e3,
     output=output1, reduction=reduction, saveat=10.0)
 plot1 = plot(rng, [p[1] for p in solution1.u], title="Tully model 1", label="FSSH P1", legend=:right)
 plot!(rng, [p[2] for p in solution1.u], label="FSSH P2")
 
-solution3 = Ensembles.run_ensemble(sim3, (0.0, 2500.0), selection3; trajectories=2e3,
+@time solution3 = Ensembles.run_ensemble(sim3, (0.0, 2500.0), selection3; trajectories=1e3,
     output=output3, reduction=reduction, saveat=10.0)
 plot!(rng, [p[1] for p in solution3.u], label="FSSH RPMD P1")
 plot!(rng, [p[2] for p in solution3.u], label="FSSH RPMD P2")
 
 #model 2
-solution2 = Ensembles.run_ensemble(sim2, (0.0, 2500.0), selection2; trajectories=1e3,
+@time solution2 = Ensembles.run_ensemble(sim2, (0.0, 2500.0), selection2; trajectories=1e3,
     output=output2, reduction=reduction, saveat=10.0)
 plot2 = plot(rng, [p[1] for p in solution2.u], title="Tully model 2", label="FSSH P1", legend=:right)
 plot!(rng, [p[2] for p in solution2.u], label="FSSH P2")
 
-solution4 = Ensembles.run_ensemble(sim4, (0.0, 2500.0), selection4; trajectories=2e3,
+@time solution4 = Ensembles.run_ensemble(sim4, (0.0, 2500.0), selection4; trajectories=1e3,
     output=output4, reduction=reduction, saveat=10.0)
 plot!(rng, [p[1] for p in solution4.u], label="FSSH RPMD P1")
 plot!(rng, [p[2] for p in solution4.u], label="FSSH RPMD P2")
