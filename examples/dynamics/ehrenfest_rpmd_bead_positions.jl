@@ -25,23 +25,25 @@ normal = Normal(-5.0)
 
 sim3 = RingPolymerSimulation{Ehrenfest}(atoms, TullyModelOne(), n_beads; DoFs=1, temperature=e1)
 sim4 = RingPolymerSimulation{Ehrenfest}(atoms, TullyModelTwo(), n_beads; DoFs=1, temperature=e2)
-rr = RingPolymerArray(rand(normal, sim3.DoFs, length(sim3.atoms), n_beads))
-vv1 =  RingPolymerArray((fill(8.9, sim3.DoFs, length(sim3.atoms), n_beads)) ./ sim3.atoms.masses[1])
-vv2 =  RingPolymerArray((fill(16, sim4.DoFs, length(sim4.atoms), n_beads)) ./ sim4.atoms.masses[1])
+rr = rand(normal, sim3.DoFs, length(sim3.atoms), n_beads)
+#rr = fill(-5.0, sim1.DoFs, length(sim1.atoms), n_beads)
+vv1 =  (fill(8.9, sim3.DoFs, length(sim3.atoms), n_beads)) ./ sim3.atoms.masses[1]
+vv2 =  (fill(16, sim4.DoFs, length(sim4.atoms), n_beads)) ./ sim4.atoms.masses[1]
 z3 = EhrenfestVariables(vv1, rr, 2, 1)
 z4 = EhrenfestVariables(vv2, rr, 2, 1)
 
 #model 1
-@time solution1 = Dynamics.run_trajectory(z1, (0.0, 2500.0), sim1; output=(:population, :quantum_subsystem),saveat=0:1:2500, reltol=1e-5, abstol=1e-8)
-plot1 = plot(solution1.t, [p[1] for p in solution1.population], title="Tully model 1", label="Ehrenfest P1", legend=:right)
-plot!(solution1.t, [p[2] for p in solution1.population], label="Ehrenfest P2")
-
+@time solution1 = Dynamics.run_trajectory(z1, (0.0, 2500.0), sim1; output=(:population, :quantum_subsystem, :position),saveat=0:1:2500, reltol=1e-5, abstol=1e-8)
+#plot1 = plot(solution1.t, [p[1] for p in solution1.population], title="Tully model 1", label="Ehrenfest P1", legend=:right)
+#plot!(solution1.t, [p[2] for p in solution1.population], label="Ehrenfest P2")
+plot(solution1, :population)
 #plot1 = plot(solution1.t, [p[1] for p in solution1.population], title="Tully model 1", label="Ehrenfest P1", legend=:right)
 #plot(solution1, :quantum_subsystem)
 
-@time solution3 = Dynamics.run_trajectory(z3, (0.0, 2500.0), sim3; output=(:population, :quantum_subsystem),saveat=0:1:2500, reltol=1e-5, abstol=1e-8)
-plot!(solution3.t, [p[1] for p in solution3.population], label="Ehrenfest RPMD P1")
-plot!(solution3.t, [p[2] for p in solution3.population], label="Ehrenfest RPMD P2")
+@time solution3 = Dynamics.run_trajectory(z3, (0.0, 2500.0), sim3; output=(:population, :quantum_subsystem, :centroid_position),saveat=0:1:2500, reltol=1e-5, abstol=1e-8)
+plot!(solution3, :population)
+#plot!(solution3.t, [p[1] for p in solution3.population], label="Ehrenfest RPMD P1")
+#plot!(solution3.t, [p[2] for p in solution3.population], label="Ehrenfest RPMD P2")
 
 
 
