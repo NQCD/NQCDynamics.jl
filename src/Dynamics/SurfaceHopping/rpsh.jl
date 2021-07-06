@@ -1,5 +1,19 @@
 using .Calculators: RingPolymerDiabaticCalculator
 
+function motion!(du, u, sim::RingPolymerSimulation{<:FSSH}, t)
+    dr = get_positions(du)
+    dv = get_velocities(du)
+    dσ = get_quantum_subsystem(du)
+    r = get_positions(u)
+    v = get_velocities(u)
+    σ = get_quantum_subsystem(u)
+    velocity!(dr, v, r, sim, t)
+    Calculators.update_electronics!(sim.calculator, r)
+    Calculators.update_centroid_electronics!(sim.calculator, r)
+    acceleration!(dv, v, r, sim, t, sim.method.state)
+    set_quantum_derivative!(dσ, get_centroid(v), σ, sim)
+end
+
 function acceleration!(dv, v, r, sim::RingPolymerSimulation{<:FSSH}, t, state)
     for i in axes(dv, 3)
         for j in axes(dv, 2)
@@ -15,11 +29,10 @@ end
 function set_quantum_derivative!(dσ, v, σ, sim::RingPolymerSimulation{<:FSSH})
     V = sim.method.density_propagator
 
-    V .= diagm(sum(sim.calculator.eigenvalues))
+    V .= diagm(sim.calculator.centroid_eigenvalues)
     for I in eachindex(v)
-        @. V -= im * v[I] * sim.calculator.nonadiabatic_coupling[I]
+        @. V -= im * v[I] * sim.calculator.centroid_nonadiabatic_coupling[I]
     end
-    V ./= length(sim.beads)
     mul!(sim.calculator.tmp_mat_complex1, V, σ)
     mul!(sim.calculator.tmp_mat_complex2, σ, V)
     @. dσ = -im * (sim.calculator.tmp_mat_complex1 - sim.calculator.tmp_mat_complex2)
@@ -27,10 +40,10 @@ function set_quantum_derivative!(dσ, v, σ, sim::RingPolymerSimulation{<:FSSH})
 end
 
 function evaluate_hopping_probability!(sim::RingPolymerSimulation{<:FSSH}, u, dt)
-    v = get_velocities(u)
+    v = get_centroid(get_velocities(u))
     σ = get_quantum_subsystem(u)
     s = u.state
-    d = sim.calculator.nonadiabatic_coupling
+    d = sim.calculator.centroid_nonadiabatic_coupling
 
     sim.method.hopping_probability .= 0 # Set all entries to 0
     for m=1:sim.calculator.model.n_states
@@ -40,68 +53,59 @@ function evaluate_hopping_probability!(sim::RingPolymerSimulation{<:FSSH}, u, dt
             end
         end
     end
-    sim.method.hopping_probability ./= length(sim.beads)
+    #sim.method.hopping_probability ./= length(sim.beads)
     clamp!(sim.method.hopping_probability, 0, 1)
     cumsum!(sim.method.hopping_probability, sim.method.hopping_probability)
     return nothing
 end
 
 function rescale_velocity!(sim::RingPolymerSimulation{<:FSSH}, u)::Bool
-    old_state = u.state
+    old_state = sim.method.state
     new_state = sim.method.new_state
     velocity = get_velocities(u)
-    
+    centroid_velocity = get_centroid(get_velocities(u))
+
     c = calculate_potential_energy_change(sim.calculator, new_state, old_state)
-    a, b = evaluate_a_and_b(sim, velocity, new_state, old_state)
-    discriminant = zero(a)
-    for i in axes(discriminant, 2)
-        for j in axes(discriminant, 1)
-            discriminant[j,i] = b[j,i]^2 - 2a[j,i] * c[i]
-        end
-    end
+    a, b = evaluate_a_and_b(sim, centroid_velocity, new_state, old_state)
+    discriminant = b.^2 .- 2a.*c
 
     any(discriminant .< 0) && return false
 
     root = sqrt.(discriminant)
     plus = (b .+ root) ./ a
-    minus = (b .+ root) ./ a
+    minus = (b .- root) ./ a 
     velocity_rescale = sum(abs.(plus)) < sum(abs.(minus)) ? plus : minus
-
     perform_rescaling!(sim, velocity, velocity_rescale, new_state, old_state)
 
     return true
 end
 
-function evaluate_a_and_b(sim::RingPolymerSimulation{<:FSSH}, velocity, new_state, old_state)
-    a = zeros(length(sim.atoms), length(sim.beads))
+function evaluate_a_and_b(sim::RingPolymerSimulation{<:SurfaceHopping}, velocity, new_state, old_state)
+    a = zeros(length(sim.atoms))
     b = zero(a)
-    @views for i in range(sim.beads)
-        for j in range(sim.atoms)
-            coupling = [sim.calculator.nonadiabatic_coupling[k,j,i][new_state, old_state] for k=1:sim.DoFs]
-            a[j,i] = dot(coupling, coupling) / sim.atoms.masses[j]
-            b[j,i] = dot(velocity[:,j,i], coupling)
-        end
+    @views for i in range(sim.atoms)
+        coupling = [sim.calculator.centroid_nonadiabatic_coupling[j,i][new_state, old_state] for j=1:sim.DoFs]
+        a[i] = dot(coupling, coupling) / sim.atoms.masses[i]
+        b[i] = dot(velocity[:,i], coupling)
     end
     return (a, b)
 end
 
-function perform_rescaling!(sim::RingPolymerSimulation{<:FSSH}, velocity, velocity_rescale, new_state, old_state)
-    for i=1:length(sim.beads)
-        for j=1:length(sim.atoms)
-            coupling = [sim.calculator.nonadiabatic_coupling[k,j,i][new_state, old_state] for k=1:sim.DoFs]
-            velocity[:,j,i] .-= velocity_rescale[j,i] .* coupling ./ sim.atoms.masses[j]
-        end
+function perform_rescaling!(sim::RingPolymerSimulation{<:SurfaceHopping}, velocity, velocity_rescale, new_state, old_state)
+    for i in range(sim.atoms)
+        coupling = [sim.calculator.centroid_nonadiabatic_coupling[j,i][new_state, old_state] for j=1:sim.DoFs]
+        velocity[:,i,:] .-= velocity_rescale[i] .* coupling ./ sim.atoms.masses[i]
     end
     return nothing
 end
 
 function calculate_potential_energy_change(calc::RingPolymerDiabaticCalculator, new_state::Integer, current_state::Integer)
-    return [eigs[new_state] - eigs[current_state] for eigs in calc.eigenvalues]
+    return calc.centroid_eigenvalues[new_state] - calc.centroid_eigenvalues[current_state]
 end
 
 function get_diabatic_population(sim::RingPolymerSimulation{<:FSSH}, u)
     Calculators.evaluate_centroid_potential!(sim.calculator, get_positions(u))
-    U = eigvecs(sim.calculator.potential[1])
+    U = eigvecs(sim.calculator.centroid_potential)
 
     σ = copy(get_quantum_subsystem(u))
     σ[diagind(σ)] .= 0

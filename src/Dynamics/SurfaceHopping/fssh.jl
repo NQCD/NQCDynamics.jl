@@ -117,8 +117,9 @@ Diabatic populations recommended from J. Chem. Phys. 139, 211101 (2013).
 """
 function get_diabatic_population(sim::Simulation{<:FSSH}, u)
     Calculators.evaluate_potential!(sim.calculator, get_positions(u))
-    Calculators.eigen!(sim.calculator)
-    U = sim.calculator.eigenvectors
+    #Calculators.eigen!(sim.calculator)
+    #U = sim.calculator.eigenvectors
+    U = eigvecs(sim.calculator.potential)
 
     σ = copy(get_quantum_subsystem(u))
     σ[diagind(σ)] .= 0
