@@ -217,17 +217,21 @@ function evaluate_nonadiabatic_coupling(adiabatic_derivative::SMatrix, eigenvalu
         for j=1:n, i=1:n))
 end
 
+"""
+Evaluates all electronic properties for the current position `r`.
+
+# Properties evaluated:
+- Diabatic potential
+- Diabatic derivative
+- Eigenvalues and eigenvectors
+- Adiabatic derivative
+- Nonadiabatic coupling
+"""
 function update_electronics!(calculator::AbstractDiabaticCalculator, r::AbstractArray)
-    # nuclear DoF
     evaluate_potential!(calculator, r)
-    # nuclear DoF
     evaluate_derivative!(calculator, r)
-    # nuclear DoF; gets eigenvector
     eigen!(calculator)
-    # nuclear DoF; calculates adiabatic derivative, bcs H set up diabatically:
-    # eigenvect'*derivatives*eigenvect
     transform_derivative!(calculator)
-    # electronic DoF (but based on nuclear forces and eigenvalues)
     evaluate_nonadiabatic_coupling!(calculator)
 end
 
