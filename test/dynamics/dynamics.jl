@@ -10,3 +10,4 @@ using Test
 @time @safetestset "NRPMD Tests" begin include("nrpmd.jl") end
 @time @safetestset "Cell Boundary Callback Tests" begin include("cell_boundary_callback.jl") end
 @time @safetestset "Ehrenfest Tests" begin include("ehrenfest.jl") end
+@time @safetestset "IESH Tests" begin include("iesh.jl") end

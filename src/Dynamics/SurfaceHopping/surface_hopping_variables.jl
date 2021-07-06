@@ -1,6 +1,7 @@
 export SurfaceHoppingVariables
-export get_density_matrix
+export get_quantum_subsystem
 using StatsBase: sample, Weights
+
 
 mutable struct SurfaceHoppingVariables{T,D,S}  <: DynamicalVariables{T}
     x::ArrayPartition{Complex{T}, Tuple{D,D,Matrix{Complex{T}}}}
@@ -45,4 +46,4 @@ function SurfaceHoppingVariables(sim::RingPolymerSimulation{<:SurfaceHopping}, v
 
 end
 
-get_density_matrix(u::SurfaceHoppingVariables) = u.x.x[3]
+get_quantum_subsystem(u::SurfaceHoppingVariables) = u.x.x[3]
