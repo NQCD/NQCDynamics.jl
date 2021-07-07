@@ -173,7 +173,6 @@ end
 function eigen!(calc::DiabaticCalculator)
     eig = eigen(calc.potential)
     calc.eigenvalues = eig.values
-    #calc.eigenvectors = eig.vectors 
     calc.eigenvectors = correct_phase(eig.vectors, calc.eigenvectors)
     return nothing
 end
