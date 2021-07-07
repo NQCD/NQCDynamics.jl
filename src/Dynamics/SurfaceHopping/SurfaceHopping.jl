@@ -25,6 +25,8 @@ function motion!(du, u, sim::AbstractSimulation{<:SurfaceHopping}, t)
     v = get_velocities(u)
     σ = get_quantum_subsystem(u)
 
+    set_state!(u, sim.method.state) # Make sure the state variables match, 
+
     velocity!(dr, v, r, sim, t)
     Calculators.update_electronics!(sim.calculator, r)
     acceleration!(dv, v, r, sim, t, sim.method.state)
