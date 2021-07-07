@@ -35,7 +35,7 @@ end
 function SurfaceHoppingVariables(sim::RingPolymerSimulation{<:SurfaceHopping}, v, r, state::Integer)
     n_states = sim.calculator.model.n_states
     Calculators.evaluate_centroid_potential!(sim.calculator, r)
-    U = eigvecs(sim.calculator.potential[1])
+    U = eigvecs(sim.calculator.centroid_potential)
 
     diabatic_density = zeros(Complex{eltype(r)}, n_states, n_states)
     diabatic_density[state, state] = 1
