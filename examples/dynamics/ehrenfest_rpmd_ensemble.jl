@@ -7,25 +7,21 @@ n_beads = 4
 atoms = Atoms(2000)
 k1=8.9 #au
 k2=16
-#e1=(k1^2)/(2*atoms.masses[1])
-#e2=(k2^2)/(2*atoms.masses[1])
-
-e1=k1
-e2=k2
+e1=(k1^2)/(2*atoms.masses[1])
+e2=(k2^2)/(2*atoms.masses[1])
 
 sim1 = Simulation{Ehrenfest}(atoms, TullyModelOne(); DoFs=1)
 sim2 = Simulation{Ehrenfest}(atoms, TullyModelTwo(); DoFs=1)
 sim3 = RingPolymerSimulation{Ehrenfest}(atoms, TullyModelOne(), n_beads; DoFs=1, temperature=e1)
 sim4 = RingPolymerSimulation{Ehrenfest}(atoms, TullyModelTwo(), n_beads; DoFs=1, temperature=e2)
 width = 1/sqrt(0.5)
-r1 =  Normal(-4.0, width) #fill(Normal(-5.0), sim1.DoFs, length(sim1.atoms))
+r1 =  Normal(-4.0, width)
 r2 = Normal(-10.0, width)
-#rr =  Normal(-4.0) #RingPolymerArray(fill(Normal(-5.0), sim3.DoFs, length(sim3.atoms), n_beads))
 
 v1 = fill(8.9, sim1.DoFs, length(sim1.atoms)) ./ sim1.atoms.masses[1]
 v2 = fill(16, sim2.DoFs, length(sim2.atoms)) ./ sim2.atoms.masses[1]
-vv1 = RingPolymerArray(fill(8.9, sim3.DoFs, length(sim3.atoms), n_beads) ./ sim3.atoms.masses[1])
-vv2 = RingPolymerArray(fill(16, sim4.DoFs, length(sim4.atoms), n_beads) ./ sim4.atoms.masses[1])
+vv1 = fill(8.9, sim3.DoFs, length(sim3.atoms), n_beads) ./ sim3.atoms.masses[1]
+vv2 = fill(16, sim4.DoFs, length(sim4.atoms), n_beads) ./ sim4.atoms.masses[1]
 
 output1 = Ensembles.OutputDiabaticPopulation(sim1)
 output2 = Ensembles.OutputDiabaticPopulation(sim2)
