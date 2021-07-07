@@ -10,7 +10,7 @@ function acceleration!(dv, v, r, sim::RingPolymerSimulation{<:FSSH}, t, state)
     return nothing
 end
 
-function set_quantum_derivative!(dσ, v, σ, sim::RingPolymerSimulation{<:FSSH})
+function calculate_density_propagator!(sim::RingPolymerSimulation{<:FSSH}, v)
     V = sim.method.density_propagator
     centroid_v = get_centroid(v)
 
@@ -18,30 +18,16 @@ function set_quantum_derivative!(dσ, v, σ, sim::RingPolymerSimulation{<:FSSH})
     for I in eachindex(centroid_v)
         @. V -= im * centroid_v[I] * sim.calculator.centroid_nonadiabatic_coupling[I]
     end
-    mul!(sim.calculator.tmp_mat_complex1, V, σ)
-    mul!(sim.calculator.tmp_mat_complex2, σ, V)
-    @. dσ = -im * (sim.calculator.tmp_mat_complex1 - sim.calculator.tmp_mat_complex2)
-    return nothing
+    return V
 end
 
 function evaluate_hopping_probability!(sim::RingPolymerSimulation{<:FSSH}, u, dt)
     v = get_centroid(get_velocities(u))
     σ = get_quantum_subsystem(u)
-    s = u.state
+    s = sim.method.state
     d = sim.calculator.centroid_nonadiabatic_coupling
 
-    sim.method.hopping_probability .= 0 # Set all entries to 0
-    for m=1:sim.calculator.model.n_states
-        if m != s
-            for I in eachindex(v)
-                sim.method.hopping_probability[m] += 2v[I]*real(σ[m,s]/σ[s,s])*d[I][s,m] * dt
-            end
-        end
-    end
-
-    clamp!(sim.method.hopping_probability, 0, 1)
-    cumsum!(sim.method.hopping_probability, sim.method.hopping_probability)
-    return nothing
+    fewest_switches_probability!(sim.method.hopping_probability, v, σ, s, d, dt)
 end
 
 function rescale_velocity!(sim::RingPolymerSimulation{<:FSSH}, u)::Bool
