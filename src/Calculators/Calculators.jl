@@ -180,7 +180,6 @@ end
 function centroid_eigen!(calc::RingPolymerDiabaticCalculator)
     eig = eigen(calc.centroid_potential)
     calc.centroid_eigenvalues = eig.values
-    #calc.eigenvectors = eig.vectors 
     calc.centroid_eigenvectors = correct_phase(eig.vectors, calc.centroid_eigenvectors)
     return nothing
 end
