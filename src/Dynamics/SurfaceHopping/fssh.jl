@@ -16,11 +16,10 @@ mutable struct FSSH{T} <: SurfaceHopping
 end
 
 function acceleration!(dv, v, r, sim::Simulation{<:FSSH}, t, state)
-    for i in axes(dv, 2)
-        for j in axes(dv, 1)
-            dv[j,i] = -sim.calculator.adiabatic_derivative[j,i][state, state] / sim.atoms.masses[i]
-        end
+    for I in eachindex(dv)
+        dv[I] = -sim.calculator.adiabatic_derivative[I][state, state]
     end
+    divide_by_mass!(dv, sim.atoms.masses)
     return nothing
 end
 

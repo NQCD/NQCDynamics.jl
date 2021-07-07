@@ -1,40 +1,22 @@
 using .Calculators: RingPolymerDiabaticCalculator
 
-function motion!(du, u, sim::RingPolymerSimulation{<:FSSH}, t)
-    dr = get_positions(du)
-    dv = get_velocities(du)
-    dσ = get_quantum_subsystem(du)
-
-    r = get_positions(u)
-    v = get_velocities(u)
-    σ = get_quantum_subsystem(u)
-
-    set_state!(u, sim.method.state) # Make sure the state variables match
-    velocity!(dr, v, r, sim, t)
-    Calculators.update_electronics!(sim.calculator, r)
-    Calculators.update_centroid_electronics!(sim.calculator, r)
-    acceleration!(dv, v, r, sim, t, sim.method.state)
-    set_quantum_derivative!(dσ, get_centroid(v), σ, sim)
-end
 
 function acceleration!(dv, v, r, sim::RingPolymerSimulation{<:FSSH}, t, state)
-    for i in axes(dv, 3)
-        for j in axes(dv, 2)
-            for k in axes(dv, 1)
-                dv[k,j,i] = -sim.calculator.adiabatic_derivative[k,j,i][state, state] / sim.atoms.masses[j]
-            end
-        end
+    for I in eachindex(dv)
+        dv[I] = -sim.calculator.adiabatic_derivative[I][state, state]
     end
+    divide_by_mass!(dv, sim.atoms.masses)
     apply_interbead_coupling!(dv, r, sim)
     return nothing
 end
 
 function set_quantum_derivative!(dσ, v, σ, sim::RingPolymerSimulation{<:FSSH})
     V = sim.method.density_propagator
+    centroid_v = get_centroid(v)
 
     V .= diagm(sim.calculator.centroid_eigenvalues)
-    for I in eachindex(v)
-        @. V -= im * v[I] * sim.calculator.centroid_nonadiabatic_coupling[I]
+    for I in eachindex(centroid_v)
+        @. V -= im * centroid_v[I] * sim.calculator.centroid_nonadiabatic_coupling[I]
     end
     mul!(sim.calculator.tmp_mat_complex1, V, σ)
     mul!(sim.calculator.tmp_mat_complex2, σ, V)
