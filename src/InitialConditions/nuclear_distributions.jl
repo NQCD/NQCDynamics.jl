@@ -34,8 +34,8 @@ end
 
 pick(s::DynamicalDistribution, i::Integer) = [select_item(s.velocity, i, s.size), select_item(s.position, i, s.size)]
 
-#select_item(x::Vector, i::Integer, ::NTuple) = austrip.(x[i])
-select_item(x::Vector, i::Integer, size::NTuple) = fill(austrip.(x[i]), size)
+select_item(x::Vector{<:AbstractArray}, i::Integer, ::NTuple) = austrip.(x[i])
+select_item(x::Vector{<:Number}, i::Integer, size::NTuple) = fill(austrip.(x[i]), size)
 select_item(x::Sampleable{Univariate}, ::Integer, size::NTuple) = austrip.(rand(x, size))
 select_item(x::Real, ::Integer, size::NTuple) = austrip.(fill(x, size))
 select_item(x::Matrix, ::Integer, ::NTuple) = austrip.(x)
