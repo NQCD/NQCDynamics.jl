@@ -8,7 +8,8 @@ using ProgressMeter
 
 model = TullyModelOne()
 atoms = Atoms(2000)
-r = Normal(-4)
+width = 1/sqrt(0.5)
+r = Normal(-4, width)
 reduction = Ensembles.MeanReduction()
 n_beads=5
 n_traj = 2000
@@ -41,7 +42,7 @@ output_scattering_erpmd = zeros(2, 2, length(momenta))
         trajectories=n_traj, output=output, reduction=reduction)
     output_scattering_ehrenfest[:,:,i] .= solution_ehrenfest.u
 
-    sim_erpmd = RingPolymerSimulation{Ehrenfest}(atoms, model, n_beads; DoFs=1, temperature=10u"K")
+    sim_erpmd = RingPolymerSimulation{Ehrenfest}(atoms, model, n_beads; DoFs=1, temperature=e1)
     output = Ensembles.OutputStateResolvedScattering1D(sim_erpmd)
     solution_erpmd = Ensembles.run_ensemble(sim_erpmd, tspan, selection2;
         trajectories=n_traj, output=output, reduction=reduction)
