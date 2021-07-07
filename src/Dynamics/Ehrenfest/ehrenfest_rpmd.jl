@@ -59,21 +59,6 @@ function get_diabatic_population(sim::RingPolymerSimulation{<:Ehrenfest}, u)
     return real.(diag(U * σ * U'))
 end
 
-# function get_diabatic_population(sim::RingPolymerSimulation{<:Ehrenfest}, u)
-#     Calculators.evaluate_potential!(sim.calculator, get_positions(u))
-#     Calculators.eigen!(sim.calculator)
-#     population = zeros(sim.calculator.model.n_states)
-#     σ = get_quantum_subsystem(u)
-#     for i=1:length(sim.beads)
-#         U = sim.calculator.eigenvectors[i]
-#         population .+= real.(diag(U * σ * U'))
-#     end
-#     population ./= length(sim.beads)
-#     #U = eigvecs(sim.calculator.potential[1])
-
-#     return population #real.(diag(U * σ * U'))
-# end
-
 function NonadiabaticMolecularDynamics.evaluate_hamiltonian(sim::RingPolymerSimulation{<:Ehrenfest}, u)
     k = evaluate_kinetic_energy(sim.atoms.masses, get_velocities(u))
     Calculators.evaluate_potential!(sim.calculator, get_positions(u))
