@@ -188,7 +188,6 @@ function eigen!(calc::RingPolymerDiabaticCalculator)
     for i=1:length(calc.potential)
         eig = eigen(calc.potential[i])
         calc.eigenvalues[i] = eig.values
-        #calc.eigenvectors[i] = eig.vectors 
         calc.eigenvectors[i] = correct_phase(eig.vectors, calc.eigenvectors[i])
     end
     return nothing
