@@ -275,6 +275,16 @@ function update_electronics!(calculator::AbstractDiabaticCalculator, r::Abstract
     evaluate_nonadiabatic_coupling!(calculator)
 end
 
+function update_electronics!(calculator::RingPolymerDiabaticCalculator, r::AbstractArray{T,3}) where {T}
+    evaluate_potential!(calculator, r)
+    evaluate_derivative!(calculator, r)
+    eigen!(calculator)
+    transform_derivative!(calculator)
+    evaluate_nonadiabatic_coupling!(calculator)
+
+    update_centroid_electronics!(calculator, r)
+end
+
 function update_centroid_electronics!(calculator::RingPolymerDiabaticCalculator, r::AbstractArray{T,3}) where {T}
     evaluate_centroid_potential!(calculator, r)
     evaluate_centroid_derivative!(calculator, r)
