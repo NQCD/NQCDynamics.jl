@@ -4,9 +4,12 @@ function motion!(du, u, sim::RingPolymerSimulation{<:FSSH}, t)
     dr = get_positions(du)
     dv = get_velocities(du)
     dσ = get_quantum_subsystem(du)
+
     r = get_positions(u)
     v = get_velocities(u)
     σ = get_quantum_subsystem(u)
+
+    set_state!(u, sim.method.state) # Make sure the state variables match
     velocity!(dr, v, r, sim, t)
     Calculators.update_electronics!(sim.calculator, r)
     Calculators.update_centroid_electronics!(sim.calculator, r)
@@ -53,7 +56,7 @@ function evaluate_hopping_probability!(sim::RingPolymerSimulation{<:FSSH}, u, dt
             end
         end
     end
-    #sim.method.hopping_probability ./= length(sim.beads)
+
     clamp!(sim.method.hopping_probability, 0, 1)
     cumsum!(sim.method.hopping_probability, sim.method.hopping_probability)
     return nothing

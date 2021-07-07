@@ -117,13 +117,11 @@ Diabatic populations recommended from J. Chem. Phys. 139, 211101 (2013).
 """
 function get_diabatic_population(sim::Simulation{<:FSSH}, u)
     Calculators.evaluate_potential!(sim.calculator, get_positions(u))
-    #Calculators.eigen!(sim.calculator)
-    #U = sim.calculator.eigenvectors
     U = eigvecs(sim.calculator.potential)
 
     σ = copy(get_quantum_subsystem(u))
     σ[diagind(σ)] .= 0
-    σ[sim.method.state, sim.method.state] = 1
+    σ[u.state, u.state] = 1
 
     return real.(diag(U * σ * U'))
 end
@@ -135,7 +133,7 @@ Adiabatic population directly from discrete state variable.
 """
 function get_adiabatic_population(sim::AbstractSimulation{<:FSSH}, u)
     population = zeros(sim.calculator.model.n_states)
-    population[sim.method.state] = 1
+    population[u.state] = 1
     return population
 end
 
