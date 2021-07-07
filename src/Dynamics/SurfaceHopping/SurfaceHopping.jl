@@ -33,19 +33,6 @@ function motion!(du, u, sim::AbstractSimulation{<:SurfaceHopping}, t)
     set_quantum_derivative!(dσ, v, σ, sim)
 end
 
-function set_quantum_derivative!(dσ, v, σ, sim::Simulation{<:SurfaceHopping})
-    V = sim.method.density_propagator
-
-    V .= diagm(sim.calculator.eigenvalues)
-    for I in eachindex(v)
-        @. V -= im * v[I] * sim.calculator.nonadiabatic_coupling[I]
-    end
-
-    mul!(sim.calculator.tmp_mat_complex1, V, σ)
-    mul!(sim.calculator.tmp_mat_complex2, σ, V)
-    @. dσ = -im * (sim.calculator.tmp_mat_complex1 - sim.calculator.tmp_mat_complex2)
-end
-
 function check_hop!(u, t, integrator)::Bool
     sim = integrator.p
     evaluate_hopping_probability!(sim, u, get_proposed_dt(integrator))

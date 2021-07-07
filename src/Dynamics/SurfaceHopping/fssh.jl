@@ -23,6 +23,29 @@ function acceleration!(dv, v, r, sim::Simulation{<:FSSH}, t, state)
     return nothing
 end
 
+function set_quantum_derivative!(dσ, v, σ, sim::AbstractSimulation{<:FSSH})
+    V = calculate_density_propagator!(sim, v)
+    commutator!(dσ, V, σ, sim.calculator.tmp_mat_complex1)
+    lmul!(-im, dσ)
+end
+
+function calculate_density_propagator!(sim::Simulation{<:FSSH}, v)
+    V = sim.method.density_propagator
+
+    V .= diagm(sim.calculator.eigenvalues)
+    for I in eachindex(v)
+        @. V -= im * v[I] * sim.calculator.nonadiabatic_coupling[I]
+    end
+    return V
+end
+
+function commutator!(out, A, B, tmp)
+    mul!(out, A, B)
+    mul!(tmp, B, A)
+    out .-= tmp
+    return nothing
+end
+
 """
     evaluate_hopping_probability!(sim::Simulation{<:FSSH}, u, dt)
 
@@ -39,18 +62,21 @@ function evaluate_hopping_probability!(sim::Simulation{<:FSSH}, u, dt)
     s = sim.method.state
     d = sim.calculator.nonadiabatic_coupling
 
-    sim.method.hopping_probability .= 0 # Set all entries to 0
-    for m=1:sim.calculator.model.n_states
+    fewest_switches_probability!(sim.method.hopping_probability, v, σ, s, d, dt)
+end
+
+function fewest_switches_probability!(probability, v, σ, s, d, dt)
+    probability .= 0 # Set all entries to 0
+    for m in axes(σ, 1)
         if m != s
             for I in eachindex(v)
-                sim.method.hopping_probability[m] += 2v[I]*real(σ[m,s]/σ[s,s])*d[I][s,m] * dt
+                probability[m] += 2v[I]*real(σ[m,s]/σ[s,s])*d[I][s,m] * dt
             end
         end
     end
 
-    clamp!(sim.method.hopping_probability, 0, 1) # Restrict probabilities between 0 and 1
-    cumsum!(sim.method.hopping_probability, sim.method.hopping_probability)
-    return nothing
+    clamp!(probability, 0, 1) # Restrict probabilities between 0 and 1
+    cumsum!(probability, probability)
 end
 
 function select_new_state(sim::AbstractSimulation{<:FSSH}, u)
