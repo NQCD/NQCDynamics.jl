@@ -121,9 +121,9 @@ end
     end
 
     @testset "calculate_potential_energy_change" begin
-        integrator.p.calculator.eigenvalues .= [[0.9, -0.3] for i=1:5]
-        @test fill(1.2, 5) ≈ Dynamics.calculate_potential_energy_change(integrator.p.calculator, 1, 2)
-        @test fill(-1.2, 5) ≈ Dynamics.calculate_potential_energy_change(integrator.p.calculator, 2, 1)
+        integrator.p.calculator.centroid_eigenvalues = SVector{2}([0.9, -0.3])
+        @test 1.2 ≈ Dynamics.calculate_potential_energy_change(integrator.p.calculator, 1, 2)
+        @test -1.2 ≈ Dynamics.calculate_potential_energy_change(integrator.p.calculator, 2, 1)
     end
 
     @testset "execute_hop!" begin
@@ -146,7 +146,7 @@ end
 
         @test integrator.u.state == 2 # Check state has changed
         @test H_initial ≈ H_final # Check ring polymer hamiltonian conserved
-        ΔKE = KE_final - KE_initial
+        ΔKE = (KE_final - KE_initial) / length(sim.beads)
         @test ΔKE ≈ -sum(ΔE) rtol=1e-3 # Test for energy conservation
     end
 
@@ -157,7 +157,8 @@ end
         r = RingPolymerArray(fill(-10.0, 1, 1, 5)) .+ randn(1,1,5)
         u = SurfaceHoppingVariables(v, r, 2, 1)
         solution = Dynamics.run_trajectory(u, (0.0, 1000.0), sim, output=(:hamiltonian), reltol=1e-10)
-        @test solution.hamiltonian[1] ≈ solution.hamiltonian[end] rtol=1e-3
+        # Ring polymer Hamiltonian is not strictly conserved during hoppping
+        @test solution.hamiltonian[1] ≈ solution.hamiltonian[end] rtol=1e-2
     end
 
 end

@@ -11,7 +11,7 @@ struct Ehrenfest{T} <: AbstractEhrenfest
     end
 end
 
-function acceleration!(dv, v, r, sim::Simulation{<:Ehrenfest}, t, σ)
+function acceleration!(dv, v, r, sim::AbstractSimulation{<:Ehrenfest}, t, σ)
     dv .= zero(eltype(dv))
     for I in eachindex(dv)
         for J in eachindex(σ)
@@ -23,16 +23,15 @@ function acceleration!(dv, v, r, sim::Simulation{<:Ehrenfest}, t, σ)
 end
 
 function get_adiabatic_population(::AbstractSimulation{<:Ehrenfest}, u)
-    σ = get_density_matrix(u)
+    σ = get_quantum_subsystem(u)
     return real.(diag(σ))
 end
 
 function get_diabatic_population(sim::Simulation{<:Ehrenfest}, u)
     Calculators.evaluate_potential!(sim.calculator, get_positions(u))
-    Calculators.eigen!(sim.calculator)
-    U = sim.calculator.eigenvectors
+    U = eigvecs(sim.calculator.potential)
 
-    σ = get_density_matrix(u)
+    σ = get_quantum_subsystem(u)
 
     return real.(diag(U * σ * U'))
 end
@@ -41,6 +40,6 @@ function NonadiabaticMolecularDynamics.evaluate_hamiltonian(sim::Simulation{<:Eh
     k = evaluate_kinetic_energy(sim.atoms.masses, get_velocities(u))
     Calculators.evaluate_potential!(sim.calculator, get_positions(u))
     Calculators.eigen!(sim.calculator)
-    p = sum(diag(get_density_matrix(u)) .* sim.calculator.eigenvalues)
+    p = sum(diag(get_quantum_subsystem(u)) .* sim.calculator.eigenvalues)
     return k + p
 end
