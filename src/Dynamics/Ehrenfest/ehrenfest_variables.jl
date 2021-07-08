@@ -1,5 +1,5 @@
 export EhrenfestVariables
-export get_density_matrix
+export get_quantum_subsystem
 
 const EhrenfestVariables{T,D} = ArrayPartition{Complex{T}, Tuple{D,D,Matrix{Complex{T}}}}
 
@@ -25,7 +25,7 @@ end
 function EhrenfestVariables(sim::RingPolymerSimulation{<:AbstractEhrenfest}, v, r, state::Integer)
     n_states = sim.calculator.model.n_states
     Calculators.evaluate_centroid_potential!(sim.calculator, r)
-    U = eigvecs(sim.calculator.potential[1])
+    U = eigvecs(sim.calculator.centroid_potential)
 
     diabatic_density = zeros(Complex{eltype(r)}, n_states, n_states)
     diabatic_density[state, state] = 1
@@ -34,4 +34,4 @@ function EhrenfestVariables(sim::RingPolymerSimulation{<:AbstractEhrenfest}, v, 
     ArrayPartition(v, r, σ)
 end
 
-get_density_matrix(u::EhrenfestVariables) = u.x[3]
+get_quantum_subsystem(u::EhrenfestVariables) = u.x[3]
