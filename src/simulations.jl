@@ -33,9 +33,13 @@ function Simulation(atoms::Atoms, model::Model, method::M;
     Simulation(DoFs, temperature, cell, atoms, model, method)
 end
 
-function get_temperature(sim::AbstractSimulation, t::Real=0)
+function get_temperature(sim::Simulation, t::Real=0)
     t = auconvert(u"fs", t)
     get_temperature(sim.temperature, t)
+end
+function get_temperature(sim::RingPolymerSimulation, t::Real=0)
+    t = auconvert(u"fs", t)
+    get_temperature(sim.temperature, t) * length(sim.beads)
 end
 get_temperature(temperature::Number, t=0) = austrip(temperature)
 get_temperature(temperature::Function, t=0) = austrip(temperature(t))
