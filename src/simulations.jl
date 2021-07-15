@@ -33,17 +33,6 @@ function Simulation(atoms::Atoms, model::Model, method::M;
     Simulation(DoFs, temperature, cell, atoms, model, method)
 end
 
-function get_temperature(sim::Simulation, t::Real=0)
-    t = auconvert(u"fs", t)
-    get_temperature(sim.temperature, t)
-end
-function get_temperature(sim::RingPolymerSimulation, t::Real=0)
-    t = auconvert(u"fs", t)
-    get_temperature(sim.temperature, t) * length(sim.beads)
-end
-get_temperature(temperature::Number, t=0) = austrip(temperature)
-get_temperature(temperature::Function, t=0) = austrip(temperature(t))
-
 struct RingPolymerSimulation{M,Calc,A,T,C,B} <: AbstractSimulation{M,Calc,A,T,C}
     DoFs::UInt8
     temperature::T
@@ -73,3 +62,14 @@ function RingPolymerSimulation(atoms::Atoms, model::Model, method::M, n_beads::I
         cell::AbstractCell=InfiniteCell(), quantum_nuclei::Vector{Symbol}=Symbol[]) where {M}
     RingPolymerSimulation(DoFs, temperature, cell, atoms, model, method, n_beads, quantum_nuclei)
 end
+
+function get_temperature(sim::Simulation, t::Real=0)
+    t = auconvert(u"fs", t)
+    get_temperature(sim.temperature, t)
+end
+function get_temperature(sim::RingPolymerSimulation, t::Real=0)
+    t = auconvert(u"fs", t)
+    get_temperature(sim.temperature, t) * length(sim.beads)
+end
+get_temperature(temperature::Number, t=0) = austrip(temperature)
+get_temperature(temperature::Function, t=0) = austrip(temperature(t))
