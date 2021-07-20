@@ -25,13 +25,13 @@ end
 function (select::OrderedSelection)(prob, i, repeat)
     v, r = InitialConditions.pick(select.distribution, i)
     u0 = select_u0(prob.p, v, r, select.distribution.state, select.distribution.type)
-    remake(prob, u0=u0)
+    Dynamics.create_problem(u0, prob.tspan, prob.p)
 end
 
 function (select::RandomSelection)(prob, i, repeat)
     v, r = rand(select.distribution)
     u0 = select_u0(prob.p, v, r, select.distribution.state, select.distribution.type)
-    remake(prob, u0=u0)
+    Dynamics.create_problem(u0, prob.tspan, prob.p)
 end
 
 struct SelectWithCallbacks{S<:AbstractSelection,C1,C2,V} <: AbstractSelection
