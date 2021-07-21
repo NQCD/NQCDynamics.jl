@@ -65,8 +65,16 @@ end
     @test !(out.energy[1] ≈ out.energy[20])
 end
 
+@testset "run_monte_carlo_sampling" begin
+    sim = RingPolymerSimulation(atoms, model, 10; cell=cell, temperature=100u"K", DoFs=1)
+    R0 = rand(sim.DoFs, length(sim.atoms), 10)
+    out = MetropolisHastings.run_monte_carlo_sampling(sim, R0, Δ, 10)
+    @test !(out.R[1] ≈ out.R[10])
+    @test !(out.energy[1] ≈ out.energy[20])
+end
+
 @testset "propose_centroid_move!" begin
-    monte_carlo = PathIntegralMonteCarlo{Float64}(Δ, length(atoms), 100, [1], 1.0, 10)
+    monte_carlo = PathIntegralMonteCarlo{Float64}(Δ, length(atoms), 100, [1], 1.0, 10, x->true)
     sim = RingPolymerSimulation(atoms, model, 10; cell=cell, temperature=100u"K", DoFs=1, quantum_nuclei=[:H])
     Rᵢ = randn(3, length(sim.atoms), 10)
     Rₚ = copy(Rᵢ)

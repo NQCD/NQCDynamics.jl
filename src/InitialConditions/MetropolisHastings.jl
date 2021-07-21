@@ -60,9 +60,10 @@ mutable struct PathIntegralMonteCarlo{T} <: MonteCarloParameters
     moveable_atoms::AnalyticWeights
     segment_length::UInt
     pass_length::UInt
+    extra_function::Function
     function PathIntegralMonteCarlo{T}(Δ::Dict{Symbol, T},
         n_atoms::Real, passes::Real, fix::Vector{<:Integer},
-        segment::Real, n_beads::Integer) where {T<:AbstractFloat}
+        segment::Real, n_beads::Integer, extra::Function) where {T<:AbstractFloat}
 
         steps = n_atoms * passes
 
@@ -73,7 +74,7 @@ mutable struct PathIntegralMonteCarlo{T} <: MonteCarloParameters
         segment_length = max(1, round(Int, segment * n_beads))
         pass_length = n_beads ÷ segment_length
 
-        new(0.0, 0.0, Δ, steps, moveable_atoms, segment_length, pass_length)
+        new(0.0, 0.0, Δ, steps, moveable_atoms, segment_length, pass_length, extra)
     end
 end
 
@@ -122,12 +123,13 @@ function run_monte_carlo_sampling(sim::Simulation, R0::Matrix{T},
     output
 end
 
-function run_monte_carlo_sampling(sim::RingPolymerSimulation, R0::Array{T,3},
-    Δ::Dict{Symbol,T}, passes::Real; fix::Vector{<:Integer}=Int[], segment::Real=1) where {T}
+function run_monte_carlo_sampling(sim::RingPolymerSimulation, R0::AbstractArray{T,3},
+    Δ::Dict{Symbol,T}, passes::Real;
+    fix::Vector{<:Integer}=Int[], segment::Real=1, extra_function::Function=x->true) where {T}
 
     Rᵢ = copy(R0) # Current positions
     Rₚ = zero(Rᵢ) # Proposed positions
-    monte = PathIntegralMonteCarlo{T}(Δ, length(sim.atoms), passes, fix, segment, length(sim.beads))
+    monte = PathIntegralMonteCarlo{T}(Δ, length(sim.atoms), passes, fix, segment, length(sim.beads), extra_function)
     monte.Eᵢ = evaluate_potential_energy(sim, Rᵢ)
     output = MonteCarloOutput(Rᵢ, sim.atoms)
 
@@ -167,17 +169,21 @@ function run_main_loop!(sim::RingPolymerSimulation, monte::PathIntegralMonteCarl
             propose_centroid_move!(sim, monte, Rᵢ, Rₚ, atom)
             apply_cell_boundaries!(sim.cell, Rₚ, sim.beads)
             assess_proposal!(sim, monte, Rᵢ, Rₚ, output, atom)
-            if atom ∈ sim.beads.quantum_atoms
+            if length(sim.beads) > 1
+                if atom ∈ sim.beads.quantum_atoms
+                    for j=1:monte.pass_length
+                        propose_normal_mode_move!(sim, monte, Rᵢ, Rₚ, atom)
+                        assess_proposal!(sim, monte, Rᵢ, Rₚ, output, atom)
+                    end
+                end
+            end
+        else
+            if length(sim.beads) > 1
+                atom = sample(sim.beads.quantum_atoms)
                 for j=1:monte.pass_length
                     propose_normal_mode_move!(sim, monte, Rᵢ, Rₚ, atom)
                     assess_proposal!(sim, monte, Rᵢ, Rₚ, output, atom)
                 end
-            end
-        else
-            atom = sample(sim.beads.quantum_atoms)
-            for j=1:monte.pass_length
-                propose_normal_mode_move!(sim, monte, Rᵢ, Rₚ, atom)
-                assess_proposal!(sim, monte, Rᵢ, Rₚ, output, atom)
             end
         end
         assess_proposal!(sim, monte, Rᵢ, Rₚ, output, atom)
