@@ -20,6 +20,9 @@ RingPolymerSimulation{MDEF}(atoms::Atoms, model::Model, n_beads::Integer; DoFs=3
 RingPolymerSimulation{NRPMD}(atoms::Atoms{S,T}, model::Model, n_beads::Integer; kwargs...) where {S,T}=
     RingPolymerSimulation(atoms, model, NRPMD{T}(model.n_states), n_beads; kwargs...)
 
+Simulation{CMM2}(atoms::Atoms{S,T}, model::Model; kwargs...) where {S,T} = 
+    Simulation(atoms, model, CMM2{T}(model.n_states); kwargs...)
+
 Simulation{Langevin}(atoms::Atoms{S,T}, model::Model; γ=1, temperature=0u"K", DoFs=3, kwargs...) where {S,T} =
     Simulation(atoms, model, Langevin{T}(γ, austrip(temperature), atoms.masses, DoFs);
                temperature=temperature, DoFs=DoFs, kwargs...)
