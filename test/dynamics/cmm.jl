@@ -17,13 +17,13 @@ function test_motion!(sim::Simulation{<:CMM2}, u::Dynamics.MeyerMillerMappingVar
     @test Dynamics.get_mapping_momenta(du) ≈ -Dynamics.get_mapping_positions(grad) rtol=1e-3
 end
 
-test_motion!(sim, u)
+sim = Simulation{CMM2}(Atoms(1), DoubleWell(); DoFs=1)
 
 v = randn(1,1)
 r = randn(1,1)
 u = Dynamics.MeyerMillerMappingVariables(v, r, 2, 1)
 
-sim = Simulation{CMM2}(Atoms(1), DoubleWell(); DoFs=1)
+test_motion!(sim, u)
 
 sol = Dynamics.run_trajectory(u, (0, 100.0), sim; output=(:hamiltonian, :position), reltol=1e-6)
 @test sol.hamiltonian[1] ≈ sol.hamiltonian[end] rtol=1e-3
