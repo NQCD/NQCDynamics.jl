@@ -15,9 +15,9 @@ end
 
 function sample_configurations(
     sim::AbstractSimulation,
-    R0::AbstractMatrix,
+    R0::AbstractArray,
     steps::Real;
-    σ::AbstractMatrix=fill(0.1, size(R0)),
+    σ::AbstractArray=fill(0.1, size(R0)),
     )
 
     shape = size(R0)
