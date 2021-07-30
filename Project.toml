@@ -4,6 +4,7 @@ authors = ["James <james.gardner1421@gmail.com>"]
 version = "0.4.7"
 
 [deps]
+AdvancedMH = "5b7e9947-ddc0-4b3f-9b55-0d8042f74170"
 DiffEqBase = "2b5f629d-d688-5b77-993f-72d75c75574e"
 DiffEqCallbacks = "459566f4-90b8-5000-8ac3-15dfb0a30def"
 Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"

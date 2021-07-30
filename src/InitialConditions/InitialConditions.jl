@@ -15,4 +15,6 @@ export MetropolisHastings
 include("QuantisedDiatomic.jl")
 export QuantisedDiatomic
 
+include("advancedmh_sampling.jl")
+
 end # module
