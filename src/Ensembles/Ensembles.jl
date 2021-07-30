@@ -56,6 +56,7 @@ function run_ensemble(
     output=(sol,i)->(sol,false),
     reduction=(u,data,I)->(append!(u,data),false),
     ensemble_algorithm=EnsembleThreads(),
+    algorithm=Dynamics.select_algorithm(sim),
     kwargs...
     )
 
@@ -79,7 +80,7 @@ function run_ensemble(
         u_init=u_init
     )
 
-    solve(ensemble_problem, Dynamics.select_algorithm(sim), ensemble_algorithm; stripped_kwargs...)
+    solve(ensemble_problem, algorithm, ensemble_algorithm; stripped_kwargs...)
 end
 
 function run_ensemble_standard_output(
