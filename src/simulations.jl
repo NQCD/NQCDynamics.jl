@@ -13,7 +13,7 @@ abstract type AbstractSimulation{M,Calc<:AbstractCalculator,A<:Atoms,T,C<:Abstra
 Base.broadcastable(sim::AbstractSimulation) = Ref(sim)
 
 struct Simulation{M,Calc,A,T,C} <: AbstractSimulation{M,Calc,A,T,C}
-    DoFs::UInt8
+    DoFs::Int
     temperature::T
     cell::C
     atoms::A
@@ -21,20 +21,14 @@ struct Simulation{M,Calc,A,T,C} <: AbstractSimulation{M,Calc,A,T,C}
     method::M
 end
 
-function Simulation(DoFs::Integer, temperature, cell::AbstractCell,
-        atoms::Atoms{S,T}, model::Model, method::M) where {M,S,T}
+function Simulation(atoms::Atoms{S,T}, model::Model, method::M;
+        DoFs::Integer=3, temperature=0u"K", cell::AbstractCell=InfiniteCell()) where {M,S,T}
     calc = Calculator(model, DoFs, length(atoms), T)
-    Simulation(UInt8(DoFs), temperature, cell, atoms, calc, method)
-end
-
-function Simulation(atoms::Atoms, model::Model, method::M;
-        DoFs::Integer=3, temperature=0u"K",
-        cell::AbstractCell=InfiniteCell()) where {M}
-    Simulation(DoFs, temperature, cell, atoms, model, method)
+    Simulation(DoFs, temperature, cell, atoms, calc, method)
 end
 
 struct RingPolymerSimulation{M,Calc,A,T,C,B} <: AbstractSimulation{M,Calc,A,T,C}
-    DoFs::UInt8
+    DoFs::Int
     temperature::T
     cell::C
     atoms::A
@@ -54,7 +48,7 @@ function RingPolymerSimulation(DoFs::Integer, temperature, cell::AbstractCell,
     end
     
     calc = Calculator(model, DoFs, length(atoms), n_beads, T)
-    RingPolymerSimulation(UInt8(DoFs), temperature, cell, atoms, calc, method, beads)
+    RingPolymerSimulation(DoFs, temperature, cell, atoms, calc, method, beads)
 end
 
 function RingPolymerSimulation(atoms::Atoms, model::Model, method::M, n_beads::Integer;
