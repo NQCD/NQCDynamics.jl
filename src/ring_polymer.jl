@@ -28,6 +28,8 @@ struct RingPolymerParameters{T<:AbstractFloat}
     end
 end
 
+Base.broadcastable(beads::RingPolymerParameters) = Ref(beads)
+
 """Constructor for choosing specific elements to be quantum."""
 function RingPolymerParameters{T}(n_beads::Integer, temperature::Real, atom_types::AbstractVector{Symbol}, quantum_nuclei::Vector{Symbol}) where {T}
     quantum_atoms = findall(in(quantum_nuclei), atom_types)
