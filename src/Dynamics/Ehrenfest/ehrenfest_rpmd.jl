@@ -24,20 +24,6 @@ function acceleration!(dv, v, r, sim::RingPolymerSimulation{<:Ehrenfest}, t, σ)
     return nothing
 end
 
-function set_quantum_derivative_old!(dσ, v, σ, sim::RingPolymerSimulation{<:Ehrenfest})
-    V = sim.method.density_propagator
-
-    V .= diagm(sum(sim.calculator.eigenvalues))
-    for I in eachindex(v)
-        @. V -= im * v[I] * sim.calculator.nonadiabatic_coupling[I]
-    end
-    V ./= length(sim.beads)
-    mul!(sim.calculator.tmp_mat_complex1, V, σ)
-    mul!(sim.calculator.tmp_mat_complex2, σ, V)
-    @. dσ = -im * (sim.calculator.tmp_mat_complex1 - sim.calculator.tmp_mat_complex2)
-    return nothing
-end
-
 function set_quantum_derivative!(dσ, v, σ, sim::RingPolymerSimulation{<:Ehrenfest})
     V = sim.method.density_propagator
 
@@ -45,7 +31,6 @@ function set_quantum_derivative!(dσ, v, σ, sim::RingPolymerSimulation{<:Ehrenf
     for I in eachindex(v)
         @. V -= im * v[I] * sim.calculator.centroid_nonadiabatic_coupling[I]
     end
-    #V ./= length(sim.beads)
     mul!(sim.calculator.tmp_mat_complex1, V, σ)
     mul!(sim.calculator.tmp_mat_complex2, σ, V)
     @. dσ = -im * (sim.calculator.tmp_mat_complex1 - sim.calculator.tmp_mat_complex2)
