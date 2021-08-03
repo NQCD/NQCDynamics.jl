@@ -7,7 +7,6 @@ cell = InfiniteCell()
 
 model = NonadiabaticModels.Free()
 
-@test Simulation(3, 100, cell, atoms, model, Classical()) isa Simulation
 @test RingPolymerSimulation(3, 100, cell, atoms, model, Classical(), 10, [:H]) isa RingPolymerSimulation
 
 @test Simulation(atoms, model, Classical()) isa Simulation

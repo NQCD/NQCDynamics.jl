@@ -10,7 +10,7 @@ model = NonadiabaticModels.Harmonic()
 
 Δ = Dict([(:H, 0.1), (:C, 0.1)])
 monte_carlo = MonteCarlo{Float64}(Δ, length(atoms), 100, Int[], x->true)
-sim = Simulation(1, 100u"K", cell, atoms, model, monte_carlo)
+sim = Simulation(atoms, model; cell=cell, temperature=100u"K", DoFs=1)
 
 @testset "propose_move!" begin
     Rᵢ = zeros(sim.DoFs, length(sim.atoms))
@@ -24,12 +24,12 @@ end
     Rᵢ = randn(sim.DoFs, length(sim.atoms))
     Rₚ = zero(Rᵢ)
     # Accept the move
-    sim.method.Eᵢ = 1
+    monte_carlo.Eᵢ = 1
     output = MetropolisHastings.MonteCarloOutput(Rᵢ, sim.atoms)
     MetropolisHastings.assess_proposal!(sim, monte_carlo, Rᵢ, Rₚ, output, 1)
     @test output.R[1] == Rₚ
     # Reject the move
-    sim.method.Eᵢ = -1
+    monte_carlo.Eᵢ = -1
     MetropolisHastings.assess_proposal!(sim, monte_carlo, Rᵢ, Rₚ, output, 1)
     @test output.R[1] == Rᵢ
 end
