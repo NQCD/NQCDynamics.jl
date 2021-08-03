@@ -15,3 +15,10 @@ d = DynamicalDistribution(a, Normal(), (3,2))
 
 d = DynamicalDistribution(1, Normal(), (3,2))
 @test rand(d) isa Vector{<:Matrix}
+
+@testset "BoltzmannVelocityDistribution" begin
+    boltz = InitialConditions.BoltzmannVelocityDistribution(1, [1, 2, 3])
+    @test length(rand(boltz)) == 3
+    @test size(InitialConditions.select_item(boltz, 1, (2, 3))) == (2, 3)
+    @test size(InitialConditions.select_item(boltz, 1, (2, 3, 4))) == (2, 3, 4)
+end

@@ -31,6 +31,17 @@ function evaluate_potential_energy(sim::RingPolymerSimulation, R)
     sum(sim.calculator.potential)[1] + get_spring_energy(sim, R)
 end
 
+function evaluate_potential_energy(sim::RingPolymerSimulation, R::RingPolymerArray)
+    if R.normal
+        transform!(sim.beads, R)
+        potential = evaluate_potential_energy(sim, R.data)
+        transform!(sim.beads, R)
+    else
+        potential = evaluate_potential_energy(sim, R.data)
+    end
+    return potential
+end
+
 """
     get_spring_energy(system::RingPolymerSimulation, R)
     

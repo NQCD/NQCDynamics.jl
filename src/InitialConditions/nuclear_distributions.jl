@@ -34,9 +34,38 @@ end
 
 pick(s::DynamicalDistribution, i::Integer) = [select_item(s.velocity, i, s.size), select_item(s.position, i, s.size)]
 
+# Indexed selections
 select_item(x::Vector{<:AbstractArray}, i::Integer, ::NTuple) = austrip.(x[i])
 select_item(x::Vector{<:Number}, i::Integer, size::NTuple) = fill(austrip.(x[i]), size)
+
+# Sampled selection
 select_item(x::Sampleable{Univariate}, ::Integer, size::NTuple) = austrip.(rand(x, size))
+
+# Deterministic selections
 select_item(x::Real, ::Integer, size::NTuple) = austrip.(fill(x, size))
 select_item(x::Matrix, ::Integer, ::NTuple) = austrip.(x)
 select_item(x::AbstractArray{T,3}, ::Integer, ::NTuple) where T = austrip.(x)
+
+struct BoltzmannVelocityDistribution{T} <: Sampleable{Multivariate,Continuous}
+    dist::MvNormal{T}
+end
+
+function BoltzmannVelocityDistribution(temperature, masses)
+    dist = MvNormal(sqrt.(temperature ./ masses))
+    BoltzmannVelocityDistribution(dist)
+end
+
+Base.length(s::BoltzmannVelocityDistribution) = length(s.dist)
+function Distributions._rand!(rng::AbstractRNG, s::BoltzmannVelocityDistribution, x::AbstractVector{<:Real})
+    Distributions._rand!(rng, s.dist, x)
+end
+function select_item(x::BoltzmannVelocityDistribution, ::Integer, size::Tuple{Int,Int})
+    permutedims(rand(x, size[1]))
+end
+function select_item(x::BoltzmannVelocityDistribution, ::Integer, size::Tuple{Int,Int,Int})
+    out = zeros(eltype(x), size)
+    for i=1:size[3]
+        out[:,:,i] .= permutedims(rand(x, size[1]))
+    end
+    return out
+end
