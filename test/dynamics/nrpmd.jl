@@ -1,6 +1,8 @@
 using Test
 using NonadiabaticMolecularDynamics
 using FiniteDiff
+using Random
+Random.seed!(1)
 
 @test Dynamics.NRPMD{Float64}(10) isa Dynamics.NRPMD
 atoms = Atoms(1.0)
@@ -32,5 +34,6 @@ end
 
 test_motion!(sim, u)
 
-sol = Dynamics.run_trajectory(u, (0, 100.0), sim; output=(:hamiltonian, :position), reltol=1e-8)
+sol = Dynamics.run_trajectory(u, (0, 100.0), sim; output=(:hamiltonian, :position),
+    reltol=1e-8, abstol=1e-8)
 @test sol.hamiltonian[1] ≈ sol.hamiltonian[end] rtol=1e-2

@@ -46,7 +46,7 @@ atoms = Atoms(1)
         r = hcat(-10.0)
         u = EhrenfestVariables(v, r, 2, 1)
         solution = Dynamics.run_trajectory(u, (0.0, 500.0), sim, output=(:hamiltonian), reltol=1e-6)
-        @test solution.hamiltonian[1] ≈ solution.hamiltonian[end]
+        @test solution.hamiltonian[1] ≈ solution.hamiltonian[end] rtol=1e-2
     end
 end
 
@@ -57,5 +57,5 @@ end
     r = fill(-10.0, 1, 1, 10)
     u = EhrenfestVariables(v, r, 2, 1)
     solution = Dynamics.run_trajectory(u, (0.0, 500.0), sim, output=(:hamiltonian), reltol=1e-6)
-    @test solution.hamiltonian[1] ≈ solution.hamiltonian[end]
+    @test solution.hamiltonian[1] ≈ solution.hamiltonian[end] rtol=1e-2
 end
