@@ -11,6 +11,9 @@ end
 DocMeta.setdocmeta!(NonadiabaticMolecularDynamics, :DocTestSetup, doctestsetup; recursive=true)
 DocMeta.setdocmeta!(NonadiabaticModels, :DocTestSetup, :(using NonadiabaticModels, Symbolics); recursive=true)
 
+# Fix plots bug https://discourse.julialang.org/t/generation-of-documentation-fails-qt-qpa-xcb-could-not-connect-to-display/60988
+ENV["GKSwstype"] = "100"
+
 @time makedocs(sitename="NonadiabaticMolecularDynamics.jl",
     modules=[NonadiabaticMolecularDynamics, NonadiabaticModels, CubeLDFAModel],
     format=Documenter.HTML(prettyurls=true, assets=["assets/custom.css"]),
@@ -39,5 +42,5 @@ DocMeta.setdocmeta!(NonadiabaticModels, :DocTestSetup, :(using NonadiabaticModel
     ])
 
 deploydocs(
-    repo = "github.com/maurergroup/NonadiabaticMolecularDynamics.jl",
+    repo = "github.com/NQCD/NonadiabaticMolecularDynamics.jl",
 )
