@@ -32,5 +32,5 @@ end
 
 test_motion!(sim, u)
 
-sol = Dynamics.run_trajectory(u, (0, 100.0), sim; output=(:hamiltonian, :position), reltol=1e-6)
-@test sol.hamiltonian[1] ≈ sol.hamiltonian[end] rtol=1e-3
+sol = Dynamics.run_trajectory(u, (0, 100.0), sim; output=(:hamiltonian, :position), reltol=1e-8)
+@test sol.hamiltonian[1] ≈ sol.hamiltonian[end] rtol=1e-2
