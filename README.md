@@ -1,7 +1,7 @@
 # NonadiabaticMolecularDynamics.jl
 
-[![CI](https://github.com/maurergroup/NonadiabaticMolecularDynamics.jl/actions/workflows/CI.yml/badge.svg)](https://github.com/maurergroup/NonadiabaticMolecularDynamics.jl/actions/workflows/CI.yml)
-[![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://maurergroup.github.io/NonadiabaticMolecularDynamics.jl/dev/)
+[![CI](https://github.com/nqcd/NonadiabaticMolecularDynamics.jl/actions/workflows/CI.yml/badge.svg)](https://github.com/nqcd/NonadiabaticMolecularDynamics.jl/actions/workflows/CI.yml)
+[![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://nqcd.github.io/NonadiabaticMolecularDynamics.jl/dev/)
 
 Designing initial conditions for computer experiments
 
