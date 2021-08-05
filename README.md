@@ -3,28 +3,30 @@
 [![CI](https://github.com/nqcd/NonadiabaticMolecularDynamics.jl/actions/workflows/CI.yml/badge.svg)](https://github.com/nqcd/NonadiabaticMolecularDynamics.jl/actions/workflows/CI.yml)
 [![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://nqcd.github.io/NonadiabaticMolecularDynamics.jl/dev/)
 
-Designing initial conditions for computer experiments
+This is a package for performing nonadiabatic molecular dynamics simulations for both simple models and full-dimensional systems using the [DifferentialEquations.jl](https://github.com/SciML/DifferentialEquations.jl) framework.
 
-**TODO**
-1. Diatomic state-to-state scattering (harmonic oscilator, rigid rotor, verticla position, kinetic energy) + thermalised surface (@Connor)
-This would work for classical MD and MDEF (incl. RPMD extension)
-Venus manual: http://hase-group.ttu.edu/venus/venus96_manual.html
+## Included functionality
 
-2. Thermalised on-surface dynamics (molecule on surface positions/momenta sampled from Boltzmann distribution, long-time NVT simulation OR 
-using West, Estreicher method: https://journals.aps.org/prl/pdf/10.1103/PhysRevLett.96.115504 [already implemented in ASE_local by Reini])
-This would work for classical MD and MDEF (incl. any ring-polymer extension) (@Reini)
+This package provides ways to generate initial conditions for the dynamics simulations and perform the simulations
+using DifferentialEquations.jl.
+The tight integration with DifferentialEquations.jl makes the implementation of new methods relatively simple,
+making it necessary only to define the time-derivatives of the dynamical variables.
+This makes prototyping new methods as simple as possible.
 
-3. Surface Hopping initial conditions(classical position/momenta sampling + select initial condition for electronic density matrix, and combine them)
-This should work for the surface hopping case of 1 and 2
+Further, the model interface has been written in a dimension-agnostic way such that the same code can be used
+for simple models and for full dimensional systems.
 
-4. Monte Carlo sampling of initial conditions
+### Sampling initial conditions
+- Monte carlo sampling
+- Thermal Langevin dynamics
+- Nonequilibrium quantisation of diatomic molecules
 
-5. State-selective analysis of trajectories for state-to-state scattering histogram binning (@Connor)
+### Dynamics methods
+- Fewest-switches surface hopping
+- Ehrenfest molecular dynamics
+- Nonadiabatic ring polymer molecular dynamics
+- Ring polymer surface hopping
+- Ehrenfest ring polymer molecular dynamics
+- Molecular dynamics with electronic friction
 
-
-6. Make it possible to deliver initial conditions (momenta/positions) to different codes: ASE format, VENUS, Julia package?!
-
-7. Excited state sampling: For small molecules we should do Wigner sampling, for large molecules classical MD and take every xth step. Every initial condition needs an excited state calulation. The oscillator strengths for every transition need to be calculated (energies and transition dipoles - this most often requires the reference method unless we have a model which can fit both values accurately) and according to the initial excitation wave length we set the initial state to start the dynamics. The initial state is the output which we then give to julia/MD via an input file(?). 
-Worth to consider: If we want to do something with excited-states, maybe do the sampling in the beginning of a study and use these data points for fitting (at least when ML is applied).
-
-![image](https://user-images.githubusercontent.com/38594562/100458375-91ea4880-30bb-11eb-9118-bb8eb97eaed3.png)
+For further details please consult the [documentation](https://nqcd.github.io/NonadiabaticMolecularDynamics.jl/dev/).
