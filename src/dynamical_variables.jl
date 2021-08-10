@@ -1,6 +1,6 @@
 
 using RecursiveArrayTools
-using DiffEqBase
+using DEDataArrays
 
 export DynamicalVariables
 export get_positions
