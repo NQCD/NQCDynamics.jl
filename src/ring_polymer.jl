@@ -105,6 +105,18 @@ function transform_from_normal_modes!(p::RingPolymerParameters, R::AbstractArray
     end
 end
 
+function transform_from_normal_modes!(p::RingPolymerParameters, u::ArrayPartition)
+    transform_from_normal_modes!(p, get_velocities(u))
+    transform_from_normal_modes!(p, get_positions(u))
+    return nothing
+end
+
+function transform_to_normal_modes!(p::RingPolymerParameters, u::ArrayPartition)
+    transform_to_normal_modes!(p, get_velocities(u))
+    transform_to_normal_modes!(p, get_positions(u))
+    return nothing
+end
+
 function transform!(p::RingPolymerParameters, A::RingPolymerArray)
     if A.normal
         transform_from_normal_modes!(p, A)
