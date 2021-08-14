@@ -78,7 +78,8 @@ end
 """
 Provides the DEProblem for each type of simulation.
 """
-create_problem(u0, tspan, sim) = ODEProblem(motion!, u0, tspan, sim)
+create_problem(u0, tspan, sim) =
+    ODEProblem(motion!, u0, tspan, sim; callback=get_callbacks(sim))
 
 select_algorithm(::AbstractSimulation) = VCABM5()
 get_callbacks(::AbstractSimulation) = nothing
