@@ -1,4 +1,5 @@
 using FiniteDiff
+using ComponentArrays: ComponentVector
 
 get_blank(sim::Simulation) = randn(sim.DoFs, length(sim.atoms))
 get_blank(sim::RingPolymerSimulation) = RingPolymerArray(randn(sim.DoFs, length(sim.atoms), length(sim.beads)))
@@ -8,7 +9,7 @@ function test_motion!(sim)
 
     v = get_blank(sim)
     r = get_blank(sim)
-    u = ClassicalDynamicals(v, r)
+    u = ComponentVector(v=v, r=r)
     du = zero(u)
 
     grad = FiniteDiff.finite_difference_gradient(f, u)
