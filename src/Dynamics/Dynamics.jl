@@ -88,6 +88,8 @@ include("fermionic_ring_polymer.jl")
 include("nrpmd.jl")
 include("Ehrenfest/EhrenfestDynamics.jl")
 
+include("density_matrix_dynamics.jl")
+
 include("algorithms/mdef_baoab.jl")
 include("algorithms/bcocb.jl")
 

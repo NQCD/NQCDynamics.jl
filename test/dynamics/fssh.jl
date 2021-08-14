@@ -26,7 +26,7 @@ atoms = Atoms(1)
     integrator = init(problem, Tsit5(), callback=Dynamics.HoppingCallback)
     Dynamics.evaluate_hopping_probability!(sim, u, get_proposed_dt(integrator))
 
-    σ = get_quantum_subsystem(u)
+    σ = Dynamics.get_quantum_subsystem(u)
     dσ = zero(σ)
     Dynamics.set_quantum_derivative!(dσ, v, σ, sim)
 

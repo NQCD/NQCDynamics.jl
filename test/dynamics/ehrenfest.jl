@@ -23,7 +23,7 @@ atoms = Atoms(:H)
     problem = ODEProblem(Dynamics.motion!, u, (0.0, 1.0), sim)
     integrator = init(problem, Tsit5(), callback=Dynamics.HoppingCallback)
 
-    σ = get_quantum_subsystem(u)
+    σ = Dynamics.get_quantum_subsystem(u)
     dσ = zero(σ)
     Dynamics.set_quantum_derivative!(dσ, v, σ, sim)
 
