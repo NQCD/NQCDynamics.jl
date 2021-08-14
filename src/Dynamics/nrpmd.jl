@@ -1,12 +1,10 @@
 export NRPMD
-export RingPolymerMappingVariables
+# export RingPolymerMappingVariables
 export get_population
 
 using LinearAlgebra: tr
 
 """
-$(TYPEDEF)
-
 Nonadiabatic ring polymer molecular dynamics
 """
 struct NRPMD{T} <: Method
@@ -17,35 +15,29 @@ struct NRPMD{T} <: Method
     end
 end
 
-"""
-$(TYPEDEF)
+function DynamicsVariables(sim::RingPolymerSimulation{<:NRPMD}, v, r, state::Integer; type=:diabatic)
+    n_states = sim.calculator.model.n_states
+    n_beads = length(sim.beads)
+    if type == :diabatic
+        qmap = zeros(n_states, n_beads)
+        pmap = zeros(n_states, n_beads)
 
-Type for containing the classical variables for ring polymer mapping methods.
-"""
-const RingPolymerMappingVariables{T} = ArrayPartition{T, Tuple{D,D, Matrix{T}, Matrix{T}}} where {D<:AbstractArray{T,3}}
-
-function RingPolymerMappingVariables(v::AbstractArray{T,3}, r::AbstractArray{T,3},
-                                      n_states::Integer, state::Integer) where {T}
-
-    n_beads = size(r)[3]
-    qmap = zeros(T, n_states, n_beads)
-    pmap = zeros(T, n_states, n_beads)
-
-    θ = rand(T, n_states, n_beads) .* 2π
-    qmap .= 1 ./ sqrt.(tan.(-θ) .^ 2 .+ 1)
-    qmap[state,:] .*= sqrt(3)
-    pmap = qmap .* tan.(-θ)
-
-    ArrayPartition(v, r, pmap, qmap)
+        θ = rand(n_states, n_beads) .* 2π
+        qmap .= 1 ./ sqrt.(tan.(-θ) .^ 2 .+ 1)
+        qmap[state,:] .*= sqrt(3)
+        pmap = qmap .* tan.(-θ)
+    else
+        throw("Adiabatic initialisation not implemented, `type` kwarg should be `:diabatic`.")
+    end
+    return ComponentVector(v=v, r=r, pmap=pmap, qmap=qmap)
 end
 
-get_mapping_positions(z::RingPolymerMappingVariables) = z.x[4]
-get_mapping_momenta(z::RingPolymerMappingVariables) = z.x[3]
-get_mapping_positions(z::RingPolymerMappingVariables, i::Integer) = @view z.x[4][:,i]
-get_mapping_momenta(z::RingPolymerMappingVariables, i::Integer) = @view z.x[3][:,i]
+get_mapping_positions(u::ComponentVector) = u.qmap
+get_mapping_momenta(u::ComponentVector) = u.pmap
+get_mapping_positions(u::ComponentVector, i) = @view get_mapping_positions(u)[:,i]
+get_mapping_momenta(u::ComponentVector, i) = @view get_mapping_momenta(u)[:,i]
 
-function motion!(du::RingPolymerMappingVariables, u::RingPolymerMappingVariables,
-        sim::RingPolymerSimulation{<:NRPMD}, t)
+function motion!(du, u, sim::RingPolymerSimulation{<:NRPMD}, t)
     dr = get_positions(du)
     dv = get_velocities(du)
     r = get_positions(u)
@@ -55,8 +47,7 @@ function motion!(du::RingPolymerMappingVariables, u::RingPolymerMappingVariables
     set_mapping_force!(du, u, sim)
 end
 
-function acceleration!(dv, u::RingPolymerMappingVariables,
-        sim::RingPolymerSimulation{<:NRPMD})
+function acceleration!(dv, u, sim::RingPolymerSimulation{<:NRPMD})
 
     Calculators.evaluate_derivative!(sim.calculator, get_positions(u))
     for i in range(sim.beads)
@@ -77,8 +68,7 @@ function acceleration!(dv, u::RingPolymerMappingVariables,
     apply_interbead_coupling!(dv, get_positions(u), sim)
 end
 
-function set_mapping_force!(du::RingPolymerMappingVariables,
-        u::RingPolymerMappingVariables, sim::RingPolymerSimulation{<:NRPMD})
+function set_mapping_force!(du, u, sim::RingPolymerSimulation{<:NRPMD})
 
     Calculators.evaluate_potential!(sim.calculator, get_positions(u))
     for i in range(sim.beads)
@@ -89,13 +79,13 @@ function set_mapping_force!(du::RingPolymerMappingVariables,
     end
 end
 
-function get_diabatic_population(::RingPolymerSimulation{<:NRPMD}, u::RingPolymerMappingVariables)
+function get_diabatic_population(::RingPolymerSimulation{<:NRPMD}, u)
     qmap = get_mapping_positions(u)
     pmap = get_mapping_momenta(u)
     sum(qmap.^2 + pmap.^2 .- 1; dims=2) / 2size(qmap, 2)
 end
 
-function NonadiabaticMolecularDynamics.evaluate_hamiltonian(sim::RingPolymerSimulation{<:NRPMD}, u::RingPolymerMappingVariables)
+function NonadiabaticMolecularDynamics.evaluate_hamiltonian(sim::RingPolymerSimulation{<:NRPMD}, u)
     r = get_positions(u)
     v = get_velocities(u)
     Calculators.evaluate_potential!(sim.calculator, r)

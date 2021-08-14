@@ -17,25 +17,11 @@ function select_u0(::RingPolymerSimulation{<:ThermalLangevin}, v, r, state, type
 end
 
 function select_u0(sim::AbstractSimulation{<:FSSH}, v, r, state, type)
-    if type == :adiabatic
-        return SurfaceHoppingVariables(v, r, sim.calculator.model.n_states, state)
-    elseif type == :diabatic
-        return SurfaceHoppingVariables(sim, v, r, state)
-    else
-        throw(ArgumentError("$type is not a recognised type argument.
-            Try `:adiabatic` or `diabatic`."))
-    end
+    return DynamicsVariables(sim, v, r, state; type=type)
 end
 
 function select_u0(sim::AbstractSimulation{<:Ehrenfest}, v, r, state, type)
-    if type == :adiabatic
-        return EhrenfestVariables(v, r, sim.calculator.model.n_states, state)
-    elseif type == :diabatic
-        return EhrenfestVariables(sim, v, r, state)
-    else
-        throw(ArgumentError("$type is not a recognised type argument.
-            Try `:adiabatic` or `diabatic`."))
-    end
+    return DynamicsVariables(sim, v, r, state; type=type)
 end
 
 function select_u0(sim::RingPolymerSimulation{<:NRPMD}, v, r, state, type)
@@ -43,7 +29,7 @@ function select_u0(sim::RingPolymerSimulation{<:NRPMD}, v, r, state, type)
 end
 
 function select_u0(sim::AbstractSimulation{<:IESH}, v, r, state, type)
-    SurfaceHoppingVariablesIESH(v, r, sim.calculator.model.n_states, sim.method.n_electrons)
+    DynamicsVariables(sim, v, r)
 end
 
 include("selections.jl")

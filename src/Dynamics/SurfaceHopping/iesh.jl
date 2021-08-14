@@ -1,6 +1,5 @@
 
 export IESH
-export SurfaceHoppingVariablesIESH
 
 """
     IESH{T} <: SurfaceHopping
@@ -33,15 +32,15 @@ struct IESH{T} <: SurfaceHopping
     end
 end
 
-function SurfaceHoppingVariablesIESH(v::AbstractArray, r::AbstractArray, n_states::Integer, n_electrons::Integer)
-    ψ = zeros(Complex{eltype(r)}, n_states, n_electrons)
+function DynamicsVariables(sim::Simulation{<:IESH}, v, r)
+    ψ = zeros(sim.calculator.model.n_states, sim.method.n_electrons)
 
-    for i=1:n_electrons
+    for i=1:sim.method.n_electrons
         ψ[i,i] = 1
     end
-    state = collect(1:n_electrons)
+    state = collect(1:sim.method.n_electrons)
 
-    SurfaceHoppingVariables(ArrayPartition(v, r, ψ), state)
+    SurfaceHoppingVariables(ComponentVector(v=v, r=r, σreal=ψ, σimag=zero(ψ)), state)
 end
 
 """

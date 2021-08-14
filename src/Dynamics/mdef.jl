@@ -8,8 +8,6 @@ export TwoTemperatureMDEF
 abstract type AbstractMDEF <: Method end
 
 """
-$(TYPEDEF)
-
 ```math
 dr = v dt\\\\
 dv = -\\Delta U/M dt - \\Gamma v dt + \\sigma \\sqrt{2\\Gamma} dW
@@ -39,11 +37,10 @@ Sets acceleration due to ground state force when using a `DiabaticFrictionModel`
 """
 function acceleration!(dv, v, r, sim::Simulation{MDEF,<:DiabaticFrictionCalculator}, t)
     Calculators.update_electronics!(sim.calculator, r)
-    for i in axes(r, 2)
-        for j in axes(r, 1)
-            dv[j,i] = -sim.calculator.adiabatic_derivative[j,i][1,1] / sim.atoms.masses[i]
-        end
+    for I in eachindex(dv)
+        dv[I] = -sim.calculator.adiabatic_derivative[I][1,1]
     end
+    divide_by_mass!(dv, sim.atoms.masse)
 end
 
 """

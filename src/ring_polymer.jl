@@ -1,5 +1,4 @@
 using LinearAlgebra: Symmetric, SymTridiagonal, inv, I
-using RecursiveArrayTools
 
 export RingPolymerParameters
 export transform_to_normal_modes!
@@ -105,13 +104,13 @@ function transform_from_normal_modes!(p::RingPolymerParameters, R::AbstractArray
     end
 end
 
-function transform_from_normal_modes!(p::RingPolymerParameters, u::ArrayPartition)
+function transform_from_normal_modes!(p::RingPolymerParameters, u)
     transform_from_normal_modes!(p, get_velocities(u))
     transform_from_normal_modes!(p, get_positions(u))
     return nothing
 end
 
-function transform_to_normal_modes!(p::RingPolymerParameters, u::ArrayPartition)
+function transform_to_normal_modes!(p::RingPolymerParameters, u)
     transform_to_normal_modes!(p, get_velocities(u))
     transform_to_normal_modes!(p, get_positions(u))
     return nothing
