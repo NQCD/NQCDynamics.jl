@@ -78,7 +78,7 @@ rescale_velocity!(::AbstractSimulation{<:SurfaceHopping}, u) = true
 
 function create_problem(u0, tspan, sim::AbstractSimulation{<:SurfaceHopping})
     set_state!(sim.method, u0.state)
-    ODEProblem(motion!, u0, tspan, sim)
+    ODEProblem(motion!, u0, tspan, sim; callback=get_callbacks(sim))
 end
 
 include("surface_hopping_variables.jl")

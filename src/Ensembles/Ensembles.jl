@@ -64,7 +64,6 @@ function run_ensemble(
 
     u0 = select_u0(sim, rand(selection.distribution)..., selection.distribution.state, selection.distribution.type)
     problem = Dynamics.create_problem(u0, austrip.(tspan), sim)
-    problem = remake(problem, callback=Dynamics.get_callbacks(sim))
 
     if hasfield(typeof(reduction), :u_init)
         u_init = reduction.u_init
@@ -95,8 +94,6 @@ function run_ensemble_standard_output(
             selection.distribution.state, selection.distribution.type),
         austrip.(tspan),
         sim)
-
-    problem = remake(problem, callback=Dynamics.get_callbacks(sim))
 
     new_selection = SelectWithCallbacks(selection, Dynamics.get_callbacks(sim), output, kwargs[:trajectories], saveat=saveat)
 
