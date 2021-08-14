@@ -23,29 +23,6 @@ function acceleration!(dv, v, r, sim::Simulation{<:FSSH}, t, state)
     return nothing
 end
 
-function set_quantum_derivative!(dσ, v, σ, sim::AbstractSimulation{<:FSSH})
-    V = calculate_density_propagator!(sim, v)
-    commutator!(dσ, V, σ, sim.calculator.tmp_mat_complex1)
-    lmul!(-im, dσ)
-end
-
-function calculate_density_propagator!(sim::Simulation{<:FSSH}, v)
-    V = sim.method.density_propagator
-
-    V .= diagm(sim.calculator.eigenvalues)
-    for I in eachindex(v)
-        @. V -= im * v[I] * sim.calculator.nonadiabatic_coupling[I]
-    end
-    return V
-end
-
-function commutator!(out, A, B, tmp)
-    mul!(out, A, B)
-    mul!(tmp, B, A)
-    out .-= tmp
-    return nothing
-end
-
 """
     evaluate_hopping_probability!(sim::Simulation{<:FSSH}, u, dt)
 

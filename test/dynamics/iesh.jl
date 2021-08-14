@@ -19,7 +19,7 @@ sim.method.state .= u.state
 @testset "compute_overlap!" begin
     S = zeros(n_electrons, n_electrons)
     state = collect(1:n_electrons)
-    ψ = get_quantum_subsystem(u)
+    ψ = Dynamics.get_quantum_subsystem(u)
     Dynamics.compute_overlap!(S, ψ, state)
     @test S == I # Check overlap is identity
 
@@ -34,7 +34,7 @@ end
 @testset "calculate_Akj" begin
     S = zeros(n_electrons, n_electrons)
     state = collect(1:n_electrons)
-    ψ = get_quantum_subsystem(u)
+    ψ = Dynamics.get_quantum_subsystem(u)
     Akj = Dynamics.calculate_Akj(S, ψ, 1.0, state)
     @test Akj ≈ 1.0
 end
@@ -42,7 +42,7 @@ end
 @testset "evaluate_hopping_probability!" begin
     Calculators.update_electronics!(sim.calculator, hcat(20.0))
     z = deepcopy(u)
-    rand!(get_quantum_subsystem(z))
+    rand!(Dynamics.get_quantum_subsystem(z))
     Dynamics.evaluate_hopping_probability!(sim, z, 1.0)
 end
 
