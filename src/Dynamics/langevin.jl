@@ -11,10 +11,7 @@ function Langevin{T}(γ, temperature, masses, DoFs) where {T}
     Langevin(T(γ), T.(σ))
 end
 
-function create_problem(u0::ClassicalDynamicals, tspan::Tuple, sim::Simulation{<:Langevin})
-    create_problem(u0.x, tspan, sim)
-end
-function create_problem(u0::ArrayPartition, tspan::Tuple, sim::Simulation{<:Langevin})
+function create_problem(u0, tspan::Tuple, sim::Simulation{<:Langevin})
     DynamicalSDEProblem(acceleration!, velocity!, friction!, get_velocities(u0), get_positions(u0), tspan, sim)
 end
 select_algorithm(sim::AbstractSimulation{<:Langevin}) = BAOAB(sim.method.γ)

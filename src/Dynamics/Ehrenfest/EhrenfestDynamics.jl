@@ -1,8 +1,5 @@
 """
-    $(TYPEDEF)
-
 Abstract type for Ehrenfest method.
-
 """
 abstract type AbstractEhrenfest <: Method end
 
@@ -29,10 +26,6 @@ function set_quantum_derivative!(dσ, v, σ, sim::Simulation{<:AbstractEhrenfest
     mul!(sim.calculator.tmp_mat_complex1, V, σ)
     mul!(sim.calculator.tmp_mat_complex2, σ, V)
     @. dσ = -im * (sim.calculator.tmp_mat_complex1 - sim.calculator.tmp_mat_complex2)
-end
-
-function create_problem(u0, tspan, sim::AbstractSimulation{<:AbstractEhrenfest})
-    ODEProblem(motion!, u0, tspan, sim)
 end
 
 include("ehrenfest_variables.jl")

@@ -1,49 +1,45 @@
-export SurfaceHoppingVariables
-export get_quantum_subsystem
 using StatsBase: sample, Weights
 
-
-mutable struct SurfaceHoppingVariables{T,D,S}  <: DynamicalVariables{T}
-    x::ArrayPartition{Complex{T}, Tuple{D,D,Matrix{Complex{T}}}}
+mutable struct SurfaceHoppingVariables{T,A,Axes,S} <: DEDataVector{T}
+    x::ComponentVector{T,A,Axes}
     state::S
 end
 
-function SurfaceHoppingVariables(x::ArrayPartition{T}, state) where {T<:AbstractFloat}
-    SurfaceHoppingVariables(ArrayPartition(x.x[1], x.x[2], Complex.(x.x[3])), state)
-end
-
-function SurfaceHoppingVariables(v::AbstractArray, r::AbstractArray, n_states::Integer, state::Integer)
-    σ = zeros(Complex{eltype(r)}, n_states, n_states)
-    σ[state, state] = 1
-    SurfaceHoppingVariables(ArrayPartition(v, r, σ), state)
-end
-
-function SurfaceHoppingVariables(sim::Simulation{<:SurfaceHopping}, v, r, state::Integer)
+function DynamicsVariables(sim::Simulation{<:SurfaceHopping}, v, r, state::Integer; type=:diabatic)
     n_states = sim.calculator.model.n_states
-    Calculators.evaluate_potential!(sim.calculator, r)
-    Calculators.eigen!(sim.calculator)
-    U = sim.calculator.eigenvectors
+    if type == :diabatic
+        Calculators.evaluate_potential!(sim.calculator, r)
+        Calculators.eigen!(sim.calculator)
+        U = sim.calculator.eigenvectors
 
-    diabatic_density = zeros(Complex{eltype(r)}, n_states, n_states)
-    diabatic_density[state, state] = 1
-    σ = U' * diabatic_density * U
-    adiabatic_state = sample(Weights(diag(real.(σ))))
-
-    SurfaceHoppingVariables(ArrayPartition(v, r, σ), adiabatic_state)
+        diabatic_density = zeros(n_states, n_states)
+        diabatic_density[state, state] = 1
+        σ = U' * diabatic_density * U
+        state = sample(Weights(diag(real.(σ))))
+    else
+        σ = zeros(n_states, n_states)
+        σ[state, state] = 1
+    end
+    return SurfaceHoppingVariables(ComponentVector(v=v, r=r, σreal=σ, σimag=zero(σ)), state)
 end
 
-function SurfaceHoppingVariables(sim::RingPolymerSimulation{<:SurfaceHopping}, v, r, state::Integer)
+function DynamicsVariables(sim::RingPolymerSimulation{<:SurfaceHopping}, v, r, state::Integer; type=:diabatic)
     n_states = sim.calculator.model.n_states
-    Calculators.evaluate_centroid_potential!(sim.calculator, r)
-    U = eigvecs(sim.calculator.centroid_potential)
+    if type == :diabatic
+        Calculators.evaluate_centroid_potential!(sim.calculator, r)
+        U = eigvecs(sim.calculator.centroid_potential)
 
-    diabatic_density = zeros(Complex{eltype(r)}, n_states, n_states)
-    diabatic_density[state, state] = 1
-    σ = U' * diabatic_density * U
-    adiabatic_state = sample(Weights(diag(real.(σ))))
-
-    SurfaceHoppingVariables(ArrayPartition(v, r, σ), adiabatic_state)
-
+        diabatic_density = zeros(n_states, n_states)
+        diabatic_density[state, state] = 1
+        σ = U' * diabatic_density * U
+        state = sample(Weights(diag(real.(σ))))
+    else
+        σ = zeros(n_states, n_states)
+        σ[state, state] = 1
+    end
+    return SurfaceHoppingVariables(ComponentVector(v=v, r=r, σreal=σ, σimag=zero(σ)), state)
 end
 
-get_quantum_subsystem(u::SurfaceHoppingVariables) = u.x.x[3]
+get_velocities(u::SurfaceHoppingVariables) = get_velocities(u.x)
+get_positions(u::SurfaceHoppingVariables) = get_positions(u.x)
+get_quantum_subsystem(u::SurfaceHoppingVariables) = get_quantum_subsystem(u.x)

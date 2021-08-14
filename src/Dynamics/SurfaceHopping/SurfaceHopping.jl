@@ -1,6 +1,4 @@
 """
-    $(TYPEDEF)
-
 Abstract type for all surface hopping methods.
 
 Surface hopping methods follow the structure set out in this file.

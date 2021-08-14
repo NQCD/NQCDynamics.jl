@@ -5,8 +5,6 @@ export save
 export load
 
 """
-$(TYPEDEF)
-
 Container for storing system information.
 
 This can be used to store simulation results or configurations between

@@ -26,6 +26,7 @@ potential(u, t, integrator) = NonadiabaticModels.potential(integrator.p.calculat
 hamiltonian(u, t, integrator) = evaluate_hamiltonian(integrator.p, u)
 kinetic(u, t, integrator) = evaluate_kinetic_energy(integrator.p.atoms.masses, get_velocities(u))
 u(u, t, integrator) = copy(u)
+u(u::ArrayPartition, t, integrator) = ComponentArray(v=copy(get_velocities(u)), r=copy(get_positions(u)))
 quantum_subsystem(u, t, integrator) = copy(get_quantum_subsystem(u))
 state(u, t, integrator) = copy(u.state)
 noise(u, t, integrator) = copy(integrator.W.dW) / sqrt(integrator.dt)

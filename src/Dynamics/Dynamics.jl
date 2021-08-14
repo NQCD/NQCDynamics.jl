@@ -19,16 +19,11 @@ provided by `DifferentialEquations.jl`.
 """
 module Dynamics
 
-export motion!
-export random_force!
-
 using ..NonadiabaticMolecularDynamics
 using DiffEqBase
 using StochasticDiffEq
 using OrdinaryDiffEq
-using RecursiveArrayTools: ArrayPartition
 using UnitfulAtomic, Unitful
-using DocStringExtensions
 using TypedTables
 
 """
@@ -84,6 +79,7 @@ create_problem(u0, tspan, sim) =
 select_algorithm(::AbstractSimulation) = VCABM5()
 get_callbacks(::AbstractSimulation) = nothing
 
+include("dynamics_variables.jl")
 include("classical.jl")
 include("langevin.jl")
 include("mdef.jl")
