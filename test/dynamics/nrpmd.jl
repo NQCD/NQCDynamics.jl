@@ -8,9 +8,9 @@ Random.seed!(1)
 atoms = Atoms(1.0)
 sim = RingPolymerSimulation{NRPMD}(atoms, NonadiabaticModels.DoubleWell(), 10; DoFs=1, temperature=1e-1)
 
-v = RingPolymerArray(zeros(sim.DoFs, length(sim.atoms), length(sim.beads)))
-r = RingPolymerArray(randn(sim.DoFs, length(sim.atoms), length(sim.beads)))
-u = Dynamics.RingPolymerMappingVariables(v, r, 2, 2)
+v = zeros(sim.DoFs, length(sim.atoms), length(sim.beads))
+r = randn(sim.DoFs, length(sim.atoms), length(sim.beads))
+u = DynamicsVariables(sim, v, r, 2)
 
 @testset "get_population" begin
     population = Dynamics.get_diabatic_population(sim, u)

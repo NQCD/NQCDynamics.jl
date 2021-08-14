@@ -4,7 +4,7 @@ using LinearAlgebra
 using Random
 using Distributions
 
-n_states = 41
+n_states = 20
 temperature = 9.5e-4
 model = MiaoSubotnik(M=n_states-1)
 atoms = Atoms(2000)
@@ -13,7 +13,7 @@ v = randn(1,1) * sqrt(5*temperature / atoms.masses[1])
 n_electrons = model.n_states ÷ 2
 
 sim = Simulation{IESH}(atoms, model; DoFs=1, n_electrons=n_electrons)
-u = SurfaceHoppingVariablesIESH(v, r, model.n_states, n_electrons)
+u = DynamicsVariables(sim, v, r)
 sim.method.state .= u.state
 
 @testset "compute_overlap!" begin
@@ -50,8 +50,8 @@ end
 BLAS.set_num_threads(1)
 
 temp = 5*temperature
-harm = Harmonic(m=m=model.m, ω=model.ω)
-z = ClassicalDynamicals(zeros(1,1), hcat(10.0))
+harm = Harmonic(m=model.m, ω=model.ω)
+z = ComponentVector(v=zeros(1,1), r=hcat(10.0))
 thermal = Simulation{Langevin}(atoms, harm; temperature=temp, DoFs=1, γ=0.1)
 Δ = Dict(:X => 1.0)
 sample = MetropolisHastings.run_monte_carlo_sampling(thermal, hcat(0.0), Δ, 1e6)
