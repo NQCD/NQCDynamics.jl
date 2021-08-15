@@ -15,6 +15,24 @@ mutable struct FSSH{T} <: SurfaceHopping
     end
 end
 
+function DynamicsVariables(sim::Simulation{<:SurfaceHopping}, v, r, state::Integer; type=:diabatic)
+    n_states = sim.calculator.model.n_states
+    if type == :diabatic
+        Calculators.evaluate_potential!(sim.calculator, r)
+        Calculators.eigen!(sim.calculator)
+        U = sim.calculator.eigenvectors
+
+        diabatic_density = zeros(n_states, n_states)
+        diabatic_density[state, state] = 1
+        σ = U' * diabatic_density * U
+        state = sample(Weights(diag(real.(σ))))
+    else
+        σ = zeros(n_states, n_states)
+        σ[state, state] = 1
+    end
+    return SurfaceHoppingVariables(ComponentVector(v=v, r=r, σreal=σ, σimag=zero(σ)), state)
+end
+
 function acceleration!(dv, v, r, sim::Simulation{<:FSSH}, t, state)
     for I in eachindex(dv)
         dv[I] = -sim.calculator.adiabatic_derivative[I][state, state]
