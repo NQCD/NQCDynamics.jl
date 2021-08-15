@@ -21,8 +21,11 @@ jobs:
 
       - name: Add NQCDRegistry
         run: julia -e 'using Pkg; Pkg.Registry.add(RegistrySpec(url="https://github.com/NQCD/NQCDRegistry"))'
+        shell: bash
       - name: Add JuliaMolSim registry
         run: julia -e 'using Pkg; Pkg.Registry.add(RegistrySpec(url="https://github.com/JuliaMolSim/MolSim"))'
+        shell: bash
+
       - name: Install ase for IO tests
         run: pip3 install ase
 
