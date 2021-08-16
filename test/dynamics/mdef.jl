@@ -2,7 +2,7 @@ using Test
 using NonadiabaticMolecularDynamics
 using Unitful
 using UnitfulAtomic
-using RecursiveArrayTools
+using RecursiveArrayTools: ArrayPartition
 using LinearAlgebra: diag
 
 atoms = Atoms([:H, :H])
@@ -10,7 +10,7 @@ sim = Simulation{MDEF}(atoms, ConstantFriction(Free(),atoms.masses[1]); temperat
 
 v = zeros(sim.DoFs, length(sim.atoms))
 r = rand(sim.DoFs, length(sim.atoms))
-u = ClassicalDynamicals(v, r)
+u = ComponentVector(v=v, r=r)
 du = zero(u)
 
 @testset "friction!" begin
@@ -20,7 +20,7 @@ du = zero(u)
 end
 
 sol = Dynamics.run_trajectory(u, (0.0, 100.0), sim; dt=1)
-@test sol.u[1] ≈ u.x
+@test sol.u[1] ≈ u
 
 f(t) = 100u"K"*exp(-ustrip(t))
 sim = Simulation{MDEF}(atoms, NonadiabaticModels.RandomFriction(Harmonic()); DoFs=2, temperature=f)

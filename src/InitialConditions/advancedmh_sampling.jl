@@ -2,11 +2,11 @@ import AdvancedMH
 using AdvancedMH: DensityModel, MetropolisHastings, RandomWalkProposal, sample
 using Distributions: MvNormal
 using Random
-using RecursiveArrayTools: ArrayPartition
+using ComponentArrays: ComponentVector
 
 function sample_configurations(
     sim::AbstractSimulation,
-    u0::ArrayPartition,
+    u0,
     steps::Real,
     σ::Dict{Symbol,<:Real};
     move_ratio=0.9
@@ -61,11 +61,11 @@ end
 
 function reshape_output(::Simulation, chain, shape)
     s = prod(shape)
-    [ArrayPartition(reshape(config.params[1:s], shape), reshape(config.params[s+1:end], shape)) for config in chain]
+    [ComponentVector(v=reshape(config.params[1:s], shape), r=reshape(config.params[s+1:end], shape)) for config in chain]
 end
 function reshape_output(sim::RingPolymerSimulation, chain, shape)
     s = prod(shape)
-    rs = [ArrayPartition(reshape(config.params[1:s], shape), reshape(config.params[s+1:end], shape)) for config in chain]
+    rs = [ComponentVector(v=reshape(config.params[1:s], shape), r=reshape(config.params[s+1:end], shape)) for config in chain]
     transform_from_normal_modes!.(sim.beads, rs)
     return rs
 end

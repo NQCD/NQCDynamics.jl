@@ -6,7 +6,7 @@ model = NonadiabaticModels.Harmonic()
 cell = PeriodicCell(hcat(1))
 sim = Simulation(atoms, model, Classical(); DoFs=1, cell=cell)
 
-z = ClassicalDynamicals(fill(1.0, 1, length(atoms)), zeros(1, length(atoms)))
+z = ComponentVector(v=fill(1.0, 1, length(atoms)), r=zeros(1, length(atoms)))
 
 solution = Dynamics.run_trajectory(z, (0.0, 300), sim; dt=0.1)
 Rs = vcat(get_positions.(solution.u)...)

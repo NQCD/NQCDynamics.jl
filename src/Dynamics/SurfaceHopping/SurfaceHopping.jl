@@ -1,6 +1,17 @@
-"""
-    $(TYPEDEF)
 
+using DEDataArrays: DEDataVector
+using StatsBase: sample, Weights
+
+mutable struct SurfaceHoppingVariables{T,A,Axes,S} <: DEDataVector{T}
+    x::ComponentVector{T,A,Axes}
+    state::S
+end
+
+get_velocities(u::SurfaceHoppingVariables) = get_velocities(u.x)
+get_positions(u::SurfaceHoppingVariables) = get_positions(u.x)
+get_quantum_subsystem(u::SurfaceHoppingVariables) = get_quantum_subsystem(u.x)
+
+"""
 Abstract type for all surface hopping methods.
 
 Surface hopping methods follow the structure set out in this file.
@@ -81,7 +92,6 @@ function create_problem(u0, tspan, sim::AbstractSimulation{<:SurfaceHopping})
     ODEProblem(motion!, u0, tspan, sim; callback=get_callbacks(sim))
 end
 
-include("surface_hopping_variables.jl")
 include("fssh.jl")
 include("iesh.jl")
 include("rpsh.jl")

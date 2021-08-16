@@ -1,8 +1,6 @@
 export Classical
 
 """
-$(TYPEDEF)
-
 A singleton type that simply labels the parent `AbstractSimulation` as classical.
 """
 struct Classical <: Method end

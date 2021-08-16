@@ -2,14 +2,15 @@ module NonadiabaticMolecularDynamics
 
 using Reexport
 using Requires
-using DocStringExtensions
+
+using ComponentArrays: ComponentVector
+export ComponentVector
 
 @reexport using NonadiabaticDynamicsBase
 @reexport using NonadiabaticModels
 
 include("ring_polymer_array.jl")
 include("ring_polymer.jl")
-include("dynamical_variables.jl")
 
 include("Calculators/Calculators.jl")
 export Calculators

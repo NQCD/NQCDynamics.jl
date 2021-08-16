@@ -15,34 +15,29 @@ mutable struct FSSH{T} <: SurfaceHopping
     end
 end
 
+function DynamicsVariables(sim::Simulation{<:SurfaceHopping}, v, r, state::Integer; type=:diabatic)
+    n_states = sim.calculator.model.n_states
+    if type == :diabatic
+        Calculators.evaluate_potential!(sim.calculator, r)
+        Calculators.eigen!(sim.calculator)
+        U = sim.calculator.eigenvectors
+
+        diabatic_density = zeros(n_states, n_states)
+        diabatic_density[state, state] = 1
+        σ = U' * diabatic_density * U
+        state = sample(Weights(diag(real.(σ))))
+    else
+        σ = zeros(n_states, n_states)
+        σ[state, state] = 1
+    end
+    return SurfaceHoppingVariables(ComponentVector(v=v, r=r, σreal=σ, σimag=zero(σ)), state)
+end
+
 function acceleration!(dv, v, r, sim::Simulation{<:FSSH}, t, state)
     for I in eachindex(dv)
         dv[I] = -sim.calculator.adiabatic_derivative[I][state, state]
     end
     divide_by_mass!(dv, sim.atoms.masses)
-    return nothing
-end
-
-function set_quantum_derivative!(dσ, v, σ, sim::AbstractSimulation{<:FSSH})
-    V = calculate_density_propagator!(sim, v)
-    commutator!(dσ, V, σ, sim.calculator.tmp_mat_complex1)
-    lmul!(-im, dσ)
-end
-
-function calculate_density_propagator!(sim::Simulation{<:FSSH}, v)
-    V = sim.method.density_propagator
-
-    V .= diagm(sim.calculator.eigenvalues)
-    for I in eachindex(v)
-        @. V -= im * v[I] * sim.calculator.nonadiabatic_coupling[I]
-    end
-    return V
-end
-
-function commutator!(out, A, B, tmp)
-    mul!(out, A, B)
-    mul!(tmp, B, A)
-    out .-= tmp
     return nothing
 end
 
@@ -144,11 +139,11 @@ function get_diabatic_population(sim::Simulation{<:FSSH}, u)
     Calculators.evaluate_potential!(sim.calculator, get_positions(u))
     U = eigvecs(sim.calculator.potential)
 
-    σ = copy(get_quantum_subsystem(u))
+    σ = copy(get_quantum_subsystem(u).re)
     σ[diagind(σ)] .= 0
     σ[u.state, u.state] = 1
 
-    return real.(diag(U * σ * U'))
+    return diag(U * σ * U')
 end
 
 """
