@@ -1,7 +1,7 @@
 name = "NonadiabaticMolecularDynamics"
 uuid = "36248dfb-79eb-4f4d-ab9c-e29ea5f33e14"
 authors = ["James <james.gardner1421@gmail.com>"]
-version = "0.5.0"
+version = "0.5.1"
 
 [deps]
 AdvancedMH = "5b7e9947-ddc0-4b3f-9b55-0d8042f74170"
