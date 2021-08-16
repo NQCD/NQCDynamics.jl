@@ -83,11 +83,11 @@ function get_diabatic_population(sim::RingPolymerSimulation{<:FSSH}, u)
     Calculators.evaluate_centroid_potential!(sim.calculator, get_positions(u))
     U = eigvecs(sim.calculator.centroid_potential)
 
-    σ = copy(get_quantum_subsystem(u))
+    σ = copy(get_quantum_subsystem(u).re)
     σ[diagind(σ)] .= 0
     σ[u.state, u.state] = 1
 
-    return real.(diag(U * σ * U'))
+    return diag(U * σ * U')
 end
 
 function NonadiabaticMolecularDynamics.evaluate_hamiltonian(sim::RingPolymerSimulation{<:FSSH}, u)
