@@ -1,5 +1,4 @@
 export NRPMD
-# export RingPolymerMappingVariables
 export get_population
 
 using LinearAlgebra: tr
@@ -14,6 +13,8 @@ struct NRPMD{T} <: Method
         new{T}(zeros(n_states), zeros(n_states))
     end
 end
+
+select_algorithm(::RingPolymerSimulation{<:NRPMD}) = MInt()
 
 function DynamicsVariables(sim::RingPolymerSimulation{<:NRPMD}, v, r, state::Integer; type=:diabatic)
     n_states = sim.calculator.model.n_states
