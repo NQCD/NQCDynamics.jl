@@ -2,6 +2,8 @@ using Test
 using NonadiabaticMolecularDynamics
 using FiniteDiff
 using Random
+using OrdinaryDiffEq
+using DiffEqDevTools
 Random.seed!(1)
 
 @test Dynamics.NRPMD{Float64}(10) isa Dynamics.NRPMD
@@ -34,6 +36,14 @@ end
 
 test_motion!(sim, u)
 
-sol = Dynamics.run_trajectory(u, (0, 100.0), sim; output=(:hamiltonian, :position),
-    reltol=1e-8, abstol=1e-8)
+sol = Dynamics.run_trajectory(u, (0, 10.0), sim; output=(:hamiltonian, :position), dt=1e-2)
 @test sol.hamiltonian[1] ≈ sol.hamiltonian[end] rtol=1e-2
+
+@testset "MInt algorithm" begin
+    tspan=(0, 20.0)
+    prob = Dynamics.create_problem(u, tspan, sim)
+    dts = (1/2) .^ (14:-1:8)
+    setup = Dict(:alg => Feagin12(), :adaptive=>true, :reltol=>1e-14, :abstol=>1e-14)
+    res = analyticless_test_convergence(dts, prob, Dynamics.MInt(), setup)
+    @test res.𝒪est[:final] ≈ 2 atol=0.1
+end
