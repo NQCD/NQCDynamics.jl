@@ -92,6 +92,7 @@ include("density_matrix_dynamics.jl")
 
 include("algorithms/mdef_baoab.jl")
 include("algorithms/bcocb.jl")
+include("algorithms/mint.jl")
 
 include("callbacks.jl")
 include("output.jl")
