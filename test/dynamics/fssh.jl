@@ -12,7 +12,7 @@ atoms = Atoms(1)
 
     r = zeros(sim.DoFs, length(sim.atoms)) 
     v = rand(sim.DoFs, length(sim.atoms)) 
-    u = SurfaceHoppingVariables(v, r, 2, 1)
+    u = DynamicsVariables(sim, v, r, 1; type=:adiabatic)
     du = zero(u)
 
     @test Dynamics.get_quantum_subsystem(u) ≈ Complex.([1 0; 0 0])
@@ -26,7 +26,7 @@ atoms = Atoms(1)
     integrator = init(problem, Tsit5(), callback=Dynamics.HoppingCallback)
     Dynamics.evaluate_hopping_probability!(sim, u, get_proposed_dt(integrator))
 
-    σ = get_quantum_subsystem(u)
+    σ = Dynamics.get_quantum_subsystem(u)
     dσ = zero(σ)
     Dynamics.set_quantum_derivative!(dσ, v, σ, sim)
 
@@ -91,7 +91,7 @@ atoms = Atoms(1)
         sim = Simulation{FSSH}(atoms, NonadiabaticModels.TullyModelTwo(); DoFs=1)
         v = hcat(100 / 2000)
         r = hcat(-10.0)
-        u = SurfaceHoppingVariables(v, r, 2, 1)
+        u = DynamicsVariables(sim, v, r, 1; type=:adiabatic)
         solution = Dynamics.run_trajectory(u, (0.0, 500.0), sim, output=(:hamiltonian, :state), reltol=1e-6)
         @test solution.hamiltonian[1] ≈ solution.hamiltonian[end] rtol=1e-2
     end
@@ -102,7 +102,7 @@ end
 
     r = RingPolymerArray(zeros(sim.DoFs, length(sim.atoms), 5))
     v = RingPolymerArray(rand(sim.DoFs, length(sim.atoms), 5))
-    u = SurfaceHoppingVariables(v, r, 2, 1)
+    u = DynamicsVariables(sim, v, r, 1; type=:adiabatic)
     sim.method.state = u.state
 
     problem = ODEProblem(Dynamics.motion!, u, (0.0, 1.0), sim)
@@ -155,7 +155,7 @@ end
         sim = RingPolymerSimulation{FSSH}(atoms, NonadiabaticModels.TullyModelTwo(), 5; DoFs=1, temperature=0.01)
         v = RingPolymerArray(fill(100 / 2000, 1, 1, 5))
         r = RingPolymerArray(fill(-10.0, 1, 1, 5)) .+ randn(1,1,5)
-        u = SurfaceHoppingVariables(v, r, 2, 1)
+        u = DynamicsVariables(sim, v, r, 1; type=:adiabatic)
         solution = Dynamics.run_trajectory(u, (0.0, 1000.0), sim, output=(:hamiltonian), reltol=1e-10)
         # Ring polymer Hamiltonian is not strictly conserved during hoppping
         @test solution.hamiltonian[1] ≈ solution.hamiltonian[end] rtol=1e-2

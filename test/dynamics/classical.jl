@@ -1,6 +1,7 @@
 using NonadiabaticMolecularDynamics
 using Test
 using Unitful
+using ComponentArrays
 
 include("utils.jl")
 
@@ -16,7 +17,7 @@ model = NonadiabaticModels.Harmonic()
 
     v = get_blank(sim)
     r = get_blank(sim)
-    u0 = ClassicalDynamicals(v, r)
+    u0 = ComponentVector(v=v, r=r)
 
     sol = Dynamics.run_trajectory(u0, (0.0, 1000.0), sim; dt=0.1, output=(:hamiltonian))
     @test sol.hamiltonian[1] ≈ sol.hamiltonian[end] rtol=1e-2
@@ -31,7 +32,7 @@ end
 
     v = get_blank(sim)
     r = get_blank(sim)
-    u0 = ClassicalDynamicals(v, r)
+    u0 = ComponentVector(v=v, r=r)
 
     sol = Dynamics.run_trajectory(u0, (0.0, 1000.0), sim; dt=0.1, output=(:hamiltonian))
     @test sol.hamiltonian[1] ≈ sol.hamiltonian[end] rtol=1e-2

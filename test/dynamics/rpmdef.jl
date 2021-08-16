@@ -24,7 +24,7 @@ r = RingPolymerArray(rand(sim.DoFs, length(sim.atoms), length(sim.beads)))
     end
 end
 
-prob = Dynamics.create_problem(ClassicalDynamicals(v,r), (0.0, 0.5), sim)
+prob = Dynamics.create_problem(ComponentVector(v=v,r=r), (0.0, 0.5), sim)
 
 @testset "step_C!" begin
     dt = 0.5
@@ -53,7 +53,7 @@ end
     v = RingPolymerArray(zeros(sim.DoFs, length(sim.atoms), length(sim.beads)))
     r = RingPolymerArray(zeros(sim.DoFs, length(sim.atoms), length(sim.beads)))
 
-    sol = Dynamics.run_trajectory(ClassicalDynamicals(v, r), (0.0, 1e4), sim; dt=1, output=(:kinetic))
+    sol = Dynamics.run_trajectory(ArrayPartition(v,r), (0.0, 1e4), sim; dt=1, output=(:kinetic))
     # @test mean(sol.kinetic) ≈ austrip(100u"K") * length(sim.beads) rtol=5e-1
 end
 
@@ -64,5 +64,5 @@ end
     v = RingPolymerArray(zeros(sim.DoFs, length(sim.atoms), length(sim.beads)))
     r = RingPolymerArray(zeros(sim.DoFs, length(sim.atoms), length(sim.beads)))
 
-    sol = Dynamics.run_trajectory(ClassicalDynamicals(v, r), (0.0, 1e2), sim; dt=1, output=(:kinetic))
+    sol = Dynamics.run_trajectory(ArrayPartition(v,r), (0.0, 1e2), sim; dt=1, output=(:kinetic))
 end

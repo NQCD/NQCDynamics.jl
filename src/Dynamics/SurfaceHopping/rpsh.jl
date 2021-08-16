@@ -1,5 +1,21 @@
 using .Calculators: RingPolymerDiabaticCalculator
 
+function DynamicsVariables(sim::RingPolymerSimulation{<:SurfaceHopping}, v, r, state::Integer; type=:diabatic)
+    n_states = sim.calculator.model.n_states
+    if type == :diabatic
+        Calculators.evaluate_centroid_potential!(sim.calculator, r)
+        U = eigvecs(sim.calculator.centroid_potential)
+
+        diabatic_density = zeros(n_states, n_states)
+        diabatic_density[state, state] = 1
+        σ = U' * diabatic_density * U
+        state = sample(Weights(diag(real.(σ))))
+    else
+        σ = zeros(n_states, n_states)
+        σ[state, state] = 1
+    end
+    return SurfaceHoppingVariables(ComponentVector(v=v, r=r, σreal=σ, σimag=zero(σ)), state)
+end
 
 function acceleration!(dv, v, r, sim::RingPolymerSimulation{<:FSSH}, t, state)
     for I in eachindex(dv)
@@ -8,17 +24,6 @@ function acceleration!(dv, v, r, sim::RingPolymerSimulation{<:FSSH}, t, state)
     divide_by_mass!(dv, sim.atoms.masses)
     apply_interbead_coupling!(dv, r, sim)
     return nothing
-end
-
-function calculate_density_propagator!(sim::RingPolymerSimulation{<:FSSH}, v)
-    V = sim.method.density_propagator
-    centroid_v = get_centroid(v)
-
-    V .= diagm(sim.calculator.centroid_eigenvalues)
-    for I in eachindex(centroid_v)
-        @. V -= im * centroid_v[I] * sim.calculator.centroid_nonadiabatic_coupling[I]
-    end
-    return V
 end
 
 function evaluate_hopping_probability!(sim::RingPolymerSimulation{<:FSSH}, u, dt)

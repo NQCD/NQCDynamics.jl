@@ -1,15 +1,18 @@
-function motion!(du, u, sim::RingPolymerSimulation{<:AbstractEhrenfest}, t)
-    dr = get_positions(du)
-    dv = get_velocities(du)
-    dσ = get_quantum_subsystem(du)
-    r = get_positions(u)
-    v = get_velocities(u)
-    σ = get_quantum_subsystem(u)
-    velocity!(dr, v, r, sim, t)
-    Calculators.update_electronics!(sim.calculator, r)
-    Calculators.update_centroid_electronics!(sim.calculator, r)
-    acceleration!(dv, v, r, sim, t, σ)
-    set_quantum_derivative!(dσ, get_centroid(v), σ, sim)
+
+function DynamicsVariables(sim::RingPolymerSimulation{<:AbstractEhrenfest}, v, r, state::Integer; type=:diabatic)
+    n_states = sim.calculator.model.n_states
+    if type == :diabatic
+        Calculators.evaluate_centroid_potential!(sim.calculator, r)
+        U = eigvecs(sim.calculator.centroid_potential)
+
+        diabatic_density = zeros(n_states, n_states)
+        diabatic_density[state, state] = 1
+        σ = U' * diabatic_density * U
+    else
+        σ = zeros(n_states, n_states)
+        σ[state, state] = 1
+    end
+    return ComponentVector(v=v, r=r, σreal=σ, σimag=zero(σ))
 end
 
 function acceleration!(dv, v, r, sim::RingPolymerSimulation{<:Ehrenfest}, t, σ)
@@ -21,19 +24,6 @@ function acceleration!(dv, v, r, sim::RingPolymerSimulation{<:Ehrenfest}, t, σ)
     end
     divide_by_mass!(dv, sim.atoms.masses)
     apply_interbead_coupling!(dv, r, sim)
-    return nothing
-end
-
-function set_quantum_derivative!(dσ, v, σ, sim::RingPolymerSimulation{<:Ehrenfest})
-    V = sim.method.density_propagator
-
-    V .= diagm(sim.calculator.centroid_eigenvalues)
-    for I in eachindex(v)
-        @. V -= im * v[I] * sim.calculator.centroid_nonadiabatic_coupling[I]
-    end
-    mul!(sim.calculator.tmp_mat_complex1, V, σ)
-    mul!(sim.calculator.tmp_mat_complex2, σ, V)
-    @. dσ = -im * (sim.calculator.tmp_mat_complex1 - sim.calculator.tmp_mat_complex2)
     return nothing
 end
 

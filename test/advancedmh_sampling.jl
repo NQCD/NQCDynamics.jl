@@ -1,7 +1,7 @@
 using Test
 using NonadiabaticMolecularDynamics
 using StatsBase: mean
-using RecursiveArrayTools
+using ComponentArrays
 using Random
 Random.seed!(1)
 
@@ -24,7 +24,7 @@ beads = [1, 4, 2]
         for (natoms, DoFs, T) in zip(ats, Ds, Ts)
             sim = Simulation(Atoms(rand(natoms)), Harmonic(); DoFs=DoFs, temperature=T)
             R0 = rand(DoFs, natoms)
-            u0 = ArrayPartition(zero(R0), R0)
+            u0 = ComponentVector(v=zero(R0), r=R0)
             chain = InitialConditions.sample_configurations(sim, u0, 1e5, Dict(:X=>1); move_ratio=0.01)
             energy = evaluate_hamiltonian.(sim, chain)
             @test mean(energy) / (DoFs*natoms) ≈ T rtol=1e-1
@@ -46,7 +46,7 @@ end
         for (natoms, DoFs, T, nbeads) in zip(ats, Ds, Ts, beads)
             sim = RingPolymerSimulation(Atoms(rand(natoms)), Harmonic(), nbeads; DoFs=DoFs, temperature=T)
             R0 = rand(DoFs, natoms, nbeads)
-            u0 = ArrayPartition(zero(R0), R0)
+            u0 = ComponentVector(v=zero(R0), r=R0)
             chain = InitialConditions.sample_configurations(sim, u0, 1e5, Dict(:X=>10); move_ratio=0.01)
             potential = evaluate_hamiltonian.(sim, chain)
             @test mean(potential) / (DoFs*natoms*nbeads) ≈ nbeads*T rtol=1e-1
