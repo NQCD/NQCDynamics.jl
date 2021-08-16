@@ -25,7 +25,7 @@ function select_u0(sim::AbstractSimulation{<:Ehrenfest}, v, r, state, type)
 end
 
 function select_u0(sim::RingPolymerSimulation{<:NRPMD}, v, r, state, type)
-    RingPolymerMappingVariables(v, r, sim.calculator.model.n_states, state)
+    DynamicsVariables(sim, v, r, state; type=type)
 end
 
 function select_u0(sim::AbstractSimulation{<:IESH}, v, r, state, type)
