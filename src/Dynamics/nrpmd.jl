@@ -83,7 +83,16 @@ end
 function get_diabatic_population(::RingPolymerSimulation{<:NRPMD}, u)
     qmap = get_mapping_positions(u)
     pmap = get_mapping_momenta(u)
-    sum(qmap.^2 + pmap.^2 .- 1; dims=2) / 2size(qmap, 2)
+
+    (n_states, n_beads) = size(qmap)
+    population = zeros(n_states)
+    for i=1:n_beads
+        for j=1:n_states
+            population[j] += qmap[j,i]^2 + pmap[j,i]^2 - 1
+        end
+    end
+    population ./= 2n_beads
+    return population
 end
 
 function NonadiabaticMolecularDynamics.evaluate_hamiltonian(sim::RingPolymerSimulation{<:NRPMD}, u)

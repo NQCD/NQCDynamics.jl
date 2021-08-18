@@ -89,9 +89,9 @@ function (output::OutputStateResolvedScattering1D)(sol, i)
     output = zeros(2, 2) # Initialise output, left column reflection on state 1/2, right column transmission
     x = get_positions(final)[1]
     if x > 0 # If final position past 0 then we count as transmission 
-        output[:,2] .= vec(populations)
+        output[:,2] .= populations
     else # If final position left of 0 then we count as reflection
-        output[:,1] .= vec(populations)
+        output[:,1] .= populations
     end
     return (output, false)
 end
