@@ -18,6 +18,5 @@ doctest(NonadiabaticMolecularDynamics)
 @time @safetestset "Monte Carlo Tests" begin include("monte_carlo.jl") end
 @time @safetestset "AdvancedMH Sampling Tests" begin include("advancedmh_sampling.jl") end
 include("dynamics/dynamics.jl")
-@time @safetestset "IO Tests" begin include("io/io.jl") end
 @time @safetestset "Distribution Tests" begin include("nuclear_distributions.jl") end
 @time @safetestset "Ensemble Tests" begin include("ensembles.jl") end
