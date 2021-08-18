@@ -85,13 +85,13 @@ struct OutputStateResolvedScattering1D{S} <: AbstractOutput
 end
 function (output::OutputStateResolvedScattering1D)(sol, i)
     final = last(sol.u) # get final configuration from trajectory
-    populations = Dynamics.get_adiabatic_population(output.sim, final)
+    populations = Dynamics.get_diabatic_population(output.sim, final)
     output = zeros(2, 2) # Initialise output, left column reflection on state 1/2, right column transmission
     x = get_positions(final)[1]
     if x > 0 # If final position past 0 then we count as transmission 
-        output[:,2] .= populations
+        output[:,2] .= vec(populations)
     else # If final position left of 0 then we count as reflection
-        output[:,1] .= populations
+        output[:,1] .= vec(populations)
     end
     return (output, false)
 end
