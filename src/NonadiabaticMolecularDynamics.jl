@@ -1,7 +1,6 @@
 module NonadiabaticMolecularDynamics
 
 using Reexport
-using Requires
 
 using ComponentArrays: ComponentVector
 export ComponentVector
@@ -26,8 +25,6 @@ include("Dynamics/Dynamics.jl")
 
 include("Ensembles/Ensembles.jl")
 export Ensembles
-
-include("InputOutput/InputOutput.jl")
 
 include("simulation_constructors.jl")
 
