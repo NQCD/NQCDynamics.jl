@@ -27,7 +27,7 @@ Next we should set up our initial conditions
 ```@example mdef
 velocity = zeros(3, 1)
 position = zeros(3, 1)
-z = ClassicalDynamicals(velocity, position)
+z = DynamicsVariables(sim, velocity, position)
 nothing # hide
 ```
 
