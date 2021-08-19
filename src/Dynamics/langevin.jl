@@ -24,6 +24,10 @@ struct ThermalLangevin{T<:Real} <: Method
     γ::T
 end
 
+function DynamicsVariables(::AbstractSimulation{<:Union{ThermalLangevin, Langevin}}, v, r)
+    ArrayPartition(v, r)
+end
+
 function create_problem(u0, tspan::Tuple, sim::AbstractSimulation{<:ThermalLangevin})
     DynamicalSDEProblem(acceleration!, velocity!, friction!, get_velocities(u0), get_positions(u0), tspan, sim)
 end
