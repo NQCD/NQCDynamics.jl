@@ -27,11 +27,11 @@ nothing # hide
 The final step before solving our trajectory is to specify the initial velocities
 and positions for each atom.
 ```@example classical
-z = ClassicalDynamicals(randn(1, 2), randn(1, 2))
+z = DynamicsVariables(sim, randn(1, 2), randn(1, 2))
 ```
 
 Finally, let us run the trajectory.
-The second argument here is the time span that we want to cover with our trajectory.
+The second argument here is the time span for the dynamics.
 By default, classical dynamics uses the `VelocityVerlet` algorithm and we must provide a
 timestep.
 ```@example classical
