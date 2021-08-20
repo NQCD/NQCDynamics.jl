@@ -95,6 +95,26 @@ function get_diabatic_population(::RingPolymerSimulation{<:NRPMD}, u)
     return population
 end
 
+function get_adiabatic_population(sim::RingPolymerSimulation{<:NRPMD}, u)
+
+    Calculators.update_electronics!(sim.calculator, get_positions(u))
+
+    U = sim.calculator.eigenvectors
+
+    diabatic = zeros(sim.calculator.model.n_states)
+    adiabatic = zero(diabatic)
+    for i=1:length(sim.beads)
+        qmap = get_mapping_positions(u, i)
+        pmap = get_mapping_momenta(u, i)
+        Usquare = U[i].^2
+        diabatic .= (qmap .^2 .+ pmap .^2 .- 1) ./ 2
+        adiabatic .+= Usquare' * diabatic
+    end
+    adiabatic ./= length(sim.beads)
+
+    return adiabatic
+end
+
 function NonadiabaticMolecularDynamics.evaluate_hamiltonian(sim::RingPolymerSimulation{<:NRPMD}, u)
     r = get_positions(u)
     v = get_velocities(u)

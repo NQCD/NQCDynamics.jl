@@ -14,10 +14,21 @@ v = zeros(sim.DoFs, length(sim.atoms), length(sim.beads))
 r = randn(sim.DoFs, length(sim.atoms), length(sim.beads))
 u = DynamicsVariables(sim, v, r, 2)
 
-@testset "get_population" begin
+@testset "get_diabatic_population" begin
     population = Dynamics.get_diabatic_population(sim, u)
     @test population[1] ≈ 0 atol=1e-10
     @test population[2] ≈ 1
+end
+
+@testset "get_adiabatic_population" begin
+    sim = RingPolymerSimulation{NRPMD}(atoms, DoubleWell(), 10; DoFs=1, temperature=1e-1)
+    u = DynamicsVariables(sim, zeros(1,1,10), zeros(1,1,10), 2)
+    population = Dynamics.get_diabatic_population(sim, u)
+    @test population[1] ≈ 0 atol=1e-10
+    @test population[2] ≈ 1
+    population = Dynamics.get_adiabatic_population(sim, u)
+    @test population[1] ≈ 0.5
+    @test population[2] ≈ 0.5
 end
 
 function test_motion!(sim, u)
