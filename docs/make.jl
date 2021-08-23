@@ -28,6 +28,7 @@ ENV["GKSwstype"] = "100"
             "dynamics_methods/fssh.md"
             "dynamics_methods/nrpmd.md"
             "dynamics_methods/mdef.md"
+            "dynamics_methods/new_methods.md"
         ]
         "initial_conditions.md"
         "ensemble_simulations.md"
