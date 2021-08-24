@@ -1,5 +1,7 @@
 [deps]
+AbstractTrees = "1520ce14-60c1-5f80-bbc7-55ef81b5835c"
 CairoMakie = "13f3f980-e62b-5c42-98c6-ff1f3baf88f0"
+ComponentArrays = "b0b7db55-cfe3-40fc-9ded-d10e2dbeff66"
 CubeLDFAModel = "56146587-2a70-4d59-809c-88d5ba27a8d3"
 Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
@@ -15,4 +17,4 @@ Unitful = "1986cc42-f94f-5a68-af5c-568840ba703d"
 UnitfulRecipes = "42071c24-d89e-48dd-8a24-8a12d9b8861f"
 
 [compat]
-Documenter = "0.26"
+Documenter = "0.27"

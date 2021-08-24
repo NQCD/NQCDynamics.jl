@@ -46,6 +46,17 @@ select_item(x::Real, ::Integer, size::NTuple) = austrip.(fill(x, size))
 select_item(x::Matrix, ::Integer, ::NTuple) = austrip.(x)
 select_item(x::AbstractArray{T,3}, ::Integer, ::NTuple) where T = austrip.(x)
 
+function Base.show(io::IO, s::DynamicalDistribution) 
+    print(io, "DynamicalDistribution with size: ", size(s))
+end
+
+function Base.show(io::IO, ::MIME"text/plain", s::DynamicalDistribution)
+    print(io, "DynamicalDistribution:\n  ",
+          "size: ", size(s), "\n  ",
+          "state: ", s.state, "\n  ",
+          "type: ", s.type)
+end
+
 struct BoltzmannVelocityDistribution{T} <: Sampleable{Multivariate,Continuous}
     dist::MvNormal{T}
 end
