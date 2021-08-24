@@ -1,21 +1,38 @@
 # Overview
 
-```@docs
-NonadiabaticModels
+`NonadiabaticModels.jl` is a package that provides a common interface for defining
+models used for nonadiabatic dynamics simulations.
+The interface is flexible enough such that concrete implementations can range from
+simple 1D analytic forms to full-dimensional ab-initio models.
+
+The advantage of this interface is that by implementing a common set of functions
+it allows the same dynamics code to work for simple models and complex systems,
+making scaling up as simple as possible.
+
+The existing models in this package can be seen in the tree below.
+Most of these are simple analytic models, with the complex specialist
+models kept in separate packages.
+
+```@example
+import AbstractTrees
+import InteractiveUtils: subtypes
+import NonadiabaticModels: Model
+
+AbstractTrees.children(x::Type) = subtypes(x)
+
+AbstractTrees.print_tree(Model)
 ```
 
-## Abstract types
+As is standard in Julia, only the types shown in the leaves of the tree are concrete
+types, the branches are abstract types that group similar models together.
+These abstract types denote the quantities provided by each model and the functions
+that are implemented.
 
-Models are categorised based upon the quantities that they provide.
-Each of these abstract types defines a specific kind of model.
-```@docs
-NonadiabaticModels.AdiabaticModel
-NonadiabaticModels.DiabaticModel
-NonadiabaticModels.AdiabaticFrictionModel
-NonadiabaticModels.DiabaticFrictionModel
-```
+## Implementing a model
 
-## Implementing a new model
+The simplest way to understand the `NonadiabticModels` interface is to walk through
+an example implementation.
+
 To add a new model the first step is to select the abstract type that it falls under.
 After this, the new type should be created (see above for example)
 and the following functions should be implemented:

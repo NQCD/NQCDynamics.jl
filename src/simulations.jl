@@ -67,3 +67,12 @@ function get_temperature(sim::RingPolymerSimulation, t::Real=0)
 end
 get_temperature(temperature::Number, t=0) = austrip(temperature)
 get_temperature(temperature::Function, t=0) = austrip(temperature(t))
+
+function Base.show(io::IO, sim::Simulation{M}) where {M}
+    print(io, "Simulation{$M}:\n  ", sim.atoms, "\n  ", sim.calculator.model)
+end
+
+function Base.show(io::IO, sim::RingPolymerSimulation{M}) where {M}
+    print(io, "RingPolymerSimulation{$M}:\n\n  ", sim.atoms, "\n\n  ", sim.calculator.model,
+          "\n  with ", length(sim.beads), " beads.")
+end

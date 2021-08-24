@@ -43,7 +43,7 @@ langevin_sim = RingPolymerSimulation{ThermalLangevin}(atoms, bath, n_beads;
 
 v = RingPolymerArray(zeros(1, N, n_beads))
 r = RingPolymerArray(zeros(1, N, n_beads))
-z = ClassicalDynamicals(v, r)
+z = DynamicsVariables(langevin_sim, v, r)
 
 sol = Dynamics.run_trajectory(z, (0.0, 10.0), langevin_sim;
     dt=0.01, output=(:position, :velocity))
@@ -60,7 +60,7 @@ plot(v_plot, r_plot, layout=(2,1))
 From our results we can create a distribution that can be sampled for the NRPMD dynamics.
 ```@example nrpmd
 distribution = InitialConditions.DynamicalDistribution(sol.velocity, sol.position,
-    (1, N, n_beads); state=1)
+    (1, N, n_beads); state=1, type=:diabatic)
 nothing # hide
 ```
 
@@ -73,7 +73,7 @@ selection = Ensembles.RandomSelection(distribution)
 output = Ensembles.OutputDiabaticPopulation(sim)
 reduction = Ensembles.MeanReduction()
 ensemble = Ensembles.run_ensemble(sim, (0.0, 30.0), selection;
-    saveat=0.1, trajectories=10, output=output, reduction=reduction)
+    saveat=0.1, trajectories=10, output=output, reduction=reduction, dt=1e-3)
 nothing # hide
 ```
 
