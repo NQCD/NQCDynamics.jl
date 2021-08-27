@@ -6,6 +6,12 @@ A fully quantum dynamic approach of this complex scenario is currently unfeasibl
 # MDEF
 Molecular dynamics with electronic frinction (MDEF) is one of main workhorse used to deal with the non-adiabaticity in gas-surfaces chemical reaction and it has been widely employed to decribe the nuclear dynamics in several surface process. MDEF is a theoretical model based on ground-state generalized Langevin equation (GLE) of motion which allow to introduce non-adiabatic effect by means of friction and stochastic forces. This approach was originally introduced by Head-Gordon and Tully  and improves the initial description based on Newton equation to describe gas-surface reaction at metal surface by including non-adiabatic effects through different electronic friction models. In this theoretical framework, the coupling of molecular degree of freedom to electron-hole pair (EHPs) excitation in the metal are described by means of a frictional force  which condense the metal substrate electronic structure into electron friction component.  In the context of GLE, the temporal evolution of the nuclear dynamics for each adsorbate atom is not only governed by the potential energy surface (V) but also for two extra terms as is shown below
 
+```math
+   m_{i} \frac{d^{2} \mathbf{r_{i}} }{dt^{2}} = -\frac{\partial V (\{ \mathbf{r_{j}} \}) }{\partial \mathbf{r_{i}}}  -{f_{r,i}^{fric}}  \frac{d \mathbf{r_{i}} }{dt} + \mathbf{{R_{i}}}(t)
+\label{gle}
+```
+
+
 
 # LDFA
 
