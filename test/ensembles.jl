@@ -13,9 +13,12 @@ distribution = InitialConditions.DynamicalDistribution(positions, velocities, (1
 
 prob = Dynamics.create_problem(ArrayPartition(rand(distribution)...), (0.0, 1.0), sim)
 @testset "OrderedSelection" begin 
-    selector = Ensembles.OrderedSelection(distribution)
+    selector = Ensembles.OrderedSelection(distribution, 1:10)
     new_prob = selector(prob, 3, false)
     @test new_prob.u0 == ArrayPartition(InitialConditions.pick(distribution, 3)...)
+    selector = Ensembles.OrderedSelection(distribution, 6:10)
+    new_prob = selector(prob, 3, false)
+    @test new_prob.u0 == ArrayPartition(InitialConditions.pick(distribution, 8)...)
 end
 
 @testset "RandomSelection" begin
@@ -67,9 +70,8 @@ end
 end
 
 @testset "run_ensemble_standard_output" begin
-    selection = Ensembles.RandomSelection(distribution)
     tspan = (0.0, 10.0)
-    out = Ensembles.run_ensemble_standard_output(sim, tspan, selection; output=(:position), dt=1,
-        trajectories=10)
+    out = Ensembles.run_ensemble_standard_output(sim, tspan, distribution;
+        output=(:position), dt=1, trajectories=10)
 end
 

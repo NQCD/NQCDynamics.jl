@@ -7,9 +7,10 @@ $(TYPEDEF)
 
 Select the initial conditions from the distribution in order. 
 """
-struct OrderedSelection{D} <: AbstractSelection
+struct OrderedSelection{D,I} <: AbstractSelection
     "Distribution that is sampled."
     distribution::D
+    indices::I
 end
 
 """
@@ -23,7 +24,8 @@ struct RandomSelection{D} <: AbstractSelection
 end
 
 function (select::OrderedSelection)(prob, i, repeat)
-    v, r = InitialConditions.pick(select.distribution, i)
+    j = select.indices[i]
+    v, r = InitialConditions.pick(select.distribution, j)
     u0 = select_u0(prob.p, v, r, select.distribution.state, select.distribution.type)
     Dynamics.create_problem(u0, prob.tspan, prob.p)
 end
