@@ -4,6 +4,7 @@ export DynamicalDistribution
 using Random: AbstractRNG, rand!
 using Distributions
 using UnitfulAtomic
+using HDF5
 
 struct DynamicalVariate <: VariateForm end
 
@@ -37,6 +38,11 @@ pick(s::DynamicalDistribution, i::Integer) = [select_item(s.velocity, i, s.size)
 # Indexed selections
 select_item(x::Vector{<:AbstractArray}, i::Integer, ::NTuple) = austrip.(x[i])
 select_item(x::Vector{<:Number}, i::Integer, size::NTuple) = fill(austrip.(x[i]), size)
+function select_item(x::AbstractString, i::Integer, ::NTuple)
+    h5open(x, "r") do fid
+        return read(fid, string(i))
+    end
+end
 
 # Sampled selection
 select_item(x::Sampleable{Univariate}, ::Integer, size::NTuple) = austrip.(rand(x, size))
@@ -57,26 +63,10 @@ function Base.show(io::IO, ::MIME"text/plain", s::DynamicalDistribution)
           "type: ", s.type)
 end
 
-struct BoltzmannVelocityDistribution{T} <: Sampleable{Multivariate,Continuous}
-    dist::MvNormal{T}
-end
-
-function BoltzmannVelocityDistribution(temperature, masses)
-    dist = MvNormal(sqrt.(temperature ./ masses))
-    BoltzmannVelocityDistribution(dist)
-end
-
-Base.length(s::BoltzmannVelocityDistribution) = length(s.dist)
-function Distributions._rand!(rng::AbstractRNG, s::BoltzmannVelocityDistribution, x::AbstractVector{<:Real})
-    Distributions._rand!(rng, s.dist, x)
-end
-function select_item(x::BoltzmannVelocityDistribution, ::Integer, size::Tuple{Int,Int})
-    permutedims(rand(x, size[1]))
-end
-function select_item(x::BoltzmannVelocityDistribution, ::Integer, size::Tuple{Int,Int,Int})
-    out = zeros(eltype(x), size)
-    for i=1:size[3]
-        out[:,:,i] .= permutedims(rand(x, size[1]))
+function write_hdf5(filename, data)
+    h5open(filename, "w") do fid
+        for (i,d) in enumerate(data)
+            fid[string(i)] = d
+        end
     end
-    return out
 end
