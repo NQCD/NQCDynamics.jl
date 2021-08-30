@@ -26,8 +26,26 @@ function Distributions.rand(rng::AbstractRNG, s::Sampleable{DynamicalVariate})
     Distributions._rand!(rng, s, [Array{eltype(s)}(undef, size(s)) for i=1:2])
 end
 
+function maxindex(s::DynamicalDistribution)
+    if s.velocity isa Vector
+        return length(s.velocity)
+    elseif s.position isa Vector
+        return length(s.position)
+    elseif s.velocity isa String
+        h5open(s.velocity, "r") do fid
+            return length(fid)
+        end
+    elseif s.position isa String
+        h5open(s.position, "r") do fid
+            return length(fid)
+        end
+    else
+        return 1
+    end
+end
+
 function Distributions._rand!(rng::AbstractRNG, s::DynamicalDistribution, x::Vector{<:Array})
-    i = rand(rng, 1:length(s.position))
+    i = rand(rng, 1:maxindex(s))
     x[1] .= select_item(s.velocity, i, s.size)
     x[2] .= select_item(s.position, i, s.size)
     x
