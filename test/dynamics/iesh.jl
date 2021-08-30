@@ -59,12 +59,11 @@ sample = MetropolisHastings.run_monte_carlo_sampling(thermal, hcat(0.0), Δ, 1e6
 vel = Normal(0, sqrt(temp / atoms.masses[1]))
 
 dist = InitialConditions.DynamicalDistribution(vel, sample.R, (1,1))
-sel = Ensembles.RandomSelection(dist)
 
 using Plots
 plotly()
 
-@time res = Ensembles.run_ensemble_standard_output(sim, (0.0, 5e4), sel;
+@time res = Ensembles.run_ensemble_standard_output(sim, (0.0, 5e4), dist;
     output=(:position, :population, :adiabatic_population), trajectories=2, abstol=1e-7, reltol=1e-4, saveat=0.0:50:5e4)
 
 # This should plot the impurity population for each of the trajectories.
