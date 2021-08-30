@@ -10,12 +10,15 @@ d = DynamicalDistribution(a, a, (3,2))
 @test eltype(a[1]) == eltype(d)
 @test (3,2) == size(d)
 @test rand(d) isa Vector{<:Matrix}
+@test InitialConditions.maxindex(d) == 10
 
 d = DynamicalDistribution(a, Normal(), (3,2))
 @test rand(d) isa Vector{<:Matrix}
+@test InitialConditions.maxindex(d) == 10
 
 d = DynamicalDistribution(1, Normal(), (3,2))
 @test rand(d) isa Vector{<:Matrix}
+@test InitialConditions.maxindex(d) == 1
 
 @testset "BoltzmannVelocityDistribution" begin
     boltz = InitialConditions.BoltzmannVelocityDistribution(1, [1, 2, 3])
@@ -33,5 +36,6 @@ end
     v, r = rand(d)
     @test all(r .== 1)
     @test v ∈ a
+    @test InitialConditions.maxindex(d) == 10
     rm(filename)
 end
