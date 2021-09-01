@@ -1,7 +1,7 @@
 name = "NonadiabaticMolecularDynamics"
 uuid = "36248dfb-79eb-4f4d-ab9c-e29ea5f33e14"
 authors = ["James <james.gardner1421@gmail.com>"]
-version = "0.6.1"
+version = "0.6.2"
 
 [deps]
 AdvancedMH = "5b7e9947-ddc0-4b3f-9b55-0d8042f74170"
@@ -72,7 +72,7 @@ UnPack = "1"
 Unitful = "1"
 UnitfulAtomic = "1"
 UnitfulRecipes = "1"
-julia = "1"
+julia = "1.6"
 
 [extras]
 DiffEqDevTools = "f3b72e0c-5b89-59e1-b016-84e28bfd966d"
