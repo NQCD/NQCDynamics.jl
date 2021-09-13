@@ -1,3 +1,4 @@
+using Distributions: Multivariate, MvNormal
 
 struct BoltzmannVelocityDistribution{T} <: Sampleable{Multivariate,Continuous}
     dist::MvNormal{T}

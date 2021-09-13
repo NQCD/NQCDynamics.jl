@@ -1,6 +1,6 @@
 import AdvancedMH
 using AdvancedMH: DensityModel, MetropolisHastings, RandomWalkProposal, sample
-using Distributions: MvNormal
+using Distributions: Dirac
 using Random
 using ComponentArrays: ComponentVector
 
