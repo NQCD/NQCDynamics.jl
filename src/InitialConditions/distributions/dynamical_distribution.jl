@@ -2,11 +2,10 @@
 export DynamicalDistribution
 
 using Random: AbstractRNG, rand!
-using Distributions
-using UnitfulAtomic
-using HDF5
+using Distributions: Distributions, Continuous, Sampleable, Univariate
+using HDF5: h5open
 
-struct DynamicalVariate <: VariateForm end
+struct DynamicalVariate <: Distributions.VariateForm end
 
 struct DynamicalDistribution{V,R,S,N} <: Sampleable{DynamicalVariate,Continuous}
     velocity::V
@@ -19,7 +18,7 @@ DynamicalDistribution(velocity, position, size; state=0, type=:adiabatic) =
     DynamicalDistribution(velocity, position, size, state, type)
 
 Base.eltype(s::DynamicalDistribution{<:Sampleable,R}) where {R} = eltype(s.velocity)
-Base.eltype(s::DynamicalDistribution{<:AbstractArray,R} where {R}) = eltype(austrip.(s.velocity[1]))
+Base.eltype(s::DynamicalDistribution{<:AbstractArray,R} where {R}) = eltype(s.velocity[1])
 Base.size(s::DynamicalDistribution) = s.size
 
 function Distributions.rand(rng::AbstractRNG, s::Sampleable{DynamicalVariate})
@@ -54,8 +53,8 @@ end
 pick(s::DynamicalDistribution, i::Integer) = [select_item(s.velocity, i, s.size), select_item(s.position, i, s.size)]
 
 # Indexed selections
-select_item(x::Vector{<:AbstractArray}, i::Integer, ::NTuple) = austrip.(x[i])
-select_item(x::Vector{<:Number}, i::Integer, size::NTuple) = fill(austrip.(x[i]), size)
+select_item(x::Vector{<:AbstractArray}, i::Integer, ::NTuple) = x[i]
+select_item(x::Vector{<:Number}, i::Integer, size::NTuple) = fill(x[i], size)
 function select_item(x::AbstractString, i::Integer, ::NTuple)
     h5open(x, "r") do fid
         return read(fid, string(i))
@@ -63,12 +62,27 @@ function select_item(x::AbstractString, i::Integer, ::NTuple)
 end
 
 # Sampled selection
-select_item(x::Sampleable{Univariate}, ::Integer, size::NTuple) = austrip.(rand(x, size))
+select_item(x::Sampleable{Univariate}, ::Integer, size::NTuple) = rand(x, size)
+function select_item(x::Vector{<:Sampleable{Univariate}}, ::Integer, size::NTuple)
+    if length(x) == size[2]
+        if length(size) == 3
+            tmpsize = (size[1], 1, size[3])
+        elseif length(size) == 2
+            tmpsize = (size[1], 1)
+        end
+        a = rand.(x, Ref(tmpsize))
+        return cat(a...; dims=2)
+    else
+        return throw(ErrorException(
+            "Distribution size does not match sample size. natoms != length(distribution)"
+            ))
+    end
+end
 
 # Deterministic selections
-select_item(x::Real, ::Integer, size::NTuple) = austrip.(fill(x, size))
-select_item(x::Matrix, ::Integer, ::NTuple) = austrip.(x)
-select_item(x::AbstractArray{T,3}, ::Integer, ::NTuple) where T = austrip.(x)
+select_item(x::Real, ::Integer, size::NTuple) = fill(x, size)
+select_item(x::Matrix, ::Integer, ::NTuple) = x
+select_item(x::AbstractArray{T,3}, ::Integer, ::NTuple) where T = x
 
 function Base.show(io::IO, s::DynamicalDistribution) 
     print(io, "DynamicalDistribution with size: ", size(s))
