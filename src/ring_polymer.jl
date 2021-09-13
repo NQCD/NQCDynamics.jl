@@ -3,6 +3,7 @@ using LinearAlgebra: Symmetric, SymTridiagonal, inv, I
 export RingPolymerParameters
 export transform_to_normal_modes!
 export transform_from_normal_modes!
+export nbeads
 
 struct RingPolymerParameters{T<:AbstractFloat}
     n_beads::Int
@@ -125,7 +126,8 @@ function transform!(p::RingPolymerParameters, A::RingPolymerArray)
     A.normal = !A.normal
 end
 
-Base.length(beads::RingPolymerParameters) = beads.n_beads
+nbeads(beads::RingPolymerParameters) = beads.n_beads
+Base.length(beads::RingPolymerParameters) = nbeads(beads)
 Base.range(beads::RingPolymerParameters) = range(1; length=length(beads))
 
 """
