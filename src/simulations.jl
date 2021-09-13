@@ -57,6 +57,8 @@ function RingPolymerSimulation(atoms::Atoms, model::Model, method::M, n_beads::I
     RingPolymerSimulation(DoFs, temperature, cell, atoms, model, method, n_beads, quantum_nuclei)
 end
 
+nbeads(sim::RingPolymerSimulation) = nbeads(sim.beads)
+
 function get_temperature(sim::Simulation, t::Real=0)
     t = auconvert(u"fs", t)
     get_temperature(sim.temperature, t)
