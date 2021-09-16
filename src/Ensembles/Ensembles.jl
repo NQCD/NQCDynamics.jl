@@ -1,35 +1,41 @@
 module Ensembles
 
-using ..NonadiabaticMolecularDynamics
-using ..Dynamics: AbstractMDEF
+using ..NonadiabaticMolecularDynamics: AbstractSimulation, Simulation, RingPolymerSimulation
+using ..Dynamics:
+    Dynamics,
+    ClassicalMethods,
+    SurfaceHoppingMethods,
+    EhrenfestMethods,
+    MappingVariableMethods
 using ..InitialConditions: DynamicalDistribution
+
 using SciMLBase: remake, EnsembleThreads, EnsembleProblem, solve
 using DocStringExtensions
 using RecursiveArrayTools: ArrayPartition
-using TypedTables
+using TypedTables: TypedTables
 
-function select_u0(::Simulation{<:Union{Classical, AbstractMDEF}}, v, r, state, type)
-    ArrayPartition(v, r)
+function select_u0(sim::Simulation{<:Union{ClassicalMethods.Classical, ClassicalMethods.AbstractMDEF}}, v, r, state, type)
+    Dynamics.DynamicsVariables(sim, v, r)
 end
 
-function select_u0(::RingPolymerSimulation{<:ThermalLangevin}, v, r, state, type)
-    ArrayPartition(RingPolymerArray(v), RingPolymerArray(r))
+function select_u0(sim::RingPolymerSimulation{<:ClassicalMethods.ThermalLangevin}, v, r, state, type)
+    Dynamics.DynamicsVariables(sim, RingPolymerArray(v), RingPolymerArray(r))
 end
 
-function select_u0(sim::AbstractSimulation{<:FSSH}, v, r, state, type)
-    return DynamicsVariables(sim, v, r, state; type=type)
+function select_u0(sim::AbstractSimulation{<:SurfaceHoppingMethods.FSSH}, v, r, state, type)
+    return Dynamics.DynamicsVariables(sim, v, r, state; type=type)
 end
 
-function select_u0(sim::AbstractSimulation{<:Ehrenfest}, v, r, state, type)
-    return DynamicsVariables(sim, v, r, state; type=type)
+function select_u0(sim::AbstractSimulation{<:EhrenfestMethods.Ehrenfest}, v, r, state, type)
+    return Dynamics.DynamicsVariables(sim, v, r, state; type=type)
 end
 
-function select_u0(sim::RingPolymerSimulation{<:NRPMD}, v, r, state, type)
-    DynamicsVariables(sim, v, r, state; type=type)
+function select_u0(sim::RingPolymerSimulation{<:MappingVariableMethods.NRPMD}, v, r, state, type)
+    Dynamics.DynamicsVariables(sim, v, r, state; type=type)
 end
 
-function select_u0(sim::AbstractSimulation{<:IESH}, v, r, state, type)
-    DynamicsVariables(sim, v, r)
+function select_u0(sim::AbstractSimulation{<:SurfaceHoppingMethods.IESH}, v, r, state, type)
+    Dynamics.DynamicsVariables(sim, v, r)
 end
 
 include("selections.jl")
