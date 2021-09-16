@@ -1,5 +1,5 @@
 
-module Algorithms
+module IntegrationAlgorithms
 
 include("mdef_baoab.jl")
 include("bcocb.jl")
