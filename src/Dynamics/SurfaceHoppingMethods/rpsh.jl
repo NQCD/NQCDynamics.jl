@@ -1,4 +1,5 @@
-using .Calculators: RingPolymerDiabaticCalculator
+using ....Calculators: RingPolymerDiabaticCalculator
+using ....NonadiabaticMolecularDynamics: RingPolymerSimulation
 
 function DynamicsVariables(sim::RingPolymerSimulation{<:SurfaceHopping}, v, r, state::Integer; type=:diabatic)
     n_states = sim.calculator.model.n_states
