@@ -59,12 +59,12 @@ function Calculator(model::AdiabaticFrictionModel, DoFs::Integer, atoms::Integer
 end
 
 function evaluate_friction!(calc::AbstractFrictionCalculator, R::AbstractMatrix)
-    friction!(calc.model, calc.friction, R)
+    NonadiabaticModels.friction!(calc.model, calc.friction, R)
 end
 
 function evaluate_friction!(calc::AbstractFrictionCalculator, R::AbstractArray{T,3}) where {T}
     @views for i in axes(R, 3)
-        friction!(calc.model, calc.friction[:,:,i], R[:,:,i])
+        NonadiabaticModels.friction!(calc.model, calc.friction[:,:,i], R[:,:,i])
     end
 end
 

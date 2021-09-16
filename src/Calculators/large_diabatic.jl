@@ -32,23 +32,25 @@ function Calculator(model::LargeDiabaticModel, DoFs::Integer, atoms::Integer, T:
     LargeDiabaticCalculator{T}(model, DoFs, atoms)
 end
 
-evaluate_potential!(calc::LargeDiabaticCalculator, R) = potential!(calc.model, calc.potential, R)
+function evaluate_potential!(calc::LargeDiabaticCalculator, R)
+    NonadiabaticModels.potential!(calc.model, calc.potential, R)
+end
 
 function evaluate_potential!(calc::LargeDiabaticCalculator, R::AbstractArray{T,3}) where {T}
     @views for i in axes(R, 3)
-        potential!(calc.model, calc.potential[i], R[:,:,i])
+        NonadiabaticModels.potential!(calc.model, calc.potential[i], R[:,:,i])
     end
 end
 
 function transform_derivative!(calc::LargeDiabaticCalculator)
     for I in eachindex(calc.derivative)
-        mul!(calc.tmp_mat, calc.derivative[I], calc.eigenvectors)
-        mul!(calc.adiabatic_derivative[I], calc.eigenvectors', calc.tmp_mat)
+        LinearAlgebra.mul!(calc.tmp_mat, calc.derivative[I], calc.eigenvectors)
+        LinearAlgebra.mul!(calc.adiabatic_derivative[I], calc.eigenvectors', calc.tmp_mat)
     end
 end
 
 function eigen!(calc::LargeDiabaticCalculator)
-    eig = eigen(calc.potential)
+    eig = LinearAlgebra.eigen(calc.potential)
     correct_phase!(eig, calc.eigenvectors)
     copyto!(calc.eigenvectors, eig.vectors)
     copyto!(calc.eigenvalues, eig.values)
@@ -56,7 +58,7 @@ end
 
 function correct_phase!(eig::LinearAlgebra.Eigen, old_eigenvectors::AbstractMatrix)
     @views for i=1:length(eig.values)
-        if dot(eig.vectors[:,i], old_eigenvectors[:,i]) < 0
+        if LinearAlgebra.dot(eig.vectors[:,i], old_eigenvectors[:,i]) < 0
             eig.vectors[:,i] .*= -1
         end
     end
