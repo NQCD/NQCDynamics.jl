@@ -1,3 +1,6 @@
+
+module ThermalMonteCarlo
+
 using Distributions: Dirac
 using ComponentArrays: ComponentVector
 using AdvancedMH: AdvancedMH
@@ -168,3 +171,5 @@ function AdvancedMH.propose(rng::Random.AbstractRNG, proposal::MolecularProposal
 end
 
 AdvancedMH.logratio_proposal_density(::MolecularProposal, state, candidiate) = 0
+
+end # module
