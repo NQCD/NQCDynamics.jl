@@ -1,17 +1,25 @@
 
 module SurfaceHoppingMethods
 
-using DEDataArrays: DEDataVector
-using StatsBase: sample, Weights
+using DEDataArrays: DEDataArrays
+using ComponentArrays: ComponentArrays
+using DiffEqBase: DiffEqBase
 
-mutable struct SurfaceHoppingVariables{T,A,Axes,S} <: DEDataVector{T}
-    x::ComponentVector{T,A,Axes}
+using ....NonadiabaticMolecularDynamics:
+    NonadiabaticMolecularDynamics,
+    AbstractSimulation,
+    Simulation
+using ....Calculators: Calculators
+using ..Dynamics: Dynamics
+
+mutable struct SurfaceHoppingVariables{T,A,Axes,S} <: DEDataArrays.DEDataVector{T}
+    x::ComponentArrays.ComponentVector{T,A,Axes}
     state::S
 end
 
-get_velocities(u::SurfaceHoppingVariables) = get_velocities(u.x)
-get_positions(u::SurfaceHoppingVariables) = get_positions(u.x)
-get_quantum_subsystem(u::SurfaceHoppingVariables) = get_quantum_subsystem(u.x)
+Dynamics.get_velocities(u::SurfaceHoppingVariables) = Dynamics.get_velocities(u.x)
+Dynamics.get_positions(u::SurfaceHoppingVariables) = Dynamics.get_positions(u.x)
+Dynamics.get_quantum_subsystem(u::SurfaceHoppingVariables) = Dynamics.get_quantum_subsystem(u.x)
 
 """
 Abstract type for all surface hopping methods.
@@ -27,7 +35,7 @@ and `rescale_velocity!`.
 
 See `fssh.jl` for an example implementation.
 """
-abstract type SurfaceHopping <: Method end
+abstract type SurfaceHopping <: Dynamics.Method end
 
 function motion!(du, u, sim::AbstractSimulation{<:SurfaceHopping}, t)
     dr = get_positions(du)
@@ -67,7 +75,9 @@ set_state!(container, new_state::AbstractVector) = copyto!(container.state, new_
 set_new_state!(container, new_state::Integer) = container.new_state = new_state
 set_new_state!(container, new_state::AbstractVector) = copyto!(container.new_state, new_state)
 
-const HoppingCallback = DiscreteCallback(check_hop!, execute_hop!; save_positions=(false, false))
+const HoppingCallback = DiffEqBase.DiscreteCallback(check_hop!, execute_hop!;
+                                                    save_positions=(false, false))
+
 get_callbacks(::AbstractSimulation{<:SurfaceHopping}) = HoppingCallback
 
 """
