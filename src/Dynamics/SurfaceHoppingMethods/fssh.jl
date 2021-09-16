@@ -15,7 +15,7 @@ mutable struct FSSH{T} <: SurfaceHopping
     end
 end
 
-function DynamicsVariables(sim::Simulation{<:SurfaceHopping}, v, r, state::Integer; type=:diabatic)
+function Dynamics.DynamicsVariables(sim::Simulation{<:SurfaceHopping}, v, r, state::Integer; type=:diabatic)
     n_states = sim.calculator.model.n_states
     if type == :diabatic
         Calculators.evaluate_potential!(sim.calculator, r)
@@ -37,7 +37,7 @@ function acceleration!(dv, v, r, sim::Simulation{<:FSSH}, t, state)
     for I in eachindex(dv)
         dv[I] = -sim.calculator.adiabatic_derivative[I][state, state]
     end
-    divide_by_mass!(dv, sim.atoms.masses)
+    DynamicsUtils.divide_by_mass!(dv, sim.atoms.masses)
     return nothing
 end
 

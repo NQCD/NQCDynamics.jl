@@ -16,9 +16,9 @@ struct NRPMD{T} <: Dynamics.Method
     end
 end
 
-select_algorithm(::RingPolymerSimulation{<:NRPMD}) = MInt()
+Dynamics.select_algorithm(::RingPolymerSimulation{<:NRPMD}) = IntegrationAlgorithms.MInt()
 
-function DynamicsVariables(sim::RingPolymerSimulation{<:NRPMD}, v, r, state::Integer; type=:diabatic)
+function Dynamics.DynamicsVariables(sim::RingPolymerSimulation{<:NRPMD}, v, r, state::Integer; type=:diabatic)
     n_states = sim.calculator.model.n_states
     n_beads = length(sim.beads)
     if type == :diabatic
@@ -40,12 +40,12 @@ get_mapping_momenta(u::ComponentVector) = u.pmap
 get_mapping_positions(u::ComponentVector, i) = @view get_mapping_positions(u)[:,i]
 get_mapping_momenta(u::ComponentVector, i) = @view get_mapping_momenta(u)[:,i]
 
-function motion!(du, u, sim::RingPolymerSimulation{<:NRPMD}, t)
+function Dynamics.motion!(du, u, sim::RingPolymerSimulation{<:NRPMD}, t)
     dr = get_positions(du)
     dv = get_velocities(du)
     r = get_positions(u)
     v = get_velocities(u)
-    velocity!(dr, v, r, sim, t)
+    DynamicsUtils.velocity!(dr, v)
     acceleration!(dv, u, sim)
     set_mapping_force!(du, u, sim)
 end
@@ -68,7 +68,7 @@ function acceleration!(dv, u, sim::RingPolymerSimulation{<:NRPMD})
             end
         end
     end
-    apply_interbead_coupling!(dv, get_positions(u), sim)
+    DynamicsUtils.apply_interbead_coupling!(dv, get_positions(u), sim)
 end
 
 function set_mapping_force!(du, u, sim::RingPolymerSimulation{<:NRPMD})

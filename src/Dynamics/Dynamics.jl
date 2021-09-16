@@ -97,6 +97,8 @@ get_velocities(u::ArrayPartition) = u.x[1]
 
 function get_quantum_subsystem end
 
+include("DynamicsUtils/DynamicsUtils.jl")
+
 include("ClassicalMethods/ClassicalMethods.jl")
 
 include("SurfaceHoppingMethods/SurfaceHoppingMethods.jl")
@@ -106,7 +108,5 @@ include("MappingVariableMethods/MappingVariableMethods.jl")
 include("EhrenfestMethods/EhrenfestMethods.jl")
 
 include("IntegrationAlgorithms/IntegrationAlgorithms.jl")
-
-include("DynamicsUtils/DynamicsUtils.jl")
 
 end # module

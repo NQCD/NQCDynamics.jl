@@ -32,7 +32,7 @@ struct IESH{T} <: SurfaceHopping
     end
 end
 
-function DynamicsVariables(sim::Simulation{<:IESH}, v, r)
+function Dynamics.DynamicsVariables(sim::Simulation{<:IESH}, v, r)
     ψ = zeros(sim.calculator.model.n_states, sim.method.n_electrons)
 
     for i=1:sim.method.n_electrons
@@ -55,7 +55,7 @@ function acceleration!(dv, v, r, sim::Simulation{<:IESH}, t, state)
             dv[I] -= sim.calculator.adiabatic_derivative[I][k, k]
         end
     end
-    divide_by_mass!(dv, sim.atoms.masses)
+    DynamicsUtils.divide_by_mass!(dv, sim.atoms.masses)
     return nothing
 end
 
