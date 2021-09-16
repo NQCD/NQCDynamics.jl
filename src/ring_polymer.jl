@@ -1,9 +1,4 @@
-using LinearAlgebra: Symmetric, SymTridiagonal, inv, I
-
-export RingPolymerParameters
-export transform_to_normal_modes!
-export transform_from_normal_modes!
-export nbeads
+using LinearAlgebra: LinearAlgebra, Symmetric, SymTridiagonal, I
 
 struct RingPolymerParameters{T<:AbstractFloat}
     n_beads::Int
@@ -137,7 +132,7 @@ J. Chem. Phys. 151, 124103 (2019); doi: 10.1063/1.5120282
 """
 function cayley_propagator(beads::RingPolymerParameters{T}, dt::Real; half::Bool=true) where {T}
 
-    cay(dtA::Matrix)::Matrix = inv(I - dtA/2) * (I + dtA/2)
+    cay(dtA::Matrix)::Matrix = LinearAlgebra.inv(I - dtA/2) * (I + dtA/2)
 
     ω_k = get_matsubara_frequencies(length(beads), beads.ω_n)
     prop = [Array{T}(undef, 2, 2) for i=1:length(beads)]
