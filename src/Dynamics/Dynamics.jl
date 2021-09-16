@@ -89,12 +89,10 @@ include("MappingVariableMethods/MappingVariableMethods.jl")
 
 include("EhrenfestMethods/EhrenfestMethods.jl")
 
-include("density_matrix_dynamics.jl")
+include("IntegrationAlgorithms/IntegrationAlgorithms.jl")
 
-include("algorithms/Algorithms.jl")
+include("DynamicsUtils/DynamicsUtils.jl")
 
-include("callbacks.jl")
-include("output.jl")
 include("plot.jl")
 
 end # module
