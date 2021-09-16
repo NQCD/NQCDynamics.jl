@@ -2,13 +2,13 @@ using NonadiabaticMolecularDynamics
 using Test
 
 b = RingPolymerArray(rand(2,3,4), quantum=[2])
-beads = RingPolymerParameters{Float64}(4, 1.0, [2])
+beads = NonadiabaticMolecularDynamics.RingPolymerParameters{Float64}(4, 1.0, [2])
 
 @testset "transform!" begin
     b_original = deepcopy(b)
-    transform!(beads, b)
+    NonadiabaticMolecularDynamics.transform!(beads, b)
     @test !(b ≈ b_original)
-    transform!(beads, b)
+    NonadiabaticMolecularDynamics.transform!(beads, b)
     @test b ≈ b_original
 end
 
@@ -29,10 +29,10 @@ end
 @testset "get_centroid" begin
     b_original = deepcopy(b)
     centroid_original = get_centroid(b)
-    transform!(beads, b)
+    NonadiabaticMolecularDynamics.transform!(beads, b)
     @test !(b ≈ b_original)
     centroid_middle = get_centroid(b)
-    transform!(beads, b)
+    NonadiabaticMolecularDynamics.transform!(beads, b)
     @test b ≈ b_original
     centroid_final = get_centroid(b)
 

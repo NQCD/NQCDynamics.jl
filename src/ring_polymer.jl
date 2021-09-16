@@ -85,7 +85,7 @@ end
 function transform_to_normal_modes!(p::RingPolymerParameters, R::AbstractArray{T,3}) where {T}
     @views for i in p.quantum_atoms
         for j in axes(R, 1)
-            mul!(p.tmp, p.U', R[j,i,:])
+            LinearAlgebra.mul!(p.tmp, p.U', R[j,i,:])
             R[j,i,:] .= p.tmp
         end
     end
@@ -94,7 +94,7 @@ end
 function transform_from_normal_modes!(p::RingPolymerParameters, R::AbstractArray{T,3}) where {T}
     @views for i in p.quantum_atoms
         for j in axes(R, 1)
-            mul!(p.tmp, p.U, R[j,i,:])
+            LinearAlgebra.mul!(p.tmp, p.U, R[j,i,:])
             R[j,i,:] .= p.tmp
         end
     end
