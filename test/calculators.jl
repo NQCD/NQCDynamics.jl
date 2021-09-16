@@ -55,11 +55,11 @@ end
 
 @testset "General constructors" begin
     model = NonadiabaticModels.DoubleWell()
-    @test Calculators.Calculator(model, 1, 1) isa Calculators.DiabaticCalculator
-    @test Calculators.Calculator(model, 1, 1, 2) isa Calculators.RingPolymerDiabaticCalculator
+    @test Calculators.Calculator(model, 1, 1, Float64) isa Calculators.DiabaticCalculator
+    @test Calculators.Calculator(model, 1, 1, 2, Float64) isa Calculators.RingPolymerDiabaticCalculator
     model = NonadiabaticModels.Free()
-    @test Calculators.Calculator(model, 1, 1) isa Calculators.AdiabaticCalculator
-    @test Calculators.Calculator(model, 1, 1, 2) isa Calculators.RingPolymerAdiabaticCalculator
+    @test Calculators.Calculator(model, 1, 1, Float64) isa Calculators.AdiabaticCalculator
+    @test Calculators.Calculator(model, 1, 1, 2, Float64) isa Calculators.RingPolymerAdiabaticCalculator
     model = NonadiabaticModels.MiaoSubotnik()
-    @test Calculators.Calculator(model, 1, 1) isa Calculators.LargeDiabaticCalculator
+    @test Calculators.Calculator(model, 1, 1, Float64) isa Calculators.LargeDiabaticCalculator
 end
