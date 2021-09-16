@@ -15,10 +15,15 @@ to evaluate the quantities for each bead.
 """
 module Calculators
 
-using LinearAlgebra
-using NonadiabaticModels
+using LinearAlgebra: LinearAlgebra, Hermitian
+using StaticArrays: SMatrix, SVector
+
+using NonadiabaticModels: Model
+using NonadiabaticModels.AdiabaticModels: AdiabaticModel
+using NonadiabaticModels.DiabaticModels: DiabaticModel, DiabaticFrictionModel
+using NonadiabaticModels.FrictionModels: AdiabaticFrictionModel
+
 using ..NonadiabaticMolecularDynamics: get_centroid
-using StaticArrays
 
 """
     AbstractCalculator{M<:Model}
@@ -133,17 +138,17 @@ mutable struct RingPolymerDiabaticCalculator{T,M,S,L} <: AbstractDiabaticCalcula
     end
 end
 
-function Calculator(model::DiabaticModel, DoFs::Integer, atoms::Integer, T::Type=Float64)
-    DiabaticCalculator{T}(model, DoFs, atoms)
+function Calculator(model::DiabaticModel, DoFs::Integer, atoms::Integer, t::Type{T}) where {T}
+    DiabaticCalculator{t}(model, DoFs, atoms)
 end
-function Calculator(model::AdiabaticModel, DoFs::Integer, atoms::Integer, T::Type=Float64)
-    AdiabaticCalculator{T}(model, DoFs, atoms)
+function Calculator(model::AdiabaticModel, DoFs::Integer, atoms::Integer, t::Type{T}) where {T}
+    AdiabaticCalculator{t}(model, DoFs, atoms)
 end
-function Calculator(model::DiabaticModel, DoFs::Integer, atoms::Integer, beads::Integer, T::Type=Float64)
-    RingPolymerDiabaticCalculator{T}(model, DoFs, atoms, beads)
+function Calculator(model::DiabaticModel, DoFs::Integer, atoms::Integer, beads::Integer, t::Type{T}) where {T}
+    RingPolymerDiabaticCalculator{t}(model, DoFs, atoms, beads)
 end
-function Calculator(model::AdiabaticModel, DoFs::Integer, atoms::Integer, beads::Integer, T::Type=Float64)
-    RingPolymerAdiabaticCalculator{T}(model, DoFs, atoms, beads)
+function Calculator(model::AdiabaticModel, DoFs::Integer, atoms::Integer, beads::Integer, t::Type{T}) where {T}
+    RingPolymerAdiabaticCalculator{t}(model, DoFs, atoms, beads)
 end
 
 evaluate_potential!(calc::AbstractCalculator, R) = calc.potential = potential(calc.model, R)
