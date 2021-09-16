@@ -1,9 +1,3 @@
-using StatsBase: mean
-using LinearAlgebra: mul!
-
-export RingPolymerArray
-export transform!
-export get_centroid
 
 mutable struct RingPolymerArray{T} <: AbstractArray{T,3}
     data::Array{T,3}
