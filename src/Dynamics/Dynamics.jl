@@ -19,12 +19,12 @@ provided by `DifferentialEquations.jl`.
 """
 module Dynamics
 
-using ..NonadiabaticMolecularDynamics
-using DiffEqBase
+using ..NonadiabaticMolecularDynamics: AbstractSimulation, Simulation, RingPolymerSimulation
+using DiffEqBase: solve
 using StochasticDiffEq
 using OrdinaryDiffEq
 using UnitfulAtomic, Unitful
-using TypedTables
+using TypedTables: Table
 
 """
 Each type of dynamics subtypes `Method` which is passed to
@@ -76,15 +76,16 @@ Provides the DEProblem for each type of simulation.
 create_problem(u0, tspan, sim) =
     ODEProblem(motion!, u0, tspan, sim; callback=get_callbacks(sim))
 
-select_algorithm(::AbstractSimulation) = VCABM5()
+select_algorithm(::AbstractSimulation) = OrdinaryDiffEq.VCABM5()
 get_callbacks(::AbstractSimulation) = nothing
 
 include("dynamics_variables.jl")
 include("classical.jl")
 include("langevin.jl")
 include("mdef.jl")
-include("SurfaceHopping/SurfaceHopping.jl")
-include("fermionic_ring_polymer.jl")
+
+include("SurfaceHopping/SurfaceHoppingMethods.jl")
+
 include("nrpmd.jl")
 include("Ehrenfest/EhrenfestDynamics.jl")
 
