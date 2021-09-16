@@ -87,7 +87,8 @@ include("mdef.jl")
 include("SurfaceHoppingMethods/SurfaceHoppingMethods.jl")
 
 include("nrpmd.jl")
-include("Ehrenfest/EhrenfestDynamics.jl")
+
+include("EhrenfestMethods/EhrenfestMethods.jl")
 
 include("density_matrix_dynamics.jl")
 
