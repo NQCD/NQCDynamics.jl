@@ -1,8 +1,13 @@
 using StructArrays: StructArray
+using ComponentArrays: ComponentVector
 
-const DensityMatrixMethod = Union{AbstractEhrenfest, SurfaceHopping}
+using ....NonadiabaticMolecularDynamics: AbstractSimulation, Simulation, RingPolymerSimulation
+using ..Dynamics: EhrenfestMethods, SurfaceHoppingMethods
 
-function set_quantum_derivative!(dσ, v, σ, sim::AbstractSimulation{<:DensityMatrixMethod})
+const DensityMatrixMethod = Union{EhrenfestMethods.AbstractEhrenfest,
+                                  SurfaceHoppingMethods.SurfaceHopping}
+
+function Dynamics.set_quantum_derivative!(dσ, v, σ, sim::AbstractSimulation{<:DensityMatrixMethod})
     V = calculate_density_propagator!(sim, v)
     commutator!(dσ, V, σ, sim.calculator.tmp_mat_complex1)
     lmul!(-im, dσ)
@@ -36,5 +41,5 @@ function commutator!(out, A, B, tmp)
     return nothing
 end
 
-get_quantum_subsystem(u::ComponentVector{T}) where {T} =
+Dynamics.get_quantum_subsystem(u::ComponentVector{T}) where {T} =
     StructArray{Complex{T}}((u.σreal, u.σimag))

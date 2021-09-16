@@ -1,5 +1,5 @@
-using RecipesBase
-using TypedTables
+using RecipesBase: @recipe, @series
+using TypedTables: Table
 
 @recipe function f(table::Table, quantity::Symbol)
     xguide --> "t"

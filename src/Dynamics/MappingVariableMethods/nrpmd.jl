@@ -1,12 +1,14 @@
-export NRPMD
-export get_population
 
 using LinearAlgebra: tr
+using ComponentArrays: ComponentVector
+
+using ..Dynamics: get_positions, get_velocities
+using ....Calculators: Calculators
 
 """
 Nonadiabatic ring polymer molecular dynamics
 """
-struct NRPMD{T} <: Method
+struct NRPMD{T} <: Dynamics.Method
     temp_q::Vector{T}
     temp_p::Vector{T}
     function NRPMD{T}(n_states::Integer) where {T}

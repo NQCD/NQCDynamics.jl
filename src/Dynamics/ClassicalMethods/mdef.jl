@@ -1,11 +1,7 @@
-using Random
-using LinearAlgebra
-using ..Calculators: DiabaticFrictionCalculator
 
-export MDEF
-export TwoTemperatureMDEF
+using ....Calculators: Calculators, DiabaticFrictionCalculator
 
-abstract type AbstractMDEF <: Method end
+abstract type AbstractMDEF <: Dynamics.Method end
 
 """
 ```math
@@ -53,9 +49,9 @@ function friction!(g, r, sim::AbstractSimulation{<:AbstractMDEF}, t)
     g .= sim.calculator.friction ./ sim.method.mass_scaling
 end
 
-function create_problem(u0, tspan::Tuple, sim::AbstractSimulation{<:AbstractMDEF})
+function Dynamics.create_problem(u0, tspan::Tuple, sim::AbstractSimulation{<:AbstractMDEF})
     DynamicalSDEProblem(acceleration!, velocity!, friction!, get_velocities(u0), get_positions(u0), tspan, sim)
 end
 
-select_algorithm(::Simulation{<:AbstractMDEF}) = MDEF_BAOAB()
-select_algorithm(::RingPolymerSimulation{<:AbstractMDEF}) = BCOCB()
+Dynamics.select_algorithm(::Simulation{<:AbstractMDEF}) = Algorithms.MDEF_BAOAB()
+Dynamics.select_algorithm(::RingPolymerSimulation{<:AbstractMDEF}) = Algorithms.BCOCB()

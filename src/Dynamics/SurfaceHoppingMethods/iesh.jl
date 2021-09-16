@@ -66,7 +66,7 @@ in the Shenvi, Tully paper (JCP 2009)
 In IESH each electron is independent so we can loop through electrons and set the
 derivative one at a time, in the standard way for FSSH.
 """
-function set_quantum_derivative!(dσ, v, σ, sim::Simulation{<:IESH})
+function Dynamics.set_quantum_derivative!(dσ, v, σ, sim::Simulation{<:IESH})
     V = sim.calculator.eigenvalues
     d = sim.calculator.nonadiabatic_coupling
     @views for i in axes(dσ, 2)       

@@ -1,9 +1,4 @@
-using DiffEqCallbacks
-using Unitful
-using UnitfulAtomic
-
-export CellBoundaryCallback
-export TerminatingCallback
+using DiffEqBase: DiscreteCallback
 
 save_impurity(u, t, integrator) =
     Models.impurity_summary(integrator.p.calculator.model, get_positions(u), u.state, u.x.x[3])

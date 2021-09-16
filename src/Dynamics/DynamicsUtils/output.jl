@@ -1,4 +1,4 @@
-export create_saving_callback
+using RecursiveArrayTools: ArrayPartition
 
 create_saving_callback(quantities::Symbol; saveat=[]) = create_saving_callback((quantities,), saveat=saveat)
 
