@@ -1,16 +1,16 @@
-using UnPack, MuladdMacro
+using UnPack: @unpack
+using MuladdMacro: @muladd
 using DiffEqBase: @..
-using StochasticDiffEq
-using StochasticDiffEq: StochasticDiffEqMutableCache
-import StochasticDiffEq: alg_compatible, alg_cache, initialize!, perform_step!
+
+using ..Dynamics.ClassicalMethods: ClassicalMethods
 
 export BCOCB
 
-struct BCOCB <: StochasticDiffEqAlgorithm end
+struct BCOCB <: StochasticDiffEq.StochasticDiffEqAlgorithm end
 
-alg_compatible(prob::DiffEqBase.AbstractSDEProblem, alg::BCOCB) = true
+StochasticDiffEq.alg_compatible(prob::DiffEqBase.AbstractSDEProblem, alg::BCOCB) = true
 
-struct BCOCBCache{U,A,K,uEltypeNoUnits,F} <: StochasticDiffEqMutableCache
+struct BCOCBCache{U,A,K,uEltypeNoUnits,F} <: StochasticDiffEq.StochasticDiffEqMutableCache
     tmp::U
     rtmp::A
     vtmp::A
@@ -20,7 +20,7 @@ struct BCOCBCache{U,A,K,uEltypeNoUnits,F} <: StochasticDiffEqMutableCache
     friction::F
 end
 
-function alg_cache(::BCOCB,prob,u,ΔW,ΔZ,p,rate_prototype,noise_rate_prototype,jump_rate_prototype,uEltypeNoUnits,uBottomEltypeNoUnits,tTypeNoUnits,uprev,f,t,dt,::Type{Val{true}})
+function StochasticDiffEq.alg_cache(::BCOCB,prob,u,ΔW,ΔZ,p,rate_prototype,noise_rate_prototype,jump_rate_prototype,uEltypeNoUnits,uBottomEltypeNoUnits,tTypeNoUnits,uprev,f,t,dt,::Type{Val{true}})
     tmp = zero(u)
     rtmp = zero(u.x[1])
     vtmp = zero(rtmp)
@@ -46,7 +46,7 @@ struct MDEFCache{flatV,G,N,C,M,S}
     σ::S
 end
 
-function FrictionCache(sim::RingPolymerSimulation{<:MDEF}, dt) 
+function FrictionCache(sim::RingPolymerSimulation{<:ClassicalMethods.MDEF}, dt) 
     DoFs = sim.DoFs
     atoms = length(sim.atoms)
     beads = length(sim.beads)
@@ -74,7 +74,7 @@ struct LangevinCache{C,M,S}
     σ::S
 end
 
-function FrictionCache(sim::RingPolymerSimulation{<:ThermalLangevin}, dt)
+function FrictionCache(sim::RingPolymerSimulation{<:ClassicalMethods.ThermalLangevin}, dt)
     γ0 = sim.method.γ
     γ = [γ0, 2sqrt.(2sim.beads.normal_mode_springs[2:end])...]
     c1 = exp.(-dt.*γ)
@@ -85,7 +85,7 @@ function FrictionCache(sim::RingPolymerSimulation{<:ThermalLangevin}, dt)
     LangevinCache(c1, c2, sqrtmass, σ)
 end
 
-function initialize!(integrator, cache::BCOCBCache)
+function StochasticDiffEq.initialize!(integrator, cache::BCOCBCache)
     @unpack t,uprev,p = integrator
     v = integrator.uprev.x[1]
     r = integrator.uprev.x[2]
@@ -93,7 +93,7 @@ function initialize!(integrator, cache::BCOCBCache)
     integrator.f.f1(cache.k,v,r,p,t)
 end
 
-@muladd function perform_step!(integrator,cache::BCOCBCache,f=integrator.f)
+@muladd function StochasticDiffEq.perform_step!(integrator,cache::BCOCBCache,f=integrator.f)
     @unpack t,dt,sqdt,uprev,u,p,W = integrator
     @unpack rtmp, vtmp, k, cayley, half, friction = cache
 

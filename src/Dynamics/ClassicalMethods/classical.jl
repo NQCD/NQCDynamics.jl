@@ -1,9 +1,8 @@
-export Classical
 
 """
 A singleton type that simply labels the parent `AbstractSimulation` as classical.
 """
-struct Classical <: Method end
+struct Classical <: Dynamics.Method end
 
 """
     motion!(du, u, sim::AbstractSimulation{<:Classical}, t)
@@ -72,12 +71,12 @@ function apply_interbead_coupling!(dr::AbstractArray{T,3}, r::AbstractArray{T,3}
     return nothing
 end
 
-function create_problem(u0, tspan::Tuple, sim::Simulation{<:Classical})
+function Dynamics.create_problem(u0, tspan::Tuple, sim::Simulation{<:Classical})
     DynamicalODEProblem(acceleration!, velocity!, get_velocities(u0), get_positions(u0), tspan, sim)
 end
 
-function create_problem(u0, tspan::Tuple, sim::RingPolymerSimulation{<:Classical})
+function Dynamics.create_problem(u0, tspan::Tuple, sim::RingPolymerSimulation{<:Classical})
     DynamicalODEProblem(ring_polymer_acceleration!, velocity!, get_velocities(u0), get_positions(u0), tspan, sim)
 end
 
-select_algorithm(::AbstractSimulation{<:Classical}) = VelocityVerlet()
+Dynamics.select_algorithm(::AbstractSimulation{<:Classical}) = OrdinaryDiffEq.VelocityVerlet()

@@ -1,10 +1,18 @@
 
 module EhrenfestMethods
 
+using ....NonadiabaticMolecularDynamics:
+    NonadiabaticMolecularDynamics,
+    AbstractSimulation,
+    Simulation,
+    RingPolymerSimulation
+using ....Calculators: Calculators
+using ..Dynamics: Dynamics
+
 """
 Abstract type for Ehrenfest method.
 """
-abstract type AbstractEhrenfest <: Method end
+abstract type AbstractEhrenfest <: Dynamics.Method end
 
 function motion!(du, u, sim::AbstractSimulation{<:AbstractEhrenfest}, t)
     dr = get_positions(du)

@@ -20,11 +20,9 @@ provided by `DifferentialEquations.jl`.
 module Dynamics
 
 using ..NonadiabaticMolecularDynamics: AbstractSimulation, Simulation, RingPolymerSimulation
-using DiffEqBase: solve
-using StochasticDiffEq
-using OrdinaryDiffEq
-using UnitfulAtomic, Unitful
-using TypedTables: Table
+using DiffEqBase: DiffEqBase
+using TypedTables: TypedTables
+using UnitfulAtomic: austrip
 
 """
 Each type of dynamics subtypes `Method` which is passed to
@@ -65,9 +63,9 @@ function run_trajectory(u0, tspan::Tuple, sim::AbstractSimulation;
     saving_callback, vals = create_saving_callback(output; saveat=austrip.(saveat))
     callback_set = CallbackSet(callback, saving_callback, get_callbacks(sim))
     problem = create_problem(u0, austrip.(tspan), sim)
-    problem = remake(problem, callback=callback_set)
-    solve(problem, algorithm; stripped_kwargs...)
-    Table(t=vals.t, vals.saveval)
+    problem = DiffEqBase.remake(problem, callback=callback_set)
+    DiffEqBase.solve(problem, algorithm; stripped_kwargs...)
+    TypedTables.Table(t=vals.t, vals.saveval)
 end
 
 """
@@ -78,6 +76,8 @@ create_problem(u0, tspan, sim) =
 
 select_algorithm(::AbstractSimulation) = OrdinaryDiffEq.VCABM5()
 get_callbacks(::AbstractSimulation) = nothing
+
+function set_quantum_derivative! end
 
 include("dynamics_variables.jl")
 
@@ -92,7 +92,5 @@ include("EhrenfestMethods/EhrenfestMethods.jl")
 include("IntegrationAlgorithms/IntegrationAlgorithms.jl")
 
 include("DynamicsUtils/DynamicsUtils.jl")
-
-include("plot.jl")
 
 end # module

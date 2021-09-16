@@ -1,6 +1,9 @@
 
-using UnPack, MuladdMacro
-using StaticArrays
+using UnPack: @unpack
+using MuladdMacro: @muladd
+using StaticArrays: SMatrix
+using OrdinaryDiffEq: OrdinaryDiffEq
+using LinearAlgebra: Hermitian
 
 """
     MInt <: OrdinaryDiffEq.OrdinaryDiffEqAlgorithm
@@ -28,7 +31,7 @@ function OrdinaryDiffEq.alg_cache(::MInt,u,rate_prototype,::Type{uEltypeNoUnits}
     MIntCache(u, uprev, tmp, cayley)
 end
 
-function initialize!(_, ::MIntCache) end
+function OrdinaryDiffEq.initialize!(_, ::MIntCache) end
 
 @muladd function OrdinaryDiffEq.perform_step!(integrator, cache::MIntCache, repeat_step=false)
     @unpack dt,uprev,u,p = integrator

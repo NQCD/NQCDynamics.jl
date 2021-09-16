@@ -51,7 +51,7 @@ function motion!(du, u, sim::AbstractSimulation{<:SurfaceHopping}, t)
     velocity!(dr, v, r, sim, t)
     Calculators.update_electronics!(sim.calculator, r)
     acceleration!(dv, v, r, sim, t, sim.method.state)
-    set_quantum_derivative!(dσ, v, σ, sim)
+    Dynamics.set_quantum_derivative!(dσ, v, σ, sim)
 end
 
 function check_hop!(u, t, integrator)::Bool
