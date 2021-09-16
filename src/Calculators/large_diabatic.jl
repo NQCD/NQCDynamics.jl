@@ -1,4 +1,6 @@
 
+using NonadiabaticModels.DiabaticModels: LargeDiabaticModel
+
 struct LargeDiabaticCalculator{T,M} <: AbstractDiabaticCalculator{M}
     model::M
     potential::Hermitian{T,Matrix{T}}
@@ -51,7 +53,7 @@ function eigen!(calc::LargeDiabaticCalculator)
     copyto!(calc.eigenvalues, eig.values)
 end
 
-function correct_phase!(eig::Eigen, old_eigenvectors::AbstractMatrix)
+function correct_phase!(eig::LinearAlgebra.Eigen, old_eigenvectors::AbstractMatrix)
     @views for i=1:length(eig.values)
         if dot(eig.vectors[:,i], old_eigenvectors[:,i]) < 0
             eig.vectors[:,i] .*= -1
