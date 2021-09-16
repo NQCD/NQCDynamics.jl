@@ -14,7 +14,7 @@ Abstract type for Ehrenfest method.
 """
 abstract type AbstractEhrenfest <: Dynamics.Method end
 
-function motion!(du, u, sim::AbstractSimulation{<:AbstractEhrenfest}, t)
+function Dynamics.motion!(du, u, sim::AbstractSimulation{<:AbstractEhrenfest}, t)
     dr = get_positions(du)
     dv = get_velocities(du)
     dσ = get_quantum_subsystem(du)
@@ -23,10 +23,16 @@ function motion!(du, u, sim::AbstractSimulation{<:AbstractEhrenfest}, t)
     v = get_velocities(u)
     σ = get_quantum_subsystem(u)
 
-    velocity!(dr, v, r, sim, t)
+    DynamicsUtils.velocity!(dr, v)
     Calculators.update_electronics!(sim.calculator, r)
     acceleration!(dv, v, r, sim, t, σ)
-    set_quantum_derivative!(dσ, v, σ, sim)
+    Dynamics.set_quantum_derivative!(dσ, v, σ, sim)
+end
+
+function Dynamics.set_quantum_derivative!(dσ, v, σ, sim::AbstractSimulation{<:AbstractEhrenfest})
+    V = DynamicsUtils.calculate_density_propagator!(sim, v)
+    DynamicsUtils.commutator!(dσ, V, σ, sim.calculator.tmp_mat_complex1)
+    lmul!(-im, dσ)
 end
 
 include("ehrenfest.jl")

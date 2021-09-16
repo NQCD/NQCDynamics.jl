@@ -1,19 +1,7 @@
 using StructArrays: StructArray
 using ComponentArrays: ComponentVector
 
-using ....NonadiabaticMolecularDynamics: AbstractSimulation, Simulation, RingPolymerSimulation
-using ..Dynamics: EhrenfestMethods, SurfaceHoppingMethods
-
-const DensityMatrixMethod = Union{EhrenfestMethods.AbstractEhrenfest,
-                                  SurfaceHoppingMethods.SurfaceHopping}
-
-function Dynamics.set_quantum_derivative!(dσ, v, σ, sim::AbstractSimulation{<:DensityMatrixMethod})
-    V = calculate_density_propagator!(sim, v)
-    commutator!(dσ, V, σ, sim.calculator.tmp_mat_complex1)
-    lmul!(-im, dσ)
-end
-
-function calculate_density_propagator!(sim::Simulation{<:DensityMatrixMethod}, v)
+function calculate_density_matrix_propagator!(sim::Simulation, v)
     V = sim.method.density_propagator
 
     V .= diagm(sim.calculator.eigenvalues)
@@ -23,7 +11,7 @@ function calculate_density_propagator!(sim::Simulation{<:DensityMatrixMethod}, v
     return V
 end
 
-function calculate_density_propagator!(sim::RingPolymerSimulation{<:DensityMatrixMethod}, v)
+function calculate_density_matrix_propagator!(sim::RingPolymerSimulation, v)
     V = sim.method.density_propagator
     centroid_v = get_centroid(v)
 

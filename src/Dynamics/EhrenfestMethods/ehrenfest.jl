@@ -11,7 +11,7 @@ struct Ehrenfest{T} <: AbstractEhrenfest
     end
 end
 
-function DynamicsVariables(sim::Simulation{<:AbstractEhrenfest}, v, r, state::Integer; type=:diabatic)
+function Dynamics.DynamicsVariables(sim::Simulation{<:AbstractEhrenfest}, v, r, state::Integer; type=:diabatic)
     n_states = sim.calculator.model.n_states
     if type == :diabatic
         Calculators.evaluate_potential!(sim.calculator, r)
@@ -35,7 +35,7 @@ function acceleration!(dv, v, r, sim::AbstractSimulation{<:Ehrenfest}, t, σ)
             dv[I] -= sim.calculator.adiabatic_derivative[I][J] * real(σ[J])
         end
     end
-    divide_by_mass!(dv, sim.atoms.masses)
+    DynamicsUtils.divide_by_mass!(dv, sim.atoms.masses)
     return nothing
 end
 

@@ -1,7 +1,7 @@
 using ....Calculators: RingPolymerDiabaticCalculator
 using ....NonadiabaticMolecularDynamics: RingPolymerSimulation
 
-function DynamicsVariables(sim::RingPolymerSimulation{<:SurfaceHopping}, v, r, state::Integer; type=:diabatic)
+function Dynamics.DynamicsVariables(sim::RingPolymerSimulation{<:SurfaceHopping}, v, r, state::Integer; type=:diabatic)
     n_states = sim.calculator.model.n_states
     if type == :diabatic
         Calculators.evaluate_centroid_potential!(sim.calculator, r)
@@ -22,8 +22,8 @@ function acceleration!(dv, v, r, sim::RingPolymerSimulation{<:FSSH}, t, state)
     for I in eachindex(dv)
         dv[I] = -sim.calculator.adiabatic_derivative[I][state, state]
     end
-    divide_by_mass!(dv, sim.atoms.masses)
-    apply_interbead_coupling!(dv, r, sim)
+    DynamicsUtils.divide_by_mass!(dv, sim.atoms.masses)
+    DynamicsUtils.apply_interbead_coupling!(dv, r, sim)
     return nothing
 end
 

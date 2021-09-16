@@ -36,7 +36,7 @@ function acceleration!(dv, v, r, sim::Simulation{MDEF,<:DiabaticFrictionCalculat
     for I in eachindex(dv)
         dv[I] = -sim.calculator.adiabatic_derivative[I][1,1]
     end
-    divide_by_mass!(dv, sim.atoms.masse)
+    DynamicsUtils.divide_by_mass!(dv, sim.atoms.masse)
 end
 
 """

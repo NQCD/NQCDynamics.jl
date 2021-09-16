@@ -48,10 +48,16 @@ function motion!(du, u, sim::AbstractSimulation{<:SurfaceHopping}, t)
 
     set_state!(u, sim.method.state) # Make sure the state variables match, 
 
-    velocity!(dr, v, r, sim, t)
+    DynamicsUtils.velocity!(dr, v, r, sim, t)
     Calculators.update_electronics!(sim.calculator, r)
     acceleration!(dv, v, r, sim, t, sim.method.state)
     Dynamics.set_quantum_derivative!(dσ, v, σ, sim)
+end
+
+function Dynamics.set_quantum_derivative!(dσ, v, σ, sim::AbstractSimulation{<:SurfaceHopping})
+    V = DynamicsUtils.calculate_density_propagator!(sim, v)
+    DynamicsUtils.commutator!(dσ, V, σ, sim.calculator.tmp_mat_complex1)
+    lmul!(-im, dσ)
 end
 
 function check_hop!(u, t, integrator)::Bool
