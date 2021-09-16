@@ -1,3 +1,6 @@
+
+module EhrenfestMethods
+
 """
 Abstract type for Ehrenfest method.
 """
@@ -20,3 +23,5 @@ end
 
 include("ehrenfest.jl")
 include("ehrenfest_rpmd.jl")
+
+end # module
