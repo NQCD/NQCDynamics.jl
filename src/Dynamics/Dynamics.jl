@@ -80,7 +80,6 @@ select_algorithm(::AbstractSimulation) = OrdinaryDiffEq.VCABM5()
 get_callbacks(::AbstractSimulation) = nothing
 
 include("dynamics_variables.jl")
-include("mdef.jl")
 
 include("ClassicalMethods/ClassicalMethods.jl")
 
