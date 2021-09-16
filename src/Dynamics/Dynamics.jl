@@ -84,16 +84,14 @@ include("classical.jl")
 include("langevin.jl")
 include("mdef.jl")
 
-include("SurfaceHopping/SurfaceHoppingMethods.jl")
+include("SurfaceHoppingMethods/SurfaceHoppingMethods.jl")
 
 include("nrpmd.jl")
 include("Ehrenfest/EhrenfestDynamics.jl")
 
 include("density_matrix_dynamics.jl")
 
-include("algorithms/mdef_baoab.jl")
-include("algorithms/bcocb.jl")
-include("algorithms/mint.jl")
+include("algorithms/Algorithms.jl")
 
 include("callbacks.jl")
 include("output.jl")

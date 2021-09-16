@@ -1,6 +1,6 @@
 module NonadiabaticMolecularDynamics
 
-using Reexport
+using Reexport: @reexport
 
 using ComponentArrays: ComponentVector
 export ComponentVector
@@ -9,19 +9,27 @@ export ComponentVector
 @reexport using NonadiabaticModels
 
 include("ring_polymer_array.jl")
+export RingPolymerArray,
+       get_centroid
+
 include("ring_polymer.jl")
+export transform_to_normal_modes!,
+       transform_from_normal_modes!,
+       nbeads
 
 include("Calculators/Calculators.jl")
-export Calculators
 
 include("simulations.jl")
+export Simulation,
+       RingPolymerSimulation
+
 include("classical_hamiltonians.jl")
 
 include("InitialConditions/InitialConditions.jl")
-@reexport using .InitialConditions
+export InitialConditions
 
 include("Dynamics/Dynamics.jl")
-@reexport using .Dynamics
+export Dynamics
 
 include("Ensembles/Ensembles.jl")
 export Ensembles
