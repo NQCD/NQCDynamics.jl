@@ -1,4 +1,6 @@
 
+module SurfaceHoppingMethods
+
 using DEDataArrays: DEDataVector
 using StatsBase: sample, Weights
 
@@ -95,3 +97,5 @@ end
 include("fssh.jl")
 include("iesh.jl")
 include("rpsh.jl")
+
+end # module
