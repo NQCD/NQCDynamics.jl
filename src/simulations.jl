@@ -1,12 +1,9 @@
-using .Calculators: AbstractCalculator, Calculator
-using Unitful
-using UnitfulAtomic
 
-export AbstractSimulation
-export Simulation
-export RingPolymerSimulation
-export Method
-export get_temperature
+using Unitful: @u_str
+using UnitfulAtomic: austrip, auconvert
+
+using .Calculators: AbstractCalculator, Calculator
+using NonadiabaticModels: Model
 
 abstract type AbstractSimulation{M,Calc<:AbstractCalculator,A<:Atoms,T,C<:AbstractCell} end
 
