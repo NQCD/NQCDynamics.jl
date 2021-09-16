@@ -24,9 +24,9 @@ model = NonadiabaticModels.Free()
 
 @testset "get_temperature" begin
     sim = Simulation(atoms, model; temperature=10u"K")
-    @test get_temperature(sim) isa Real
+    @test NonadiabaticMolecularDynamics.get_temperature(sim) isa Real
     sim = Simulation(atoms, model; temperature=x->10u"K")
-    @test get_temperature(sim) isa Real
+    @test NonadiabaticMolecularDynamics.get_temperature(sim) isa Real
     sim = Simulation(atoms, model; temperature=10)
-    @test get_temperature(sim, 1) isa Real
+    @test NonadiabaticMolecularDynamics.get_temperature(sim, 1) isa Real
 end

@@ -29,7 +29,7 @@ include("InitialConditions/InitialConditions.jl")
 export InitialConditions
 
 include("Dynamics/Dynamics.jl")
-export Dynamics
+@reexport using .Dynamics
 
 include("Ensembles/Ensembles.jl")
 export Ensembles
