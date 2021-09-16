@@ -1,5 +1,9 @@
 using Test
 using NonadiabaticMolecularDynamics
+using NonadiabaticMolecularDynamics:
+    RingPolymerParameters,
+    transform_from_normal_modes!,
+    transform_to_normal_modes!
 using LinearAlgebra
 
 @test_nowarn RingPolymerParameters{Float64}(10, 1, 1)
