@@ -9,5 +9,6 @@ using ....NonadiabaticMolecularDynamics:
 using ..Dynamics: Dynamics
 
 include("nrpmd.jl")
+export NRPMD
 
 end # module

@@ -25,6 +25,7 @@ using TypedTables: TypedTables
 using UnitfulAtomic: austrip
 using RecursiveArrayTools: ArrayPartition
 using ComponentArrays: ComponentVector
+using Reexport: @reexport
 
 export DynamicsVariables
 export get_positions
@@ -100,12 +101,16 @@ function get_quantum_subsystem end
 include("DynamicsUtils/DynamicsUtils.jl")
 
 include("ClassicalMethods/ClassicalMethods.jl")
+@reexport using .ClassicalMethods
 
 include("SurfaceHoppingMethods/SurfaceHoppingMethods.jl")
+@reexport using .SurfaceHoppingMethods
 
 include("MappingVariableMethods/MappingVariableMethods.jl")
+@reexport using .MappingVariableMethods
 
 include("EhrenfestMethods/EhrenfestMethods.jl")
+@reexport using .EhrenfestMethods
 
 include("IntegrationAlgorithms/IntegrationAlgorithms.jl")
 
