@@ -86,7 +86,7 @@ include("mdef.jl")
 
 include("SurfaceHoppingMethods/SurfaceHoppingMethods.jl")
 
-include("nrpmd.jl")
+include("MappingVariableMethods/MappingVariableMethods.jl")
 
 include("EhrenfestMethods/EhrenfestMethods.jl")
 
