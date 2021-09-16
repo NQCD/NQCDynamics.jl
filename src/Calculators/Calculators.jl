@@ -69,7 +69,7 @@ mutable struct DiabaticCalculator{T,M,S,L} <: AbstractDiabaticCalculator{M}
     tmp_mat_complex1::Matrix{Complex{T}}
     tmp_mat_complex2::Matrix{Complex{T}}
     function DiabaticCalculator{T}(model::M, DoFs::Integer, atoms::Integer) where {T,M<:Model}
-        n = Int(model.n_states)
+        n = nstates(model)
         matrix_template = NonadiabaticModels.matrix_template(model, T)
         vector_template = NonadiabaticModels.vector_template(model, T)
 
@@ -110,7 +110,7 @@ mutable struct RingPolymerDiabaticCalculator{T,M,S,L} <: AbstractDiabaticCalcula
     tmp_mat_complex1::Matrix{Complex{T}}
     tmp_mat_complex2::Matrix{Complex{T}}
     function RingPolymerDiabaticCalculator{T}(model::M, DoFs::Integer, atoms::Integer, beads::Integer) where {T,M<:Model}
-        n = Int(model.n_states)
+        n = nstates(model)
         matrix_template = NonadiabaticModels.matrix_template(model, T)
         vector_template = NonadiabaticModels.vector_template(model, T)
 

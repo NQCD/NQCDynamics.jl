@@ -10,7 +10,7 @@ model = MiaoSubotnik(M=n_states-1)
 atoms = Atoms(2000)
 r = zeros(1, 1)
 v = randn(1,1) * sqrt(5*temperature / atoms.masses[1])
-n_electrons = model.n_states ÷ 2
+n_electrons = nstates(model) ÷ 2
 
 sim = Simulation{IESH}(atoms, model; DoFs=1, n_electrons=n_electrons)
 u = DynamicsVariables(sim, v, r)
