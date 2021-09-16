@@ -32,16 +32,17 @@ struct DiabaticFrictionCalculator{T,M} <: AbstractDiabaticCalculator{M}
     tmp_mat_complex1::Matrix{Complex{T}}
     tmp_mat_complex2::Matrix{Complex{T}}
     function DiabaticFrictionCalculator{T}(model::M, DoFs::Integer, atoms::Integer) where {T,M<:Model}
-        potential = Hermitian(zeros(model.n_states, model.n_states))
-        derivative = [Hermitian(zeros(model.n_states, model.n_states)) for i=1:DoFs, j=1:atoms]
-        eigenvalues = zeros(model.n_states)
-        eigenvectors = zeros(model.n_states, model.n_states)
-        adiabatic_derivative = [zeros(model.n_states, model.n_states) for i=1:DoFs, j=1:atoms]
-        nonadiabatic_coupling = [zeros(model.n_states, model.n_states) for i=1:DoFs, j=1:atoms]
+        n = nstates(model)
+        potential = Hermitian(zeros(n, n))
+        derivative = [Hermitian(zeros(n, n)) for i=1:DoFs, j=1:atoms]
+        eigenvalues = zeros(n)
+        eigenvectors = zeros(n, n)
+        adiabatic_derivative = [zeros(n, n) for i=1:DoFs, j=1:atoms]
+        nonadiabatic_coupling = [zeros(n, n) for i=1:DoFs, j=1:atoms]
         friction = zeros(DoFs*atoms, DoFs*atoms)
-        tmp_mat = zeros(T, model.n_states, model.n_states)
-        tmp_mat_complex1 = zeros(Complex{T}, model.n_states, model.n_states)
-        tmp_mat_complex2 = zeros(Complex{T}, model.n_states, model.n_states)
+        tmp_mat = zeros(T, n, n)
+        tmp_mat_complex1 = zeros(Complex{T},n, n)
+        tmp_mat_complex2 = zeros(Complex{T}, n, n)
         new{T,M}(model, potential, derivative, eigenvalues, eigenvectors,
                  adiabatic_derivative, nonadiabatic_coupling, friction,
                  tmp_mat, tmp_mat_complex1, tmp_mat_complex2)
@@ -87,7 +88,7 @@ function evaluate_friction!(calc::DiabaticFrictionCalculator, R::AbstractMatrix)
     calc.friction .= 0
     for i in axes(R, 2) # Atoms
         for j in axes(R, 1) # DoFs
-            for m=2:calc.model.n_states
+            for m=2:nstates(calc.model)
                 ω = calc.eigenvalues[m] - calc.eigenvalues[1]
                 g = gauss(ω, calc.model.σ) / ω
                 calc.friction[j+(i-1)*DoFs] += 2π*abs2(calc.adiabatic_derivative[j,i][m,1])*g
