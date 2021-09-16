@@ -1,8 +1,19 @@
-import AdvancedMH
-using AdvancedMH: DensityModel, MetropolisHastings, RandomWalkProposal, sample
 using Distributions: Dirac
-using Random
 using ComponentArrays: ComponentVector
+using AdvancedMH: AdvancedMH
+using Random: Random
+
+using ....NonadiabaticMolecularDynamics:
+    NonadiabaticMolecularDynamics,
+    AbstractSimulation,
+    Simulation,
+    RingPolymerSimulation,
+    get_temperature,
+    transform_from_normal_modes!,
+    transform_to_normal_modes!,
+    evaluate_hamiltonian,
+    RingPolymerArray
+using ....Dynamics: Dynamics
 
 function sample_configurations(
     sim::AbstractSimulation,
@@ -12,17 +23,18 @@ function sample_configurations(
     move_ratio=0.9
     )
 
-    shape = size(get_positions(u0))
+    shape = size(Dynamics.get_positions(u0))
     density = get_density_function(sim, shape)
 
-    density_model = DensityModel(density)
+    density_model = AdvancedMH.DensityModel(density)
     proposal = get_proposal(sim, σ, move_ratio)
 
     sampler = AdvancedMH.MetropolisHastings(proposal)
 
     initial_config = reshape_input(sim, copy(u0))
 
-    chain = sample(density_model, sampler, convert(Int, steps); init_params=initial_config)
+    chain = AdvancedMH.sample(density_model, sampler, convert(Int, steps);
+                              init_params=initial_config)
 
     return reshape_output(sim, chain, shape)
 end
@@ -47,13 +59,13 @@ function get_density_function(sim::RingPolymerSimulation, shape)
     end
 end
 
-get_proposal(sim::Simulation, σ, move_ratio) =  ClassicalProposal(sim, σ, 1-move_ratio)
+get_proposal(sim::Simulation, σ, move_ratio) = ClassicalProposal(sim, σ, 1-move_ratio)
 get_proposal(sim::RingPolymerSimulation, σ, move_ratio) = RingPolymerProposal(sim, σ, 1-move_ratio)
 
 reshape_input(::Simulation, u0) = u0[:]
 function reshape_input(sim::RingPolymerSimulation, u0)
-    r = get_positions(u0)
-    v = get_velocities(u0)
+    r = Dynamics.get_positions(u0)
+    v = Dynamics.get_velocities(u0)
     transform_to_normal_modes!(sim.beads, r)
     transform_to_normal_modes!(sim.beads, v)
     return vcat(v[:], r[:])
@@ -141,15 +153,17 @@ end
 
 function Base.rand(rng::Random.AbstractRNG, p::MolecularProposal)
     result = map(x -> rand(rng, x), p.proposal)
-    result[randsubseq(eachindex(result), p.move_ratio)] .= 0
+    result[Random.randsubseq(eachindex(result), p.move_ratio)] .= 0
     return result
 end
 
-function AdvancedMH.propose(rng::Random.AbstractRNG, proposal::MolecularProposal, ::DensityModel)
+function AdvancedMH.propose(rng::Random.AbstractRNG, proposal::MolecularProposal,
+                            ::AdvancedMH.DensityModel)
     return rand(rng, proposal)
 end
 
-function AdvancedMH.propose(rng::Random.AbstractRNG, proposal::MolecularProposal, ::DensityModel, t)
+function AdvancedMH.propose(rng::Random.AbstractRNG, proposal::MolecularProposal,
+                            ::AdvancedMH.DensityModel, t)
     return t + rand(rng, proposal)
 end
 

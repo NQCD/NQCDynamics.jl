@@ -26,7 +26,7 @@ beads = [1, 4, 2]
             R0 = rand(DoFs, natoms)
             u0 = ComponentVector(v=zero(R0), r=R0)
             chain = InitialConditions.sample_configurations(sim, u0, 1e5, Dict(:X=>1); move_ratio=0.01)
-            energy = evaluate_hamiltonian.(sim, chain)
+            energy = NonadiabaticMolecularDynamics.evaluate_hamiltonian.(sim, chain)
             @test mean(energy) / (DoFs*natoms) ≈ T rtol=1e-1
         end
     end
@@ -48,7 +48,7 @@ end
             R0 = rand(DoFs, natoms, nbeads)
             u0 = ComponentVector(v=zero(R0), r=R0)
             chain = InitialConditions.sample_configurations(sim, u0, 1e5, Dict(:X=>10); move_ratio=0.01)
-            potential = evaluate_hamiltonian.(sim, chain)
+            potential = NonadiabaticMolecularDynamics.evaluate_hamiltonian.(sim, chain)
             @test mean(potential) / (DoFs*natoms*nbeads) ≈ nbeads*T rtol=1e-1
         end
     end
