@@ -15,7 +15,7 @@ du = zero(u)
 
 @testset "friction!" begin
     gtmp = zeros(length(r), length(r))
-    NonadiabaticMolecularDynamics.Dynamics.friction!(gtmp, r, sim, 0.0)
+    NonadiabaticMolecularDynamics.Dynamics.ClassicalMethods.friction!(gtmp, r, sim, 0.0)
     @test all(diag(gtmp) .≈ 1.0)
 end
 

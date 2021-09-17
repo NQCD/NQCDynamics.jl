@@ -1,6 +1,4 @@
 
-export DynamicalDistribution
-
 using Random: AbstractRNG, rand!
 using Distributions: Distributions, Continuous, Sampleable, Univariate
 using HDF5: h5open

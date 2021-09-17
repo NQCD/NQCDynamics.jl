@@ -1,8 +1,9 @@
 using UnPack: @unpack
 using MuladdMacro: @muladd
 using DiffEqBase: @..
+using LinearAlgebra: Diagonal
 
-using ..Dynamics.ClassicalMethods: ClassicalMethods
+using ..Dynamics: ClassicalMethods
 
 export BCOCB
 
@@ -192,3 +193,6 @@ function step_O!(friction::LangevinCache, integrator, v::R, r::R, t) where {R<:R
         @. v[:,j,1] = c1[1] * v[:,j,1] + c2[1] * σ[:,j] * W.dW[:,j,1] / sqdt
     end
 end
+
+Dynamics.select_algorithm(::RingPolymerSimulation{<:Dynamics.ClassicalMethods.AbstractMDEF}) = BCOCB()
+Dynamics.select_algorithm(::RingPolymerSimulation{<:Dynamics.ClassicalMethods.ThermalLangevin}) = BCOCB()

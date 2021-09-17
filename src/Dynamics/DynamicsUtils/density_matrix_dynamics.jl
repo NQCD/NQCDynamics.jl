@@ -1,5 +1,6 @@
 using StructArrays: StructArray
 using ComponentArrays: ComponentVector
+using LinearAlgebra: diagm, mul!
 
 function calculate_density_matrix_propagator!(sim::Simulation, v)
     V = sim.method.density_propagator

@@ -1,3 +1,4 @@
+using LinearAlgebra: mul!, det
 
 export IESH
 
@@ -94,7 +95,7 @@ Hopping probability according to equation 21 in Shenvi, Roy, Tully 2009.
 """
 function evaluate_hopping_probability!(sim::Simulation{<:IESH}, u, dt)
 
-    ψ = get_quantum_subsystem(u)
+    ψ = Dynamics.get_quantum_subsystem(u)
     v = get_velocities(u)
 
     S = sim.method.overlap
@@ -166,12 +167,12 @@ function select_new_state(sim::AbstractSimulation{<:IESH}, u)::Vector{Int}
     return sim.method.state
 end
 
-function get_diabatic_population(sim::Simulation{<:IESH}, u)
+function Estimators.diabatic_population(sim::Simulation{<:IESH}, u)
     Calculators.evaluate_potential!(sim.calculator, get_positions(u))
     Calculators.eigen!(sim.calculator)
     U = sim.calculator.eigenvectors
 
-    ψ = get_quantum_subsystem(u)
+    ψ = Dynamics.get_quantum_subsystem(u)
     diabatic_ψ = zero(ψ)
     @views for i in axes(ψ, 2) # each electron
         diabatic_ψ[:,i] .= U*ψ[:,i]
@@ -181,7 +182,7 @@ function get_diabatic_population(sim::Simulation{<:IESH}, u)
     return diabatic_population
 end
 
-function get_adiabatic_population(sim::Simulation{<:IESH}, u)
+function Estimators.adiabatic_population(sim::Simulation{<:IESH}, u)
     population = zeros(sim.calculator.model.n_states)
     population[u.state] .= 1
     return population

@@ -1,18 +1,22 @@
 module Ensembles
 
-using ..NonadiabaticMolecularDynamics: AbstractSimulation, Simulation, RingPolymerSimulation
-using ..Dynamics:
-    Dynamics,
+using SciMLBase: remake, EnsembleThreads, EnsembleProblem, solve
+using RecursiveArrayTools: ArrayPartition
+using TypedTables: TypedTables
+
+using NonadiabaticDynamicsBase: NonadiabaticDynamicsBase
+using NonadiabaticMolecularDynamics:
+    AbstractSimulation,
+    Simulation,
+    RingPolymerSimulation,
+    RingPolymerArray,
+    Dynamics
+using NonadiabaticMolecularDynamics.Dynamics:
     ClassicalMethods,
     SurfaceHoppingMethods,
     EhrenfestMethods,
     MappingVariableMethods
 using ..InitialConditions: DynamicalDistribution
-
-using SciMLBase: remake, EnsembleThreads, EnsembleProblem, solve
-using DocStringExtensions
-using RecursiveArrayTools: ArrayPartition
-using TypedTables: TypedTables
 
 function select_u0(sim::Simulation{<:Union{ClassicalMethods.Classical, ClassicalMethods.AbstractMDEF}}, v, r, state, type)
     Dynamics.DynamicsVariables(sim, v, r)
@@ -53,7 +57,7 @@ function run_ensemble(
     kwargs...
     )
 
-    stripped_kwargs = austrip_kwargs(;kwargs...)
+    stripped_kwargs = NonadiabaticDynamicsBase.austrip_kwargs(;kwargs...)
 
     u0 = select_u0(sim, rand(distribution)..., distribution.state, distribution.type)
     problem = Dynamics.create_problem(u0, austrip.(tspan), sim)

@@ -1,20 +1,24 @@
-using UnPack, MuladdMacro
-using DiffEqBase: @..
-using StochasticDiffEq
-using StochasticDiffEq: StochasticDiffEqConstantCache, StochasticDiffEqMutableCache
-import StochasticDiffEq: alg_compatible, alg_cache, initialize!, perform_step!
+using UnPack: @unpack
+using MuladdMacro: @muladd
+using DiffEqBase: DiffEqBase
+using FastBroadcast: @..
+using StochasticDiffEq: StochasticDiffEq
+using LinearAlgebra: LAPACK, diagm, diag, mul!, diagind
+using RecursiveArrayTools: ArrayPartition
+
+using ....NonadiabaticMolecularDynamics: get_temperature
 
 export MDEF_BAOAB
 
-struct MDEF_BAOAB <: StochasticDiffEqAlgorithm end
+struct MDEF_BAOAB <: StochasticDiffEq.StochasticDiffEqAlgorithm end
 
-alg_compatible(::DiffEqBase.AbstractSDEProblem,::MDEF_BAOAB) = true
+StochasticDiffEq.alg_compatible(::DiffEqBase.AbstractSDEProblem,::MDEF_BAOAB) = true
 
-struct MDEF_BAOABConstantCache{uType,uEltypeNoUnits} <: StochasticDiffEqConstantCache
+struct MDEF_BAOABConstantCache{uType,uEltypeNoUnits} <: StochasticDiffEq.StochasticDiffEqConstantCache
     k::uType
     half::uEltypeNoUnits
 end
-struct MDEF_BAOABCache{uType,rType,vType,uTypeFlat,uEltypeNoUnits,rateNoiseType,compoundType} <: StochasticDiffEqMutableCache
+struct MDEF_BAOABCache{uType,rType,vType,uTypeFlat,uEltypeNoUnits,rateNoiseType,compoundType} <: StochasticDiffEq.StochasticDiffEqMutableCache
     tmp::uType
     utmp::rType
     dutmp::vType
@@ -29,12 +33,12 @@ struct MDEF_BAOABCache{uType,rType,vType,uTypeFlat,uEltypeNoUnits,rateNoiseType,
     c2::Matrix{uEltypeNoUnits}
 end
 
-function alg_cache(::MDEF_BAOAB,prob,u,ΔW,ΔZ,p,rate_prototype,noise_rate_prototype,jump_rate_prototype,uEltypeNoUnits,uBottomEltypeNoUnits,tTypeNoUnits,uprev,f,t,dt,::Type{Val{false}})
+function StochasticDiffEq.alg_cache(::MDEF_BAOAB,prob,u,ΔW,ΔZ,p,rate_prototype,noise_rate_prototype,jump_rate_prototype,uEltypeNoUnits,uBottomEltypeNoUnits,tTypeNoUnits,uprev,f,t,dt,::Type{Val{false}})
     k = zero(rate_prototype.x[1])
     MDEF_BAOABConstantCache(k, uEltypeNoUnits(1//2))
 end
 
-function alg_cache(::MDEF_BAOAB,prob,u,ΔW,ΔZ,p,rate_prototype,noise_rate_prototype,jump_rate_prototype,uEltypeNoUnits,uBottomEltypeNoUnits,tTypeNoUnits,uprev,f,t,dt,::Type{Val{true}})
+function StochasticDiffEq.alg_cache(::MDEF_BAOAB,prob,u,ΔW,ΔZ,p,rate_prototype,noise_rate_prototype,jump_rate_prototype,uEltypeNoUnits,uBottomEltypeNoUnits,tTypeNoUnits,uprev,f,t,dt,::Type{Val{true}})
     tmp = zero(u)
     dutmp = zero(u.x[1])
     utmp = zero(u.x[2])
@@ -53,7 +57,7 @@ function alg_cache(::MDEF_BAOAB,prob,u,ΔW,ΔZ,p,rate_prototype,noise_rate_proto
     MDEF_BAOABCache(tmp, utmp, dutmp, k, flatdutmp, tmp1, tmp2, gtmp, noise, half, c1, c2)
 end
 
-function initialize!(integrator, cache::MDEF_BAOABConstantCache)
+function StochasticDiffEq.initialize!(integrator, cache::MDEF_BAOABConstantCache)
     @unpack t,uprev,p = integrator
     du1 = uprev.x[1]
     u1 = uprev.x[2]
@@ -61,7 +65,7 @@ function initialize!(integrator, cache::MDEF_BAOABConstantCache)
     cache.k .= integrator.f.f1(du1,u1,p,t)
 end
 
-function initialize!(integrator, cache::MDEF_BAOABCache)
+function StochasticDiffEq.initialize!(integrator, cache::MDEF_BAOABCache)
     @unpack t,uprev,p = integrator
     du1 = integrator.uprev.x[1]
     u1 = integrator.uprev.x[2]
@@ -69,7 +73,7 @@ function initialize!(integrator, cache::MDEF_BAOABCache)
     integrator.f.f1(cache.k,du1,u1,p,t)
 end
 
-@muladd function perform_step!(integrator,cache::MDEF_BAOABConstantCache,f=integrator.f)
+@muladd function StochasticDiffEq.perform_step!(integrator,cache::MDEF_BAOABConstantCache,f=integrator.f)
     @unpack t,dt,sqdt,uprev,p,W = integrator
     @unpack k, half = cache
     du1 = uprev.x[1]
@@ -102,7 +106,7 @@ end
     integrator.u = ArrayPartition((du, u))
 end
 
-@muladd function perform_step!(integrator,cache::MDEF_BAOABCache,f=integrator.f)
+@muladd function StochasticDiffEq.perform_step!(integrator,cache::MDEF_BAOABCache,f=integrator.f)
     @unpack t,dt,sqdt,uprev,u,p,W = integrator
     @unpack utmp, dutmp, k, half, gtmp = cache
     du1 = uprev.x[1]
@@ -153,3 +157,5 @@ function step_O!(cache, integrator)
     @.. flatdutmp += tmp1
     copyto!(dutmp, flatdutmp)
 end
+
+Dynamics.select_algorithm(::Simulation{<:Dynamics.ClassicalMethods.AbstractMDEF}) = MDEF_BAOAB()

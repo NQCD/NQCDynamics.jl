@@ -1,4 +1,7 @@
 
+using StochasticDiffEq: StochasticDiffEq
+using RecursiveArrayTools: ArrayPartition
+
 struct Langevin{T<:AbstractFloat} <: Dynamics.Method
     γ::T
     σ::Matrix{T}
@@ -10,7 +13,8 @@ function Langevin{T}(γ, temperature, masses, DoFs) where {T}
 end
 
 function Dynamics.create_problem(u0, tspan::Tuple, sim::Simulation{<:Langevin})
-    DynamicalSDEProblem(acceleration!, velocity!, friction!, get_velocities(u0), get_positions(u0), tspan, sim)
+    StochasticDiffEq.DynamicalSDEProblem(acceleration!, DynamicsUtils.velocity!, friction!,
+        Dynamics.get_velocities(u0), Dynamics.get_positions(u0), tspan, sim)
 end
 Dynamics.select_algorithm(sim::AbstractSimulation{<:Langevin}) = StochasticDiffEq.BAOAB(sim.method.γ)
 
@@ -27,6 +31,6 @@ function Dynamics.DynamicsVariables(::AbstractSimulation{<:Union{ThermalLangevin
 end
 
 function Dynamics.create_problem(u0, tspan::Tuple, sim::AbstractSimulation{<:ThermalLangevin})
-    DynamicalSDEProblem(acceleration!, velocity!, friction!, get_velocities(u0), get_positions(u0), tspan, sim)
+    StochasticDiffEq.DynamicalSDEProblem(acceleration!, DynamicsUtils.velocity!, friction!,
+        Dynamics.get_velocities(u0), Dynamics.get_positions(u0), tspan, sim)
 end
-Dynamics.select_algorithm(::RingPolymerSimulation{<:ThermalLangevin}) = Algorithms.BCOCB()

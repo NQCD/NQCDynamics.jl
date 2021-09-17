@@ -1,12 +1,12 @@
 
 module ThermalMonteCarlo
 
-using Distributions: Dirac
+using Distributions: UnivariateDistribution, Dirac, Normal
 using ComponentArrays: ComponentVector
 using AdvancedMH: AdvancedMH
 using Random: Random
 
-using ....NonadiabaticMolecularDynamics:
+using NonadiabaticMolecularDynamics:
     NonadiabaticMolecularDynamics,
     AbstractSimulation,
     Simulation,
@@ -15,8 +15,8 @@ using ....NonadiabaticMolecularDynamics:
     transform_from_normal_modes!,
     transform_to_normal_modes!,
     evaluate_hamiltonian,
-    RingPolymerArray
-using ....Dynamics: Dynamics
+    RingPolymerArray,
+    Dynamics
 
 function sample_configurations(
     sim::AbstractSimulation,
@@ -100,7 +100,7 @@ end
 const MolecularProposal{P,T,S} = Union{RingPolymerProposal{P,T,S}, ClassicalProposal{P,T,S}}
 
 function ClassicalProposal(sim, σ, move_ratio)
-    proposals = Array{Distributions.UnivariateDistribution,3}(undef, sim.DoFs, length(sim.atoms), 2)
+    proposals = Array{UnivariateDistribution,3}(undef, sim.DoFs, length(sim.atoms), 2)
     for i in range(sim.atoms) # Velocity proposals
         distribution = Normal(0, sqrt(get_temperature(sim) / sim.atoms.masses[i]))
         proposals[:,i,1] .= distribution
@@ -114,7 +114,7 @@ end
 
 function RingPolymerProposal(sim, σ, move_ratio)
     ωₖ = NonadiabaticMolecularDynamics.get_matsubara_frequencies(length(sim.beads), sim.beads.ω_n)
-    proposals = Array{Distributions.UnivariateDistribution,4}(undef, sim.DoFs, length(sim.atoms), length(sim.beads), 2)
+    proposals = Array{UnivariateDistribution,4}(undef, sim.DoFs, length(sim.atoms), length(sim.beads), 2)
     for i=1:length(sim.beads)
         if i == 1
             for j in range(sim.atoms)

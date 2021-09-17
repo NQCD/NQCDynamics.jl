@@ -1,9 +1,9 @@
 
-using LinearAlgebra: tr
+using LinearAlgebra: tr, mul!, dot
 using ComponentArrays: ComponentVector
 
-using ..Dynamics: get_positions, get_velocities
-using ....Calculators: Calculators
+using ..Dynamics: DynamicsUtils
+using NonadiabaticMolecularDynamics: Calculators, Estimators, get_positions, get_velocities
 
 """
 Nonadiabatic ring polymer molecular dynamics
@@ -15,8 +15,6 @@ struct NRPMD{T} <: Dynamics.Method
         new{T}(zeros(n_states), zeros(n_states))
     end
 end
-
-Dynamics.select_algorithm(::RingPolymerSimulation{<:NRPMD}) = IntegrationAlgorithms.MInt()
 
 function Dynamics.DynamicsVariables(sim::RingPolymerSimulation{<:NRPMD}, v, r, state::Integer; type=:diabatic)
     n_states = sim.calculator.model.n_states
@@ -45,7 +43,7 @@ function Dynamics.motion!(du, u, sim::RingPolymerSimulation{<:NRPMD}, t)
     dv = get_velocities(du)
     r = get_positions(u)
     v = get_velocities(u)
-    DynamicsUtils.velocity!(dr, v)
+    DynamicsUtils.velocity!(dr, v, r, sim, t)
     acceleration!(dv, u, sim)
     set_mapping_force!(du, u, sim)
 end
@@ -82,7 +80,7 @@ function set_mapping_force!(du, u, sim::RingPolymerSimulation{<:NRPMD})
     end
 end
 
-function get_diabatic_population(::RingPolymerSimulation{<:NRPMD}, u)
+function Estimators.diabatic_population(::RingPolymerSimulation{<:NRPMD}, u)
     qmap = get_mapping_positions(u)
     pmap = get_mapping_momenta(u)
     sum(qmap.^2 + pmap.^2 .- 1; dims=2) / 2size(qmap, 2)
@@ -94,7 +92,8 @@ function NonadiabaticMolecularDynamics.evaluate_hamiltonian(sim::RingPolymerSimu
     Calculators.evaluate_potential!(sim.calculator, r)
     V = sim.calculator.potential
 
-    H = get_spring_energy(sim, r) + evaluate_kinetic_energy(sim.atoms.masses, v)
+    H = NonadiabaticMolecularDynamics.get_spring_energy(sim, r) 
+        + NonadiabaticMolecularDynamics.evaluate_kinetic_energy(sim.atoms.masses, v)
     for i in range(sim.beads)
         qmap = get_mapping_positions(u, i)
         pmap = get_mapping_momenta(u, i)

@@ -1,13 +1,12 @@
-using Unitful
-using UnitfulAtomic
+
+using UnitfulAtomic: austrip
 using LinearAlgebra: norm
-using ..InitialConditions.QuantisedDiatomic
+
+using ..InitialConditions: QuantisedDiatomic
 
 abstract type AbstractOutput end
 
 """
-$(TYPEDEF)
-
 Output the end point of each trajectory.
 """
 struct OutputFinal <: AbstractOutput end
@@ -15,11 +14,7 @@ struct OutputFinal <: AbstractOutput end
 (::OutputFinal)(sol, i) = (last(sol), false)
 
 """
-$(TYPEDEF)
-
 Output a 1 if the molecule has dissociated, 0 otherwise.
-
-$(FIELDS)
 """
 struct OutputDissociation{T,A} <: AbstractOutput
     "The maximum distance at which the two atoms can be considered bonded."
@@ -27,7 +22,7 @@ struct OutputDissociation{T,A} <: AbstractOutput
     "The indices of the two atoms in the molecule of interest."
     atom_indices::A
 end
-OutputDissociation(distance::Unitful.Quantity, atom_indices) = OutputDissociation(austrip(distance), atom_indices)
+OutputDissociation(distance, atom_indices) = OutputDissociation(austrip(distance), atom_indices)
 
 function (output::OutputDissociation)(sol, i)
     R = Dynamics.get_positions(last(sol))
@@ -37,8 +32,6 @@ end
 
 
 """
-$(TYPEDEF)
-
 Output the population of each diabatic state.
 """
 struct OutputDiabaticPopulation{S} <: AbstractOutput
@@ -47,8 +40,6 @@ end
 (output::OutputDiabaticPopulation)(sol, i) = (Dynamics.get_diabatic_population.(output.sim, sol.u), false)
 
 """
-$(TYPEDEF)
-
 Output the population of each adiabatic state.
 """
 struct OutputAdiabaticPopulation{S} <: AbstractOutput
@@ -57,8 +48,6 @@ end
 (output::OutputAdiabaticPopulation)(sol, i) = (Dynamics.get_adiabatic_population.(output.sim, sol.u), false)
 
 """
-$(TYPEDEF)
-
 Output the vibrational and rotational quantum numbers of the final image.
 """
 struct OutputQuantisedDiatomic{S,H,V} <: AbstractOutput

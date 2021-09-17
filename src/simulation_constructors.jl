@@ -42,15 +42,15 @@ function Simulation{FSSH}(atoms::Atoms{S,T}, model::Model; kwargs...) where {S,T
     Simulation(atoms, model, FSSH{T}(nstates(model)); kwargs...)
 end
 function RingPolymerSimulation{FSSH}(atoms::Atoms{S,T}, model::Model, n_beads::Integer; kwargs...) where {S,T}
-    RingPolymerSimulation(atoms, model, FSSH{T}(nstates(n_states)), n_beads; kwargs...)
+    RingPolymerSimulation(atoms, model, FSSH{T}(nstates(model)), n_beads; kwargs...)
 end
 
 function Simulation{IESH}(atoms::Atoms{S,T}, model::Model; n_electrons, kwargs...) where {S,T}
-    Simulation(atoms, model, IESH{T}(nstates(n_states), n_electrons); kwargs...)
+    Simulation(atoms, model, IESH{T}(nstates(model), n_electrons); kwargs...)
 end
 
 function Simulation{Ehrenfest}(atoms::Atoms{S,T}, model::Model; kwargs...) where {S,T}
-    Simulation(atoms, model, Ehrenfest{T}(nstates(n_states)); kwargs...)
+    Simulation(atoms, model, Ehrenfest{T}(nstates(model)); kwargs...)
 end
 function RingPolymerSimulation{Ehrenfest}(atoms::Atoms{S,T}, model::Model, n_beads::Integer; kwargs...) where {S,T}
     RingPolymerSimulation(atoms, model, Ehrenfest{T}(nstates(model)), n_beads; kwargs...)
