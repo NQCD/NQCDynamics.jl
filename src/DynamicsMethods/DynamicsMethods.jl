@@ -69,8 +69,6 @@ function set_quantum_derivative! end
 
 DynamicsVariables(::AbstractSimulation, v, r) = ComponentVector(v=v, r=r)
 
-include("DynamicsUtils/DynamicsUtils.jl")
-
 """
     run_trajectory(u0::DynamicalVariables, tspan::Tuple, sim::AbstractSimulation;
         output=(:u,), callback=nothing, kwargs...)
