@@ -15,6 +15,10 @@ mutable struct FSSH{T} <: SurfaceHopping
     end
 end
 
+function Simulation{FSSH}(atoms::Atoms{S,T}, model::Model; kwargs...) where {S,T}
+    Simulation(atoms, model, FSSH{T}(NonadiabaticModels.nstates(model)); kwargs...)
+end
+
 function DynamicsMethods.DynamicsVariables(sim::Simulation{<:SurfaceHopping}, v, r, state::Integer; type=:diabatic)
     n_states = NonadiabaticModels.nstates(sim.calculator.model)
     if type == :diabatic

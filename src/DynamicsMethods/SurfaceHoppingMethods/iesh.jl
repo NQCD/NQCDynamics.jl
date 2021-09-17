@@ -33,6 +33,10 @@ struct IESH{T} <: SurfaceHopping
     end
 end
 
+function NonadiabaticMolecularDynamics.Simulation{IESH}(atoms::Atoms{S,T}, model::Model; n_electrons, kwargs...) where {S,T}
+    NonadiabaticMolecularDynamics.Simulation(atoms, model, IESH{T}(NonadiabaticModels.nstates(model), n_electrons); kwargs...)
+end
+
 function DynamicsMethods.DynamicsVariables(sim::Simulation{<:IESH}, v, r)
     ψ = zeros(NonadiabaticModels.nstates(sim.calculator.model), sim.method.n_electrons)
 

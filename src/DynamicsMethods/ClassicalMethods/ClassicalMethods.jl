@@ -1,13 +1,16 @@
 
 module ClassicalMethods
 
-using ....NonadiabaticMolecularDynamics:
+using NonadiabaticMolecularDynamics:
+    NonadiabaticMolecularDynamics,
     AbstractSimulation,
     Simulation,
     RingPolymerSimulation,
     DynamicsUtils,
     DynamicsMethods
 using NonadiabaticMolecularDynamics.Calculators: Calculators
+using NonadiabaticDynamicsBase: Atoms
+using NonadiabaticModels: Model
 
 include("classical.jl")
 export Classical

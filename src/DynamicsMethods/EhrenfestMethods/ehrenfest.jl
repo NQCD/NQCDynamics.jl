@@ -12,6 +12,10 @@ struct Ehrenfest{T} <: AbstractEhrenfest
     end
 end
 
+function Simulation{Ehrenfest}(atoms::Atoms{S,T}, model::Model; kwargs...) where {S,T}
+    Simulation(atoms, model, Ehrenfest{T}(NonadiabaticModels.nstates(model)); kwargs...)
+end
+
 function DynamicsMethods.DynamicsVariables(sim::Simulation{<:AbstractEhrenfest}, v, r, state::Integer; type=:diabatic)
     n_states = NonadiabaticModels.nstates(sim.calculator.model)
     if type == :diabatic
