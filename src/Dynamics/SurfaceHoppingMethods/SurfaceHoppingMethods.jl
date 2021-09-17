@@ -4,13 +4,17 @@ module SurfaceHoppingMethods
 using DEDataArrays: DEDataArrays
 using ComponentArrays: ComponentArrays
 using DiffEqBase: DiffEqBase
+using LinearAlgebra: lmul!
 
 using ....NonadiabaticMolecularDynamics:
     NonadiabaticMolecularDynamics,
     AbstractSimulation,
-    Simulation
-using ....Calculators: Calculators
-using ..Dynamics: Dynamics
+    Simulation,
+    Calculators,
+    Dynamics,
+    Estimators,
+    get_positions, get_velocities, get_quantum_subsystem
+using ..Dynamics: DynamicsUtils
 
 mutable struct SurfaceHoppingVariables{T,A,Axes,S} <: DEDataArrays.DEDataVector{T}
     x::ComponentArrays.ComponentVector{T,A,Axes}

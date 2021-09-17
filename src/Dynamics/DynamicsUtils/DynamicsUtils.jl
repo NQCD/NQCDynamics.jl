@@ -5,7 +5,7 @@ using ....NonadiabaticMolecularDynamics: AbstractSimulation, Simulation, RingPol
 using ..Dynamics: Dynamics
 
 divide_by_mass!(dv, masses) = dv ./= masses'
-velocity!(dr, v) = dr .= v
+velocity!(dr, v, r, sim, t) = dr .= v
 
 """
     apply_interbead_coupling!(du::DynamicalVariables, u::DynamicalVariables,

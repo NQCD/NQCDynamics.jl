@@ -1,4 +1,18 @@
 using RecursiveArrayTools: ArrayPartition
+using DiffEqCallbacks: SavedValues, SavingCallback
+
+using NonadiabaticModels: NonadiabaticModels
+using NonadiabaticMolecularDynamics:
+    evaluate_hamiltonian,
+    evaluate_kinetic_energy,
+    get_centroid,
+    get_positions,
+    get_velocities,
+    get_quantum_subsystem
+
+using NonadiabaticMolecularDynamics.Estimators:
+    diabatic_population,
+    adiabatic_population
 
 create_saving_callback(quantities::Symbol; saveat=[]) = create_saving_callback((quantities,), saveat=saveat)
 
@@ -30,8 +44,8 @@ u(u::ArrayPartition, t, integrator) = ComponentVector(v=copy(get_velocities(u)),
 quantum_subsystem(u, t, integrator) = copy(get_quantum_subsystem(u))
 state(u, t, integrator) = copy(u.state)
 noise(u, t, integrator) = copy(integrator.W.dW) / sqrt(integrator.dt)
-population(u, t, integrator) = get_diabatic_population(integrator.p, u)
-adiabatic_population(u, t, integrator) = get_adiabatic_population(integrator.p, u)
+population(u, t, integrator) = diabatic_population(integrator.p, u)
+adiabatic_population(u, t, integrator) = adiabatic_population(integrator.p, u)
 function friction(u, t, integrator)
     integrator.g(integrator.cache.gtmp,get_positions(u),integrator.p,t)
     copy(integrator.cache.gtmp)

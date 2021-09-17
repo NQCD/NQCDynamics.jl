@@ -52,8 +52,8 @@ Evaluates the probability of hopping from the current state to all other states
 - 'd' is skew-symmetric so here the indices are important.
 """
 function evaluate_hopping_probability!(sim::Simulation{<:FSSH}, u, dt)
-    v = get_velocities(u)
-    σ = get_quantum_subsystem(u)
+    v = Dynamics.get_velocities(u)
+    σ = Dynamics.get_quantum_subsystem(u)
     s = sim.method.state
     d = sim.calculator.nonadiabatic_coupling
 
@@ -90,7 +90,7 @@ end
 function rescale_velocity!(sim::AbstractSimulation{<:FSSH}, u)::Bool
     old_state = sim.method.state
     new_state = sim.method.new_state
-    velocity = get_velocities(u)
+    velocity = Dynamics.get_velocities(u)
     
     c = calculate_potential_energy_change(sim.calculator, new_state, old_state)
     a, b = evaluate_a_and_b(sim, velocity, new_state, old_state)
@@ -135,11 +135,11 @@ end
 
 Diabatic populations recommended from J. Chem. Phys. 139, 211101 (2013).
 """
-function get_diabatic_population(sim::Simulation{<:FSSH}, u)
+function Estimators.diabatic_population(sim::Simulation{<:FSSH}, u)
     Calculators.evaluate_potential!(sim.calculator, get_positions(u))
     U = eigvecs(sim.calculator.potential)
 
-    σ = copy(get_quantum_subsystem(u).re)
+    σ = copy(Dynamics.get_quantum_subsystem(u).re)
     σ[diagind(σ)] .= 0
     σ[u.state, u.state] = 1
 
@@ -151,14 +151,14 @@ end
 
 Adiabatic population directly from discrete state variable.
 """
-function get_adiabatic_population(sim::AbstractSimulation{<:FSSH}, u)
+function Estimators.adiabatic_population(sim::AbstractSimulation{<:FSSH}, u)
     population = zeros(sim.calculator.model.n_states)
     population[u.state] = 1
     return population
 end
 
 function NonadiabaticMolecularDynamics.evaluate_hamiltonian(sim::Simulation{<:FSSH}, u)
-    k = evaluate_kinetic_energy(sim.atoms.masses, get_velocities(u))
+    k = NonadiabaticMolecularDynamics.evaluate_kinetic_energy(sim.atoms.masses, get_velocities(u))
     Calculators.evaluate_potential!(sim.calculator, get_positions(u))
     Calculators.eigen!(sim.calculator)
     p = sim.calculator.eigenvalues[sim.method.state]

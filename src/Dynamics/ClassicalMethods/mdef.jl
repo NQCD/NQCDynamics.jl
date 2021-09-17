@@ -1,5 +1,5 @@
 
-using ....Calculators: Calculators, DiabaticFrictionCalculator
+using NonadiabaticMolecularDynamics.Calculators: DiabaticFrictionCalculator
 
 abstract type AbstractMDEF <: Dynamics.Method end
 
@@ -50,8 +50,6 @@ function friction!(g, r, sim::AbstractSimulation{<:AbstractMDEF}, t)
 end
 
 function Dynamics.create_problem(u0, tspan::Tuple, sim::AbstractSimulation{<:AbstractMDEF})
-    DynamicalSDEProblem(acceleration!, velocity!, friction!, get_velocities(u0), get_positions(u0), tspan, sim)
+    StochasticDiffEq.DynamicalSDEProblem(acceleration!, DynamicsUtils.velocity!, friction!,
+        Dynamics.get_velocities(u0), Dynamics.get_positions(u0), tspan, sim)
 end
-
-Dynamics.select_algorithm(::Simulation{<:AbstractMDEF}) = Algorithms.MDEF_BAOAB()
-Dynamics.select_algorithm(::RingPolymerSimulation{<:AbstractMDEF}) = Algorithms.BCOCB()

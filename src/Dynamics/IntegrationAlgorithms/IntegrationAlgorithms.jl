@@ -7,6 +7,7 @@ using ....NonadiabaticMolecularDynamics:
     Simulation,
     RingPolymerSimulation,
     RingPolymerArray
+using ..Dynamics: Dynamics
 
 include("mdef_baoab.jl")
 include("bcocb.jl")

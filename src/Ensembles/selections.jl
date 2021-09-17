@@ -1,10 +1,10 @@
 using DiffEqBase: CallbackSet
 
+using NonadiabaticMolecularDynamics: InitialConditions, Dynamics
+
 abstract type AbstractSelection end
 
 """
-$(TYPEDEF)
-
 Select the initial conditions from the distribution in order. 
 """
 struct OrderedSelection{D,I} <: AbstractSelection
@@ -14,8 +14,6 @@ struct OrderedSelection{D,I} <: AbstractSelection
 end
 
 """
-$(TYPEDEF)
-
 Obtain initial conditions by randomly sampling the distribution.
 """
 struct RandomSelection{D} <: AbstractSelection

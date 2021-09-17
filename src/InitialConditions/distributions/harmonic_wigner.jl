@@ -1,10 +1,6 @@
 
 using Distributions: Normal
 
-export MomentumHarmonicWigner
-export PositionHarmonicWigner
-export VelocityHarmonicWigner
-
 """
     MomentumHarmonicWigner(ω, β)
 

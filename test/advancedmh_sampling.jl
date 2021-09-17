@@ -1,5 +1,6 @@
 using Test
 using NonadiabaticMolecularDynamics
+using NonadiabaticMolecularDynamics.InitialConditions
 using StatsBase: mean
 using ComponentArrays
 using Random
@@ -15,7 +16,7 @@ beads = [1, 4, 2]
     @testset "get_proposal" begin
         for (natoms, DoFs, T) in zip(ats, Ds, Ts)
             sim = Simulation(Atoms(rand(natoms)), Harmonic(); DoFs=DoFs, temperature=T)
-            proposals = InitialConditions.get_proposal(sim, Dict(:X=>0.5), 1)
+            proposals = ThermalMonteCarlo.get_proposal(sim, Dict(:X=>0.5), 1)
             @test length(proposals.proposal) == natoms * DoFs * 2
         end
     end
@@ -25,7 +26,7 @@ beads = [1, 4, 2]
             sim = Simulation(Atoms(rand(natoms)), Harmonic(); DoFs=DoFs, temperature=T)
             R0 = rand(DoFs, natoms)
             u0 = ComponentVector(v=zero(R0), r=R0)
-            chain = InitialConditions.sample_configurations(sim, u0, 1e5, Dict(:X=>1); move_ratio=0.01)
+            chain = ThermalMonteCarlo.sample_configurations(sim, u0, 1e5, Dict(:X=>1); move_ratio=0.01)
             energy = NonadiabaticMolecularDynamics.evaluate_hamiltonian.(sim, chain)
             @test mean(energy) / (DoFs*natoms) ≈ T rtol=1e-1
         end
@@ -37,7 +38,7 @@ end
     @testset "get_proposal" begin
         for (natoms, DoFs, T, nbeads) in zip(ats, Ds, Ts, beads)
             sim = RingPolymerSimulation(Atoms(vcat([:C], fill(:H, natoms-1))), Harmonic(), nbeads; DoFs=DoFs, temperature=T, quantum_nuclei=[:H])
-            proposals = InitialConditions.get_proposal(sim, Dict(:H=>0.5, :C=>0.1), 1)
+            proposals = ThermalMonteCarlo.get_proposal(sim, Dict(:H=>0.5, :C=>0.1), 1)
             @test length(proposals.proposal) == natoms * DoFs * nbeads * 2
         end
     end
@@ -47,7 +48,7 @@ end
             sim = RingPolymerSimulation(Atoms(rand(natoms)), Harmonic(), nbeads; DoFs=DoFs, temperature=T)
             R0 = rand(DoFs, natoms, nbeads)
             u0 = ComponentVector(v=zero(R0), r=R0)
-            chain = InitialConditions.sample_configurations(sim, u0, 1e5, Dict(:X=>10); move_ratio=0.01)
+            chain = ThermalMonteCarlo.sample_configurations(sim, u0, 1e5, Dict(:X=>10); move_ratio=0.01)
             potential = NonadiabaticMolecularDynamics.evaluate_hamiltonian.(sim, chain)
             @test mean(potential) / (DoFs*natoms*nbeads) ≈ nbeads*T rtol=1e-1
         end

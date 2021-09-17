@@ -1,13 +1,16 @@
 
 module EhrenfestMethods
 
+using LinearAlgebra: lmul!, eigvecs, diag, dot
+
 using ....NonadiabaticMolecularDynamics:
     NonadiabaticMolecularDynamics,
     AbstractSimulation,
     Simulation,
-    RingPolymerSimulation
-using ....Calculators: Calculators
-using ..Dynamics: Dynamics
+    RingPolymerSimulation,
+    Calculators,
+    Dynamics
+using ..Dynamics: DynamicsUtils
 
 """
 Abstract type for Ehrenfest method.
@@ -15,15 +18,15 @@ Abstract type for Ehrenfest method.
 abstract type AbstractEhrenfest <: Dynamics.Method end
 
 function Dynamics.motion!(du, u, sim::AbstractSimulation{<:AbstractEhrenfest}, t)
-    dr = get_positions(du)
-    dv = get_velocities(du)
-    dσ = get_quantum_subsystem(du)
+    dr = Dynamics.get_positions(du)
+    dv = Dynamics.get_velocities(du)
+    dσ = Dynamics.get_quantum_subsystem(du)
 
-    r = get_positions(u)
-    v = get_velocities(u)
-    σ = get_quantum_subsystem(u)
+    r = Dynamics.get_positions(u)
+    v = Dynamics.get_velocities(u)
+    σ = Dynamics.get_quantum_subsystem(u)
 
-    DynamicsUtils.velocity!(dr, v)
+    DynamicsUtils.velocity!(dr, v, r, sim, t)
     Calculators.update_electronics!(sim.calculator, r)
     acceleration!(dv, v, r, sim, t, σ)
     Dynamics.set_quantum_derivative!(dσ, v, σ, sim)

@@ -40,7 +40,7 @@ function acceleration!(dv, v, r, sim::AbstractSimulation{<:Ehrenfest}, t, σ)
 end
 
 function get_adiabatic_population(::AbstractSimulation{<:Ehrenfest}, u)
-    σ = get_quantum_subsystem(u)
+    σ = Dynamics.get_quantum_subsystem(u)
     return real.(diag(σ))
 end
 
@@ -48,15 +48,15 @@ function get_diabatic_population(sim::Simulation{<:Ehrenfest}, u)
     Calculators.evaluate_potential!(sim.calculator, get_positions(u))
     U = eigvecs(sim.calculator.potential)
 
-    σ = get_quantum_subsystem(u)
+    σ = Dynamics.get_quantum_subsystem(u)
 
     return real.(diag(U * σ * U'))
 end
 
 function NonadiabaticMolecularDynamics.evaluate_hamiltonian(sim::Simulation{<:Ehrenfest}, u)
-    k = evaluate_kinetic_energy(sim.atoms.masses, get_velocities(u))
+    k = NonadiabaticMolecularDynamics.evaluate_kinetic_energy(sim.atoms.masses, get_velocities(u))
     Calculators.evaluate_potential!(sim.calculator, get_positions(u))
     Calculators.eigen!(sim.calculator)
-    p = sum(diag(get_quantum_subsystem(u)) .* sim.calculator.eigenvalues)
+    p = sum(diag(Dynamics.get_quantum_subsystem(u)) .* sim.calculator.eigenvalues)
     return k + p
 end
