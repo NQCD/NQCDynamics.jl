@@ -34,7 +34,7 @@ struct IESH{T} <: SurfaceHopping
 end
 
 function DynamicsMethods.DynamicsVariables(sim::Simulation{<:IESH}, v, r)
-    ψ = zeros(sim.calculator.model.n_states, sim.method.n_electrons)
+    ψ = zeros(NonadiabaticModels.nstates(sim.calculator.model), sim.method.n_electrons)
 
     for i=1:sim.method.n_electrons
         ψ[i,i] = 1
@@ -183,7 +183,7 @@ function Estimators.diabatic_population(sim::Simulation{<:IESH}, u)
 end
 
 function Estimators.adiabatic_population(sim::Simulation{<:IESH}, u)
-    population = zeros(sim.calculator.model.n_states)
+    population = zeros(NonadiabaticModels.nstates(sim.calculator.model))
     population[u.state] .= 1
     return population
 end

@@ -3,14 +3,16 @@ module EhrenfestMethods
 
 using LinearAlgebra: lmul!, eigvecs, diag, dot
 
-using ....NonadiabaticMolecularDynamics:
+using NonadiabaticMolecularDynamics:
     NonadiabaticMolecularDynamics,
     AbstractSimulation,
     Simulation,
     RingPolymerSimulation,
     Calculators,
     DynamicsMethods,
-    DynamicsUtils
+    DynamicsUtils,
+    Estimators
+using NonadiabaticModels: NonadiabaticModels
 
 """
 Abstract type for Ehrenfest method.
@@ -33,7 +35,7 @@ function DynamicsMethods.motion!(du, u, sim::AbstractSimulation{<:AbstractEhrenf
 end
 
 function set_quantum_derivative!(dσ, v, σ, sim::AbstractSimulation{<:AbstractEhrenfest})
-    V = DynamicsUtils.calculate_density_propagator!(sim, v)
+    V = DynamicsUtils.calculate_density_matrix_propagator!(sim, v)
     DynamicsUtils.commutator!(dσ, V, σ, sim.calculator.tmp_mat_complex1)
     lmul!(-im, dσ)
 end

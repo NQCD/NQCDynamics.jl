@@ -13,7 +13,7 @@ struct Ehrenfest{T} <: AbstractEhrenfest
 end
 
 function DynamicsMethods.DynamicsVariables(sim::Simulation{<:AbstractEhrenfest}, v, r, state::Integer; type=:diabatic)
-    n_states = sim.calculator.model.n_states
+    n_states = NonadiabaticModels.nstates(sim.calculator.model)
     if type == :diabatic
         Calculators.evaluate_potential!(sim.calculator, r)
         Calculators.eigen!(sim.calculator)
@@ -40,12 +40,12 @@ function acceleration!(dv, v, r, sim::AbstractSimulation{<:Ehrenfest}, t, σ)
     return nothing
 end
 
-function get_adiabatic_population(::AbstractSimulation{<:Ehrenfest}, u)
+function Estimators.adiabatic_population(::AbstractSimulation{<:Ehrenfest}, u)
     σ = DynamicsUtils.get_quantum_subsystem(u)
     return real.(diag(σ))
 end
 
-function get_diabatic_population(sim::Simulation{<:Ehrenfest}, u)
+function Estimators.diabatic_population(sim::Simulation{<:Ehrenfest}, u)
     Calculators.evaluate_potential!(sim.calculator, DynamicsUtils.get_positions(u))
     U = eigvecs(sim.calculator.potential)
 

@@ -22,4 +22,7 @@ export QuantisedDiatomic
 include("ThermalMonteCarlo.jl")
 export ThermalMonteCarlo
 
+include("MetropolisHastings.jl")
+export MetropolisHastings
+
 end # module

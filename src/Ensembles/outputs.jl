@@ -17,13 +17,13 @@ struct OutputFinal <: AbstractOutput end
 """
 Output a 1 if the molecule has dissociated, 0 otherwise.
 """
-struct OutputDissociation{T,A} <: AbstractOutput
+struct OutputDissociation{T} <: AbstractOutput
     "The maximum distance at which the two atoms can be considered bonded."
     distance::T
     "The indices of the two atoms in the molecule of interest."
-    atom_indices::A
+    atom_indices::Tuple{Int,Int}
+    OutputDissociation(distance, atom_indices) = new{typeof(distance)}(austrip(distance), atom_indices)
 end
-OutputDissociation(distance, atom_indices) = OutputDissociation(austrip(distance), atom_indices)
 
 function (output::OutputDissociation)(sol, i)
     R = DynamicsMethods.get_positions(last(sol))

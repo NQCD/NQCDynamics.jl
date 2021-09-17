@@ -17,11 +17,10 @@ rp = RingPolymerParameters{Float64}(10, 1.0, 10)
 @test sort(eigvals(rp.springs)) ≈ sort(rp.normal_mode_springs)
 
 atoms = Atoms{Float64}(vcat(fill(:H, 10), :O))
-cell = InfiniteCell()
-model = NonadiabaticModels.Free()
-sim = RingPolymerSimulation(3, 1.0, cell, atoms, model, Dynamics.Classical(), 10, Symbol[])
+model = NonadiabaticModels.Free(3)
+sim = RingPolymerSimulation{Classical}(atoms, model, 10)
 @test sim.beads.quantum_atoms == collect(1:11)
-sim = RingPolymerSimulation(3, 1.0, cell, atoms, model, Dynamics.Classical(), 10, [:H])
+sim = RingPolymerSimulation{Classical}(atoms, model, 10; quantum_nuclei=[:H])
 @test sim.beads.quantum_atoms == collect(1:10)
 
 U = sim.beads.U

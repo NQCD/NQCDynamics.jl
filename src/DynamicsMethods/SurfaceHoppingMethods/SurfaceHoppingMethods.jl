@@ -2,9 +2,10 @@
 module SurfaceHoppingMethods
 
 using DEDataArrays: DEDataArrays
-using ComponentArrays: ComponentArrays
+using ComponentArrays: ComponentVector
 using DiffEqBase: DiffEqBase
 using LinearAlgebra: lmul!
+using OrdinaryDiffEq: OrdinaryDiffEq
 
 using NonadiabaticMolecularDynamics:
     NonadiabaticMolecularDynamics,
@@ -14,9 +15,10 @@ using NonadiabaticMolecularDynamics:
     DynamicsMethods,
     DynamicsUtils,
     Estimators
+using NonadiabaticModels: NonadiabaticModels
 
 mutable struct SurfaceHoppingVariables{T,A,Axes,S} <: DEDataArrays.DEDataVector{T}
-    x::ComponentArrays.ComponentVector{T,A,Axes}
+    x::ComponentVector{T,A,Axes}
     state::S
 end
 
@@ -40,7 +42,7 @@ See `fssh.jl` for an example implementation.
 """
 abstract type SurfaceHopping <: DynamicsMethods.Method end
 
-function motion!(du, u, sim::AbstractSimulation{<:SurfaceHopping}, t)
+function DynamicsMethods.motion!(du, u, sim::AbstractSimulation{<:SurfaceHopping}, t)
     dr = DynamicsUtils.get_positions(du)
     dv = DynamicsUtils.get_velocities(du)
     dσ = DynamicsUtils.get_quantum_subsystem(du)
@@ -58,7 +60,7 @@ function motion!(du, u, sim::AbstractSimulation{<:SurfaceHopping}, t)
 end
 
 function set_quantum_derivative!(dσ, v, σ, sim::AbstractSimulation{<:SurfaceHopping})
-    V = DynamicsUtils.calculate_density_propagator!(sim, v)
+    V = DynamicsUtils.calculate_density_matrix_propagator!(sim, v)
     DynamicsUtils.commutator!(dσ, V, σ, sim.calculator.tmp_mat_complex1)
     lmul!(-im, dσ)
 end
@@ -108,9 +110,9 @@ This only needs to be implemented if the velocity should be modified during a ho
 """
 rescale_velocity!(::AbstractSimulation{<:SurfaceHopping}, u) = true
 
-function create_problem(u0, tspan, sim::AbstractSimulation{<:SurfaceHopping})
+function DynamicsMethods.create_problem(u0, tspan, sim::AbstractSimulation{<:SurfaceHopping})
     set_state!(sim.method, u0.state)
-    ODEProblem(motion!, u0, tspan, sim; callback=get_callbacks(sim))
+    OrdinaryDiffEq.ODEProblem(DynamicsMethods.motion!, u0, tspan, sim; callback=get_callbacks(sim))
 end
 
 include("fssh.jl")

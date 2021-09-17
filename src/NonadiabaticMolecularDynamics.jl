@@ -23,7 +23,12 @@ export Simulation,
 include("classical_hamiltonians.jl")
 
 include("DynamicsUtils/DynamicsUtils.jl")
+@reexport using .DynamicsUtils: get_positions, get_velocities
+export DynamicsUtils
+
 include("Estimators.jl")
+export Estimators
+
 include("DynamicsMethods/DynamicsMethods.jl")
 @reexport using .DynamicsMethods
 

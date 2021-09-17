@@ -86,7 +86,7 @@ function run_ensemble_standard_output(sim::AbstractSimulation, tspan, distributi
     selection=nothing, output=(:u),
     ensemble_algorithm=EnsembleThreads(), saveat=[], kwargs...)
 
-    stripped_kwargs = austrip_kwargs(;kwargs...)
+    stripped_kwargs = NonadiabaticDynamicsBase.austrip_kwargs(;kwargs...)
     saveat = austrip.(saveat)
 
     problem = DynamicsMethods.create_problem(
@@ -106,7 +106,7 @@ function run_ensemble_standard_output(sim::AbstractSimulation, tspan, distributi
     ensemble_problem = EnsembleProblem(problem, prob_func=new_selection)
 
     solve(ensemble_problem, DynamicsMethods.select_algorithm(sim), ensemble_algorithm; saveat=saveat, stripped_kwargs...)
-    [Table(t=vals.t, vals.saveval) for vals in new_selection.values]
+    [TypedTables.Table(t=vals.t, vals.saveval) for vals in new_selection.values]
 end
 
 end # module

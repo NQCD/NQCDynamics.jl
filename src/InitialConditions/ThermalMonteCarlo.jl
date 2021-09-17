@@ -16,7 +16,7 @@ using NonadiabaticMolecularDynamics:
     transform_to_normal_modes!,
     evaluate_hamiltonian,
     RingPolymerArray,
-    Dynamics
+    DynamicsUtils
 
 function sample_configurations(
     sim::AbstractSimulation,
@@ -26,7 +26,7 @@ function sample_configurations(
     move_ratio=0.9
     )
 
-    shape = size(Dynamics.get_positions(u0))
+    shape = size(DynamicsUtils.get_positions(u0))
     density = get_density_function(sim, shape)
 
     density_model = AdvancedMH.DensityModel(density)
@@ -67,8 +67,8 @@ get_proposal(sim::RingPolymerSimulation, σ, move_ratio) = RingPolymerProposal(s
 
 reshape_input(::Simulation, u0) = u0[:]
 function reshape_input(sim::RingPolymerSimulation, u0)
-    r = Dynamics.get_positions(u0)
-    v = Dynamics.get_velocities(u0)
+    r = DynamicsUtils.get_positions(u0)
+    v = DynamicsUtils.get_velocities(u0)
     transform_to_normal_modes!(sim.beads, r)
     transform_to_normal_modes!(sim.beads, v)
     return vcat(v[:], r[:])

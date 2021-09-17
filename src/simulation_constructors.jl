@@ -1,9 +1,9 @@
 using NonadiabaticModels: nstates
 
-using .Dynamics.ClassicalMethods: Classical, Langevin, ThermalLangevin, MDEF
-using .Dynamics.MappingVariableMethods: NRPMD
-using .Dynamics.SurfaceHoppingMethods: FSSH, IESH
-using .Dynamics.EhrenfestMethods: Ehrenfest
+using .DynamicsMethods.ClassicalMethods: Classical, Langevin, ThermalLangevin, MDEF
+using .DynamicsMethods.MappingVariableMethods: NRPMD
+using .DynamicsMethods.SurfaceHoppingMethods: FSSH, IESH
+using .DynamicsMethods.EhrenfestMethods: Ehrenfest
 
 function Simulation(atoms::Atoms, model::Model; kwargs...)
     Simulation{Classical}(atoms, model; kwargs...)

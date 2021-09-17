@@ -16,7 +16,7 @@ mutable struct FSSH{T} <: SurfaceHopping
 end
 
 function DynamicsMethods.DynamicsVariables(sim::Simulation{<:SurfaceHopping}, v, r, state::Integer; type=:diabatic)
-    n_states = sim.calculator.model.n_states
+    n_states = NonadiabaticModels.nstates(sim.calculator.model)
     if type == :diabatic
         Calculators.evaluate_potential!(sim.calculator, r)
         Calculators.eigen!(sim.calculator)

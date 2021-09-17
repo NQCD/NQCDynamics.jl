@@ -11,7 +11,7 @@ positions = [randn(1, length(atoms)) for i=1:10]
 velocities = [randn(1, length(atoms)) for i=1:10]
 distribution = InitialConditions.DynamicalDistribution(positions, velocities, (1, 1))
 
-prob = Dynamics.create_problem(ArrayPartition(rand(distribution)...), (0.0, 1.0), sim)
+prob = DynamicsMethods.create_problem(ArrayPartition(rand(distribution)...), (0.0, 1.0), sim)
 @testset "OrderedSelection" begin 
     selector = Ensembles.OrderedSelection(distribution, 1:10)
     new_prob = selector(prob, 3, false)
@@ -47,7 +47,7 @@ end
 end
 
 @testset "OutputDissociation" begin
-    output = Ensembles.OutputDissociation(1.0, [1, 2])
+    output = Ensembles.OutputDissociation(1.0, (1, 2))
     r = [1 0; 0 0; 0 0]
     v = zeros(3, 2)
     u = ArrayPartition(v, r)

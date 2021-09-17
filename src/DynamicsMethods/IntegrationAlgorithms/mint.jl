@@ -3,7 +3,9 @@ using UnPack: @unpack
 using MuladdMacro: @muladd
 using StaticArrays: SMatrix
 using OrdinaryDiffEq: OrdinaryDiffEq
-using LinearAlgebra: Hermitian, tr, Diagonal
+using LinearAlgebra: Hermitian, tr
+
+using NonadiabaticMolecularDynamics.DynamicsMethods: MappingVariableMethods
 
 """
     MInt <: OrdinaryDiffEq.OrdinaryDiffEqAlgorithm
@@ -58,8 +60,8 @@ function OrdinaryDiffEq.initialize!(_, ::MIntCache) end
                 Ξ = get_xi(calc.adiabatic_derivative[k,j,i], calc.eigenvalues[i], dt)
                 F = transform_matrix(calc.eigenvectors[i], Ξ)
 
-                qmap = DynamicsMethods.get_mapping_positions(u, i)
-                pmap = DynamicsMethods.get_mapping_momenta(u, i)
+                qmap = MappingVariableMethods.get_mapping_positions(u, i)
+                pmap = MappingVariableMethods.get_mapping_momenta(u, i)
                 V = calc.derivative[k,j,i]
                 force = get_mapping_nuclear_force(qmap, pmap, E, F, V, dt)
                 DynamicsUtils.get_velocities(u)[k,j,i] -= force / p.atoms.masses[j]
@@ -87,8 +89,8 @@ function propagate_mapping_variables!(calc, u, dt)
     for i=1:length(calc.eigenvalues)
         C = get_C_propagator(calc.eigenvalues[i], calc.eigenvectors[i], dt)
         D = get_D_propagator(calc.eigenvalues[i], calc.eigenvectors[i], dt)
-        qmap = DynamicsMethods.get_mapping_positions(u, i)
-        pmap = DynamicsMethods.get_mapping_momenta(u, i)
+        qmap = MappingVariableMethods.get_mapping_positions(u, i)
+        pmap = MappingVariableMethods.get_mapping_momenta(u, i)
         q = C * qmap - D * pmap
         p = C * pmap + D * qmap
         qmap .= q
@@ -136,4 +138,4 @@ function get_mapping_nuclear_force(q::AbstractVector, p::AbstractVector,
     return 0.5 * (q'*E*q + p'*E*p - trVdt) - q'*F*p
 end
 
-DynamicsMethods.select_algorithm(::RingPolymerSimulation{DynamicsMethods.MappingVariableMethods.NRPMD}) = MInt()
+DynamicsMethods.select_algorithm(::RingPolymerSimulation{<:MappingVariableMethods.NRPMD}) = MInt()
