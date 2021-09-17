@@ -33,7 +33,7 @@ struct IESH{T} <: SurfaceHopping
     end
 end
 
-function Dynamics.DynamicsVariables(sim::Simulation{<:IESH}, v, r)
+function DynamicsMethods.DynamicsVariables(sim::Simulation{<:IESH}, v, r)
     ψ = zeros(sim.calculator.model.n_states, sim.method.n_electrons)
 
     for i=1:sim.method.n_electrons
@@ -67,7 +67,7 @@ in the Shenvi, Tully paper (JCP 2009)
 In IESH each electron is independent so we can loop through electrons and set the
 derivative one at a time, in the standard way for FSSH.
 """
-function Dynamics.set_quantum_derivative!(dσ, v, σ, sim::Simulation{<:IESH})
+function set_quantum_derivative!(dσ, v, σ, sim::Simulation{<:IESH})
     V = sim.calculator.eigenvalues
     d = sim.calculator.nonadiabatic_coupling
     @views for i in axes(dσ, 2)       
@@ -95,8 +95,8 @@ Hopping probability according to equation 21 in Shenvi, Roy, Tully 2009.
 """
 function evaluate_hopping_probability!(sim::Simulation{<:IESH}, u, dt)
 
-    ψ = Dynamics.get_quantum_subsystem(u)
-    v = get_velocities(u)
+    ψ = DynamicsUtils.get_quantum_subsystem(u)
+    v = DynamicsUtils.get_velocities(u)
 
     S = sim.method.overlap
     proposed_state = sim.method.proposed_state
@@ -168,11 +168,11 @@ function select_new_state(sim::AbstractSimulation{<:IESH}, u)::Vector{Int}
 end
 
 function Estimators.diabatic_population(sim::Simulation{<:IESH}, u)
-    Calculators.evaluate_potential!(sim.calculator, get_positions(u))
+    Calculators.evaluate_potential!(sim.calculator, DynamicsUtils.get_positions(u))
     Calculators.eigen!(sim.calculator)
     U = sim.calculator.eigenvectors
 
-    ψ = Dynamics.get_quantum_subsystem(u)
+    ψ = DynamicsUtils.get_quantum_subsystem(u)
     diabatic_ψ = zero(ψ)
     @views for i in axes(ψ, 2) # each electron
         diabatic_ψ[:,i] .= U*ψ[:,i]
@@ -190,7 +190,7 @@ end
 
 function rescale_velocity!(sim::Simulation{<:IESH}, u)::Bool
     new_state, old_state = symdiff(sim.method.new_state, sim.method.state)
-    velocity = get_velocities(u)
+    velocity = DynamicsUtils.get_velocities(u)
     
     c = calculate_potential_energy_change(sim.calculator, new_state, old_state)
     a, b = evaluate_a_and_b(sim, velocity, new_state, old_state)

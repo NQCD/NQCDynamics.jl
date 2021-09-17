@@ -5,7 +5,9 @@ using NonadiabaticModels: NonadiabaticModels
 using NonadiabaticMolecularDynamics:
     evaluate_hamiltonian,
     evaluate_kinetic_energy,
-    get_centroid,
+    get_centroid
+
+using ..DynamicsUtils:
     get_positions,
     get_velocities,
     get_quantum_subsystem

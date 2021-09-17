@@ -6,24 +6,23 @@ using ComponentArrays: ComponentArrays
 using DiffEqBase: DiffEqBase
 using LinearAlgebra: lmul!
 
-using ....NonadiabaticMolecularDynamics:
+using NonadiabaticMolecularDynamics:
     NonadiabaticMolecularDynamics,
     AbstractSimulation,
     Simulation,
     Calculators,
-    Dynamics,
-    Estimators,
-    get_positions, get_velocities, get_quantum_subsystem
-using ..Dynamics: DynamicsUtils
+    DynamicsMethods,
+    DynamicsUtils,
+    Estimators
 
 mutable struct SurfaceHoppingVariables{T,A,Axes,S} <: DEDataArrays.DEDataVector{T}
     x::ComponentArrays.ComponentVector{T,A,Axes}
     state::S
 end
 
-Dynamics.get_velocities(u::SurfaceHoppingVariables) = Dynamics.get_velocities(u.x)
-Dynamics.get_positions(u::SurfaceHoppingVariables) = Dynamics.get_positions(u.x)
-Dynamics.get_quantum_subsystem(u::SurfaceHoppingVariables) = Dynamics.get_quantum_subsystem(u.x)
+DynamicsUtils.get_velocities(u::SurfaceHoppingVariables) = DynamicsUtils.get_velocities(u.x)
+DynamicsUtils.get_positions(u::SurfaceHoppingVariables) = DynamicsUtils.get_positions(u.x)
+DynamicsUtils.get_quantum_subsystem(u::SurfaceHoppingVariables) = DynamicsUtils.get_quantum_subsystem(u.x)
 
 """
 Abstract type for all surface hopping methods.
@@ -39,26 +38,26 @@ and `rescale_velocity!`.
 
 See `fssh.jl` for an example implementation.
 """
-abstract type SurfaceHopping <: Dynamics.Method end
+abstract type SurfaceHopping <: DynamicsMethods.Method end
 
 function motion!(du, u, sim::AbstractSimulation{<:SurfaceHopping}, t)
-    dr = get_positions(du)
-    dv = get_velocities(du)
-    dσ = get_quantum_subsystem(du)
+    dr = DynamicsUtils.get_positions(du)
+    dv = DynamicsUtils.get_velocities(du)
+    dσ = DynamicsUtils.get_quantum_subsystem(du)
 
-    r = get_positions(u)
-    v = get_velocities(u)
-    σ = get_quantum_subsystem(u)
+    r = DynamicsUtils.get_positions(u)
+    v = DynamicsUtils.get_velocities(u)
+    σ = DynamicsUtils.get_quantum_subsystem(u)
 
     set_state!(u, sim.method.state) # Make sure the state variables match, 
 
     DynamicsUtils.velocity!(dr, v, r, sim, t)
     Calculators.update_electronics!(sim.calculator, r)
     acceleration!(dv, v, r, sim, t, sim.method.state)
-    Dynamics.set_quantum_derivative!(dσ, v, σ, sim)
+    set_quantum_derivative!(dσ, v, σ, sim)
 end
 
-function Dynamics.set_quantum_derivative!(dσ, v, σ, sim::AbstractSimulation{<:SurfaceHopping})
+function set_quantum_derivative!(dσ, v, σ, sim::AbstractSimulation{<:SurfaceHopping})
     V = DynamicsUtils.calculate_density_propagator!(sim, v)
     DynamicsUtils.commutator!(dσ, V, σ, sim.calculator.tmp_mat_complex1)
     lmul!(-im, dσ)

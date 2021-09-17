@@ -1,6 +1,6 @@
 using DiffEqBase: CallbackSet
 
-using NonadiabaticMolecularDynamics: InitialConditions, Dynamics
+using NonadiabaticMolecularDynamics: InitialConditions
 
 abstract type AbstractSelection end
 
@@ -25,13 +25,13 @@ function (select::OrderedSelection)(prob, i, repeat)
     j = select.indices[i]
     v, r = InitialConditions.pick(select.distribution, j)
     u0 = select_u0(prob.p, v, r, select.distribution.state, select.distribution.type)
-    Dynamics.create_problem(u0, prob.tspan, prob.p)
+    DynamicsMethods.create_problem(u0, prob.tspan, prob.p)
 end
 
 function (select::RandomSelection)(prob, i, repeat)
     v, r = rand(select.distribution)
     u0 = select_u0(prob.p, v, r, select.distribution.state, select.distribution.type)
-    Dynamics.create_problem(u0, prob.tspan, prob.p)
+    DynamicsMethods.create_problem(u0, prob.tspan, prob.p)
 end
 
 struct SelectWithCallbacks{S<:AbstractSelection,C1,C2,V} <: AbstractSelection
@@ -44,7 +44,7 @@ struct SelectWithCallbacks{S<:AbstractSelection,C1,C2,V} <: AbstractSelection
         callbacks = []
         values = []
         for i=1:trajectories
-            cb, vals = Dynamics.create_saving_callback(output; saveat=saveat)
+            cb, vals = DynamicsMethods.create_saving_callback(output; saveat=saveat)
             push!(callbacks, cb)
             push!(values, vals)
         end

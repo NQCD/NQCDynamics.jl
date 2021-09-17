@@ -1,7 +1,7 @@
 
 using NonadiabaticMolecularDynamics.Calculators: DiabaticFrictionCalculator
 
-abstract type AbstractMDEF <: Dynamics.Method end
+abstract type AbstractMDEF <: DynamicsMethods.Method end
 
 """
 ```math
@@ -49,7 +49,7 @@ function friction!(g, r, sim::AbstractSimulation{<:AbstractMDEF}, t)
     g .= sim.calculator.friction ./ sim.method.mass_scaling
 end
 
-function Dynamics.create_problem(u0, tspan::Tuple, sim::AbstractSimulation{<:AbstractMDEF})
+function DynamicsMethods.create_problem(u0, tspan::Tuple, sim::AbstractSimulation{<:AbstractMDEF})
     StochasticDiffEq.DynamicalSDEProblem(acceleration!, DynamicsUtils.velocity!, friction!,
-        Dynamics.get_velocities(u0), Dynamics.get_positions(u0), tspan, sim)
+        DynamicsUtils.get_velocities(u0), DynamicsUtils.get_positions(u0), tspan, sim)
 end

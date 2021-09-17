@@ -15,7 +15,7 @@ mutable struct FSSH{T} <: SurfaceHopping
     end
 end
 
-function Dynamics.DynamicsVariables(sim::Simulation{<:SurfaceHopping}, v, r, state::Integer; type=:diabatic)
+function DynamicsMethods.DynamicsVariables(sim::Simulation{<:SurfaceHopping}, v, r, state::Integer; type=:diabatic)
     n_states = sim.calculator.model.n_states
     if type == :diabatic
         Calculators.evaluate_potential!(sim.calculator, r)
@@ -52,8 +52,8 @@ Evaluates the probability of hopping from the current state to all other states
 - 'd' is skew-symmetric so here the indices are important.
 """
 function evaluate_hopping_probability!(sim::Simulation{<:FSSH}, u, dt)
-    v = Dynamics.get_velocities(u)
-    σ = Dynamics.get_quantum_subsystem(u)
+    v = DynamicsUtils.get_velocities(u)
+    σ = DynamicsUtils.get_quantum_subsystem(u)
     s = sim.method.state
     d = sim.calculator.nonadiabatic_coupling
 
@@ -90,7 +90,7 @@ end
 function rescale_velocity!(sim::AbstractSimulation{<:FSSH}, u)::Bool
     old_state = sim.method.state
     new_state = sim.method.new_state
-    velocity = Dynamics.get_velocities(u)
+    velocity = DynamicsUtils.get_velocities(u)
     
     c = calculate_potential_energy_change(sim.calculator, new_state, old_state)
     a, b = evaluate_a_and_b(sim, velocity, new_state, old_state)
@@ -136,10 +136,10 @@ end
 Diabatic populations recommended from J. Chem. Phys. 139, 211101 (2013).
 """
 function Estimators.diabatic_population(sim::Simulation{<:FSSH}, u)
-    Calculators.evaluate_potential!(sim.calculator, get_positions(u))
+    Calculators.evaluate_potential!(sim.calculator, DynamicsUtils.get_positions(u))
     U = eigvecs(sim.calculator.potential)
 
-    σ = copy(Dynamics.get_quantum_subsystem(u).re)
+    σ = copy(DynamicsUtils.get_quantum_subsystem(u).re)
     σ[diagind(σ)] .= 0
     σ[u.state, u.state] = 1
 
@@ -158,8 +158,8 @@ function Estimators.adiabatic_population(sim::AbstractSimulation{<:FSSH}, u)
 end
 
 function NonadiabaticMolecularDynamics.evaluate_hamiltonian(sim::Simulation{<:FSSH}, u)
-    k = NonadiabaticMolecularDynamics.evaluate_kinetic_energy(sim.atoms.masses, get_velocities(u))
-    Calculators.evaluate_potential!(sim.calculator, get_positions(u))
+    k = NonadiabaticMolecularDynamics.evaluate_kinetic_energy(sim.atoms.masses, DynamicsUtils.get_velocities(u))
+    Calculators.evaluate_potential!(sim.calculator, DynamicsUtils.get_positions(u))
     Calculators.eigen!(sim.calculator)
     p = sim.calculator.eigenvalues[sim.method.state]
     return k + p

@@ -1,5 +1,5 @@
 
-function Dynamics.DynamicsVariables(sim::RingPolymerSimulation{<:AbstractEhrenfest}, v, r, state::Integer; type=:diabatic)
+function DynamicsMethods.DynamicsVariables(sim::RingPolymerSimulation{<:AbstractEhrenfest}, v, r, state::Integer; type=:diabatic)
     n_states = sim.calculator.model.n_states
     if type == :diabatic
         Calculators.evaluate_centroid_potential!(sim.calculator, r)
@@ -28,15 +28,15 @@ function acceleration!(dv, v, r, sim::RingPolymerSimulation{<:Ehrenfest}, t, σ)
 end
 
 function get_diabatic_population(sim::RingPolymerSimulation{<:Ehrenfest}, u)
-    Calculators.evaluate_centroid_potential!(sim.calculator, get_positions(u))
+    Calculators.evaluate_centroid_potential!(sim.calculator, DynamicsUtils.get_positions(u))
     U = eigvecs(sim.calculator.centroid_potential)
-    σ = Dynamics.get_quantum_subsystem(u)
+    σ = DynamicsUtils.get_quantum_subsystem(u)
     return real.(diag(U * σ * U'))
 end
 
 function NonadiabaticMolecularDynamics.evaluate_hamiltonian(sim::RingPolymerSimulation{<:Ehrenfest}, u)
-    k = NonadiabaticMolecularDynamics.evaluate_kinetic_energy(sim.atoms.masses, get_velocities(u))
-    Calculators.evaluate_potential!(sim.calculator, get_positions(u))
+    k = NonadiabaticMolecularDynamics.evaluate_kinetic_energy(sim.atoms.masses, DynamicsUtils.get_velocities(u))
+    Calculators.evaluate_potential!(sim.calculator, DynamicsUtils.get_positions(u))
     Calculators.eigen!(sim.calculator)
 
     population = get_adiabatic_population(sim, u)

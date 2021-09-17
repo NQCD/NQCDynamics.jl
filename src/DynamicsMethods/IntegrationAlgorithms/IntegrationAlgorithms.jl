@@ -6,8 +6,10 @@ using ....NonadiabaticMolecularDynamics:
     AbstractSimulation,
     Simulation,
     RingPolymerSimulation,
-    RingPolymerArray
-using ..Dynamics: Dynamics
+    RingPolymerArray,
+    DynamicsMethods,
+    DynamicsUtils,
+    Calculators
 
 include("mdef_baoab.jl")
 include("bcocb.jl")

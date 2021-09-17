@@ -2,13 +2,10 @@
 using LinearAlgebra: tr, mul!, dot
 using ComponentArrays: ComponentVector
 
-using ..Dynamics: DynamicsUtils
-using NonadiabaticMolecularDynamics: Calculators, Estimators, get_positions, get_velocities
-
 """
 Nonadiabatic ring polymer molecular dynamics
 """
-struct NRPMD{T} <: Dynamics.Method
+struct NRPMD{T} <: DynamicsMethods.Method
     temp_q::Vector{T}
     temp_p::Vector{T}
     function NRPMD{T}(n_states::Integer) where {T}
@@ -16,7 +13,7 @@ struct NRPMD{T} <: Dynamics.Method
     end
 end
 
-function Dynamics.DynamicsVariables(sim::RingPolymerSimulation{<:NRPMD}, v, r, state::Integer; type=:diabatic)
+function DynamicsMethods.DynamicsVariables(sim::RingPolymerSimulation{<:NRPMD}, v, r, state::Integer; type=:diabatic)
     n_states = sim.calculator.model.n_states
     n_beads = length(sim.beads)
     if type == :diabatic
@@ -38,11 +35,11 @@ get_mapping_momenta(u::ComponentVector) = u.pmap
 get_mapping_positions(u::ComponentVector, i) = @view get_mapping_positions(u)[:,i]
 get_mapping_momenta(u::ComponentVector, i) = @view get_mapping_momenta(u)[:,i]
 
-function Dynamics.motion!(du, u, sim::RingPolymerSimulation{<:NRPMD}, t)
-    dr = get_positions(du)
-    dv = get_velocities(du)
-    r = get_positions(u)
-    v = get_velocities(u)
+function DynamicsMethods.motion!(du, u, sim::RingPolymerSimulation{<:NRPMD}, t)
+    dr = DynamicsUtils.get_positions(du)
+    dv = DynamicsUtils.get_velocities(du)
+    r = DynamicsUtils.get_positions(u)
+    v = DynamicsUtils.get_velocities(u)
     DynamicsUtils.velocity!(dr, v, r, sim, t)
     acceleration!(dv, u, sim)
     set_mapping_force!(du, u, sim)
@@ -50,7 +47,7 @@ end
 
 function acceleration!(dv, u, sim::RingPolymerSimulation{<:NRPMD})
 
-    Calculators.evaluate_derivative!(sim.calculator, get_positions(u))
+    Calculators.evaluate_derivative!(sim.calculator, DynamicsUtils.get_positions(u))
     for i in range(sim.beads)
         qmap = get_mapping_positions(u, i)
         pmap = get_mapping_momenta(u, i)
@@ -66,12 +63,12 @@ function acceleration!(dv, u, sim::RingPolymerSimulation{<:NRPMD})
             end
         end
     end
-    DynamicsUtils.apply_interbead_coupling!(dv, get_positions(u), sim)
+    DynamicsUtils.apply_interbead_coupling!(dv, DynamicsUtils.get_positions(u), sim)
 end
 
 function set_mapping_force!(du, u, sim::RingPolymerSimulation{<:NRPMD})
 
-    Calculators.evaluate_potential!(sim.calculator, get_positions(u))
+    Calculators.evaluate_potential!(sim.calculator, DynamicsUtils.get_positions(u))
     for i in range(sim.beads)
         V = sim.calculator.potential[i]
         mul!(get_mapping_positions(du, i), V, get_mapping_momenta(u, i))
@@ -87,8 +84,8 @@ function Estimators.diabatic_population(::RingPolymerSimulation{<:NRPMD}, u)
 end
 
 function NonadiabaticMolecularDynamics.evaluate_hamiltonian(sim::RingPolymerSimulation{<:NRPMD}, u)
-    r = get_positions(u)
-    v = get_velocities(u)
+    r = DynamicsUtils.get_positions(u)
+    v = DynamicsUtils.get_velocities(u)
     Calculators.evaluate_potential!(sim.calculator, r)
     V = sim.calculator.potential
 
