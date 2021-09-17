@@ -1,6 +1,6 @@
 
 evaluate_hamiltonian(sim::AbstractSimulation, u) =
-    evaluate_hamiltonian(sim, get_velocities(u), get_positions(u))
+    evaluate_hamiltonian(sim, DynamicsUtils.get_velocities(u), DynamicsUtils.get_positions(u))
 
 function evaluate_hamiltonian(sim::AbstractSimulation, v, r)
     k = evaluate_kinetic_energy(sim.atoms.masses, v)

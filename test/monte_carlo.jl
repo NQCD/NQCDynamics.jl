@@ -1,6 +1,6 @@
 using Test
 using NonadiabaticMolecularDynamics
-using NonadiabaticMolecularDynamics.MetropolisHastings
+using NonadiabaticMolecularDynamics.InitialConditions.MetropolisHastings
 using Unitful
 using StatsBase
 
@@ -9,7 +9,7 @@ cell = PeriodicCell(hcat(1))
 model = NonadiabaticModels.Harmonic()
 
 Δ = Dict([(:H, 0.1), (:C, 0.1)])
-monte_carlo = MonteCarlo{Float64}(Δ, length(atoms), 100, Int[], x->true)
+monte_carlo = MetropolisHastings.MonteCarlo{Float64}(Δ, length(atoms), 100, Int[], x->true)
 sim = Simulation(atoms, model; cell=cell, temperature=100u"K", DoFs=1)
 
 @testset "propose_move!" begin
@@ -74,7 +74,7 @@ end
 end
 
 @testset "propose_centroid_move!" begin
-    monte_carlo = PathIntegralMonteCarlo{Float64}(Δ, length(atoms), 100, [1], 1.0, 10, x->true)
+    monte_carlo = MetropolisHastings.PathIntegralMonteCarlo{Float64}(Δ, length(atoms), 100, [1], 1.0, 10, x->true)
     sim = RingPolymerSimulation(atoms, model, 10; cell=cell, temperature=100u"K", DoFs=1, quantum_nuclei=[:H])
     Rᵢ = randn(3, length(sim.atoms), 10)
     Rₚ = copy(Rᵢ)

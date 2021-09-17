@@ -11,7 +11,8 @@ using NonadiabaticMolecularDynamics:
     Simulation,
     RingPolymerSimulation,
     Calculators,
-    get_positions
+    DynamicsUtils
+
 using StatsBase: mean
 using ComponentArrays: ComponentVector
 
@@ -53,12 +54,12 @@ macro estimate(expr)
 end
 
 function potential(sim::Simulation, u)
-    Calculators.evaluate_potential!(sim.calculator, get_positions(u))
+    Calculators.evaluate_potential!(sim.calculator, DynamicsUtils.get_positions(u))
     sim.calculator.potential
 end
 
 function potential(sim::RingPolymerSimulation, u)
-    Calculators.evaluate_potential!(sim.calculator, get_positions(u))
+    Calculators.evaluate_potential!(sim.calculator, DynamicsUtils.get_positions(u))
     mean(sim.calculator.potential)
 end
 

@@ -19,7 +19,7 @@ model = NonadiabaticModels.Harmonic()
     r = get_blank(sim)
     u0 = ComponentVector(v=v, r=r)
 
-    sol = Dynamics.run_trajectory(u0, (0.0, 1000.0), sim; dt=0.1, output=(:hamiltonian))
+    sol = run_trajectory(u0, (0.0, 1000.0), sim; dt=0.1, output=(:hamiltonian))
     @test sol.hamiltonian[1] ≈ sol.hamiltonian[end] rtol=1e-2
 end
 
@@ -34,6 +34,6 @@ end
     r = get_blank(sim)
     u0 = ComponentVector(v=v, r=r)
 
-    sol = Dynamics.run_trajectory(u0, (0.0, 1000.0), sim; dt=0.1, output=(:hamiltonian))
+    sol = run_trajectory(u0, (0.0, 1000.0), sim; dt=0.1, output=(:hamiltonian))
     @test sol.hamiltonian[1] ≈ sol.hamiltonian[end] rtol=1e-2
 end

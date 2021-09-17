@@ -2,6 +2,9 @@ using UnPack: @unpack
 using MuladdMacro: @muladd
 using DiffEqBase: @..
 using LinearAlgebra: Diagonal
+using NonadiabaticMolecularDynamics:
+    transform_from_normal_modes!,
+    transform_to_normal_modes!
 
 export BCOCB
 

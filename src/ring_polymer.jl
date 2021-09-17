@@ -101,14 +101,14 @@ function transform_from_normal_modes!(p::RingPolymerParameters, R::AbstractArray
 end
 
 function transform_from_normal_modes!(p::RingPolymerParameters, u)
-    transform_from_normal_modes!(p, get_velocities(u))
-    transform_from_normal_modes!(p, get_positions(u))
+    transform_from_normal_modes!(p, DynamicsUtils.get_velocities(u))
+    transform_from_normal_modes!(p, DynamicsUtils.get_positions(u))
     return nothing
 end
 
 function transform_to_normal_modes!(p::RingPolymerParameters, u)
-    transform_to_normal_modes!(p, get_velocities(u))
-    transform_to_normal_modes!(p, get_positions(u))
+    transform_to_normal_modes!(p, DynamicsUtils.get_velocities(u))
+    transform_to_normal_modes!(p, DynamicsUtils.get_positions(u))
     return nothing
 end
 

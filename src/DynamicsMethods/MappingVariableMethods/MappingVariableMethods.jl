@@ -10,6 +10,7 @@ using NonadiabaticMolecularDynamics:
     DynamicsUtils,
     Calculators,
     Estimators
+using NonadiabaticModels: NonadiabaticModels
 
 include("nrpmd.jl")
 export NRPMD

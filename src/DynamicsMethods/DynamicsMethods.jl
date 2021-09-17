@@ -10,9 +10,6 @@ For deterministic Hamiltonian methods, the central function is [`Dynamics.motion
 which is the inplace form of the function
 to be integrated by [`DifferentialEquations.jl`](https://diffeq.sciml.ai/stable/).
 
-For stochastic methods, `motion!` provides the deterministic part of the equation,
-and `random_force!` should be implemented to provide the stochastic part.
-
 Further, methods that have discontinuities, such as surface hopping, use the
 [callback interface](https://diffeq.sciml.ai/stable/features/callback_functions/#callbacks)
 provided by `DifferentialEquations.jl`.
@@ -30,6 +27,7 @@ using NonadiabaticMolecularDynamics: AbstractSimulation, Simulation, RingPolymer
 using NonadiabaticDynamicsBase: austrip_kwargs
 
 export DynamicsVariables
+export run_trajectory
 
 """
 Each type of dynamics subtypes `Method` which is passed to
@@ -50,18 +48,10 @@ of `DynamicalVariables` and `sim` subtypes `AbstractSimulation`.
 function motion! end
 
 """
-    random_force!(du, u, sim, t)
-    
-Similarly to [`Dynamics.motion!`](@ref), this function is directly passed
-to an `SDEProblem` to integrate stochastic dynamics.
-"""
-function random_force! end
-
-"""
 Provides the DEProblem for each type of simulation.
 """
 create_problem(u0, tspan, sim) =
-    ODEProblem(motion!, u0, tspan, sim; callback=get_callbacks(sim))
+    OrdinaryDiffEq.ODEProblem(motion!, u0, tspan, sim; callback=get_callbacks(sim))
 
 select_algorithm(::AbstractSimulation) = OrdinaryDiffEq.VCABM5()
 get_callbacks(::AbstractSimulation) = nothing

@@ -1,8 +1,8 @@
 using SafeTestsets
 using Test
 
-# @time @safetestset "Classical Tests" begin include("classical.jl") end
-# @time @safetestset "Langevin Tests" begin include("langevin.jl") end
+@time @safetestset "Classical Tests" begin include("classical.jl") end
+@time @safetestset "Langevin Tests" begin include("langevin.jl") end
 @time @safetestset "MDEF BAOAB Tests" begin include("mdef_baoab.jl") end
 @time @safetestset "MDEF Tests" begin include("mdef.jl") end
 @time @safetestset "RPMDEF Tests" begin include("rpmdef.jl") end

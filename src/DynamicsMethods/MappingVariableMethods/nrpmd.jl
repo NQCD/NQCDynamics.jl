@@ -14,7 +14,7 @@ struct NRPMD{T} <: DynamicsMethods.Method
 end
 
 function DynamicsMethods.DynamicsVariables(sim::RingPolymerSimulation{<:NRPMD}, v, r, state::Integer; type=:diabatic)
-    n_states = sim.calculator.model.n_states
+    n_states = NonadiabaticModels.nstates(sim.calculator.model)
     n_beads = length(sim.beads)
     if type == :diabatic
         qmap = zeros(n_states, n_beads)
@@ -89,8 +89,8 @@ function NonadiabaticMolecularDynamics.evaluate_hamiltonian(sim::RingPolymerSimu
     Calculators.evaluate_potential!(sim.calculator, r)
     V = sim.calculator.potential
 
-    H = NonadiabaticMolecularDynamics.get_spring_energy(sim, r) 
-        + NonadiabaticMolecularDynamics.evaluate_kinetic_energy(sim.atoms.masses, v)
+    H = (NonadiabaticMolecularDynamics.get_spring_energy(sim, r) 
+        + NonadiabaticMolecularDynamics.evaluate_kinetic_energy(sim.atoms.masses, v))
     for i in range(sim.beads)
         qmap = get_mapping_positions(u, i)
         pmap = get_mapping_momenta(u, i)

@@ -2,10 +2,10 @@ using LinearAlgebra: eigvecs, diag, diagind, dot
 using StatsBase: sample, Weights
 
 using NonadiabaticMolecularDynamics.Calculators: RingPolymerDiabaticCalculator
-using NonadiabaticMolecularDynamics: RingPolymerSimulation
+using NonadiabaticMolecularDynamics: RingPolymerSimulation, get_centroid
 
-function DynamicsUtils.DynamicsVariables(sim::RingPolymerSimulation{<:SurfaceHopping}, v, r, state::Integer; type=:diabatic)
-    n_states = sim.calculator.model.n_states
+function DynamicsMethods.DynamicsVariables(sim::RingPolymerSimulation{<:SurfaceHopping}, v, r, state::Integer; type=:diabatic)
+    n_states = NonadiabaticModels.nstates(sim.calculator.model)
     if type == :diabatic
         Calculators.evaluate_centroid_potential!(sim.calculator, r)
         U = eigvecs(sim.calculator.centroid_potential)
