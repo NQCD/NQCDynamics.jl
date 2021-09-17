@@ -1,8 +1,7 @@
 
 module DynamicsUtils
 
-using ....NonadiabaticMolecularDynamics: AbstractSimulation, Simulation, RingPolymerSimulation
-using ..Dynamics: Dynamics
+using NonadiabaticMolecularDynamics: AbstractSimulation, Simulation, RingPolymerSimulation
 
 divide_by_mass!(dv, masses) = dv ./= masses'
 velocity!(dr, v, r, sim, t) = dr .= v
@@ -28,6 +27,7 @@ function apply_interbead_coupling!(dr::AbstractArray{T,3}, r::AbstractArray{T,3}
     return nothing
 end
 
+include("dynamics_variables.jl")
 include("callbacks.jl")
 export CellBoundaryCallback
 export TerminatingCallback

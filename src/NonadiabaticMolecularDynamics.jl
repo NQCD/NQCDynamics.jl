@@ -20,11 +20,10 @@ include("simulations.jl")
 export Simulation,
        RingPolymerSimulation
 
-include("dynamics_variables.jl")
 include("classical_hamiltonians.jl")
 
+include("DynamicsUtils/DynamicsUtils.jl")
 include("Estimators.jl")
-
 include("DynamicsMethods/DynamicsMethods.jl")
 @reexport using .DynamicsMethods
 
