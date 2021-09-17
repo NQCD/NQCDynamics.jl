@@ -17,7 +17,7 @@ Further, methods that have discontinuities, such as surface hopping, use the
 [callback interface](https://diffeq.sciml.ai/stable/features/callback_functions/#callbacks)
 provided by `DifferentialEquations.jl`.
 """
-module Dynamics
+module DynamicsMethods
 
 using DiffEqBase: DiffEqBase
 using TypedTables: TypedTables
