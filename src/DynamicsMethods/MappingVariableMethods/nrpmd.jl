@@ -56,7 +56,7 @@ function acceleration!(dv, u, sim::RingPolymerSimulation{<:NRPMD})
         qmap = get_mapping_positions(u, i)
         pmap = get_mapping_momenta(u, i)
         for j in range(sim.atoms)
-            for k=1:sim.DoFs
+            for k=1:ndofs(sim)
                 D = sim.calculator.derivative[k,j,i]
                 mul!(sim.method.temp_q, D, qmap)
                 mul!(sim.method.temp_p, D, pmap)

@@ -10,7 +10,6 @@ abstract type AbstractSimulation{M,Calc<:AbstractCalculator,A<:Atoms,T,C<:Abstra
 Base.broadcastable(sim::AbstractSimulation) = Ref(sim)
 
 struct Simulation{M,Calc,A,T,C} <: AbstractSimulation{M,Calc,A,T,C}
-    DoFs::Int
     temperature::T
     cell::C
     atoms::A
@@ -19,13 +18,12 @@ struct Simulation{M,Calc,A,T,C} <: AbstractSimulation{M,Calc,A,T,C}
 end
 
 function Simulation(atoms::Atoms{S,T}, model::Model, method::M;
-        DoFs::Integer=3, temperature=0u"K", cell::AbstractCell=InfiniteCell()) where {M,S,T}
-    calc = Calculator(model, DoFs, length(atoms), T)
-    Simulation(DoFs, temperature, cell, atoms, calc, method)
+        temperature=0u"K", cell::AbstractCell=InfiniteCell()) where {M,S,T}
+    calc = Calculator(model, length(atoms), T)
+    Simulation(temperature, cell, atoms, calc, method)
 end
 
 struct RingPolymerSimulation{M,Calc,A,T,C,B} <: AbstractSimulation{M,Calc,A,T,C}
-    DoFs::Int
     temperature::T
     cell::C
     atoms::A
@@ -34,7 +32,7 @@ struct RingPolymerSimulation{M,Calc,A,T,C,B} <: AbstractSimulation{M,Calc,A,T,C}
     beads::B
 end
 
-function RingPolymerSimulation(DoFs::Integer, temperature, cell::AbstractCell,
+function RingPolymerSimulation(temperature, cell::AbstractCell,
         atoms::Atoms{S,T}, model::Model, method::M,
         n_beads::Integer, quantum_nuclei::Vector{Symbol}) where {M,S,T}
         
@@ -44,17 +42,24 @@ function RingPolymerSimulation(DoFs::Integer, temperature, cell::AbstractCell,
         beads = RingPolymers.RingPolymerParameters{T}(n_beads, get_temperature(temperature), atoms.types, quantum_nuclei)
     end
     
-    calc = Calculator(model, DoFs, length(atoms), n_beads, T)
-    RingPolymerSimulation(DoFs, temperature, cell, atoms, calc, method, beads)
+    calc = Calculator(model, length(atoms), n_beads, T)
+    RingPolymerSimulation(temperature, cell, atoms, calc, method, beads)
 end
 
 function RingPolymerSimulation(atoms::Atoms, model::Model, method::M, n_beads::Integer;
-        DoFs::Integer=3, temperature=0,
+        temperature=0,
         cell::AbstractCell=InfiniteCell(), quantum_nuclei::Vector{Symbol}=Symbol[]) where {M}
-    RingPolymerSimulation(DoFs, temperature, cell, atoms, model, method, n_beads, quantum_nuclei)
+    RingPolymerSimulation(temperature, cell, atoms, model, method, n_beads, quantum_nuclei)
 end
 
-nbeads(sim::RingPolymerSimulation) = nbeads(sim.beads)
+NonadiabaticModels.nstates(sim::AbstractSimulation) = NonadiabaticModels.nstates(sim.calculator.model)
+
+NonadiabaticModels.ndofs(sim::AbstractSimulation) = NonadiabaticModels.ndofs(sim.calculator.model)
+natoms(sim::AbstractSimulation) = length(sim.atoms)
+RingPolymers.nbeads(sim::RingPolymerSimulation) = RingPolymers.nbeads(sim.beads)
+
+Base.size(sim::Simulation) = (ndofs(sim), natoms(sim))
+Base.size(sim::RingPolymerSimulation) = (ndofs(sim), natoms(sim), RingPolymers.nbeads(sim))
 
 function get_temperature(sim::Simulation, t::Real=0)
     t = auconvert(u"fs", t)

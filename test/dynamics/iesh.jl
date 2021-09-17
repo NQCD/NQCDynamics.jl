@@ -15,7 +15,7 @@ r = zeros(1, 1)
 v = randn(1,1) * sqrt(5*temperature / atoms.masses[1])
 n_electrons = nstates(model) ÷ 2
 
-sim = Simulation{IESH}(atoms, model; DoFs=1, n_electrons=n_electrons)
+sim = Simulation{IESH}(atoms, model; n_electrons=n_electrons)
 u = DynamicsVariables(sim, v, r)
 sim.method.state .= u.state
 
@@ -55,7 +55,7 @@ BLAS.set_num_threads(1)
 temp = 5*temperature
 harm = Harmonic(m=model.m, ω=model.ω)
 z = ComponentVector(v=zeros(1,1), r=hcat(10.0))
-thermal = Simulation{Langevin}(atoms, harm; temperature=temp, DoFs=1, γ=0.1)
+thermal = Simulation{Langevin}(atoms, harm; temperature=temp, γ=0.1)
 Δ = Dict(:X => 1.0)
 sample = InitialConditions.MetropolisHastings.run_monte_carlo_sampling(thermal, hcat(0.0), Δ, 1e6)
 

@@ -51,9 +51,9 @@ function OrdinaryDiffEq.initialize!(_, ::MIntCache) end
 
     propagate_mapping_variables!(calc, u, dt)
 
-    for i=1:length(p.beads)
-        for j=1:length(p.atoms)
-            for k=1:p.DoFs
+    for i=1:nbeads(p)
+        for j=1:natoms(p)
+            for k=1:ndofs(p)
                 Γ = get_gamma(calc.adiabatic_derivative[k,j,i], calc.eigenvalues[i], dt)
                 E = transform_matrix(calc.eigenvectors[i], Γ)
 

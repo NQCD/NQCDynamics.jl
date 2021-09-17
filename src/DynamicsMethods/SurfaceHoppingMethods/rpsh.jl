@@ -68,7 +68,7 @@ function evaluate_a_and_b(sim::RingPolymerSimulation{<:SurfaceHopping}, velocity
     a = zeros(length(sim.atoms))
     b = zero(a)
     @views for i in range(sim.atoms)
-        coupling = [sim.calculator.centroid_nonadiabatic_coupling[j,i][new_state, old_state] for j=1:sim.DoFs]
+        coupling = [sim.calculator.centroid_nonadiabatic_coupling[j,i][new_state, old_state] for j=1:ndofs(sim)]
         a[i] = dot(coupling, coupling) / sim.atoms.masses[i]
         b[i] = dot(velocity[:,i], coupling)
     end
@@ -77,7 +77,7 @@ end
 
 function perform_rescaling!(sim::RingPolymerSimulation{<:SurfaceHopping}, velocity, velocity_rescale, new_state, old_state)
     for i in range(sim.atoms)
-        coupling = [sim.calculator.centroid_nonadiabatic_coupling[j,i][new_state, old_state] for j=1:sim.DoFs]
+        coupling = [sim.calculator.centroid_nonadiabatic_coupling[j,i][new_state, old_state] for j=1:ndofs(sim)]
         velocity[:,i,:] .-= velocity_rescale[i] .* coupling ./ sim.atoms.masses[i]
     end
     return nothing

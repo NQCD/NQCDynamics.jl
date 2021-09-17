@@ -10,11 +10,11 @@ using NonadiabaticMolecularDynamics.DynamicsUtils: get_positions, get_velocities
 atoms = Atoms(1)
 
 @testset "FSSH" begin
-    sim = Simulation{FSSH}(atoms, NonadiabaticModels.DoubleWell(); DoFs=1)
+    sim = Simulation{FSSH}(atoms, NonadiabaticModels.DoubleWell())
     sim.method.state = 1
 
-    r = zeros(sim.DoFs, length(sim.atoms)) 
-    v = rand(sim.DoFs, length(sim.atoms)) 
+    r = zeros(size(sim)) 
+    v = randn(size(sim)) 
     u = DynamicsVariables(sim, v, r, 1; type=:adiabatic)
     du = zero(u)
 
@@ -91,7 +91,7 @@ atoms = Atoms(1)
 
     @testset "run_trajectory" begin
         atoms = Atoms(2000)
-        sim = Simulation{FSSH}(atoms, NonadiabaticModels.TullyModelTwo(); DoFs=1)
+        sim = Simulation{FSSH}(atoms, NonadiabaticModels.TullyModelTwo())
         v = hcat(100 / 2000)
         r = hcat(-10.0)
         u = DynamicsVariables(sim, v, r, 1; type=:adiabatic)
@@ -101,10 +101,10 @@ atoms = Atoms(1)
 end
 
 @testset "RPSH" begin
-    sim = RingPolymerSimulation{FSSH}(atoms, NonadiabaticModels.DoubleWell(), 5; DoFs=1)
+    sim = RingPolymerSimulation{FSSH}(atoms, NonadiabaticModels.DoubleWell(), 5)
 
-    r = RingPolymerArray(zeros(sim.DoFs, length(sim.atoms), 5))
-    v = RingPolymerArray(rand(sim.DoFs, length(sim.atoms), 5))
+    r = RingPolymerArray(zeros(size(sim)))
+    v = RingPolymerArray(randn(size(sim)))
     u = DynamicsVariables(sim, v, r, 1; type=:adiabatic)
     sim.method.state = u.state
 
@@ -155,9 +155,9 @@ end
 
     @testset "run_trajectory" begin
         atoms = Atoms(2000)
-        sim = RingPolymerSimulation{FSSH}(atoms, NonadiabaticModels.TullyModelTwo(), 5; DoFs=1, temperature=0.01)
-        v = RingPolymerArray(fill(100 / 2000, 1, 1, 5))
-        r = RingPolymerArray(fill(-10.0, 1, 1, 5)) .+ randn(1,1,5)
+        sim = RingPolymerSimulation{FSSH}(atoms, NonadiabaticModels.TullyModelTwo(), 5; temperature=0.01)
+        v = RingPolymerArray(fill(100 / 2000, size(sim)))
+        r = RingPolymerArray(fill(-10.0, size(sim))) .+ randn(1,1,5)
         u = DynamicsVariables(sim, v, r, 1; type=:adiabatic)
         solution = run_trajectory(u, (0.0, 1000.0), sim, output=(:hamiltonian), reltol=1e-10)
         # Ring polymer Hamiltonian is not strictly conserved during hoppping

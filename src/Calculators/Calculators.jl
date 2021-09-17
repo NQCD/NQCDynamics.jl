@@ -23,7 +23,7 @@ using NonadiabaticModels.AdiabaticModels: AdiabaticModel
 using NonadiabaticModels.DiabaticModels: DiabaticModel, DiabaticFrictionModel
 using NonadiabaticModels.FrictionModels: AdiabaticFrictionModel
 
-using NonadiabaticMolecularDynamics: RingPolymers
+using NonadiabaticMolecularDynamics: RingPolymers, ndofs
 
 """
     AbstractCalculator{M<:Model}
@@ -43,8 +43,8 @@ mutable struct AdiabaticCalculator{T,M} <: AbstractAdiabaticCalculator{M}
     model::M
     potential::T
     derivative::Matrix{T}
-    function AdiabaticCalculator{T}(model::M, DoFs::Integer, atoms::Integer) where {T,M<:Model}
-        new{T,M}(model, 0, zeros(DoFs, atoms))
+    function AdiabaticCalculator{T}(model::M, atoms::Integer) where {T,M<:Model}
+        new{T,M}(model, 0, zeros(ndofs(model), atoms))
     end
 end
 
@@ -52,8 +52,8 @@ struct RingPolymerAdiabaticCalculator{T,M} <: AbstractAdiabaticCalculator{M}
     model::M
     potential::Vector{T}
     derivative::Array{T,3}
-    function RingPolymerAdiabaticCalculator{T}(model::M, DoFs::Integer, atoms::Integer, beads::Integer) where {T,M<:Model}
-        new{T,M}(model, zeros(beads), zeros(DoFs, atoms, beads))
+    function RingPolymerAdiabaticCalculator{T}(model::M, atoms::Integer, beads::Integer) where {T,M<:Model}
+        new{T,M}(model, zeros(beads), zeros(ndofs(model), atoms, beads))
     end
 end
 
@@ -68,13 +68,13 @@ mutable struct DiabaticCalculator{T,M,S,L} <: AbstractDiabaticCalculator{M}
     tmp_mat::Matrix{T}
     tmp_mat_complex1::Matrix{Complex{T}}
     tmp_mat_complex2::Matrix{Complex{T}}
-    function DiabaticCalculator{T}(model::M, DoFs::Integer, atoms::Integer) where {T,M<:Model}
+    function DiabaticCalculator{T}(model::M, atoms::Integer) where {T,M<:Model}
         n = nstates(model)
         matrix_template = NonadiabaticModels.DiabaticModels.matrix_template(model, T)
         vector_template = NonadiabaticModels.DiabaticModels.vector_template(model, T)
 
         potential = Hermitian(matrix_template)
-        derivative = [Hermitian(matrix_template) for _=1:DoFs, _=1:atoms]
+        derivative = [Hermitian(matrix_template) for _=1:ndofs(model), _=1:atoms]
         eigenvalues = vector_template
         eigenvectors = matrix_template + I
         adiabatic_derivative = [matrix_template for _ in CartesianIndices(derivative)]
@@ -109,20 +109,20 @@ mutable struct RingPolymerDiabaticCalculator{T,M,S,L} <: AbstractDiabaticCalcula
     tmp_mat::Matrix{T}
     tmp_mat_complex1::Matrix{Complex{T}}
     tmp_mat_complex2::Matrix{Complex{T}}
-    function RingPolymerDiabaticCalculator{T}(model::M, DoFs::Integer, atoms::Integer, beads::Integer) where {T,M<:Model}
+    function RingPolymerDiabaticCalculator{T}(model::M, atoms::Integer, beads::Integer) where {T,M<:Model}
         n = nstates(model)
         matrix_template = NonadiabaticModels.DiabaticModels.matrix_template(model, T)
         vector_template = NonadiabaticModels.DiabaticModels.vector_template(model, T)
 
         potential = [Hermitian(matrix_template) for _=1:beads]
-        derivative = [Hermitian(matrix_template) for _=1:DoFs, _=1:atoms, _=1:beads]
+        derivative = [Hermitian(matrix_template) for _=1:ndofs(model), _=1:atoms, _=1:beads]
         eigenvalues = [vector_template for _=1:beads]
         eigenvectors = [matrix_template + I for _=1:beads]
-        adiabatic_derivative = [matrix_template for _=1:DoFs, _=1:atoms, _=1:beads]
-        nonadiabatic_coupling = [matrix_template for _=1:DoFs, _=1:atoms, _=1:beads]
+        adiabatic_derivative = [matrix_template for _=1:ndofs(model), _=1:atoms, _=1:beads]
+        nonadiabatic_coupling = [matrix_template for _=1:ndofs(model), _=1:atoms, _=1:beads]
 
         centroid_potential = Hermitian(matrix_template)
-        centroid_derivative = [Hermitian(matrix_template) for _=1:DoFs, _=1:atoms]
+        centroid_derivative = [Hermitian(matrix_template) for _=1:ndofs(model), _=1:atoms]
         centroid_eigenvalues = vector_template
         centroid_eigenvectors = matrix_template + I
         centroid_adiabatic_derivative = [matrix_template for _ in CartesianIndices(centroid_derivative)]
@@ -138,17 +138,17 @@ mutable struct RingPolymerDiabaticCalculator{T,M,S,L} <: AbstractDiabaticCalcula
     end
 end
 
-function Calculator(model::DiabaticModel, DoFs::Integer, atoms::Integer, t::Type{T}) where {T}
-    DiabaticCalculator{t}(model, DoFs, atoms)
+function Calculator(model::DiabaticModel, atoms::Integer, t::Type{T}) where {T}
+    DiabaticCalculator{t}(model, atoms)
 end
-function Calculator(model::AdiabaticModel, DoFs::Integer, atoms::Integer, t::Type{T}) where {T}
-    AdiabaticCalculator{t}(model, DoFs, atoms)
+function Calculator(model::AdiabaticModel, atoms::Integer, t::Type{T}) where {T}
+    AdiabaticCalculator{t}(model, atoms)
 end
-function Calculator(model::DiabaticModel, DoFs::Integer, atoms::Integer, beads::Integer, t::Type{T}) where {T}
-    RingPolymerDiabaticCalculator{t}(model, DoFs, atoms, beads)
+function Calculator(model::DiabaticModel, atoms::Integer, beads::Integer, t::Type{T}) where {T}
+    RingPolymerDiabaticCalculator{t}(model, atoms, beads)
 end
-function Calculator(model::AdiabaticModel, DoFs::Integer, atoms::Integer, beads::Integer, t::Type{T}) where {T}
-    RingPolymerAdiabaticCalculator{t}(model, DoFs, atoms, beads)
+function Calculator(model::AdiabaticModel, atoms::Integer, beads::Integer, t::Type{T}) where {T}
+    RingPolymerAdiabaticCalculator{t}(model, atoms, beads)
 end
 
 function evaluate_potential!(calc::AbstractCalculator, R)

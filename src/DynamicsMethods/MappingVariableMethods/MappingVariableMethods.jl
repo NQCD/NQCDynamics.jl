@@ -9,7 +9,8 @@ using NonadiabaticMolecularDynamics:
     DynamicsMethods,
     DynamicsUtils,
     Calculators,
-    Estimators
+    Estimators,
+    ndofs
 using NonadiabaticModels: NonadiabaticModels, Model
 using NonadiabaticDynamicsBase: Atoms
 

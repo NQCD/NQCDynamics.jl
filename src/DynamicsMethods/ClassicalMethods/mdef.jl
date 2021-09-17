@@ -26,11 +26,11 @@ function get_mass_scale_matrix(masses::AbstractVector, DoFs::Integer)
     vect * vect'
 end
 
-function NonadiabaticMolecularDynamics.Simulation{MDEF}(atoms::Atoms, model::Model; DoFs=3, kwargs...)
-    NonadiabaticMolecularDynamics.Simulation(atoms, model, MDEF(atoms.masses, DoFs); DoFs=DoFs, kwargs...)
+function NonadiabaticMolecularDynamics.Simulation{MDEF}(atoms::Atoms, model::Model; kwargs...)
+    NonadiabaticMolecularDynamics.Simulation(atoms, model, MDEF(atoms.masses, ndofs(model));  kwargs...)
 end
-function NonadiabaticMolecularDynamics.RingPolymerSimulation{MDEF}(atoms::Atoms, model::Model, n_beads::Integer; DoFs=3, kwargs...)
-    NonadiabaticMolecularDynamics.RingPolymerSimulation(atoms, model, MDEF(atoms.masses, DoFs), n_beads; DoFs=DoFs, kwargs...)
+function NonadiabaticMolecularDynamics.RingPolymerSimulation{MDEF}(atoms::Atoms, model::Model, n_beads::Integer; kwargs...)
+    NonadiabaticMolecularDynamics.RingPolymerSimulation(atoms, model, MDEF(atoms.masses, ndofs(model)), n_beads; kwargs...)
 end
 
 """
