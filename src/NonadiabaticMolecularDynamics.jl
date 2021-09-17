@@ -25,8 +25,8 @@ include("classical_hamiltonians.jl")
 
 include("Estimators.jl")
 
-include("Dynamics/Dynamics.jl")
-@reexport using .Dynamics
+include("DynamicsMethods/DynamicsMethods.jl")
+@reexport using .DynamicsMethods
 
 include("InitialConditions/InitialConditions.jl")
 export InitialConditions
