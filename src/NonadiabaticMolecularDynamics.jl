@@ -6,14 +6,15 @@ using Reexport: @reexport
 @reexport using NonadiabaticModels
 
 include("RingPolymers/RingPolymers.jl")
-@reexport using .RingPolymers: RingPolymerArray
+@reexport using .RingPolymers: RingPolymerArray, nbeads
 export RingPolymers
 
 include("Calculators/Calculators.jl")
 
 include("simulations.jl")
 export Simulation,
-       RingPolymerSimulation
+       RingPolymerSimulation,
+       natoms
 
 include("classical_hamiltonians.jl")
 

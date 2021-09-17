@@ -14,9 +14,9 @@ function Langevin{T}(γ, temperature, masses, DoFs) where {T}
     Langevin(T(γ), T.(σ))
 end
 
-function NonadiabaticMolecularDynamics.Simulation{Langevin}(atoms::Atoms{S,T}, model::Model; γ=1, temperature=0u"K", DoFs=3, kwargs...) where {S,T}
-    NonadiabaticMolecularDynamics.Simulation(atoms, model, Langevin{T}(γ, austrip(temperature), atoms.masses, DoFs);
-               temperature=temperature, DoFs=DoFs, kwargs...)
+function NonadiabaticMolecularDynamics.Simulation{Langevin}(atoms::Atoms{S,T}, model::Model; γ=1, temperature=0u"K", kwargs...) where {S,T}
+    NonadiabaticMolecularDynamics.Simulation(atoms, model, Langevin{T}(γ, austrip(temperature), atoms.masses, ndofs(model));
+               temperature=temperature, kwargs...)
 end
 
 function DynamicsMethods.create_problem(u0, tspan::Tuple, sim::Simulation{<:Langevin})

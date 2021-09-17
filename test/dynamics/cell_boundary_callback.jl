@@ -5,7 +5,7 @@ using ComponentArrays
 atoms = Atoms([:C])
 model = NonadiabaticModels.Harmonic()
 cell = PeriodicCell(hcat(1))
-sim = Simulation(atoms, model, Classical(); DoFs=1, cell=cell)
+sim = Simulation(atoms, model; cell=cell)
 
 z = ComponentVector(v=fill(1.0, 1, length(atoms)), r=zeros(1, length(atoms)))
 

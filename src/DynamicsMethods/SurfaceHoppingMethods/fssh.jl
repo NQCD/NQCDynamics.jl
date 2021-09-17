@@ -1,5 +1,4 @@
 using StatsBase: mean
-using .Calculators: AbstractDiabaticCalculator
 
 export FSSH
 
@@ -115,7 +114,7 @@ function evaluate_a_and_b(sim::Simulation{<:SurfaceHopping}, velocity, new_state
     a = zeros(length(sim.atoms))
     b = zero(a)
     @views for i in range(sim.atoms)
-        coupling = [sim.calculator.nonadiabatic_coupling[j,i][new_state, old_state] for j=1:sim.DoFs]
+        coupling = [sim.calculator.nonadiabatic_coupling[j,i][new_state, old_state] for j=1:ndofs(sim)]
         a[i] = dot(coupling, coupling) / sim.atoms.masses[i]
         b[i] = dot(velocity[:,i], coupling)
     end
@@ -124,13 +123,13 @@ end
 
 function perform_rescaling!(sim::Simulation{<:SurfaceHopping}, velocity, velocity_rescale, new_state, old_state)
     for i in range(sim.atoms)
-        coupling = [sim.calculator.nonadiabatic_coupling[j,i][new_state, old_state] for j=1:sim.DoFs]
+        coupling = [sim.calculator.nonadiabatic_coupling[j,i][new_state, old_state] for j=1:ndofs(sim)]
         velocity[:,i] .-= velocity_rescale[i] .* coupling ./ sim.atoms.masses[i]
     end
     return nothing
 end
 
-function calculate_potential_energy_change(calc::AbstractDiabaticCalculator, new_state::Integer, current_state::Integer)
+function calculate_potential_energy_change(calc::Calculators.AbstractDiabaticCalculator, new_state::Integer, current_state::Integer)
     return calc.eigenvalues[new_state] - calc.eigenvalues[current_state]
 end
 

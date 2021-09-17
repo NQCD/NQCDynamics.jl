@@ -4,8 +4,8 @@ mutable struct FrictionCalculator{T,M} <: AbstractFrictionCalculator{M}
     potential::T
     derivative::Matrix{T}
     friction::Matrix{T}
-    function FrictionCalculator{T}(model::M, DoFs::Integer, atoms::Integer) where {T,M<:Model}
-        new{T,M}(model, 0, zeros(DoFs, atoms), zeros(DoFs*atoms, DoFs*atoms))
+    function FrictionCalculator{T}(model::M, atoms::Integer) where {T,M<:Model}
+        new{T,M}(model, 0, zeros(ndofs(model), atoms), zeros(ndofs(model)*atoms, ndofs(model)*atoms))
     end
 end
 
@@ -14,8 +14,8 @@ struct RingPolymerFrictionCalculator{T,M} <: AbstractFrictionCalculator{M}
     potential::Vector{T}
     derivative::Array{T,3}
     friction::Array{T,3}
-    function RingPolymerFrictionCalculator{T}(model::M, DoFs::Integer, atoms::Integer, beads::Integer) where {T,M<:Model}
-        new{T,M}(model, zeros(beads), zeros(DoFs, atoms, beads), zeros(DoFs*atoms, DoFs*atoms, beads))
+    function RingPolymerFrictionCalculator{T}(model::M, atoms::Integer, beads::Integer) where {T,M<:Model}
+        new{T,M}(model, zeros(beads), zeros(ndofs(model), atoms, beads), zeros(ndofs(model)*atoms, ndofs(model)*atoms, beads))
     end
 end
 
@@ -31,15 +31,15 @@ struct DiabaticFrictionCalculator{T,M} <: AbstractDiabaticCalculator{M}
     tmp_mat::Matrix{T}
     tmp_mat_complex1::Matrix{Complex{T}}
     tmp_mat_complex2::Matrix{Complex{T}}
-    function DiabaticFrictionCalculator{T}(model::M, DoFs::Integer, atoms::Integer) where {T,M<:Model}
+    function DiabaticFrictionCalculator{T}(model::M, atoms::Integer) where {T,M<:Model}
         n = nstates(model)
         potential = Hermitian(zeros(n, n))
-        derivative = [Hermitian(zeros(n, n)) for i=1:DoFs, j=1:atoms]
+        derivative = [Hermitian(zeros(n, n)) for i=1:ndofs(model), j=1:atoms]
         eigenvalues = zeros(n)
         eigenvectors = zeros(n, n)
-        adiabatic_derivative = [zeros(n, n) for i=1:DoFs, j=1:atoms]
-        nonadiabatic_coupling = [zeros(n, n) for i=1:DoFs, j=1:atoms]
-        friction = zeros(DoFs*atoms, DoFs*atoms)
+        adiabatic_derivative = [zeros(n, n) for i=1:ndofs(model), j=1:atoms]
+        nonadiabatic_coupling = [zeros(n, n) for i=1:ndofs(model), j=1:atoms]
+        friction = zeros(ndofs(model)*atoms, ndofs(model)*atoms)
         tmp_mat = zeros(T, n, n)
         tmp_mat_complex1 = zeros(Complex{T},n, n)
         tmp_mat_complex2 = zeros(Complex{T}, n, n)
@@ -48,14 +48,14 @@ struct DiabaticFrictionCalculator{T,M} <: AbstractDiabaticCalculator{M}
                  tmp_mat, tmp_mat_complex1, tmp_mat_complex2)
     end
 end
-function Calculator(model::AdiabaticFrictionModel, DoFs::Integer, atoms::Integer, T::Type=Float64)
-    FrictionCalculator{T}(model, DoFs, atoms)
+function Calculator(model::AdiabaticFrictionModel, atoms::Integer, T::Type=Float64)
+    FrictionCalculator{T}(model, atoms)
 end
-function Calculator(model::DiabaticFrictionModel, DoFs::Integer, atoms::Integer, T::Type=Float64)
-    DiabaticFrictionCalculator{T}(model, DoFs, atoms)
+function Calculator(model::DiabaticFrictionModel, atoms::Integer, T::Type=Float64)
+    DiabaticFrictionCalculator{T}(model, atoms)
 end
-function Calculator(model::AdiabaticFrictionModel, DoFs::Integer, atoms::Integer, beads::Integer, T::Type=Float64)
-    RingPolymerFrictionCalculator{T}(model, DoFs, atoms, beads)
+function Calculator(model::AdiabaticFrictionModel, atoms::Integer, beads::Integer, T::Type=Float64)
+    RingPolymerFrictionCalculator{T}(model, atoms, beads)
 end
 
 function evaluate_friction!(calc::AbstractFrictionCalculator, R::AbstractMatrix)
@@ -84,14 +84,14 @@ function evaluate_friction!(calc::DiabaticFrictionCalculator, R::AbstractMatrix)
 
     gauss(x, σ) = exp(-0.5 * x^2 / σ^2) / (σ*sqrt(2π))
 
-    DoFs = size(R)[1]
+    dofs = ndofs(calc.model)
     calc.friction .= 0
     for i in axes(R, 2) # Atoms
-        for j in axes(R, 1) # DoFs
+        for j in axes(R, 1) # dofs
             for m=2:nstates(calc.model)
                 ω = calc.eigenvalues[m] - calc.eigenvalues[1]
                 g = gauss(ω, calc.model.σ) / ω
-                calc.friction[j+(i-1)*DoFs] += 2π*abs2(calc.adiabatic_derivative[j,i][m,1])*g
+                calc.friction[j+(i-1)*dofs] += 2π*abs2(calc.adiabatic_derivative[j,i][m,1])*g
             end
         end
     end

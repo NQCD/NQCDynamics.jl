@@ -47,13 +47,13 @@ function get_spring_energy(sim::RingPolymerSimulation, R)
     E = 0.0
     for bead=1:length(sim.beads)-1
         for i in sim.beads.quantum_atoms # Only for quantum nuclei
-            for j=1:sim.DoFs
+            for j=1:ndofs(sim)
                 E += sim.atoms.masses[i] * (R[j, i, bead] - R[j, i, bead+1])^2
             end
         end
     end
     for i in sim.beads.quantum_atoms
-        for j=1:sim.DoFs
+        for j=1:ndofs(sim)
             E += sim.atoms.masses[i] * (R[j, i, length(sim.beads)] - R[j, i, 1])^2
         end
     end

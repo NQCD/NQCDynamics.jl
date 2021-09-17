@@ -12,14 +12,14 @@ struct LargeDiabaticCalculator{T,M} <: AbstractDiabaticCalculator{M}
     tmp_mat::Matrix{T}
     tmp_mat_complex1::Matrix{Complex{T}}
     tmp_mat_complex2::Matrix{Complex{T}}
-    function LargeDiabaticCalculator{T}(model::M, DoFs::Integer, atoms::Integer) where {T,M<:Model}
+    function LargeDiabaticCalculator{T}(model::M, atoms::Integer) where {T,M<:Model}
         n = nstates(model)
         potential = Hermitian(zeros(n, n))
-        derivative = [Hermitian(zeros(n, n)) for i=1:DoFs, j=1:atoms]
+        derivative = [Hermitian(zeros(n, n)) for i=1:ndofs(model), j=1:atoms]
         eigenvalues = zeros(n)
         eigenvectors = zeros(n, n)
-        adiabatic_derivative = [zeros(n, n) for i=1:DoFs, j=1:atoms]
-        nonadiabatic_coupling = [zeros(n, n) for i=1:DoFs, j=1:atoms]
+        adiabatic_derivative = [zeros(n, n) for i=1:ndofs(model), j=1:atoms]
+        nonadiabatic_coupling = [zeros(n, n) for i=1:ndofs(model), j=1:atoms]
         tmp_mat = zeros(T, n, n)
         tmp_mat_complex1 = zeros(Complex{T}, n, n)
         tmp_mat_complex2 = zeros(Complex{T}, n, n)
@@ -28,8 +28,8 @@ struct LargeDiabaticCalculator{T,M} <: AbstractDiabaticCalculator{M}
     end
 end
 
-function Calculator(model::LargeDiabaticModel, DoFs::Integer, atoms::Integer, T::Type=Float64)
-    LargeDiabaticCalculator{T}(model, DoFs, atoms)
+function Calculator(model::LargeDiabaticModel, atoms::Integer, T::Type=Float64)
+    LargeDiabaticCalculator{T}(model, atoms)
 end
 
 function evaluate_potential!(calc::LargeDiabaticCalculator, R)

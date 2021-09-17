@@ -10,7 +10,7 @@ using NonadiabaticMolecularDynamics:
     DynamicsMethods
 using NonadiabaticMolecularDynamics.Calculators: Calculators
 using NonadiabaticDynamicsBase: Atoms
-using NonadiabaticModels: Model
+using NonadiabaticModels: Model, ndofs
 
 include("classical.jl")
 export Classical

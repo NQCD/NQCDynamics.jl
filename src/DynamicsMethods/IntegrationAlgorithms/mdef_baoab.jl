@@ -87,7 +87,7 @@ end
 
     # O
     Λ = integrator.g(u2,p,t+dt*half)
-    σ = sqrt(get_temperature(p, t+dt*half)) ./ sqrt.(repeat(p.atoms.masses; inner=p.DoFs))
+    σ = sqrt(get_temperature(p, t+dt*half)) ./ sqrt.(repeat(p.atoms.masses; inner=ndofs(p)))
     γ, c = LAPACK.syev!('V', 'U', Λ) # symmetric eigen
     clamp!(γ, 0, Inf)
     c1 = diagm(exp.(-γ.*dt))
@@ -133,7 +133,7 @@ function step_O!(cache, integrator)
     @unpack dutmp, flatdutmp, tmp1, tmp2, gtmp, noise, half, c1, c2 = cache
 
     Λ = gtmp
-    σ = sqrt(get_temperature(p, t+dt*half)) ./ sqrt.(repeat(p.atoms.masses; inner=p.DoFs))
+    σ = sqrt(get_temperature(p, t+dt*half)) ./ sqrt.(repeat(p.atoms.masses; inner=ndofs(p)))
 
     @.. noise = σ*W.dW[:] / sqdt
 

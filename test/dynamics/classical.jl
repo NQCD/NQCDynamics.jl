@@ -9,7 +9,7 @@ atoms = Atoms([:H])
 model = NonadiabaticModels.Harmonic()
 
 @testset "Classical" begin
-    sim = Simulation{Classical}(atoms, model; DoFs=1)
+    sim = Simulation{Classical}(atoms, model)
 
     test_velocity!(sim)
     test_acceleration!(sim)
@@ -24,7 +24,7 @@ model = NonadiabaticModels.Harmonic()
 end
 
 @testset "Ring polymer classical" begin
-    sim = RingPolymerSimulation{Classical}(atoms, model, 10; DoFs=1, temperature=10000u"K")
+    sim = RingPolymerSimulation{Classical}(atoms, model, 10; temperature=10000u"K")
 
     test_velocity!(sim)
     test_acceleration!(sim)

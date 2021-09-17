@@ -22,7 +22,8 @@ using NonadiabaticMolecularDynamics:
     AbstractSimulation,
     Simulation,
     RingPolymerSimulation,
-    RingPolymers
+    RingPolymers,
+    ndofs
 
 export run_monte_carlo_sampling
 
@@ -196,7 +197,7 @@ Propose simple cartesian move for a single atom.
 """
 function propose_move!(sim::Simulation, monte::MonteCarlo, Rᵢ::Matrix, Rₚ::Matrix, atom::Integer)
     Rₚ .= Rᵢ
-    apply_random_perturbation!(sim.atoms, monte, Rₚ, atom, sim.DoFs)
+    apply_random_perturbation!(sim.atoms, monte, Rₚ, atom, ndofs(sim))
 end
 
 """
@@ -207,7 +208,7 @@ Propose a move for the ring polymer centroid for one atom.
 function propose_centroid_move!(sim::RingPolymerSimulation, monte::PathIntegralMonteCarlo, Rᵢ::Array{T, 3}, Rₚ::Array{T, 3}, atom::Integer) where {T<:AbstractFloat}
     Rₚ .= Rᵢ
     RingPolymers.transform_to_normal_modes!(sim.beads, Rₚ)
-    @views apply_random_perturbation!(sim.atoms, monte, Rₚ[:,:,1], atom, sim.DoFs) # Perturb the centroid mode
+    @views apply_random_perturbation!(sim.atoms, monte, Rₚ[:,:,1], atom, ndofs(sim)) # Perturb the centroid mode
     @views if atom ∉ sim.beads.quantum_atoms # Ensure replicas are identical if not quantum
         for i=2:length(sim.beads)
             Rₚ[:, atom, i] .= Rₚ[:, atom, 1]

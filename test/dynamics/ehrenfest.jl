@@ -8,10 +8,10 @@ using OrdinaryDiffEq
 atoms = Atoms(:H)
 
 @testset "Ehrenfest" begin
-    sim = Simulation{Ehrenfest}(atoms, NonadiabaticModels.DoubleWell(); DoFs=1)
+    sim = Simulation{Ehrenfest}(atoms, NonadiabaticModels.DoubleWell())
 
-    r = zeros(sim.DoFs, length(sim.atoms)) 
-    v = rand(sim.DoFs, length(sim.atoms)) 
+    r = zeros(size(sim)) 
+    v = randn(size(sim)) 
     u = DynamicsVariables(sim, v, r, 1; type=:adiabatic)
     du = zero(u)
 
@@ -35,15 +35,15 @@ atoms = Atoms(:H)
     end
 
 
-    sim1 = Simulation{Ehrenfest}(atoms, NonadiabaticModels.TullyModelOne(); DoFs=1)
-    r = fill(-5.0, sim1.DoFs, length(sim1.atoms))
-    v1 = fill(8.9, sim1.DoFs, length(sim1.atoms)) ./ sim1.atoms.masses[1]
+    sim1 = Simulation{Ehrenfest}(atoms, NonadiabaticModels.TullyModelOne())
+    r = fill(-5.0, size(sim))
+    v1 = fill(8.9, size(sim)) ./ sim1.atoms.masses[1]
     z1 = DynamicsVariables(sim, v1, r, 1; type=:adiabatic)
     solution1 = run_trajectory(z1, (0.0, 2500.0), sim1; output=(:population), reltol=1e-6)
 
     @testset "run_trajectory" begin
         atoms = Atoms(2000)
-        sim = Simulation{Ehrenfest}(atoms, NonadiabaticModels.TullyModelTwo(); DoFs=1)
+        sim = Simulation{Ehrenfest}(atoms, NonadiabaticModels.TullyModelTwo())
         v = hcat(100 / 2000)
         r = hcat(-10.0)
         u = DynamicsVariables(sim, v, r, 1; type=:adiabatic)
@@ -54,7 +54,7 @@ end
 
 @testset "Ehrenfest RPMD" begin
     atoms = Atoms(2000)
-    sim = RingPolymerSimulation{Ehrenfest}(atoms, NonadiabaticModels.TullyModelTwo(), 10; DoFs=1)
+    sim = RingPolymerSimulation{Ehrenfest}(atoms, NonadiabaticModels.TullyModelTwo(), 10)
     v = fill(100 / 2000, 1, 1, 10)
     r = fill(-10.0, 1, 1, 10)
     u = DynamicsVariables(sim, v, r, 1; type=:adiabatic)

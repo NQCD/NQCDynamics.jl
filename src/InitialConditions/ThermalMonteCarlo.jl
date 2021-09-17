@@ -14,7 +14,8 @@ using NonadiabaticMolecularDynamics:
     get_temperature,
     evaluate_hamiltonian,
     DynamicsUtils,
-    RingPolymers
+    RingPolymers,
+    ndofs
 
 function sample_configurations(
     sim::AbstractSimulation,
@@ -98,7 +99,7 @@ end
 const MolecularProposal{P,T,S} = Union{RingPolymerProposal{P,T,S}, ClassicalProposal{P,T,S}}
 
 function ClassicalProposal(sim, σ, move_ratio)
-    proposals = Array{UnivariateDistribution,3}(undef, sim.DoFs, length(sim.atoms), 2)
+    proposals = Array{UnivariateDistribution,3}(undef, ndofs(sim), length(sim.atoms), 2)
     for i in range(sim.atoms) # Velocity proposals
         distribution = Normal(0, sqrt(get_temperature(sim) / sim.atoms.masses[i]))
         proposals[:,i,1] .= distribution
@@ -112,7 +113,7 @@ end
 
 function RingPolymerProposal(sim, σ, move_ratio)
     ωₖ = RingPolymers.get_matsubara_frequencies(length(sim.beads), sim.beads.ω_n)
-    proposals = Array{UnivariateDistribution,4}(undef, sim.DoFs, length(sim.atoms), length(sim.beads), 2)
+    proposals = Array{UnivariateDistribution,4}(undef, ndofs(sim), length(sim.atoms), length(sim.beads), 2)
     for i=1:length(sim.beads)
         if i == 1
             for j in range(sim.atoms)

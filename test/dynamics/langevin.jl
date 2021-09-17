@@ -4,7 +4,7 @@ using NonadiabaticMolecularDynamics
 atoms = Atoms([:H])
 model = Harmonic()
 
-sim = Simulation{Langevin}(atoms, model; DoFs=1, temperature=1, γ=1)
+sim = Simulation{Langevin}(atoms, model; temperature=1, γ=1)
 
 z = DynamicsVariables(sim, randn(1,1), randn(1,1))
 

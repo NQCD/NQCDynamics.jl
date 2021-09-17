@@ -8,7 +8,8 @@ using ....NonadiabaticMolecularDynamics:
     RingPolymerSimulation,
     DynamicsMethods,
     DynamicsUtils,
-    Calculators
+    Calculators,
+    natoms, nbeads, ndofs
 
 include("mdef_baoab.jl")
 include("bcocb.jl")

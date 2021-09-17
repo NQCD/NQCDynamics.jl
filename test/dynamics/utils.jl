@@ -2,8 +2,8 @@ using FiniteDiff
 using ComponentArrays: ComponentVector
 using NonadiabaticMolecularDynamics: DynamicsMethods, DynamicsUtils
 
-get_blank(sim::Simulation) = randn(sim.DoFs, length(sim.atoms))
-get_blank(sim::RingPolymerSimulation) = RingPolymerArray(randn(sim.DoFs, length(sim.atoms), length(sim.beads)))
+get_blank(sim::Simulation) = randn(size(sim))
+get_blank(sim::RingPolymerSimulation) = RingPolymerArray(randn(size(sim)))
 
 function test_motion!(sim)
     f(x) = NonadiabaticMolecularDynamics.evaluate_hamiltonian(sim, x)

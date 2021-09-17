@@ -5,7 +5,7 @@ using OrdinaryDiffEq
 
 atoms = Atoms([:H])
 model = NonadiabaticModels.Harmonic()
-sim = Simulation(atoms, model; DoFs=1)
+sim = Simulation(atoms, model)
 
 positions = [randn(1, length(atoms)) for i=1:10]
 velocities = [randn(1, length(atoms)) for i=1:10]
@@ -60,7 +60,7 @@ end
 end
 
 @testset "OutputDiabaticPopulation" begin
-    sim = Simulation{FSSH}(atoms, NonadiabaticModels.TullyModelTwo(); DoFs=1)
+    sim = Simulation{FSSH}(atoms, NonadiabaticModels.TullyModelTwo())
     output = Ensembles.OutputDiabaticPopulation(sim)
 end
 

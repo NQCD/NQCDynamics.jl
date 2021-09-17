@@ -10,10 +10,10 @@ Random.seed!(1)
 
 @test MappingVariableMethods.NRPMD{Float64}(10) isa MappingVariableMethods.NRPMD
 atoms = Atoms(1.0)
-sim = RingPolymerSimulation{NRPMD}(atoms, NonadiabaticModels.DoubleWell(), 10; DoFs=1, temperature=1e-1)
+sim = RingPolymerSimulation{NRPMD}(atoms, NonadiabaticModels.DoubleWell(), 10; temperature=1e-1)
 
-v = zeros(sim.DoFs, length(sim.atoms), length(sim.beads))
-r = randn(sim.DoFs, length(sim.atoms), length(sim.beads))
+v = zeros(size(sim))
+r = randn(size(sim))
 u = DynamicsVariables(sim, v, r, 2)
 
 @testset "get_population" begin

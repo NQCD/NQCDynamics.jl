@@ -2,7 +2,7 @@ using UnPack: @unpack
 using MuladdMacro: @muladd
 using DiffEqBase: @..
 using LinearAlgebra: Diagonal
-using NonadiabaticMolecularDynamics: RingPolymers
+using NonadiabaticMolecularDynamics: RingPolymers, ndofs
 
 export BCOCB
 
@@ -47,7 +47,7 @@ struct MDEFCache{flatV,G,N,C,M,S}
 end
 
 function FrictionCache(sim::RingPolymerSimulation{<:DynamicsMethods.ClassicalMethods.MDEF}, dt) 
-    DoFs = sim.DoFs
+    DoFs = ndofs(sim)
     atoms = length(sim.atoms)
     beads = length(sim.beads)
 
@@ -79,7 +79,7 @@ function FrictionCache(sim::RingPolymerSimulation{<:DynamicsMethods.ClassicalMet
     γ = [γ0, 2sqrt.(2sim.beads.normal_mode_springs[2:end])...]
     c1 = exp.(-dt.*γ)
     c2 = sqrt.(1 .- c1.^2)
-    sqrtmass = 1 ./ repeat(sqrt.(sim.atoms.masses'), sim.DoFs)
+    sqrtmass = 1 ./ repeat(sqrt.(sim.atoms.masses'), ndofs(sim))
     σ = zero(sqrtmass)
 
     LangevinCache(c1, c2, sqrtmass, σ)
