@@ -1,17 +1,13 @@
 using Test
 using NonadiabaticMolecularDynamics
-using NonadiabaticMolecularDynamics:
-    RingPolymerParameters,
-    transform_from_normal_modes!,
-    transform_to_normal_modes!
 using LinearAlgebra
 
-@test_nowarn RingPolymerParameters{Float64}(10, 1, 1)
-@test_nowarn RingPolymerParameters{Float64}(1, 1, 1)
-@test_nowarn RingPolymerParameters{Float64}(2, 1, 1)
-rp = RingPolymerParameters{Float64}(10, 1.0, vcat(fill(:C, 3), fill(:H, 5)), [:H])
+@test_nowarn RingPolymers.RingPolymerParameters{Float64}(10, 1, 1)
+@test_nowarn RingPolymers.RingPolymerParameters{Float64}(1, 1, 1)
+@test_nowarn RingPolymers.RingPolymerParameters{Float64}(2, 1, 1)
+rp = RingPolymers.RingPolymerParameters{Float64}(10, 1.0, vcat(fill(:C, 3), fill(:H, 5)), [:H])
 @test rp.quantum_atoms == [4, 5, 6, 7, 8]
-rp = RingPolymerParameters{Float64}(10, 1.0, 10)
+rp = RingPolymers.RingPolymerParameters{Float64}(10, 1.0, 10)
 @test rp.quantum_atoms == collect(1:10)
 
 @test sort(eigvals(rp.springs)) ≈ sort(rp.normal_mode_springs)
@@ -33,11 +29,11 @@ S = sim.beads.springs
 R = rand(3, 11, 10)
 R_original = copy(R)
 @test R == R_original
-transform_to_normal_modes!(sim.beads, R)
+RingPolymers.transform_to_normal_modes!(sim.beads, R)
 @test !(R ≈ R_original)
-transform_from_normal_modes!(sim.beads, R)
+RingPolymers.transform_from_normal_modes!(sim.beads, R)
 @test R ≈ R_original
 
-half = NonadiabaticMolecularDynamics.cayley_propagator(sim.beads, 0.1; half=true)
-full = NonadiabaticMolecularDynamics.cayley_propagator(sim.beads, 0.1; half=false)
+half = RingPolymers.cayley_propagator(sim.beads, 0.1; half=true)
+full = RingPolymers.cayley_propagator(sim.beads, 0.1; half=false)
 @test full ≈ half .* half

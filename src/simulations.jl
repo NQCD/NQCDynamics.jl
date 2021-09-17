@@ -39,9 +39,9 @@ function RingPolymerSimulation(DoFs::Integer, temperature, cell::AbstractCell,
         n_beads::Integer, quantum_nuclei::Vector{Symbol}) where {M,S,T}
         
     if isempty(quantum_nuclei)
-        beads = RingPolymerParameters{T}(n_beads, get_temperature(temperature), length(atoms))
+        beads = RingPolymers.RingPolymerParameters{T}(n_beads, get_temperature(temperature), length(atoms))
     else
-        beads = RingPolymerParameters{T}(n_beads, get_temperature(temperature), atoms.types, quantum_nuclei)
+        beads = RingPolymers.RingPolymerParameters{T}(n_beads, get_temperature(temperature), atoms.types, quantum_nuclei)
     end
     
     calc = Calculator(model, DoFs, length(atoms), n_beads, T)

@@ -29,7 +29,7 @@ end
 
 function OrdinaryDiffEq.alg_cache(::MInt,u,rate_prototype,::Type{uEltypeNoUnits},::Type{uBottomEltypeNoUnits},::Type{tTypeNoUnits},uprev,uprev2,f,t,dt,reltol,p,calck,::Val{true}) where {uEltypeNoUnits,uBottomEltypeNoUnits,tTypeNoUnits}
     tmp = zero(u)
-    cayley = NonadiabaticMolecularDynamics.cayley_propagator(p.beads, dt; half=true)
+    cayley = RingPolymers.cayley_propagator(p.beads, dt; half=true)
     MIntCache(u, uprev, tmp, cayley)
 end
 
@@ -43,9 +43,9 @@ function OrdinaryDiffEq.initialize!(_, ::MIntCache) end
 
     copyto!(u, uprev)
     
-    transform_to_normal_modes!(p.beads, u)
+    RingPolymers.transform_to_normal_modes!(p.beads, u)
     step_C!(DynamicsUtils.get_velocities(u), DynamicsUtils.get_positions(u), cayley)
-    transform_from_normal_modes!(p.beads, u)
+    RingPolymers.transform_from_normal_modes!(p.beads, u)
 
     Calculators.update_electronics!(calc, DynamicsUtils.get_positions(u))
 
@@ -70,9 +70,9 @@ function OrdinaryDiffEq.initialize!(_, ::MIntCache) end
     end
 
 
-    transform_to_normal_modes!(p.beads, u)
+    RingPolymers.transform_to_normal_modes!(p.beads, u)
     step_C!(DynamicsUtils.get_velocities(u), DynamicsUtils.get_positions(u), cayley)
-    transform_from_normal_modes!(p.beads, u)
+    RingPolymers.transform_from_normal_modes!(p.beads, u)
 
 end
 

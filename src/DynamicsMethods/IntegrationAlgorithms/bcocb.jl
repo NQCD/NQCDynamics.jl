@@ -2,9 +2,7 @@ using UnPack: @unpack
 using MuladdMacro: @muladd
 using DiffEqBase: @..
 using LinearAlgebra: Diagonal
-using NonadiabaticMolecularDynamics:
-    transform_from_normal_modes!,
-    transform_to_normal_modes!
+using NonadiabaticMolecularDynamics: RingPolymers
 
 export BCOCB
 
@@ -28,7 +26,7 @@ function StochasticDiffEq.alg_cache(::BCOCB,prob,u,ΔW,ΔZ,p,rate_prototype,nois
     vtmp = zero(rtmp)
     k = zeros(size(rtmp))
 
-    cayley = NonadiabaticMolecularDynamics.cayley_propagator(p.beads, dt; half=true)
+    cayley = RingPolymers.cayley_propagator(p.beads, dt; half=true)
     half = uEltypeNoUnits(1//2)
 
     friction = FrictionCache(p, dt)
@@ -105,8 +103,8 @@ end
     step_B!(vtmp, v1, half*dt, k)
     @.. rtmp = r1
 
-    transform_to_normal_modes!(p.beads, rtmp)
-    transform_to_normal_modes!(p.beads, vtmp)
+    RingPolymers.transform_to_normal_modes!(p.beads, rtmp)
+    RingPolymers.transform_to_normal_modes!(p.beads, vtmp)
 
     step_C!(vtmp, rtmp, cayley)
 
@@ -114,8 +112,8 @@ end
 
     step_C!(vtmp, rtmp, cayley)
 
-    transform_from_normal_modes!(p.beads, rtmp)
-    transform_from_normal_modes!(p.beads, vtmp)
+    RingPolymers.transform_from_normal_modes!(p.beads, rtmp)
+    RingPolymers.transform_from_normal_modes!(p.beads, vtmp)
 
     @.. u.x[2] = rtmp
 
@@ -123,7 +121,7 @@ end
     step_B!(u.x[1], vtmp, half*dt, k)
 end
 
-function step_C!(v::R, r::R, cayley::Vector{<:Matrix}) where {R<:RingPolymerArray}
+function step_C!(v::R, r::R, cayley::Vector{<:Matrix}) where {R<:RingPolymers.RingPolymerArray}
     for i in axes(r, 3)
         for j in v.quantum_atoms
             for k in axes(r, 1)
@@ -178,7 +176,7 @@ function step_O!(friction::MDEFCache, integrator, v, r, t)
 
 end
 
-function step_O!(friction::LangevinCache, integrator, v::R, r::R, t) where {R<:RingPolymerArray}
+function step_O!(friction::LangevinCache, integrator, v::R, r::R, t) where {R<:RingPolymers.RingPolymerArray}
     @unpack W, p, dt, sqdt = integrator
     @unpack c1, c2, sqrtmass, σ = friction
 

@@ -9,7 +9,7 @@ function evaluate_hamiltonian(sim::AbstractSimulation, v, r)
 end
 
 evaluate_kinetic_energy(masses, v) = sum(masses' .* v.^2)/2
-function evaluate_kinetic_energy(masses, v::RingPolymerArray)
+function evaluate_kinetic_energy(masses, v::RingPolymers.RingPolymerArray)
     E = 0.0
     @views for i in axes(v, 3)
         E += evaluate_kinetic_energy(masses, v[:,:,i])
@@ -27,11 +27,11 @@ function evaluate_potential_energy(sim::RingPolymerSimulation, R)
     sum(sim.calculator.potential)[1] + get_spring_energy(sim, R)
 end
 
-function evaluate_potential_energy(sim::RingPolymerSimulation, R::RingPolymerArray)
+function evaluate_potential_energy(sim::RingPolymerSimulation, R::RingPolymers.RingPolymerArray)
     if R.normal
-        transform!(sim.beads, R)
+        RingPolymers.transform!(sim.beads, R)
         potential = evaluate_potential_energy(sim, R.data)
-        transform!(sim.beads, R)
+        RingPolymers.transform!(sim.beads, R)
     else
         potential = evaluate_potential_energy(sim, R.data)
     end
