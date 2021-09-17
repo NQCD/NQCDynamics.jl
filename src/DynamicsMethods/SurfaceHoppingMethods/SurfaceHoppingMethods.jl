@@ -15,7 +15,8 @@ using NonadiabaticMolecularDynamics:
     DynamicsMethods,
     DynamicsUtils,
     Estimators
-using NonadiabaticModels: NonadiabaticModels
+using NonadiabaticModels: NonadiabaticModels, Model
+using NonadiabaticDynamicsBase: Atoms
 
 mutable struct SurfaceHoppingVariables{T,A,Axes,S} <: DEDataArrays.DEDataVector{T}
     x::ComponentVector{T,A,Axes}

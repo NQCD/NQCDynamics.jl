@@ -12,7 +12,8 @@ using NonadiabaticMolecularDynamics:
     DynamicsMethods,
     DynamicsUtils,
     Estimators
-using NonadiabaticModels: NonadiabaticModels
+using NonadiabaticModels: NonadiabaticModels, Model
+using NonadiabaticDynamicsBase: Atoms
 
 """
 Abstract type for Ehrenfest method.

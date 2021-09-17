@@ -4,6 +4,10 @@ using StatsBase: sample, Weights
 using NonadiabaticMolecularDynamics.Calculators: RingPolymerDiabaticCalculator
 using NonadiabaticMolecularDynamics: RingPolymerSimulation, get_centroid
 
+function RingPolymerSimulation{FSSH}(atoms::Atoms{S,T}, model::Model, n_beads::Integer; kwargs...) where {S,T}
+    RingPolymerSimulation(atoms, model, FSSH{T}(NonadiabaticModels.nstates(model)), n_beads; kwargs...)
+end
+
 function DynamicsMethods.DynamicsVariables(sim::RingPolymerSimulation{<:SurfaceHopping}, v, r, state::Integer; type=:diabatic)
     n_states = NonadiabaticModels.nstates(sim.calculator.model)
     if type == :diabatic

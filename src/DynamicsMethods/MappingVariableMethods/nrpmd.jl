@@ -13,6 +13,10 @@ struct NRPMD{T} <: DynamicsMethods.Method
     end
 end
 
+function NonadiabaticMolecularDynamics.RingPolymerSimulation{NRPMD}(atoms::Atoms{S,T}, model::Model, n_beads::Integer; kwargs...) where {S,T}
+    NonadiabaticMolecularDynamics.RingPolymerSimulation(atoms, model, NRPMD{T}(nstates(model)), n_beads; kwargs...)
+end
+
 function DynamicsMethods.DynamicsVariables(sim::RingPolymerSimulation{<:NRPMD}, v, r, state::Integer; type=:diabatic)
     n_states = NonadiabaticModels.nstates(sim.calculator.model)
     n_beads = length(sim.beads)

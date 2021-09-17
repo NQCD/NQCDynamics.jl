@@ -5,6 +5,20 @@ A singleton type that simply labels the parent `AbstractSimulation` as classical
 """
 struct Classical <: DynamicsMethods.Method end
 
+function NonadiabaticMolecularDynamics.Simulation{Classical}(atoms::Atoms, model::Model; kwargs...)
+    NonadiabaticMolecularDynamics.Simulation(atoms, model, Classical(); kwargs...)
+end
+function NonadiabaticMolecularDynamics.RingPolymerSimulation{Classical}(atoms::Atoms, model::Model, n_beads::Integer; kwargs...)
+    NonadiabaticMolecularDynamics.RingPolymerSimulation(atoms, model, Classical(), n_beads::Integer; kwargs...)
+end
+
+function NonadiabaticMolecularDynamics.Simulation(atoms::Atoms, model::Model; kwargs...)
+    NonadiabaticMolecularDynamics.Simulation{Classical}(atoms, model; kwargs...)
+end
+function NonadiabaticMolecularDynamics.RingPolymerSimulation(atoms::Atoms, model::Model, n_beads::Integer; kwargs...)
+    NonadiabaticMolecularDynamics.RingPolymerSimulation{Classical}(atoms, model, n_beads; kwargs...)
+end
+
 """
     motion!(du, u, sim::AbstractSimulation{<:Classical}, t)
     
