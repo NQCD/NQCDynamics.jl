@@ -3,8 +3,6 @@ using MuladdMacro: @muladd
 using DiffEqBase: @..
 using LinearAlgebra: Diagonal
 
-using ..Dynamics: ClassicalMethods
-
 export BCOCB
 
 struct BCOCB <: StochasticDiffEq.StochasticDiffEqAlgorithm end
@@ -47,7 +45,7 @@ struct MDEFCache{flatV,G,N,C,M,S}
     σ::S
 end
 
-function FrictionCache(sim::RingPolymerSimulation{<:ClassicalMethods.MDEF}, dt) 
+function FrictionCache(sim::RingPolymerSimulation{<:DynamicsMethods.ClassicalMethods.MDEF}, dt) 
     DoFs = sim.DoFs
     atoms = length(sim.atoms)
     beads = length(sim.beads)
@@ -75,7 +73,7 @@ struct LangevinCache{C,M,S}
     σ::S
 end
 
-function FrictionCache(sim::RingPolymerSimulation{<:ClassicalMethods.ThermalLangevin}, dt)
+function FrictionCache(sim::RingPolymerSimulation{<:DynamicsMethods.ClassicalMethods.ThermalLangevin}, dt)
     γ0 = sim.method.γ
     γ = [γ0, 2sqrt.(2sim.beads.normal_mode_springs[2:end])...]
     c1 = exp.(-dt.*γ)
@@ -194,5 +192,5 @@ function step_O!(friction::LangevinCache, integrator, v::R, r::R, t) where {R<:R
     end
 end
 
-Dynamics.select_algorithm(::RingPolymerSimulation{<:Dynamics.ClassicalMethods.AbstractMDEF}) = BCOCB()
-Dynamics.select_algorithm(::RingPolymerSimulation{<:Dynamics.ClassicalMethods.ThermalLangevin}) = BCOCB()
+DynamicsMethods.select_algorithm(::RingPolymerSimulation{<:DynamicsMethods.ClassicalMethods.AbstractMDEF}) = BCOCB()
+DynamicsMethods.select_algorithm(::RingPolymerSimulation{<:DynamicsMethods.ClassicalMethods.ThermalLangevin}) = BCOCB()

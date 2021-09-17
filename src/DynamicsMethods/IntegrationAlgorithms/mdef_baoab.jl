@@ -6,7 +6,7 @@ using StochasticDiffEq: StochasticDiffEq
 using LinearAlgebra: LAPACK, diagm, diag, mul!, diagind
 using RecursiveArrayTools: ArrayPartition
 
-using ....NonadiabaticMolecularDynamics: get_temperature
+using NonadiabaticMolecularDynamics: get_temperature
 
 export MDEF_BAOAB
 
@@ -158,4 +158,4 @@ function step_O!(cache, integrator)
     copyto!(dutmp, flatdutmp)
 end
 
-Dynamics.select_algorithm(::Simulation{<:Dynamics.ClassicalMethods.AbstractMDEF}) = MDEF_BAOAB()
+DynamicsMethods.select_algorithm(::Simulation{<:DynamicsMethods.ClassicalMethods.AbstractMDEF}) = MDEF_BAOAB()

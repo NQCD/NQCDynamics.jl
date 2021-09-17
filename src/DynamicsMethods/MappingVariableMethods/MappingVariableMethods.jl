@@ -1,12 +1,15 @@
 
 module MappingVariableMethods
 
-using ....NonadiabaticMolecularDynamics:
+using NonadiabaticMolecularDynamics:
     NonadiabaticMolecularDynamics,
     AbstractSimulation,
     Simulation,
-    RingPolymerSimulation
-using ..Dynamics: Dynamics
+    RingPolymerSimulation,
+    DynamicsMethods,
+    DynamicsUtils,
+    Calculators,
+    Estimators
 
 include("nrpmd.jl")
 export NRPMD

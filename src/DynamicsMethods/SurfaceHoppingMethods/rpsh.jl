@@ -4,7 +4,7 @@ using StatsBase: sample, Weights
 using NonadiabaticMolecularDynamics.Calculators: RingPolymerDiabaticCalculator
 using NonadiabaticMolecularDynamics: RingPolymerSimulation
 
-function Dynamics.DynamicsVariables(sim::RingPolymerSimulation{<:SurfaceHopping}, v, r, state::Integer; type=:diabatic)
+function DynamicsUtils.DynamicsVariables(sim::RingPolymerSimulation{<:SurfaceHopping}, v, r, state::Integer; type=:diabatic)
     n_states = sim.calculator.model.n_states
     if type == :diabatic
         Calculators.evaluate_centroid_potential!(sim.calculator, r)
@@ -31,8 +31,8 @@ function acceleration!(dv, v, r, sim::RingPolymerSimulation{<:FSSH}, t, state)
 end
 
 function evaluate_hopping_probability!(sim::RingPolymerSimulation{<:FSSH}, u, dt)
-    v = get_centroid(Dynamics.get_velocities(u))
-    σ = Dynamics.get_quantum_subsystem(u)
+    v = get_centroid(DynamicsUtils.get_velocities(u))
+    σ = DynamicsUtils.get_quantum_subsystem(u)
     s = sim.method.state
     d = sim.calculator.centroid_nonadiabatic_coupling
 
@@ -42,8 +42,8 @@ end
 function rescale_velocity!(sim::RingPolymerSimulation{<:FSSH}, u)::Bool
     old_state = sim.method.state
     new_state = sim.method.new_state
-    velocity = get_velocities(u)
-    centroid_velocity = get_centroid(get_velocities(u))
+    velocity = DynamicsUtils.get_velocities(u)
+    centroid_velocity = get_centroid(DynamicsUtils.get_velocities(u))
 
     c = calculate_potential_energy_change(sim.calculator, new_state, old_state)
     a, b = evaluate_a_and_b(sim, centroid_velocity, new_state, old_state)
@@ -84,10 +84,10 @@ function calculate_potential_energy_change(calc::RingPolymerDiabaticCalculator, 
 end
 
 function Estimators.diabatic_population(sim::RingPolymerSimulation{<:FSSH}, u)
-    Calculators.evaluate_centroid_potential!(sim.calculator, get_positions(u))
+    Calculators.evaluate_centroid_potential!(sim.calculator, DynamicsUtils.get_positions(u))
     U = eigvecs(sim.calculator.centroid_potential)
 
-    σ = copy(Dynamics.get_quantum_subsystem(u).re)
+    σ = copy(DynamicsUtils.get_quantum_subsystem(u).re)
     σ[diagind(σ)] .= 0
     σ[u.state, u.state] = 1
 
@@ -95,9 +95,9 @@ function Estimators.diabatic_population(sim::RingPolymerSimulation{<:FSSH}, u)
 end
 
 function NonadiabaticMolecularDynamics.evaluate_hamiltonian(sim::RingPolymerSimulation{<:FSSH}, u)
-    k = NonadiabaticMolecularDynamics.evaluate_kinetic_energy(sim.atoms.masses, get_velocities(u))
-    Calculators.evaluate_potential!(sim.calculator, get_positions(u))
+    k = NonadiabaticMolecularDynamics.evaluate_kinetic_energy(sim.atoms.masses, DynamicsUtils.get_velocities(u))
+    Calculators.evaluate_potential!(sim.calculator, DynamicsUtils.get_positions(u))
     Calculators.eigen!(sim.calculator)
     p = sum([bead[u.state] for bead in sim.calculator.eigenvalues])
-    return k + p + NonadiabaticMolecularDynamics.get_spring_energy(sim, get_positions(u))
+    return k + p + NonadiabaticMolecularDynamics.get_spring_energy(sim, DynamicsUtils.get_positions(u))
 end

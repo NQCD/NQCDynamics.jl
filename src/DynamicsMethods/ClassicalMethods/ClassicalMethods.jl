@@ -4,8 +4,9 @@ module ClassicalMethods
 using ....NonadiabaticMolecularDynamics:
     AbstractSimulation,
     Simulation,
-    RingPolymerSimulation
-using ..Dynamics: Dynamics, DynamicsUtils
+    RingPolymerSimulation,
+    DynamicsUtils,
+    DynamicsMethods
 using NonadiabaticMolecularDynamics.Calculators: Calculators
 
 include("classical.jl")

@@ -10,36 +10,33 @@ using NonadiabaticMolecularDynamics:
     Simulation,
     RingPolymerSimulation,
     RingPolymerArray,
-    Dynamics
-using NonadiabaticMolecularDynamics.Dynamics:
-    ClassicalMethods,
-    SurfaceHoppingMethods,
-    EhrenfestMethods,
-    MappingVariableMethods
+    DynamicsUtils,
+    DynamicsMethods
+
 using ..InitialConditions: DynamicalDistribution
 
-function select_u0(sim::Simulation{<:Union{ClassicalMethods.Classical, ClassicalMethods.AbstractMDEF}}, v, r, state, type)
-    Dynamics.DynamicsVariables(sim, v, r)
+function select_u0(sim::Simulation{<:Union{DynamicsMethods.ClassicalMethods.Classical, DynamicsMethods.ClassicalMethods.AbstractMDEF}}, v, r, state, type)
+    DynamicsMethods.DynamicsVariables(sim, v, r)
 end
 
-function select_u0(sim::RingPolymerSimulation{<:ClassicalMethods.ThermalLangevin}, v, r, state, type)
-    Dynamics.DynamicsVariables(sim, RingPolymerArray(v), RingPolymerArray(r))
+function select_u0(sim::RingPolymerSimulation{<:DynamicsMethods.ClassicalMethods.ThermalLangevin}, v, r, state, type)
+    DynamicsMethods.DynamicsVariables(sim, RingPolymerArray(v), RingPolymerArray(r))
 end
 
-function select_u0(sim::AbstractSimulation{<:SurfaceHoppingMethods.FSSH}, v, r, state, type)
-    return Dynamics.DynamicsVariables(sim, v, r, state; type=type)
+function select_u0(sim::AbstractSimulation{<:DynamicsMethods.SurfaceHoppingMethods.FSSH}, v, r, state, type)
+    DynamicsMethods.DynamicsVariables(sim, v, r, state; type=type)
 end
 
-function select_u0(sim::AbstractSimulation{<:EhrenfestMethods.Ehrenfest}, v, r, state, type)
-    return Dynamics.DynamicsVariables(sim, v, r, state; type=type)
+function select_u0(sim::AbstractSimulation{<:DynamicsMethods.EhrenfestMethods.Ehrenfest}, v, r, state, type)
+    DynamicsMethods.DynamicsVariables(sim, v, r, state; type=type)
 end
 
-function select_u0(sim::RingPolymerSimulation{<:MappingVariableMethods.NRPMD}, v, r, state, type)
-    Dynamics.DynamicsVariables(sim, v, r, state; type=type)
+function select_u0(sim::RingPolymerSimulation{<:DynamicsMethods.MappingVariableMethods.NRPMD}, v, r, state, type)
+    DynamicsMethods.DynamicsVariables(sim, v, r, state; type=type)
 end
 
-function select_u0(sim::AbstractSimulation{<:SurfaceHoppingMethods.IESH}, v, r, state, type)
-    Dynamics.DynamicsVariables(sim, v, r)
+function select_u0(sim::AbstractSimulation{<:DynamicsMethods.SurfaceHoppingMethods.IESH}, v, r, state, type)
+    DynamicsMethods.DynamicsVariables(sim, v, r)
 end
 
 include("selections.jl")
@@ -53,14 +50,14 @@ function run_ensemble(
     output=(sol,i)->(sol,false),
     reduction=(u,data,I)->(append!(u,data),false),
     ensemble_algorithm=EnsembleThreads(),
-    algorithm=Dynamics.select_algorithm(sim),
+    algorithm=DynamicsMethods.select_algorithm(sim),
     kwargs...
     )
 
     stripped_kwargs = NonadiabaticDynamicsBase.austrip_kwargs(;kwargs...)
 
     u0 = select_u0(sim, rand(distribution)..., distribution.state, distribution.type)
-    problem = Dynamics.create_problem(u0, austrip.(tspan), sim)
+    problem = DynamicsMethods.create_problem(u0, austrip.(tspan), sim)
 
     if hasfield(typeof(reduction), :u_init)
         u_init = reduction.u_init
@@ -92,7 +89,7 @@ function run_ensemble_standard_output(sim::AbstractSimulation, tspan, distributi
     stripped_kwargs = austrip_kwargs(;kwargs...)
     saveat = austrip.(saveat)
 
-    problem = Dynamics.create_problem(
+    problem = DynamicsMethods.create_problem(
         select_u0(sim, rand(distribution)...,
             distribution.state, distribution.type),
         austrip.(tspan),
@@ -104,11 +101,11 @@ function run_ensemble_standard_output(sim::AbstractSimulation, tspan, distributi
         selection = RandomSelection(distribution)
     end
 
-    new_selection = SelectWithCallbacks(selection, Dynamics.get_callbacks(sim), output, kwargs[:trajectories], saveat=saveat)
+    new_selection = SelectWithCallbacks(selection, DynamicsMethods.get_callbacks(sim), output, kwargs[:trajectories], saveat=saveat)
 
     ensemble_problem = EnsembleProblem(problem, prob_func=new_selection)
 
-    solve(ensemble_problem, Dynamics.select_algorithm(sim), ensemble_algorithm; saveat=saveat, stripped_kwargs...)
+    solve(ensemble_problem, DynamicsMethods.select_algorithm(sim), ensemble_algorithm; saveat=saveat, stripped_kwargs...)
     [Table(t=vals.t, vals.saveval) for vals in new_selection.values]
 end
 

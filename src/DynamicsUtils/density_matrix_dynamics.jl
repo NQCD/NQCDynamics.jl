@@ -1,6 +1,7 @@
 using StructArrays: StructArray
-using ComponentArrays: ComponentVector
+using ComponentArrays: ComponentArrays
 using LinearAlgebra: diagm, mul!
+using NonadiabaticMolecularDynamics: get_centroid
 
 function calculate_density_matrix_propagator!(sim::Simulation, v)
     V = sim.method.density_propagator
@@ -30,5 +31,5 @@ function commutator!(out, A, B, tmp)
     return nothing
 end
 
-Dynamics.get_quantum_subsystem(u::ComponentVector{T}) where {T} =
+get_quantum_subsystem(u::ComponentArrays.ComponentVector{T}) where {T} =
     StructArray{Complex{T}}((u.σreal, u.σimag))
