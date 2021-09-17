@@ -81,8 +81,8 @@ end
     MetropolisHastings.propose_centroid_move!(sim, monte_carlo, Rᵢ, Rₚ, 2)
     @test mean(Rₚ[:,1,:]) ≈ mean(Rᵢ[:,1,:]) # Check fixed atom does not move
     
-    transform_to_normal_modes!(sim.beads, Rₚ)
-    transform_to_normal_modes!(sim.beads, Rᵢ)
+    RingPolymers.transform_to_normal_modes!(sim.beads, Rₚ)
+    RingPolymers.transform_to_normal_modes!(sim.beads, Rᵢ)
     @test !(Rₚ[:,:,1] ≈ Rᵢ[:,:,1]) # Test centroid has moved
     @test Rₚ[:,1:2,2:end] ≈ Rᵢ[:,1:2,2:end] # Test only centroid moves for quantum atoms
 end

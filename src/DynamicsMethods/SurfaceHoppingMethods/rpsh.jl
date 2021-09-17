@@ -2,7 +2,7 @@ using LinearAlgebra: eigvecs, diag, diagind, dot
 using StatsBase: sample, Weights
 
 using NonadiabaticMolecularDynamics.Calculators: RingPolymerDiabaticCalculator
-using NonadiabaticMolecularDynamics: RingPolymerSimulation, get_centroid
+using NonadiabaticMolecularDynamics: RingPolymerSimulation, RingPolymers
 
 function RingPolymerSimulation{FSSH}(atoms::Atoms{S,T}, model::Model, n_beads::Integer; kwargs...) where {S,T}
     RingPolymerSimulation(atoms, model, FSSH{T}(NonadiabaticModels.nstates(model)), n_beads; kwargs...)
@@ -35,7 +35,7 @@ function acceleration!(dv, v, r, sim::RingPolymerSimulation{<:FSSH}, t, state)
 end
 
 function evaluate_hopping_probability!(sim::RingPolymerSimulation{<:FSSH}, u, dt)
-    v = get_centroid(DynamicsUtils.get_velocities(u))
+    v = RingPolymers.get_centroid(DynamicsUtils.get_velocities(u))
     σ = DynamicsUtils.get_quantum_subsystem(u)
     s = sim.method.state
     d = sim.calculator.centroid_nonadiabatic_coupling
@@ -47,7 +47,7 @@ function rescale_velocity!(sim::RingPolymerSimulation{<:FSSH}, u)::Bool
     old_state = sim.method.state
     new_state = sim.method.new_state
     velocity = DynamicsUtils.get_velocities(u)
-    centroid_velocity = get_centroid(DynamicsUtils.get_velocities(u))
+    centroid_velocity = RingPolymers.get_centroid(DynamicsUtils.get_velocities(u))
 
     c = calculate_potential_energy_change(sim.calculator, new_state, old_state)
     a, b = evaluate_a_and_b(sim, centroid_velocity, new_state, old_state)

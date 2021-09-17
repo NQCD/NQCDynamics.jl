@@ -1,7 +1,7 @@
 using StructArrays: StructArray
 using ComponentArrays: ComponentArrays
 using LinearAlgebra: diagm, mul!
-using NonadiabaticMolecularDynamics: get_centroid
+using NonadiabaticMolecularDynamics: RingPolymers
 
 function calculate_density_matrix_propagator!(sim::Simulation, v)
     V = sim.method.density_propagator
@@ -15,7 +15,7 @@ end
 
 function calculate_density_matrix_propagator!(sim::RingPolymerSimulation, v)
     V = sim.method.density_propagator
-    centroid_v = get_centroid(v)
+    centroid_v = RingPolymers.get_centroid(v)
 
     V .= diagm(sim.calculator.centroid_eigenvalues)
     for I in eachindex(centroid_v)

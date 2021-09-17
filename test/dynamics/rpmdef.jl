@@ -31,8 +31,8 @@ prob = DynamicsMethods.create_problem(ComponentVector(v=v,r=r), (0.0, 0.5), sim)
 
 @testset "step_C!" begin
     dt = 0.5
-    c = NonadiabaticMolecularDynamics.cayley_propagator(sim.beads, dt; half=true)
-    ω_k = NonadiabaticMolecularDynamics.get_matsubara_frequencies(length(sim.beads), sim.beads.ω_n)
+    c = RingPolymers.cayley_propagator(sim.beads, dt; half=true)
+    ω_k = RingPolymers.get_matsubara_frequencies(length(sim.beads), sim.beads.ω_n)
     vbefore = copy(v)
     rbefore = copy(r)
     IntegrationAlgorithms.step_C!(v,r,c)

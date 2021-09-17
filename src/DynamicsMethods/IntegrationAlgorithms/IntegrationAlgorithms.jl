@@ -6,7 +6,6 @@ using ....NonadiabaticMolecularDynamics:
     AbstractSimulation,
     Simulation,
     RingPolymerSimulation,
-    RingPolymerArray,
     DynamicsMethods,
     DynamicsUtils,
     Calculators

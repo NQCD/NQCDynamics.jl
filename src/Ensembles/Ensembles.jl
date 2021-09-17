@@ -9,9 +9,9 @@ using NonadiabaticMolecularDynamics:
     AbstractSimulation,
     Simulation,
     RingPolymerSimulation,
-    RingPolymerArray,
     DynamicsUtils,
-    DynamicsMethods
+    DynamicsMethods,
+    RingPolymers
 
 using ..InitialConditions: DynamicalDistribution
 
@@ -20,7 +20,7 @@ function select_u0(sim::Simulation{<:Union{DynamicsMethods.ClassicalMethods.Clas
 end
 
 function select_u0(sim::RingPolymerSimulation{<:DynamicsMethods.ClassicalMethods.ThermalLangevin}, v, r, state, type)
-    DynamicsMethods.DynamicsVariables(sim, RingPolymerArray(v), RingPolymerArray(r))
+    DynamicsMethods.DynamicsVariables(sim, RingPolymers.RingPolymerArray(v), RingPolymers.RingPolymerArray(r))
 end
 
 function select_u0(sim::AbstractSimulation{<:DynamicsMethods.SurfaceHoppingMethods.FSSH}, v, r, state, type)

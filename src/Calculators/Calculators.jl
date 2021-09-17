@@ -23,7 +23,7 @@ using NonadiabaticModels.AdiabaticModels: AdiabaticModel
 using NonadiabaticModels.DiabaticModels: DiabaticModel, DiabaticFrictionModel
 using NonadiabaticModels.FrictionModels: AdiabaticFrictionModel
 
-using ..NonadiabaticMolecularDynamics: get_centroid
+using NonadiabaticMolecularDynamics: RingPolymers
 
 """
     AbstractCalculator{M<:Model}
@@ -162,7 +162,7 @@ function evaluate_potential!(calc::AbstractCalculator, R::AbstractArray{T,3}) wh
 end
 
 function evaluate_centroid_potential!(calc::AbstractCalculator, R::AbstractArray{T,3}) where {T}
-    calc.centroid_potential = NonadiabaticModels.potential(calc.model, get_centroid(R))
+    calc.centroid_potential = NonadiabaticModels.potential(calc.model, RingPolymers.get_centroid(R))
 end
 
 function evaluate_derivative!(calc::AbstractCalculator, R)
@@ -176,7 +176,7 @@ function evaluate_derivative!(calc::AbstractCalculator, R::AbstractArray{T,3}) w
 end
 
 function evaluate_centroid_derivative!(calc::AbstractCalculator, R::AbstractArray{T,3}) where {T}
-    NonadiabaticModels.derivative!(calc.model, calc.centroid_derivative, get_centroid(R))
+    NonadiabaticModels.derivative!(calc.model, calc.centroid_derivative, RingPolymers.get_centroid(R))
 end
 
 function eigen!(calc::DiabaticCalculator)

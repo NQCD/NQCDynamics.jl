@@ -1,5 +1,7 @@
 using LinearAlgebra: LinearAlgebra, Symmetric, SymTridiagonal, I
 
+using NonadiabaticDynamicsBase: NonadiabaticDynamicsBase, PeriodicCell, InfiniteCell
+
 struct RingPolymerParameters{T<:AbstractFloat}
     n_beads::Int
     ω_n::T
@@ -100,18 +102,6 @@ function transform_from_normal_modes!(p::RingPolymerParameters, R::AbstractArray
     end
 end
 
-function transform_from_normal_modes!(p::RingPolymerParameters, u)
-    transform_from_normal_modes!(p, DynamicsUtils.get_velocities(u))
-    transform_from_normal_modes!(p, DynamicsUtils.get_positions(u))
-    return nothing
-end
-
-function transform_to_normal_modes!(p::RingPolymerParameters, u)
-    transform_to_normal_modes!(p, DynamicsUtils.get_velocities(u))
-    transform_to_normal_modes!(p, DynamicsUtils.get_positions(u))
-    return nothing
-end
-
 function transform!(p::RingPolymerParameters, A::RingPolymerArray)
     if A.normal
         transform_from_normal_modes!(p, A)
@@ -159,7 +149,7 @@ The modification by a factor of ``\\sqrt{N}`` is to convert to real space centro
 function NonadiabaticDynamicsBase.apply_cell_boundaries!(cell::PeriodicCell, R::AbstractArray{T,3}, beads::RingPolymerParameters) where {T}
     transform_to_normal_modes!(beads, R)
     R[:,beads.quantum_atoms,1] ./= sqrt(length(beads))
-    @views apply_cell_boundaries!(cell, R[:,:,1])
+    @views NonadiabaticDynamicsBase.apply_cell_boundaries!(cell, R[:,:,1])
     R[:,beads.quantum_atoms,1] .*= sqrt(length(beads))
     transform_from_normal_modes!(beads, R)
 end

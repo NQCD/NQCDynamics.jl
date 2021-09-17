@@ -5,14 +5,9 @@ using Reexport: @reexport
 @reexport using NonadiabaticDynamicsBase
 @reexport using NonadiabaticModels
 
-include("ring_polymer_array.jl")
-export RingPolymerArray,
-       get_centroid
-
-include("ring_polymer.jl")
-export transform_to_normal_modes!,
-       transform_from_normal_modes!,
-       nbeads
+include("RingPolymers/RingPolymers.jl")
+@reexport using .RingPolymers: RingPolymerArray
+export RingPolymers
 
 include("Calculators/Calculators.jl")
 

@@ -5,13 +5,14 @@ using NonadiabaticModels: NonadiabaticModels
 using NonadiabaticMolecularDynamics:
     Estimators,
     evaluate_hamiltonian,
-    evaluate_kinetic_energy,
-    get_centroid
+    evaluate_kinetic_energy
 
 using ..DynamicsUtils:
     get_positions,
     get_velocities,
     get_quantum_subsystem
+
+using ..RingPolymers: get_centroid
 
 create_saving_callback(quantities::Symbol; saveat=[]) = create_saving_callback((quantities,), saveat=saveat)
 

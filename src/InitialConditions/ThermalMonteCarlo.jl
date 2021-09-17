@@ -12,11 +12,9 @@ using NonadiabaticMolecularDynamics:
     Simulation,
     RingPolymerSimulation,
     get_temperature,
-    transform_from_normal_modes!,
-    transform_to_normal_modes!,
     evaluate_hamiltonian,
-    RingPolymerArray,
-    DynamicsUtils
+    DynamicsUtils,
+    RingPolymers
 
 function sample_configurations(
     sim::AbstractSimulation,
@@ -56,8 +54,8 @@ function get_density_function(sim::RingPolymerSimulation, shape)
     function density(u)
         v = @view u[1:prod(shape)]
         r = @view u[prod(shape)+1:end]
-        v = RingPolymerArray(reshape(copy(v), shape); normal=true)
-        r = RingPolymerArray(reshape(copy(r), shape); normal=true)
+        v = RingPolymers.RingPolymerArray(reshape(copy(v), shape); normal=true)
+        r = RingPolymers.RingPolymerArray(reshape(copy(r), shape); normal=true)
         -evaluate_hamiltonian(sim, v, r) / temperature
     end
 end
@@ -69,8 +67,8 @@ reshape_input(::Simulation, u0) = u0[:]
 function reshape_input(sim::RingPolymerSimulation, u0)
     r = DynamicsUtils.get_positions(u0)
     v = DynamicsUtils.get_velocities(u0)
-    transform_to_normal_modes!(sim.beads, r)
-    transform_to_normal_modes!(sim.beads, v)
+    RingPolymers.transform_to_normal_modes!(sim.beads, r)
+    RingPolymers.transform_to_normal_modes!(sim.beads, v)
     return vcat(v[:], r[:])
 end
 
@@ -81,7 +79,7 @@ end
 function reshape_output(sim::RingPolymerSimulation, chain, shape)
     s = prod(shape)
     rs = [ComponentVector(v=reshape(config.params[1:s], shape), r=reshape(config.params[s+1:end], shape)) for config in chain]
-    transform_from_normal_modes!.(sim.beads, rs)
+    RingPolymers.transform_from_normal_modes!.(sim.beads, rs)
     return rs
 end
 
@@ -113,7 +111,7 @@ function ClassicalProposal(sim, σ, move_ratio)
 end
 
 function RingPolymerProposal(sim, σ, move_ratio)
-    ωₖ = NonadiabaticMolecularDynamics.get_matsubara_frequencies(length(sim.beads), sim.beads.ω_n)
+    ωₖ = RingPolymers.get_matsubara_frequencies(length(sim.beads), sim.beads.ω_n)
     proposals = Array{UnivariateDistribution,4}(undef, sim.DoFs, length(sim.atoms), length(sim.beads), 2)
     for i=1:length(sim.beads)
         if i == 1
