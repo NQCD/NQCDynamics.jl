@@ -1,6 +1,7 @@
 
 using LinearAlgebra: tr, mul!, dot
 using ComponentArrays: ComponentVector
+using NonadiabaticMolecularDynamics: RingPolymers
 
 """
 Nonadiabatic ring polymer molecular dynamics
@@ -93,7 +94,7 @@ function NonadiabaticMolecularDynamics.evaluate_hamiltonian(sim::RingPolymerSimu
     Calculators.evaluate_potential!(sim.calculator, r)
     V = sim.calculator.potential
 
-    H = (NonadiabaticMolecularDynamics.get_spring_energy(sim, r) 
+    H = (RingPolymers.get_spring_energy(sim.beads, sim.atoms.masses, r) 
         + NonadiabaticMolecularDynamics.evaluate_kinetic_energy(sim.atoms.masses, v))
     for i in range(sim.beads)
         qmap = get_mapping_positions(u, i)

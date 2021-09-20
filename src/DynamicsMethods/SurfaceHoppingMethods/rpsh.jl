@@ -103,5 +103,5 @@ function NonadiabaticMolecularDynamics.evaluate_hamiltonian(sim::RingPolymerSimu
     Calculators.evaluate_potential!(sim.calculator, DynamicsUtils.get_positions(u))
     Calculators.eigen!(sim.calculator)
     p = sum([bead[u.state] for bead in sim.calculator.eigenvalues])
-    return k + p + NonadiabaticMolecularDynamics.get_spring_energy(sim, DynamicsUtils.get_positions(u))
+    return k + p + RingPolymers.get_spring_energy(sim.beads, sim.atoms.masses, DynamicsUtils.get_positions(u))
 end

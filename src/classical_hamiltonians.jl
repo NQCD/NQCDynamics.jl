@@ -24,7 +24,7 @@ end
 
 function evaluate_potential_energy(sim::RingPolymerSimulation, R)
     Calculators.evaluate_potential!(sim.calculator, R)
-    sum(sim.calculator.potential)[1] + get_spring_energy(sim, R)
+    sum(sim.calculator.potential)[1] + RingPolymers.get_spring_energy(sim.beads, sim.atoms.masses, R)
 end
 
 function evaluate_potential_energy(sim::RingPolymerSimulation, R::RingPolymers.RingPolymerArray)
@@ -36,26 +36,4 @@ function evaluate_potential_energy(sim::RingPolymerSimulation, R::RingPolymers.R
         potential = evaluate_potential_energy(sim, R.data)
     end
     return potential
-end
-
-"""
-    get_spring_energy(system::RingPolymerSimulation, R)
-    
-Calculate the ring polymer spring potential.
-"""
-function get_spring_energy(sim::RingPolymerSimulation, R)
-    E = 0.0
-    for bead=1:length(sim.beads)-1
-        for i in sim.beads.quantum_atoms # Only for quantum nuclei
-            for j=1:ndofs(sim)
-                E += sim.atoms.masses[i] * (R[j, i, bead] - R[j, i, bead+1])^2
-            end
-        end
-    end
-    for i in sim.beads.quantum_atoms
-        for j=1:ndofs(sim)
-            E += sim.atoms.masses[i] * (R[j, i, length(sim.beads)] - R[j, i, 1])^2
-        end
-    end
-    E * sim.beads.ω_n^2/2
 end
