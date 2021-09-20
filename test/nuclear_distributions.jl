@@ -4,20 +4,21 @@ using NonadiabaticMolecularDynamics.InitialConditions
 using Random
 using Distributions
 using HDF5
+using ComponentArrays
 
-a = [rand(Float64, 3, 2) for i=1:10]
+a = [rand(Float64, 3, 2) for i=1:100]
 d = DynamicalDistribution(a, a, (3,2))
 @test eltype(a[1]) == eltype(d)
 @test (3,2) == size(d)
-@test rand(d) isa Vector{<:Matrix}
-@test InitialConditions.maxindex(d) == 10
+@test rand(d) isa ComponentVector
+@test InitialConditions.maxindex(d) == 100
 
 d = DynamicalDistribution(a, Normal(), (3,2))
-@test rand(d) isa Vector{<:Matrix}
-@test InitialConditions.maxindex(d) == 10
+@test rand(d) isa ComponentVector
+@test InitialConditions.maxindex(d) == 100
 
 d = DynamicalDistribution(1, Normal(), (3,2))
-@test rand(d) isa Vector{<:Matrix}
+@test rand(d) isa ComponentVector
 @test InitialConditions.maxindex(d) == 1
 
 @testset "BoltzmannVelocityDistribution" begin
@@ -33,9 +34,9 @@ end
     @test InitialConditions.select_item(filename, 1, (3,2)) ∈ a
 
     d = DynamicalDistribution(filename, 1, (3,2))
-    v, r = rand(d)
-    @test all(r .== 1)
-    @test v ∈ a
-    @test InitialConditions.maxindex(d) == 10
+    u = rand(d)
+    @test all(u.r .== 1)
+    @test u.v ∈ a
+    @test InitialConditions.maxindex(d) == 100
     rm(filename)
 end
