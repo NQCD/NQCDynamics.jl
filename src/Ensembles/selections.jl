@@ -23,14 +23,14 @@ end
 
 function (select::OrderedSelection)(prob, i, repeat)
     j = select.indices[i]
-    v, r = InitialConditions.pick(select.distribution, j)
-    u0 = select_u0(prob.p, v, r, select.distribution.state, select.distribution.type)
+    u = InitialConditions.pick(select.distribution, j)
+    u0 = select_u0(prob.p, u.v, u.r, select.distribution.state, select.distribution.type)
     DynamicsMethods.create_problem(u0, prob.tspan, prob.p)
 end
 
 function (select::RandomSelection)(prob, i, repeat)
-    v, r = rand(select.distribution)
-    u0 = select_u0(prob.p, v, r, select.distribution.state, select.distribution.type)
+    u = rand(select.distribution)
+    u0 = select_u0(prob.p, u.v, u.r, select.distribution.state, select.distribution.type)
     DynamicsMethods.create_problem(u0, prob.tspan, prob.p)
 end
 

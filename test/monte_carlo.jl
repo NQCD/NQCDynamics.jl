@@ -3,6 +3,8 @@ using NonadiabaticMolecularDynamics
 using NonadiabaticMolecularDynamics.InitialConditions.MetropolisHastings
 using Unitful
 using StatsBase
+using Random
+Random.seed!(10)
 
 atoms = Atoms{Float64}([:H, :H, :C])
 cell = PeriodicCell(hcat(1))

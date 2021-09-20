@@ -56,7 +56,8 @@ function run_ensemble(
 
     stripped_kwargs = NonadiabaticDynamicsBase.austrip_kwargs(;kwargs...)
 
-    u0 = select_u0(sim, rand(distribution)..., distribution.state, distribution.type)
+    u = rand(distribution)
+    u0 = select_u0(sim, u.v, u.r, distribution.state, distribution.type)
     problem = DynamicsMethods.create_problem(u0, austrip.(tspan), sim)
 
     if hasfield(typeof(reduction), :u_init)
@@ -89,8 +90,9 @@ function run_ensemble_standard_output(sim::AbstractSimulation, tspan, distributi
     stripped_kwargs = NonadiabaticDynamicsBase.austrip_kwargs(;kwargs...)
     saveat = austrip.(saveat)
 
+    u = rand(distribution)
     problem = DynamicsMethods.create_problem(
-        select_u0(sim, rand(distribution)...,
+        select_u0(sim, u.v, u.r,
             distribution.state, distribution.type),
         austrip.(tspan),
         sim)
