@@ -14,7 +14,8 @@ include("Calculators/Calculators.jl")
 include("simulations.jl")
 export Simulation,
        RingPolymerSimulation,
-       natoms
+       natoms,
+       masses
 
 include("classical_hamiltonians.jl")
 
