@@ -11,25 +11,15 @@ using NonadiabaticMolecularDynamics:
     Simulation,
     RingPolymerSimulation,
     Calculators,
-    DynamicsUtils
+    DynamicsUtils,
+    RingPolymers,
+    ndofs,
+    natoms,
+    masses,
+    get_temperature
 
 using StatsBase: mean
 using ComponentArrays: ComponentVector
-
-# function potential_estimator(sim::AbstractSimulation, u::Vector)
-#     V = zero(eltype(u))
-#     for frame in u
-#         V += evaluate_potential_energy(sim, get_positions(frame))
-#     end
-#     return V / length(u)
-# end
-# function estimate(sim::AbstractSimulation, configurations::Vector{<:ComponentVector{T}}, func::Symbol) where {T}
-#     estimation = zero(eltype(configurations[1]))
-#     for config in configurations
-#         estimation += eval(func)(sim, config)::T
-#     end
-#     return estimation
-# end
 
 """
     @estimate f(simulation, vector)
@@ -53,14 +43,34 @@ macro estimate(expr)
     end)
 end
 
-function potential(sim::Simulation, u)
+function potential_energy(sim::Simulation, u)
     Calculators.evaluate_potential!(sim.calculator, DynamicsUtils.get_positions(u))
     sim.calculator.potential
 end
 
-function potential(sim::RingPolymerSimulation, u)
+function potential_energy(sim::RingPolymerSimulation, u)
     Calculators.evaluate_potential!(sim.calculator, DynamicsUtils.get_positions(u))
     mean(sim.calculator.potential)
+end
+
+function kinetic_energy(sim::Simulation, u)
+    v = DynamicsUtils.get_velocities(u)
+    sum(masses(sim)' .* v .^2) / 2
+end
+
+function kinetic_energy(sim::RingPolymerSimulation, u)
+    r = DynamicsUtils.get_positions(u)
+    centroid = RingPolymers.get_centroid(r)
+
+    Calculators.evaluate_derivative!(sim.calculator, r)
+
+    kinetic = ndofs(sim) * natoms(sim) * get_temperature(sim)
+
+    for I in eachindex(r)
+        kinetic += (r[I] - centroid[I]) * sim.calculator.derivative[I] 
+    end
+
+    return kinetic / 2nbeads(sim)
 end
 
 function diabatic_population end
