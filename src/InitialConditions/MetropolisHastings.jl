@@ -23,6 +23,8 @@ using NonadiabaticMolecularDynamics:
     Simulation,
     RingPolymerSimulation,
     RingPolymers,
+    Estimators,
+    DynamicsUtils,
     ndofs
 
 export run_monte_carlo_sampling
@@ -112,7 +114,7 @@ function run_monte_carlo_sampling(sim::Simulation, R0::Matrix{T},
     Rᵢ = copy(R0) # Current positions
     Rₚ = zero(Rᵢ) # Proposed positions
     monte = MonteCarlo{T}(Δ, length(sim.atoms), passes, fix, extra_function)
-    monte.Eᵢ = NonadiabaticMolecularDynamics.evaluate_potential_energy(sim, Rᵢ)
+    monte.Eᵢ = DynamicsUtils.classical_potential_energy(sim, Rᵢ)
     output = MonteCarloOutput(Rᵢ, sim.atoms)
 
     run_main_loop!(sim, monte, Rᵢ, Rₚ, output)
@@ -130,7 +132,7 @@ function run_monte_carlo_sampling(sim::RingPolymerSimulation, R0::AbstractArray{
     Rᵢ = copy(R0) # Current positions
     Rₚ = zero(Rᵢ) # Proposed positions
     monte = PathIntegralMonteCarlo{T}(Δ, length(sim.atoms), passes, fix, segment, length(sim.beads), extra_function)
-    monte.Eᵢ = NonadiabaticMolecularDynamics.evaluate_potential_energy(sim, Rᵢ)
+    monte.Eᵢ = DynamicsUtils.classical_potential_energy(sim, Rᵢ)
     output = MonteCarloOutput(Rᵢ, sim.atoms)
 
     run_main_loop!(sim, monte, Rᵢ, Rₚ, output)
@@ -252,7 +254,7 @@ end
 Update the energy, check for acceptance, and update the output. 
 """
 function assess_proposal!(sim::AbstractSimulation, monte::MonteCarloParameters, Rᵢ, Rₚ, output, atom::Integer)
-    monte.Eₚ = NonadiabaticMolecularDynamics.evaluate_potential_energy(sim, Rₚ)
+    monte.Eₚ = DynamicsUtils.classical_potential_energy(sim, Rₚ)
     output.total_moves[sim.atoms.types[atom]] += 1
     if monte.extra_function(Rₚ)
         if acceptance_probability(sim, monte) > rand()
