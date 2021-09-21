@@ -88,18 +88,21 @@ function Estimators.diabatic_population(::RingPolymerSimulation{<:NRPMD}, u)
     sum(qmap.^2 + pmap.^2 .- 1; dims=2) / 2size(qmap, 2)
 end
 
-function NonadiabaticMolecularDynamics.evaluate_hamiltonian(sim::RingPolymerSimulation{<:NRPMD}, u)
+function DynamicsUtils.classical_hamiltonian(sim::RingPolymerSimulation{<:NRPMD}, u)
     r = DynamicsUtils.get_positions(u)
     v = DynamicsUtils.get_velocities(u)
+
+    spring = RingPolymers.get_spring_energy(sim.beads, sim.atoms.masses, r)
+    kinetic = DynamicsUtils.classical_kinetic_energy(sim, v)
+
+    potential = zero(eltype(u))
     Calculators.evaluate_potential!(sim.calculator, r)
     V = sim.calculator.potential
-
-    H = (RingPolymers.get_spring_energy(sim.beads, sim.atoms.masses, r) 
-        + NonadiabaticMolecularDynamics.evaluate_kinetic_energy(sim.atoms.masses, v))
     for i in range(sim.beads)
         qmap = get_mapping_positions(u, i)
         pmap = get_mapping_momenta(u, i)
-        H += 0.5 * (pmap'V[i]*pmap + qmap'V[i]*qmap - tr(V[i]))
+        potential += 0.5 * (pmap'V[i]*pmap + qmap'V[i]*qmap - tr(V[i]))
     end
-    H
+
+    return kinetic + spring + potential
 end

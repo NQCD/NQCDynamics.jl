@@ -1,12 +1,12 @@
 using FiniteDiff
 using ComponentArrays: ComponentVector
-using NonadiabaticMolecularDynamics: DynamicsMethods, DynamicsUtils
+using NonadiabaticMolecularDynamics: DynamicsMethods, DynamicsUtils, nbeads, Estimators
 
 get_blank(sim::Simulation) = randn(size(sim))
 get_blank(sim::RingPolymerSimulation) = RingPolymerArray(randn(size(sim)))
 
 function test_motion!(sim)
-    f(x) = NonadiabaticMolecularDynamics.evaluate_hamiltonian(sim, x)
+    f(x) = DynamicsUtils.classical_hamiltonian(sim, x)
 
     v = get_blank(sim)
     r = get_blank(sim)
@@ -34,7 +34,7 @@ function test_velocity!(sim)
 end
 
 function test_acceleration!(sim)
-    f(x) = NonadiabaticMolecularDynamics.evaluate_potential_energy(sim, x)
+    f(x) = DynamicsUtils.classical_potential_energy(sim, x)
 
     r = get_blank(sim)
     v = get_blank(sim)
@@ -48,7 +48,7 @@ function test_acceleration!(sim)
 end
 
 function test_acceleration!(sim::RingPolymerSimulation)
-    f(x) = NonadiabaticMolecularDynamics.evaluate_potential_energy(sim, x)
+    f(x) = DynamicsUtils.classical_potential_energy(sim, x)
 
     r = get_blank(sim)
     v = get_blank(sim)

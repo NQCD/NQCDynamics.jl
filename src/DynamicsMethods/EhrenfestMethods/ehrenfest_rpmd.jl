@@ -1,3 +1,4 @@
+using NonadiabaticMolecularDynamics: RingPolymers
 
 function RingPolymerSimulation{Ehrenfest}(atoms::Atoms{S,T}, model::Model, n_beads::Integer; kwargs...) where {S,T}
     RingPolymerSimulation(atoms, model, Ehrenfest{T}(NonadiabaticModels.nstates(model)), n_beads; kwargs...)
@@ -38,12 +39,16 @@ function Estimators.diabatic_population(sim::RingPolymerSimulation{<:Ehrenfest},
     return real.(diag(U * σ * U'))
 end
 
-function NonadiabaticMolecularDynamics.evaluate_hamiltonian(sim::RingPolymerSimulation{<:Ehrenfest}, u)
-    k = NonadiabaticMolecularDynamics.evaluate_kinetic_energy(sim.atoms.masses, DynamicsUtils.get_velocities(u))
-    Calculators.evaluate_potential!(sim.calculator, DynamicsUtils.get_positions(u))
-    Calculators.eigen!(sim.calculator)
+function DynamicsUtils.classical_hamiltonian(sim::RingPolymerSimulation{<:Ehrenfest}, u)
+    v = DynamicsUtils.get_velocities(u)
+    r = DynamicsUtils.get_positions(u)
+    kinetic = DynamicsUtils.classical_kinetic_energy(sim, v)
+    spring = RingPolymers.get_spring_energy(sim.beads, sim.atoms.masses, r)
 
+    Calculators.evaluate_potential!(sim.calculator, r)
+    Calculators.eigen!(sim.calculator)
     population = Estimators.adiabatic_population(sim, u)
-    p = sum([dot(population, eigs) for eigs in sim.calculator.eigenvalues])
-    return k + p
+    potential = sum([dot(population, eigs) for eigs in sim.calculator.eigenvalues])
+
+    return kinetic + potential + spring
 end

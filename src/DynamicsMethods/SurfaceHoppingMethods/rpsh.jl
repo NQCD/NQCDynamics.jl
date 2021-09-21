@@ -98,10 +98,12 @@ function Estimators.diabatic_population(sim::RingPolymerSimulation{<:FSSH}, u)
     return diag(U * σ * U')
 end
 
-function NonadiabaticMolecularDynamics.evaluate_hamiltonian(sim::RingPolymerSimulation{<:FSSH}, u)
-    k = NonadiabaticMolecularDynamics.evaluate_kinetic_energy(sim.atoms.masses, DynamicsUtils.get_velocities(u))
+function DynamicsUtils.classical_hamiltonian(sim::RingPolymerSimulation{<:FSSH}, u)
+    kinetic = DynamicsUtils.classical_kinetic_energy(sim, DynamicsUtils.get_velocities(u))
+    spring = RingPolymers.get_spring_energy(sim.beads, sim.atoms.masses, DynamicsUtils.get_positions(u))
+
     Calculators.evaluate_potential!(sim.calculator, DynamicsUtils.get_positions(u))
     Calculators.eigen!(sim.calculator)
-    p = sum([bead[u.state] for bead in sim.calculator.eigenvalues])
-    return k + p + RingPolymers.get_spring_energy(sim.beads, sim.atoms.masses, DynamicsUtils.get_positions(u))
+    potential = sum(bead[u.state] for bead in sim.calculator.eigenvalues)
+    return kinetic + spring + potential
 end
