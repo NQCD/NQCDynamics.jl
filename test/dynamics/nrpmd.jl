@@ -23,7 +23,7 @@ u = DynamicsVariables(sim, v, r, 2)
 end
 
 function test_motion!(sim, u)
-    f(x) = NonadiabaticMolecularDynamics.evaluate_hamiltonian(sim, x)
+    f(x) = DynamicsUtils.classical_hamiltonian(sim, x)
 
     grad = FiniteDiff.finite_difference_gradient(f, u)
 

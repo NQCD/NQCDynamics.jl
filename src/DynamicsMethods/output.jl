@@ -4,8 +4,7 @@ using DiffEqCallbacks: SavedValues, SavingCallback
 using NonadiabaticModels: NonadiabaticModels
 using NonadiabaticMolecularDynamics:
     Estimators,
-    evaluate_hamiltonian,
-    evaluate_kinetic_energy
+    DynamicsUtils
 
 using ..DynamicsUtils:
     get_positions,
@@ -37,8 +36,8 @@ velocity(u, t, integrator) = copy(get_velocities(u))
 position(u, t, integrator) = copy(get_positions(u))
 centroid_position(u, t, integrator) = get_centroid(get_positions(u))
 potential(u, t, integrator) = NonadiabaticModels.potential(integrator.p.calculator.model, get_positions(u))[1]
-hamiltonian(u, t, integrator) = evaluate_hamiltonian(integrator.p, u)
-kinetic(u, t, integrator) = evaluate_kinetic_energy(integrator.p.atoms.masses, get_velocities(u))
+hamiltonian(u, t, integrator) = DynamicsUtils.classical_hamiltonian(integrator.p, u)
+kinetic(u, t, integrator) = DynamicsUtils.classical_kinetic_energy(integrator.p, get_velocities(u))
 u(u, t, integrator) = copy(u)
 u(u::ArrayPartition, t, integrator) = ComponentVector(v=copy(get_velocities(u)), r=copy(get_positions(u)))
 quantum_subsystem(u, t, integrator) = copy(get_quantum_subsystem(u))

@@ -43,19 +43,23 @@ macro estimate(expr)
     end)
 end
 
-function potential_energy(sim::Simulation, u)
-    Calculators.evaluate_potential!(sim.calculator, DynamicsUtils.get_positions(u))
+function potential_energy(sim::AbstractSimulation, u)
+    potential_energy(sim, DynamicsUtils.get_positions(u))
+end
+
+function potential_energy(sim::Simulation, r::AbstractMatrix)
+    Calculators.evaluate_potential!(sim.calculator, r)
     sim.calculator.potential
 end
 
-function potential_energy(sim::RingPolymerSimulation, u)
-    Calculators.evaluate_potential!(sim.calculator, DynamicsUtils.get_positions(u))
+function potential_energy(sim::RingPolymerSimulation, r::AbstractArray{T,3}) where {T}
+    Calculators.evaluate_potential!(sim.calculator, r)
     mean(sim.calculator.potential)
 end
 
 function kinetic_energy(sim::Simulation, u)
     v = DynamicsUtils.get_velocities(u)
-    sum(masses(sim)' .* v .^2) / 2
+    DynamicsUtils.classical_kinetic_energy(sim, v)
 end
 
 function kinetic_energy(sim::RingPolymerSimulation, u)

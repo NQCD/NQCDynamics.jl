@@ -160,10 +160,10 @@ function Estimators.adiabatic_population(sim::AbstractSimulation{<:FSSH}, u)
     return population
 end
 
-function NonadiabaticMolecularDynamics.evaluate_hamiltonian(sim::Simulation{<:FSSH}, u)
-    k = NonadiabaticMolecularDynamics.evaluate_kinetic_energy(sim.atoms.masses, DynamicsUtils.get_velocities(u))
+function DynamicsUtils.classical_hamiltonian(sim::Simulation{<:FSSH}, u)
+    kinetic = DynamicsUtils.classical_kinetic_energy(sim, DynamicsUtils.get_velocities(u))
     Calculators.evaluate_potential!(sim.calculator, DynamicsUtils.get_positions(u))
     Calculators.eigen!(sim.calculator)
-    p = sim.calculator.eigenvalues[sim.method.state]
-    return k + p
+    potential = sim.calculator.eigenvalues[sim.method.state]
+    return kinetic + potential
 end

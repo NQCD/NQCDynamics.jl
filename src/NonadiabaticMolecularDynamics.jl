@@ -17,7 +17,6 @@ export Simulation,
        natoms,
        masses
 
-include("classical_hamiltonians.jl")
 
 include("DynamicsUtils/DynamicsUtils.jl")
 @reexport using .DynamicsUtils: get_positions, get_velocities

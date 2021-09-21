@@ -58,10 +58,12 @@ function Estimators.diabatic_population(sim::Simulation{<:Ehrenfest}, u)
     return real.(diag(U * σ * U'))
 end
 
-function NonadiabaticMolecularDynamics.evaluate_hamiltonian(sim::Simulation{<:Ehrenfest}, u)
-    k = NonadiabaticMolecularDynamics.evaluate_kinetic_energy(sim.atoms.masses, DynamicsUtils.get_velocities(u))
+function DynamicsUtils.classical_hamiltonian(sim::Simulation{<:Ehrenfest}, u)
+    kinetic = DynamicsUtils.classical_kinetic_energy(sim, DynamicsUtils.get_velocities(u))
+
     Calculators.evaluate_potential!(sim.calculator, DynamicsUtils.get_positions(u))
     Calculators.eigen!(sim.calculator)
-    p = sum(diag(DynamicsUtils.get_quantum_subsystem(u)) .* sim.calculator.eigenvalues)
-    return k + p
+    potential = sum(diag(DynamicsUtils.get_quantum_subsystem(u)) .* sim.calculator.eigenvalues)
+
+    return kinetic + potential
 end

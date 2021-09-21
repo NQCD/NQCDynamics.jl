@@ -74,14 +74,14 @@ atoms = Atoms(1)
         integrator.p.method.new_state = 2
         ΔE = SurfaceHoppingMethods.calculate_potential_energy_change(integrator.p.calculator, 2, 1)
 
-        KE_initial = NonadiabaticMolecularDynamics.evaluate_kinetic_energy(atoms.masses, get_velocities(integrator.u))
-        H_initial = NonadiabaticMolecularDynamics.evaluate_hamiltonian(integrator.p, integrator.u)
+        KE_initial = DynamicsUtils.classical_kinetic_energy(integrator.p, get_velocities(integrator.u))
+        H_initial = DynamicsUtils.classical_hamiltonian(integrator.p, integrator.u)
         @test integrator.u.state == 1
 
         SurfaceHoppingMethods.execute_hop!(integrator)
 
-        KE_final = NonadiabaticMolecularDynamics.evaluate_kinetic_energy(atoms.masses, get_velocities(integrator.u))
-        H_final = NonadiabaticMolecularDynamics.evaluate_hamiltonian(integrator.p, integrator.u)
+        KE_final = DynamicsUtils.classical_kinetic_energy(integrator.p, get_velocities(integrator.u))
+        H_final = DynamicsUtils.classical_hamiltonian(integrator.p, integrator.u)
         ΔKE = KE_final - KE_initial
 
         @test integrator.u.state == 2 # Check state has changed
@@ -136,15 +136,15 @@ end
         integrator.p.method.new_state = 2
         ΔE = SurfaceHoppingMethods.calculate_potential_energy_change(integrator.p.calculator, 2, 1)
 
-        KE_initial = NonadiabaticMolecularDynamics.evaluate_kinetic_energy(atoms.masses, get_velocities(integrator.u))
-        H_initial = NonadiabaticMolecularDynamics.evaluate_hamiltonian(integrator.p, integrator.u)
+        KE_initial = DynamicsUtils.classical_kinetic_energy(integrator.p, get_velocities(integrator.u))
+        H_initial = DynamicsUtils.classical_hamiltonian(integrator.p, integrator.u)
         potential = H_initial - KE_initial
         @test integrator.u.state == 1
 
         SurfaceHoppingMethods.execute_hop!(integrator)
 
-        KE_final = NonadiabaticMolecularDynamics.evaluate_kinetic_energy(atoms.masses, get_velocities(integrator.u))
-        H_final = NonadiabaticMolecularDynamics.evaluate_hamiltonian(integrator.p, integrator.u)
+        KE_final = DynamicsUtils.classical_kinetic_energy(integrator.p, get_velocities(integrator.u))
+        H_final = DynamicsUtils.classical_hamiltonian(integrator.p, integrator.u)
         potential = H_final - KE_final
 
         @test integrator.u.state == 2 # Check state has changed
