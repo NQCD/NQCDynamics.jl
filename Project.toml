@@ -4,6 +4,7 @@ authors = ["James <james.gardner1421@gmail.com>"]
 version = "0.6.3"
 
 [deps]
+AdvancedHMC = "0bf59076-c3b1-5ca4-86bd-e02cd72cde3d"
 AdvancedMH = "5b7e9947-ddc0-4b3f-9b55-0d8042f74170"
 ComponentArrays = "b0b7db55-cfe3-40fc-9ded-d10e2dbeff66"
 DEDataArrays = "754358af-613d-5f8d-9788-280bf1605d4c"
@@ -40,6 +41,7 @@ UnitfulAtomic = "a7773ee8-282e-5fa2-be4e-bd808c38a91a"
 UnitfulRecipes = "42071c24-d89e-48dd-8a24-8a12d9b8861f"
 
 [compat]
+AdvancedHMC = "0.3"
 AdvancedMH = "0.6"
 ComponentArrays = "0.11"
 DEDataArrays = "0.2"

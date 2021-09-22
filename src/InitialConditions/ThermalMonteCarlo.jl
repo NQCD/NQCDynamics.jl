@@ -4,7 +4,9 @@ module ThermalMonteCarlo
 using Distributions: UnivariateDistribution, Dirac, Normal
 using ComponentArrays: ComponentVector
 using AdvancedMH: AdvancedMH
+using AdvancedHMC: AdvancedHMC
 using Random: Random
+using UnPack: @unpack
 
 using NonadiabaticMolecularDynamics:
     NonadiabaticMolecularDynamics,
@@ -12,74 +14,95 @@ using NonadiabaticMolecularDynamics:
     Simulation,
     RingPolymerSimulation,
     get_temperature,
-    evaluate_hamiltonian,
     DynamicsUtils,
     RingPolymers,
-    ndofs
+    Calculators,
+    Estimators,
+    DynamicsMethods,
+    ndofs,
+    nbeads,
+    natoms,
+    masses
 
-function sample_configurations(
+"""
+    run_advancedhmc_sampling(sim, r, steps, σ; move_ratio=0.0, internal_ratio=0.0)
+
+Sample the configuration space for the simulation `sim` starting from `r`.
+
+Total number of steps is given by `steps` and `σ` is the dictionary of
+step sizes for each species.
+
+`move_ratio` defaults to `0.0` and denotes the fraction of system moved each step.
+If `move_ratio = 0`, every degree of freedom is moved at each step.
+If `move_ratio = 1`, then nothing will happen. Experiment with this parameter to achieve
+optimal sampling.
+
+`internal_ratio` works as for `move_ratio` but for the internal modes of the ring polymer.
+"""
+function run_advancedmh_sampling(
     sim::AbstractSimulation,
-    u0,
+    r,
     steps::Real,
     σ::Dict{Symbol,<:Real};
-    move_ratio=0.9
+    move_ratio=0.0,
+    internal_ratio=0.0
     )
 
-    shape = size(DynamicsUtils.get_positions(u0))
-    density = get_density_function(sim, shape)
+    density = get_density_function(sim)
 
     density_model = AdvancedMH.DensityModel(density)
-    proposal = get_proposal(sim, σ, move_ratio)
+    proposal = get_proposal(sim, σ, move_ratio, internal_ratio)
 
     sampler = AdvancedMH.MetropolisHastings(proposal)
 
-    initial_config = reshape_input(sim, copy(u0))
+    initial_config = reshape_input(sim, copy(r))
 
     chain = AdvancedMH.sample(density_model, sampler, convert(Int, steps);
                               init_params=initial_config)
 
-    return reshape_output(sim, chain, shape)
+    return reshape_output(sim, chain)
 end
 
-function get_density_function(sim::Simulation, shape)
+function get_density_function(sim::Simulation)
     temperature = get_temperature(sim)
-    function density(u)
-        v = @view u[1:prod(shape)]
-        r = @view u[prod(shape)+1:end]
-        -evaluate_hamiltonian(sim, reshape(v, shape), reshape(r, shape)) / temperature
+    function density(r)
+        -DynamicsUtils.classical_potential_energy(sim, reshape(r, size(sim))) / temperature
     end
 end
 
-function get_density_function(sim::RingPolymerSimulation, shape)
+function get_deriv_function(sim::Simulation)
     temperature = get_temperature(sim)
-    function density(u)
-        v = @view u[1:prod(shape)]
-        r = @view u[prod(shape)+1:end]
-        v = RingPolymers.RingPolymerArray(reshape(copy(v), shape); normal=true)
-        r = RingPolymers.RingPolymerArray(reshape(copy(r), shape); normal=true)
-        -evaluate_hamiltonian(sim, v, r) / temperature
+    function density_deriv(r)
+        lπ = -DynamicsUtils.classical_potential_energy(sim, reshape(r, size(sim))) / temperature
+        Calculators.evaluate_derivative!(sim.calculator, reshape(r, size(sim)))
+        lπ_grad = -sim.calculator.derivative / temperature
+        return (lπ, lπ_grad[:])
     end
 end
 
-get_proposal(sim::Simulation, σ, move_ratio) = ClassicalProposal(sim, σ, 1-move_ratio)
-get_proposal(sim::RingPolymerSimulation, σ, move_ratio) = RingPolymerProposal(sim, σ, 1-move_ratio)
+function get_density_function(sim::RingPolymerSimulation)
+    temperature = get_temperature(sim)
+    function density(r)
+        r_local = reshape(copy(r), size(sim))
+        RingPolymers.transform_from_normal_modes!(sim.beads, r_local)
+        -DynamicsUtils.classical_potential_energy(sim, r_local) / temperature
+    end
+end
 
-reshape_input(::Simulation, u0) = u0[:]
-function reshape_input(sim::RingPolymerSimulation, u0)
-    r = DynamicsUtils.get_positions(u0)
-    v = DynamicsUtils.get_velocities(u0)
+get_proposal(sim::Simulation, σ, move_ratio, internal_ratio) = ClassicalProposal(sim, σ, move_ratio)
+get_proposal(sim::RingPolymerSimulation, σ, move_ratio, internal_ratio) = RingPolymerProposal(sim, σ, move_ratio, internal_ratio)
+
+reshape_input(::Simulation, r) = r[:]
+function reshape_input(sim::RingPolymerSimulation, r)
     RingPolymers.transform_to_normal_modes!(sim.beads, r)
-    RingPolymers.transform_to_normal_modes!(sim.beads, v)
-    return vcat(v[:], r[:])
+    return r[:]
 end
 
-function reshape_output(::Simulation, chain, shape)
-    s = prod(shape)
-    [ComponentVector(v=reshape(config.params[1:s], shape), r=reshape(config.params[s+1:end], shape)) for config in chain]
+function reshape_output(sim::Simulation, chain)
+    [reshape(config.params, size(sim)) for config in chain]
 end
-function reshape_output(sim::RingPolymerSimulation, chain, shape)
-    s = prod(shape)
-    rs = [ComponentVector(v=reshape(config.params[1:s], shape), r=reshape(config.params[s+1:end], shape)) for config in chain]
+function reshape_output(sim::RingPolymerSimulation, chain)
+    rs = [reshape(copy(config.params), size(sim)) for config in chain]
     RingPolymers.transform_from_normal_modes!.(sim.beads, rs)
     return rs
 end
@@ -93,50 +116,29 @@ end
 struct RingPolymerProposal{P,T,S<:RingPolymerSimulation} <: AdvancedMH.Proposal{P}
     proposal::P
     move_ratio::T
+    internal_ratio::T
     sim::S
 end
 
 const MolecularProposal{P,T,S} = Union{RingPolymerProposal{P,T,S}, ClassicalProposal{P,T,S}}
 
-function ClassicalProposal(sim, σ, move_ratio)
-    proposals = Array{UnivariateDistribution,3}(undef, ndofs(sim), length(sim.atoms), 2)
-    for i in range(sim.atoms) # Velocity proposals
-        distribution = Normal(0, sqrt(get_temperature(sim) / sim.atoms.masses[i]))
-        proposals[:,i,1] .= distribution
-    end
+function ClassicalProposal(sim::Simulation, σ, move_ratio)
+    proposals = Matrix{UnivariateDistribution}(undef, size(sim))
     for (i, symbol) in enumerate(sim.atoms.types) # Position proposals
         distribution = σ[symbol] == 0 ? Dirac(0) : Normal(0, σ[symbol])
-        proposals[:,i,2] .= distribution
+        proposals[:,i] .= distribution
     end
     ClassicalProposal(proposals[:], move_ratio, sim)
 end
 
-function RingPolymerProposal(sim, σ, move_ratio)
-    ωₖ = RingPolymers.get_matsubara_frequencies(length(sim.beads), sim.beads.ω_n)
-    proposals = Array{UnivariateDistribution,4}(undef, ndofs(sim), length(sim.atoms), length(sim.beads), 2)
-    for i=1:length(sim.beads)
-        if i == 1
-            for j in range(sim.atoms)
-                distribution = Normal(0, sqrt(get_temperature(sim) / sim.atoms.masses[j]))
-                proposals[:,j,i,1] .= distribution
-            end
-        else
-            for j in range(sim.atoms)
-                if j in sim.beads.quantum_atoms
-                    Δ = sqrt(get_temperature(sim) / sim.atoms.masses[j])
-                    distribution = Normal(0, Δ)
-                else
-                    distribution = Dirac(0.0)
-                end
-                proposals[:,j,i,1] .= distribution
-            end
-        end
-    end
-    for i=1:length(sim.beads)
+function RingPolymerProposal(sim::RingPolymerSimulation, σ, move_ratio, internal_ratio)
+    ωₖ = RingPolymers.get_matsubara_frequencies(nbeads(sim), sim.beads.ω_n)
+    proposals = Array{UnivariateDistribution}(undef, size(sim))
+    for i=1:nbeads(sim)
         if i == 1
             for (j, symbol) in enumerate(sim.atoms.types)
                 distribution = σ[symbol] == 0 ? Dirac(0.0) : Normal(0, σ[symbol])
-                proposals[:,j,i,2] .= distribution
+                proposals[:,j,i] .= distribution
             end
         else
             for j in range(sim.atoms)
@@ -146,16 +148,33 @@ function RingPolymerProposal(sim, σ, move_ratio)
                 else
                     distribution = Dirac(0)
                 end
-                proposals[:,j,i,2] .= distribution
+                proposals[:,j,i] .= distribution
             end
         end
     end
-    RingPolymerProposal(proposals[:], move_ratio, sim)
+    RingPolymerProposal(proposals[:], move_ratio, internal_ratio, sim)
 end
 
-function Base.rand(rng::Random.AbstractRNG, p::MolecularProposal)
+function Base.rand(rng::Random.AbstractRNG, p::ClassicalProposal)
     result = map(x -> rand(rng, x), p.proposal)
     result[Random.randsubseq(eachindex(result), p.move_ratio)] .= 0
+    return result
+end
+
+function Base.rand(rng::Random.AbstractRNG, p::RingPolymerProposal)
+    result = map(x -> rand(rng, x), p.proposal)
+    reshaped_result = reshape(result, size(p.sim))
+
+    # Zero some of the centroid moves
+    sequence = Random.randsubseq(CartesianIndices(size(p.sim)[1:2]), p.move_ratio)
+    reshaped_result[sequence,1] .= 0
+
+    # Zero some of the internal mode moves
+    for i=2:nbeads(p.sim)
+        sequence = Random.randsubseq(CartesianIndices((ndofs(p.sim), natoms(p.sim))), p.internal_ratio)
+        reshaped_result[sequence,i] .= 0
+    end
+
     return result
 end
 
@@ -170,5 +189,44 @@ function AdvancedMH.propose(rng::Random.AbstractRNG, proposal::MolecularProposal
 end
 
 AdvancedMH.logratio_proposal_density(::MolecularProposal, state, candidiate) = 0
+
+"""
+    run_advancedhmc_sampling(sim::Simulation, r, n_samples;
+        target_acceptance=0.5, kwargs...)
+
+Perform Hamiltonian Monte Carlo sampling for the simulation `sim` using `AdvancedHMC.jl`.
+"""
+function run_advancedhmc_sampling(sim::Simulation, r, n_samples; target_acceptance=0.5, kwargs...)
+
+    density = get_density_function(sim)
+    deriv = get_deriv_function(sim)
+
+    r0 = reshape_input(sim, copy(r))
+
+    # Define a Hamiltonian system
+    metric = AdvancedHMC.DiagEuclideanMetric(length(r0))
+    hamiltonian = AdvancedHMC.Hamiltonian(metric, density, deriv)
+
+    # Define a leapfrog solver, with initial step size chosen heuristically
+    initial_ϵ = AdvancedHMC.find_good_stepsize(hamiltonian, r0)
+    integrator = AdvancedHMC.Leapfrog(initial_ϵ)
+
+    # Define an HMC sampler, with the following components
+    #   - multinomial sampling scheme,
+    #   - generalised No-U-Turn criteria, and
+    #   - windowed adaption for step-size and diagonal mass matrix
+    proposal = AdvancedHMC.NUTS{AdvancedHMC.MultinomialTS, AdvancedHMC.GeneralisedNoUTurn}(integrator)
+    adaptor = AdvancedHMC.StanHMCAdaptor(
+        AdvancedHMC.MassMatrixAdaptor(metric),
+        AdvancedHMC.StepSizeAdaptor(target_acceptance, integrator)
+        )
+
+    # Run the sampler to draw samples from the specified Gaussian, where
+    #   - `samples` will store the samples
+    #   - `stats` will store diagnostic statistics for each sample
+    samples, stats = AdvancedHMC.sample(hamiltonian, proposal, r0, convert(Int, n_samples), adaptor; kwargs...)
+
+    return reshape.(samples, Ref(size(sim))), stats
+end
 
 end # module
