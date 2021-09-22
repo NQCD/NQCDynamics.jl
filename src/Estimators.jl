@@ -15,6 +15,7 @@ using NonadiabaticMolecularDynamics:
     RingPolymers,
     ndofs,
     natoms,
+    nbeads,
     masses,
     get_temperature
 
@@ -43,6 +44,10 @@ macro estimate(expr)
     end)
 end
 
+function total_energy(sim::AbstractSimulation, u)
+    kinetic_energy(sim, u) + potential_energy(sim, u)
+end
+
 function potential_energy(sim::AbstractSimulation, u)
     potential_energy(sim, DynamicsUtils.get_positions(u))
 end
@@ -58,20 +63,26 @@ function potential_energy(sim::RingPolymerSimulation, r::AbstractArray{T,3}) whe
 end
 
 function kinetic_energy(sim::Simulation, u)
-    v = DynamicsUtils.get_velocities(u)
+    kinetic_energy(sim, DynamicsUtils.get_velocities(u))
+end
+
+function kinetic_energy(sim::Simulation, v::AbstractMatrix)
     DynamicsUtils.classical_kinetic_energy(sim, v)
 end
 
 function kinetic_energy(sim::RingPolymerSimulation, u)
-    r = DynamicsUtils.get_positions(u)
+    kinetic_energy(sim, DynamicsUtils.get_positions(u))
+end
+
+function kinetic_energy(sim::RingPolymerSimulation, r::AbstractArray{T,3}) where {T}
     centroid = RingPolymers.get_centroid(r)
 
     Calculators.evaluate_derivative!(sim.calculator, r)
 
     kinetic = ndofs(sim) * natoms(sim) * get_temperature(sim)
 
-    for I in eachindex(r)
-        kinetic += (r[I] - centroid[I]) * sim.calculator.derivative[I] 
+    for I in CartesianIndices(r)
+        kinetic += (r[I] - centroid[I[1], I[2]]) * sim.calculator.derivative[I] 
     end
 
     return kinetic / 2nbeads(sim)
