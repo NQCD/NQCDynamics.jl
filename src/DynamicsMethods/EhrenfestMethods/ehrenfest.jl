@@ -4,6 +4,26 @@ using ComponentArrays: ComponentVector
 
 export Ehrenfest
 
+"""
+    Ehrenfest{T} <: AbstractEhrenfest
+
+Ehrenfest molecular dynamics. Classical molecular dynamics where the force is derived
+by averaging contributions from multiple electronic states.
+
+```jldoctest
+Simulation{Ehrenfest}(Atoms(:H), DoubleWell())
+
+# output
+
+Simulation{Ehrenfest{Float64}}:
+  Atoms{1, Float64}([:H], UInt8[0x01], [1837.4715941070515])
+  DoubleWell{Int64, Int64, Int64, Int64}
+  mass: Int64 1
+  ω: Int64 1
+  γ: Int64 1
+  Δ: Int64 1
+```
+"""
 struct Ehrenfest{T} <: AbstractEhrenfest
     density_propagator::Matrix{Complex{T}}
     function Ehrenfest{T}(n_states::Integer) where {T}

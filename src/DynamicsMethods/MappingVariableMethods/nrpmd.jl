@@ -4,7 +4,29 @@ using ComponentArrays: ComponentVector
 using NonadiabaticMolecularDynamics: RingPolymers
 
 """
+    NRPMD{T} <: DynamicsMethods.Method
+
 Nonadiabatic ring polymer molecular dynamics
+Uses Meyer-Miller-Stock-Thoss mapping variables for electronic degrees of freedom and
+ring polymer formalism for nuclear degrees of freedom.
+
+```jldoctest
+RingPolymerSimulation{NRPMD}(Atoms(:H), DoubleWell(), 10)
+
+# output
+
+RingPolymerSimulation{NRPMD{Float64}}:
+ 
+  Atoms{1, Float64}([:H], UInt8[0x01], [1837.4715941070515])
+ 
+  DoubleWell{Int64, Int64, Int64, Int64}
+  mass: Int64 1
+  ω: Int64 1
+  γ: Int64 1
+  Δ: Int64 1
+ 
+  with 10 beads.
+```
 """
 struct NRPMD{T} <: DynamicsMethods.Method
     temp_q::Vector{T}

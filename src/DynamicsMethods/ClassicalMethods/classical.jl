@@ -1,7 +1,23 @@
 using OrdinaryDiffEq: OrdinaryDiffEq
 
 """
-A singleton type that simply labels the parent `AbstractSimulation` as classical.
+    Classical <: DynamicsMethods.Method
+
+Type for performing classical molecular dynamics.
+
+```jldoctest
+sim = Simulation{Classical}(Atoms(:H), Harmonic())
+
+# output
+
+Simulation{Classical}:
+  Atoms{1, Float64}([:H], UInt8[0x01], [1837.4715941070515])
+  Harmonic{Float64, Float64, Float64}
+  m: Float64 1.0
+  ω: Float64 1.0
+  r₀: Float64 0.0
+  dofs: Int64 1
+```
 """
 struct Classical <: DynamicsMethods.Method end
 

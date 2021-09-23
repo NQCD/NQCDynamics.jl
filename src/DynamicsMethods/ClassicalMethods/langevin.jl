@@ -4,6 +4,20 @@ using RecursiveArrayTools: ArrayPartition
 using Unitful: @u_str
 using UnitfulAtomic: austrip
 
+"""
+Type for performing Langevin molecular dynamics.
+
+```jldoctest
+using Unitful
+sim = Simulation{Langevin}(Atoms(:H), Free(); γ=2.5, temperature=100u"K")
+
+# output
+
+Simulation{Langevin{Float64}}:
+  Atoms{1, Float64}([:H], UInt8[0x01], [1837.4715941070515])
+  Free(1)
+```
+"""
 struct Langevin{T<:AbstractFloat} <: DynamicsMethods.Method
     γ::T
     σ::Matrix{T}
@@ -29,6 +43,27 @@ function friction!(du, r, sim::AbstractSimulation{<:Langevin}, t)
     du .= sim.method.σ
 end
 
+"""
+Type for performing Langevin ring polymer molecular dynamics.
+
+Currently there are separate types for classical and ring polymer versions of Langevin
+dynamics but they should be combined. The reason they are not at the moment is that they use
+different integration algorithms and require slightly different fields.
+
+```jldoctest
+using Unitful
+RingPolymerSimulation{ThermalLangevin}(Atoms(:H), Free(), 10; γ=0.1, temperature=25u"K")
+
+# output
+
+RingPolymerSimulation{ThermalLangevin{Float64}}:
+ 
+  Atoms{1, Float64}([:H], UInt8[0x01], [1837.4715941070515])
+ 
+  Free(1)
+  with 10 beads.
+```
+"""
 struct ThermalLangevin{T<:Real} <: DynamicsMethods.Method
     γ::T
 end

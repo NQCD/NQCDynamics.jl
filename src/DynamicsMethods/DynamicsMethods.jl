@@ -47,26 +47,55 @@ of `DynamicalVariables` and `sim` subtypes `AbstractSimulation`.
 """
 function motion! end
 
-"""
-Provides the DEProblem for each type of simulation.
-"""
+"Provides the DEProblem for each type of simulation."
 create_problem(u0, tspan, sim) =
     OrdinaryDiffEq.ODEProblem(motion!, u0, tspan, sim; callback=get_callbacks(sim))
 
+"Choose a default algorithm for solving the differential equation."
 select_algorithm(::AbstractSimulation) = OrdinaryDiffEq.VCABM5()
+
+"Select the default callbacks for this simulation type."
 get_callbacks(::AbstractSimulation) = nothing
 
 function set_quantum_derivative! end
 
+"""
+    DynamicsVariables(::AbstractSimulation, args...)
+
+For each dynamics method this function is implemented to provide the variables for the
+dynamics in the appropriate format.
+
+By default, `DynamicsVariables` is set up for the classical case and takes
+`sim`, `v`, `r` as arguments and returns a `ComponentVector(v=v, r=r)`
+which is used as a container for the velocities and positions during
+classical dynamics.
+"""
 DynamicsVariables(::AbstractSimulation, v, r) = ComponentVector(v=v, r=r)
 
 include("output.jl")
 
 """
-    run_trajectory(u0::DynamicalVariables, tspan::Tuple, sim::AbstractSimulation;
-        output=(:u,), callback=nothing, kwargs...)
+    run_trajectory(u0, tspan::Tuple, sim::AbstractSimulation;
+                   output=(:u,), saveat=[], algorithm=select_algorithm(sim), kwargs...)
 
-Solve a single trajectory.
+Solve a single trajectory starting from `u0` with a timespan `tspan`
+for the simulation `sim`.
+
+# Keyword arguments
+
+`output` specifies the quantities that should be saved during the dynamics simulation.
+The options for this keyword are any of the functions found in
+`src/DynamicsMethods/output.jl`.
+
+The rest of the keywords are the usual arguments for the `solve` function from
+`DifferentialEquations.jl`.
+It is possible to use `Unitful` quantities for any of the arguments since these are
+automatically converted to atomic units internally.
+
+# Output
+
+The function returns a `Table` from `TypedTables.jl` with columns for time `t` and
+every quantity specified in the `output` tuple.
 """
 function run_trajectory(u0, tspan::Tuple, sim::AbstractSimulation;
         output=(:u,), saveat=[], callback=nothing, algorithm=select_algorithm(sim),
