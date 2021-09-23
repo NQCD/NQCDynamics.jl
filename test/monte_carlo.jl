@@ -1,19 +1,21 @@
 using Test
 using NonadiabaticMolecularDynamics
-using NonadiabaticMolecularDynamics.MetropolisHastings
+using NonadiabaticMolecularDynamics.InitialConditions.MetropolisHastings
 using Unitful
 using StatsBase
+using Random
+Random.seed!(10)
 
 atoms = Atoms{Float64}([:H, :H, :C])
 cell = PeriodicCell(hcat(1))
 model = NonadiabaticModels.Harmonic()
 
 Δ = Dict([(:H, 0.1), (:C, 0.1)])
-monte_carlo = MonteCarlo{Float64}(Δ, length(atoms), 100, Int[], x->true)
-sim = Simulation(atoms, model; cell=cell, temperature=100u"K", DoFs=1)
+monte_carlo = MetropolisHastings.MonteCarlo{Float64}(Δ, length(atoms), 100, Int[], x->true)
+sim = Simulation(atoms, model; cell=cell, temperature=100u"K")
 
 @testset "propose_move!" begin
-    Rᵢ = zeros(sim.DoFs, length(sim.atoms))
+    Rᵢ = zeros(size(sim))
     Rₚ = zero(Rᵢ)
     @test Rᵢ == Rₚ
     MetropolisHastings.propose_move!(sim, monte_carlo, Rᵢ, Rₚ, 1)
@@ -21,7 +23,7 @@ sim = Simulation(atoms, model; cell=cell, temperature=100u"K", DoFs=1)
 end
 
 @testset "assess_proposal!" begin
-    Rᵢ = randn(sim.DoFs, length(sim.atoms))
+    Rᵢ = randn(size(sim))
     Rₚ = zero(Rᵢ)
     # Accept the move
     monte_carlo.Eᵢ = 1
@@ -35,7 +37,7 @@ end
 end
 
 @testset "write_output!" begin
-    Rₚ = fill(0.1, sim.DoFs, length(sim.atoms))
+    Rₚ = fill(0.1, size(sim))
     output = MetropolisHastings.MonteCarloOutput(Rₚ, sim.atoms)
     MetropolisHastings.write_output!(output, Rₚ, 1.0)
     Rₚ .+= 1
@@ -59,30 +61,30 @@ end
 end
 
 @testset "run_monte_carlo_sampling" begin
-    R0 = rand(sim.DoFs, length(sim.atoms))
+    R0 = zeros(size(sim))
     out = MetropolisHastings.run_monte_carlo_sampling(sim, R0, Δ, 10)
     @test !(out.R[1] ≈ out.R[10])
     @test !(out.energy[1] ≈ out.energy[20])
 end
 
 @testset "run_monte_carlo_sampling" begin
-    sim = RingPolymerSimulation(atoms, model, 10; cell=cell, temperature=100u"K", DoFs=1)
-    R0 = rand(sim.DoFs, length(sim.atoms), 10)
+    sim = RingPolymerSimulation(atoms, model, 10; cell=cell, temperature=100u"K")
+    R0 = zeros(size(sim))
     out = MetropolisHastings.run_monte_carlo_sampling(sim, R0, Δ, 10)
     @test !(out.R[1] ≈ out.R[10])
     @test !(out.energy[1] ≈ out.energy[20])
 end
 
 @testset "propose_centroid_move!" begin
-    monte_carlo = PathIntegralMonteCarlo{Float64}(Δ, length(atoms), 100, [1], 1.0, 10, x->true)
-    sim = RingPolymerSimulation(atoms, model, 10; cell=cell, temperature=100u"K", DoFs=1, quantum_nuclei=[:H])
+    monte_carlo = MetropolisHastings.PathIntegralMonteCarlo{Float64}(Δ, length(atoms), 100, [1], 1.0, 10, x->true)
+    sim = RingPolymerSimulation(atoms, model, 10; cell=cell, temperature=100u"K", quantum_nuclei=[:H])
     Rᵢ = randn(3, length(sim.atoms), 10)
     Rₚ = copy(Rᵢ)
     MetropolisHastings.propose_centroid_move!(sim, monte_carlo, Rᵢ, Rₚ, 2)
     @test mean(Rₚ[:,1,:]) ≈ mean(Rᵢ[:,1,:]) # Check fixed atom does not move
     
-    transform_to_normal_modes!(sim.beads, Rₚ)
-    transform_to_normal_modes!(sim.beads, Rᵢ)
+    RingPolymers.transform_to_normal_modes!(sim.beads, Rₚ)
+    RingPolymers.transform_to_normal_modes!(sim.beads, Rᵢ)
     @test !(Rₚ[:,:,1] ≈ Rᵢ[:,:,1]) # Test centroid has moved
     @test Rₚ[:,1:2,2:end] ≈ Rᵢ[:,1:2,2:end] # Test only centroid moves for quantum atoms
 end
