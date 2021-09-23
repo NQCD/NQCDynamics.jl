@@ -9,7 +9,7 @@ using NonadiabaticMolecularDynamics # hide
 
 atoms = NonadiabaticMolecularDynamics.Atoms([:H])
 model = TullyModelOne()
-sim = Simulation{FSSH}(atoms, model; DoFs=1)
+sim = Simulation{FSSH}(atoms, model)
 nothing # hide
 ```
 
@@ -31,13 +31,6 @@ nothing # hide
     The keyword argument `state` used here is for nonadiabatic simulations and specifies the
     initial electronic state.
 
-When sampling from a distribution there are two options: sampling randomly, or
-selecting each geometry in order. Here we select randomly:
-```@example ensemble
-selection = Ensembles.RandomSelection(distribution)
-nothing # hide
-```
-
 The ensemble interface allows for specific outputs and reductions
 that apply to these outputs.
 Here we choose to output the populations of each diabatic state and reduce by averaging
@@ -52,7 +45,7 @@ Now we can run the ensemble of trajectories and visualise the surface hopping po
 ```@example ensemble
 using Plots
 
-solution = Ensembles.run_ensemble(sim, (0.0, 3000.0), selection; trajectories=1e3,
+solution = Ensembles.run_ensemble(sim, (0.0, 3000.0), distribution; trajectories=1e3,
     output=output, reduction=reduction, saveat=10.0)
 
 plot(0:10:3000, [p[1] for p in solution.u], legend=false)
@@ -65,7 +58,7 @@ If instead it is preferred to output many quantities for each trajectory, this i
 also possible.
 Here the output is specified in the same way as for single trajectories.
 ```@example ensemble
-ensemble = Ensembles.run_ensemble_standard_output(sim, (0.0, 3000.0), selection;
+ensemble = Ensembles.run_ensemble_standard_output(sim, (0.0, 3000.0), distribution;
     output=(:population), trajectories=50)
 
 p = plot(legend=(false))

@@ -28,7 +28,7 @@ using LinearAlgebra: norm, normalize!, nullspace, cross, I
 using UnitfulAtomic: austrip
 using Distributions: Uniform
 
-using NonadiabaticMolecularDynamics: NonadiabaticMolecularDynamics, Simulation, Calculators
+using NonadiabaticMolecularDynamics: Simulation, Calculators, DynamicsUtils
 using NonadiabaticDynamicsBase: Atoms, PeriodicCell, InfiniteCell
 
 export generate_configurations
@@ -107,7 +107,7 @@ function quantise_diatomic(sim::Simulation, v::Matrix, r::Matrix; height=10, nor
     v_com = subtract_centre_of_mass(v, sim.atoms.masses)
     p_com = v_com .* sim.atoms.masses'
 
-    k = NonadiabaticMolecularDynamics.evaluate_kinetic_energy(sim.atoms.masses, v_com)
+    k = DynamicsUtils.classical_kinetic_energy(sim, v_com)
     p = calculate_diatomic_energy(sim, bond_length(r_com); height=height, normal_vector=normal_vector)
     E = k + p
 

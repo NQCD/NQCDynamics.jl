@@ -46,9 +46,10 @@ ENV["GKSwstype"] = "100"
         ]
         "Library" => Any[
             "Public" => "lib/public.md",
-            "Internals" => [
-                "lib/internals/calculators.md"
-            ]
+            "Internals" => map(
+                s -> "lib/internals/$(s)",
+                sort(readdir(joinpath(@__DIR__, "src/lib/internals")))
+            ),
         ]
     ])
 

@@ -18,7 +18,7 @@ where the electronic temperature is 300 K.
 The friction provided by this model is a random positive definite tensor.
 ```@example mdef
 atoms = Atoms([:H])
-model = RandomFriction(Harmonic())
+model = RandomFriction(Harmonic(dofs=3))
 sim = Simulation{MDEF}(atoms, model; temperature=300u"K")
 nothing # hide
 ```
@@ -33,7 +33,7 @@ nothing # hide
 
 Finally we can run a single trajectory and visualise the total energy as a function of time.
 ```@example mdef
-solution = Dynamics.run_trajectory(z, (0.0, 100u"fs"), sim, dt=0.1u"fs",
+solution = run_trajectory(z, (0.0, 100u"fs"), sim, dt=0.1u"fs",
     output=(:hamiltonian, :position, :velocity))
 plot(solution, :hamiltonian)
 ```
@@ -57,7 +57,7 @@ nothing # hide
 Now we can re-simulate, replacing the fixed temperature with the function we have defined.
 ```@example mdef
 sim = Simulation{MDEF}(atoms, model; temperature=temperature_function)
-solution = Dynamics.run_trajectory(z, (0.0, 100u"fs"), sim, dt=0.1u"fs",
+solution = run_trajectory(z, (0.0, 100u"fs"), sim, dt=0.1u"fs",
     output=(:hamiltonian, :position, :velocity))
 plot(solution, :hamiltonian)
 ```
