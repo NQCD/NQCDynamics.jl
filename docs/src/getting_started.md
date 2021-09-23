@@ -141,8 +141,8 @@ Here we'll have two atoms in a harmonic potential, each with a single degree of 
 using NonadiabaticMolecularDynamics # hide
 
 atoms = Atoms([:H, :C])
-sim = Simulation{Classical}(atoms, Harmonic(ω=50.0); DoFs=1)
-z = DynamicsVariables(sim, randn(1, 2), randn(1, 2))
+sim = Simulation{Classical}(atoms, Harmonic(ω=50.0))
+z = DynamicsVariables(sim, randn(size(sim)), randn(size(sim)))
 
 nothing # hide
 ```
@@ -162,7 +162,7 @@ before performing further analysis.
 ```@example classical
 using Plots # hide
 
-solution = Dynamics.run_trajectory(z, (0.0, 50.0), sim;
+solution = run_trajectory(z, (0.0, 50.0), sim;
                                    dt=0.1, output=(:position, :velocity))
 
 plot(solution, :position)

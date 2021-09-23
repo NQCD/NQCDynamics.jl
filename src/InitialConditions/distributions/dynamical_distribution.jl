@@ -1,9 +1,9 @@
 
-export DynamicalDistribution
-
 using Random: AbstractRNG, rand!
 using Distributions: Distributions, Continuous, Sampleable, Univariate
 using HDF5: h5open
+using ComponentArrays: ComponentVector
+using NonadiabaticMolecularDynamics: DynamicsUtils
 
 struct DynamicalVariate <: Distributions.VariateForm end
 
@@ -20,12 +20,16 @@ DynamicalDistribution(velocity, position, size; state=0, type=:adiabatic) =
 Base.eltype(s::DynamicalDistribution{<:Sampleable,R}) where {R} = eltype(s.velocity)
 Base.eltype(s::DynamicalDistribution{<:AbstractArray,R} where {R}) = eltype(s.velocity[1])
 Base.size(s::DynamicalDistribution) = s.size
+Base.length(s::DynamicalDistribution) = maxindex(s)
 
 function Distributions.rand(rng::AbstractRNG, s::Sampleable{DynamicalVariate})
-    Distributions._rand!(rng, s, [Array{eltype(s)}(undef, size(s)) for i=1:2])
+    Distributions._rand!(rng, s, ComponentVector(v=Array{eltype(s)}(undef, size(s)),
+                                                 r=Array{eltype(s)}(undef, size(s))
+                                                )
+                        )
 end
 
-function maxindex(s::DynamicalDistribution)
+function maxindex(s::DynamicalDistribution)::Int
     if s.velocity isa Vector
         return length(s.velocity)
     elseif s.position isa Vector
@@ -43,14 +47,14 @@ function maxindex(s::DynamicalDistribution)
     end
 end
 
-function Distributions._rand!(rng::AbstractRNG, s::DynamicalDistribution, x::Vector{<:Array})
+function Distributions._rand!(rng::AbstractRNG, s::DynamicalDistribution, x::ComponentVector)
     i = rand(rng, 1:maxindex(s))
-    x[1] .= select_item(s.velocity, i, s.size)
-    x[2] .= select_item(s.position, i, s.size)
+    DynamicsUtils.get_velocities(x) .= select_item(s.velocity, i, s.size)
+    DynamicsUtils.get_positions(x) .= select_item(s.position, i, s.size)
     x
 end
 
-pick(s::DynamicalDistribution, i::Integer) = [select_item(s.velocity, i, s.size), select_item(s.position, i, s.size)]
+pick(s::DynamicalDistribution, i::Integer) = ComponentVector(v=select_item(s.velocity, i, s.size), r=select_item(s.position, i, s.size))
 
 # Indexed selections
 select_item(x::Vector{<:AbstractArray}, i::Integer, ::NTuple) = x[i]
@@ -101,4 +105,8 @@ function write_hdf5(filename, data)
             fid[string(i)] = d
         end
     end
+end
+
+function Base.iterate(s::DynamicalDistribution, state=1)
+    state > maxindex(s) ? nothing : (pick(s, state), state+1)
 end

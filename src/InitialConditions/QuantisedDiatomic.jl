@@ -20,14 +20,16 @@ Quantum Chemical Program Exchange Bulletin, vol. 16(4), pp. 43-43.
 """
 module QuantisedDiatomic
 
-using QuadGK
-using Distributions
-using Roots
-using Rotations
-using LsqFit
-using LinearAlgebra
-using UnitfulAtomic
-using ....NonadiabaticMolecularDynamics
+using QuadGK: QuadGK
+using Roots: Roots
+using Rotations: Rotations
+using LsqFit: LsqFit
+using LinearAlgebra: norm, normalize!, nullspace, cross, I
+using UnitfulAtomic: austrip
+using Distributions: Uniform
+
+using NonadiabaticMolecularDynamics: Simulation, Calculators, DynamicsUtils
+using NonadiabaticDynamicsBase: Atoms, PeriodicCell, InfiniteCell
 
 export generate_configurations
 export quantise_diatomic
@@ -75,7 +77,7 @@ function extract_energy_and_bounds(sim, ν, J; height=10, normal_vector=[0, 0, 1
         ν_tmp - ν
     end
 
-    E = find_zero(target, E_guess)
+    E = Roots.find_zero(target, E_guess)
     ν_tmp, J_tmp, bounds = extract_quantum_numbers(sim, μ, E, J; height=height, normal_vector=normal_vector)
 
     E, bounds 
@@ -105,7 +107,7 @@ function quantise_diatomic(sim::Simulation, v::Matrix, r::Matrix; height=10, nor
     v_com = subtract_centre_of_mass(v, sim.atoms.masses)
     p_com = v_com .* sim.atoms.masses'
 
-    k = evaluate_kinetic_energy(sim.atoms.masses, v_com)
+    k = DynamicsUtils.classical_kinetic_energy(sim, v_com)
     p = calculate_diatomic_energy(sim, bond_length(r_com); height=height, normal_vector=normal_vector)
     E = k + p
 
@@ -126,13 +128,13 @@ function extract_quantum_numbers(sim::Simulation, μ::Real, E::Real, J::Real; he
     Vᵣ(r) = rotational(r) + calculate_diatomic_energy(sim, r)
     radial_momentum(r) = sqrt(2μ * (E - Vᵣ(r)))
 
-    bounds = find_zeros(r -> E - Vᵣ(r), 0.0, 10.0)
+    bounds = Roots.find_zeros(r -> E - Vᵣ(r), 0.0, 10.0)
     if length(bounds) != 2
         throw(ArgumentError("Unable to determine bounds for EBK quantisation."
         * " Perhaps the chosen quantum numbers are unreasonable?
         Bounds obtained = $bounds"))
     end
-    integral, err = quadgk(radial_momentum, bounds...)
+    integral, err = QuadGK.quadgk(radial_momentum, bounds...)
     ν = integral / π - 1/2
 
     ν, J, bounds
@@ -210,7 +212,7 @@ end
 Randomly rotate each column of two 3*N matrix, same rotation for all columns.
 """
 function apply_random_rotation!(x, y)
-    rotation = rand(RotMatrix{3})
+    rotation = rand(Rotations.RotMatrix{3})
     for (col1, col2) in zip(eachcol(x), eachcol(y))
         col1 .= rotation * col1
         col2 .= rotation * col2
@@ -282,7 +284,7 @@ function calculate_force_constant(sim::Simulation;
     bond_lengths = 0.5:0.01:4.0
     V = calculate_diatomic_energy.(sim, bond_lengths; height=height, normal_vector=normal_vector)
 
-    fit = curve_fit(harmonic, bond_lengths, V, [1.0, bond_length]; lower=[0.0, 0.0], inplace=true)
+    fit = LsqFit.curve_fit(harmonic, bond_lengths, V, [1.0, bond_length]; lower=[0.0, 0.0], inplace=true)
     fit.param[1]
 end
 

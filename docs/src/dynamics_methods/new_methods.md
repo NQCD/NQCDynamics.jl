@@ -5,7 +5,7 @@
 
 To implement a new dynamics method a few simple steps should be followed:
 
-### Create a new subtype of `Dynamics.Method`.
+### Create a new subtype of `DynamicsMethods.Method`.
 
 This `Method` acts as an extra parameter inside the simulation that allows us to specify
 any extra information needed for our dynamics method. Here we haven't added any extra
@@ -15,7 +15,7 @@ for the simulation.
 ```@example mymethod
 using NonadiabaticMolecularDynamics
 
-struct MyMethod <: Dynamics.Method end
+struct MyMethod <: DynamicsMethods.Method end
 ```
 
 ### Implement `DynamicsVariables`
@@ -30,7 +30,7 @@ condition for the simulation.
 ```@example mymethod
 using ComponentArrays
 
-function Dynamics.DynamicsVariables(sim::MyMethod, v, r)
+function DynamicsMethods.DynamicsVariables(sim::MyMethod, v, r)
     ComponentVector(v=v, r=r)
 end
 ```
@@ -41,11 +41,11 @@ This should fill `du` with the time-derivative of the dynamics variables `u` in 
 usual way expected by `DifferentialEquations.jl`.
 
 !!! tip
-    Inside the `Dynamics` submodule there are some useful functions like `velocity!` and
+    Inside the `DynamicsUtils` submodule there are some useful functions like `velocity!` and
     `divide_by_mass!` which can handle some of the common parts of the `motion!` function.
 
 ```@example mymethod
-function Dynamics.motion!(du, u, sim::Simulation{MyMethod}, t)
+function DynamicsMethods.motion!(du, u, sim::Simulation{MyMethod}, t)
     du.r .= u.v
     du.v .= -u.r
 end
@@ -62,7 +62,7 @@ it becomes straightforward to implement new dynamics methods.
 sim = Simulation(Atoms(1), Free(), MyMethod())
 u = DynamicsVariables(sim, rand(1,1), rand(1,1))
 
-sol = Dynamics.run_trajectory(u, (0.0, 10.0), sim, output=(:position, :velocity))
+sol = run_trajectory(u, (0.0, 10.0), sim, output=(:position, :velocity))
 
 using Plots
 
@@ -82,4 +82,4 @@ internal modes of the ring polymer, allowing much larger timesteps.
 The `DifferentialEquations.jl` framework provides a simple interface for adding new
 algorithms, check out the [developer documentation](https://devdocs.sciml.ai/dev/)
 to learn how it works.
-You can see some examples of this in practice in the `src/Dynamics/algorithms` directory.
+You can see some examples of this in practice in the `DynamicsMethods.IntegrationAlgorithms` module.

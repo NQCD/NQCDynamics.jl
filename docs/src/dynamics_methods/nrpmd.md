@@ -87,19 +87,21 @@ Using NRPMD we can reproduce the figure 3a in the 2019 paper of Chowdhury
 and Huo[^Chowdhury2019].
 
 First we must generate a thermal ring polymer distribution in a harmonic potential.
-A simple way to do this is to use Monte Carlo sampling for the positions and velocities.
+A simple way to do this is to use Monte Carlo sampling for the positions and
+obtain velocities from a Boltzmann distribution.
 
 ```@example nrpmd
 using NonadiabaticMolecularDynamics
 
 atom = Atoms(1)
 
-sim = RingPolymerSimulation(atom, Harmonic(), 4; temperature=1/16, DoFs=1)
+sim = RingPolymerSimulation(atom, Harmonic(dofs=1), 4; temperature=1/16)
 
-u0 = ComponentVector(v=zeros(1,1,4), r=zeros(1,1,4))
-output = InitialConditions.sample_configurations(sim, u0, 5e3, Dict(:X=>1.0))
+r0 = zeros(size(sim))
+output = InitialConditions.ThermalMonteCarlo.run_advancedmh_sampling(sim, r0, 5e3, Dict(:X=>1.0))
+velocities = InitialConditions.BoltzmannVelocityDistribution(1/16, masses(sim))
 
-distribution = DynamicalDistribution(get_velocities.(output), get_positions.(output), (1,1,4);
+distribution = InitialConditions.DynamicalDistribution(velocities, output, size(sim);
                                      state=1, type=:diabatic)
 ```
 
@@ -110,7 +112,7 @@ in our distribution:
 using CairoMakie
 
 flat_position = vcat([p[:] for p in distribution.position]...)
-flat_velocity = vcat([p[:] for p in distribution.velocity]...)
+flat_velocity = vcat([rand(distribution.velocity)[:] for p in 1:length(flat_position)]...)
 scatter(flat_position, flat_velocity)
 ```
 
@@ -119,21 +121,14 @@ the simulation constructor is given the atoms, model, number of beads,
 temperature and degrees of freedom.
 
 ```@example nrpmd
-sim = RingPolymerSimulation{NRPMD}(atom, DoubleWell(γ=0.1), 4; temperature=1/16, DoFs=1)
+sim = RingPolymerSimulation{NRPMD}(atom, DoubleWell(γ=0.1), 4; temperature=1/16)
 ```
 
-Next, we can use this distribution as a starting point for the dynamics simulations
-by passing it to the `RandomSelection`.
+Next, we can use this distribution as a starting point for the dynamics simulations.
 This will result in each trajectory starting from a random configuration in the
 distribution.
 Since the distribution also has `state=1` and `type=:diabatic`, the electronic
 variables will be selected such that each trajectory is initialised in diabatic state 1.
-
-```@example nrpmd
-selection = Ensembles.RandomSelection(distribution)
-
-nothing # hide
-```
 
 The quantities output by the ensemble simulation are specified by the `Output` and
 the `Reduction`.
@@ -153,7 +148,7 @@ The resulting plot shows the time dependent population difference and closely ma
 the figure from the paper we were attempting to reproduce. Nice!
 
 ```@example nrpmd
-ensemble = Ensembles.run_ensemble(sim, (0.0, 30.0), selection; trajectories=1000,
+ensemble = Ensembles.run_ensemble(sim, (0.0, 30.0), distribution; trajectories=1000,
                                   output=output, reduction=reduction, dt=0.1)
 
 lines(0:0.1:30, [p[1]-p[2] for p in ensemble.u])
