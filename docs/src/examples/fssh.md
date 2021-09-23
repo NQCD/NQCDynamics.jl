@@ -19,7 +19,7 @@ To illustrate the fewest-switches dynamics we can use a popular three state Mors
 ```@example fssh
 atoms = Atoms(20000)
 model = ThreeStateMorse()
-sim = Simulation{FSSH}(atoms, model; DoFs=1)
+sim = Simulation{FSSH}(atoms, model)
 nothing # hide
 ```
 
@@ -33,7 +33,7 @@ nothing # hide
 
 Now let's run an ensemble of trajectories that sample from this distribution.
 ```@example fssh
-solution = Ensembles.run_ensemble(sim, (0.0, 3000.0), Ensembles.RandomSelection(distribution);
+solution = Ensembles.run_ensemble(sim, (0.0, 3000.0), distribution;
     saveat=50, trajectories=5e2,
     output=Ensembles.OutputDiabaticPopulation(sim), reduction=Ensembles.MeanReduction())
 

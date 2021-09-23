@@ -1,4 +1,4 @@
-using RecipesBase: @recipe, @series
+using RecipesBase
 using TypedTables: Table
 
 @recipe function f(table::Table, quantity::Symbol)

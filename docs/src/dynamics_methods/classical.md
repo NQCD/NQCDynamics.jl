@@ -24,7 +24,7 @@ sim = Simulation(Atoms([1, 1]), DiatomicHarmonic())
 v = rand(3, 2)
 u0 = DynamicsVariables(sim, zeros(3, 2), hcat(randn(3), randn(3).+1))
 
-traj = Dynamics.run_trajectory(u0, (0.0, 1e2), sim; dt=0.1, output=(:position))
+traj = run_trajectory(u0, (0.0, 1e2), sim; dt=0.1, output=(:position))
 
 plot(traj, :position)
 ```

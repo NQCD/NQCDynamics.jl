@@ -69,7 +69,7 @@ end
 
 function check_hop!(u, t, integrator)::Bool
     sim = integrator.p
-    evaluate_hopping_probability!(sim, u, get_proposed_dt(integrator))
+    evaluate_hopping_probability!(sim, u, OrdinaryDiffEq.get_proposed_dt(integrator))
     set_new_state!(sim.method, select_new_state(sim, u))
     return sim.method.new_state != sim.method.state
 end
