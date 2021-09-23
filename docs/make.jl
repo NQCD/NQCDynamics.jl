@@ -44,6 +44,12 @@ ENV["GKSwstype"] = "100"
             "examples/nrpmd.md"
             "examples/quantisation.md"
         ]
+        "Library" => Any[
+            "Public" => "lib/public.md",
+            "Internals" => [
+                "lib/internals/calculators.md"
+            ]
+        ]
     ])
 
 deploydocs(

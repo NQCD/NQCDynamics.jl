@@ -2,6 +2,21 @@ using StatsBase: mean
 
 export FSSH
 
+"""
+    FSSH{T} <: SurfaceHopping
+
+Type for fewest-switches surface hopping
+
+```jldoctest
+Simulation{FSSH}(Atoms(:H), Free())
+
+# output
+
+Simulation{FSSH{Float64}}:
+  Atoms{1, Float64}([:H], UInt8[0x01], [1837.4715941070515])
+  Free(1)
+```
+"""
 mutable struct FSSH{T} <: SurfaceHopping
     density_propagator::Matrix{Complex{T}}
     hopping_probability::Vector{T}
