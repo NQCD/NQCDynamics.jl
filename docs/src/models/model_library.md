@@ -17,24 +17,13 @@ using Plots: plot, contour
 
 ## Adiabatic models
 These models are used for classical dynamics and provide a single potential energy surface.
-```@docs
-NonadiabaticModels.Free
-NonadiabaticModels.Harmonic
-NonadiabaticModels.JuLIPModel
-```
 
-```@docs
-NonadiabaticModels.DiatomicHarmonic
-```
 ```@example model
 model = DiatomicHarmonic(r₀=1.0)
 f(x,y) = potential(model, [x y])[1]
 contour(-10:0.1:10, -10:0.1:10, f, fill=true)
 ```
 
-```@docs
-NonadiabaticModels.DarlingHollowayElbow
-```
 ```@example
 using NonadiabaticModels # hide
 using NonadiabaticDynamicsBase: eV_to_au
@@ -57,44 +46,26 @@ ylims!(-0.5, 4.5)
 fig
 ```
 
-```@docs
-NonadiabaticModels.DebyeBosonBath
-```
 ## Diabatic models
 These models define a Hermitian potential operator in a diabatic basis.
 These can be used for various forms of nonadiabatic dynamics.
-```@docs
-NonadiabaticModels.TullyModelOne
-```
 ```@example model
 plot(-10:0.1:10, TullyModelOne())
-```
-```@docs
-NonadiabaticModels.TullyModelTwo
 ```
 ```@example model
 plot(-10:0.1:10, TullyModelTwo())
 ```
-```@docs
-NonadiabaticModels.ThreeStateMorse
+```@example model
+plot(-10:0.1:10, TullyModelThree())
 ```
 ```@example model
 plot(2:0.01:12, ThreeStateMorse(), ylims=(0, 0.06))
 ```
-```@docs
-NonadiabaticModels.OuyangModelOne
-```
 ```@example model
 plot(-10:0.1:10, OuyangModelOne())
 ```
-```@docs
-NonadiabaticModels.DoubleWell
-```
 ```@example model
 plot(-5:0.1:5, DoubleWell())
-```
-```@docs
-NonadiabaticModels.GatesHollowayElbow
 ```
 ```@example
 using NonadiabaticModels # hide
@@ -116,8 +87,4 @@ contour!(fig[1,1], x, z, v2, color=:red, levels=0:0.01:0.1)
 xlims!(-0.5, 4.0)
 ylims!(-0.5, 4.0)
 fig
-```
-
-```@docs
-NonadiabaticModels.DebyeSpinBoson
 ```

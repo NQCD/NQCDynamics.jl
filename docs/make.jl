@@ -44,11 +44,14 @@ ENV["GKSwstype"] = "100"
             "examples/nrpmd.md"
             "examples/quantisation.md"
         ]
-        "Library" => Any[
-            "Public" => "lib/public.md",
-            "Internals" => map(
-                s -> "lib/internals/$(s)",
-                sort(readdir(joinpath(@__DIR__, "src/lib/internals")))
+        "API" => Any[
+            "NonadiabaticModels" => map(
+                s -> "api/nonadiabaticmodels/$(s)",
+                sort(readdir(joinpath(@__DIR__, "src/api/nonadiabaticmodels")))
+            ),
+            "NonadiabaticMolecularDynamics" => map(
+                s -> "api/nonadiabaticmoleculardynamics/$(s)",
+                sort(readdir(joinpath(@__DIR__, "src/api/nonadiabaticmoleculardynamics")))
             ),
         ]
     ])
