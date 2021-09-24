@@ -148,11 +148,6 @@ function calculate_potential_energy_change(calc::Calculators.AbstractDiabaticCal
     return calc.eigenvalues[new_state] - calc.eigenvalues[current_state]
 end
 
-"""
-    get_diabatic_population(sim::Simulation{<:FSSH}, u)
-
-Diabatic populations recommended from J. Chem. Phys. 139, 211101 (2013).
-"""
 function Estimators.diabatic_population(sim::Simulation{<:FSSH}, u)
     Calculators.evaluate_potential!(sim.calculator, DynamicsUtils.get_positions(u))
     U = eigvecs(sim.calculator.potential)
@@ -164,11 +159,6 @@ function Estimators.diabatic_population(sim::Simulation{<:FSSH}, u)
     return diag(U * σ * U')
 end
 
-"""
-    get_adiabatic_population(sim::AbstractSimulation{<:FSSH}, u)
-
-Adiabatic population directly from discrete state variable.
-"""
 function Estimators.adiabatic_population(sim::AbstractSimulation{<:FSSH}, u)
     population = zeros(sim.calculator.model.n_states)
     population[u.state] = 1

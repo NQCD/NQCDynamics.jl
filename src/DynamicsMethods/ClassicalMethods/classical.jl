@@ -35,11 +35,6 @@ function NonadiabaticMolecularDynamics.RingPolymerSimulation(atoms::Atoms, model
     NonadiabaticMolecularDynamics.RingPolymerSimulation{Classical}(atoms, model, n_beads; kwargs...)
 end
 
-"""
-    motion!(du, u, sim::AbstractSimulation{<:Classical}, t)
-    
-Sets the time derivative for the positions and momenta contained within `u`.
-"""
 function DynamicsMethods.motion!(du, u, sim::AbstractSimulation{<:Classical}, t)
     dr = DynamicsUtils.get_positions(du)
     dv = DynamicsUtils.get_velocities(du)
