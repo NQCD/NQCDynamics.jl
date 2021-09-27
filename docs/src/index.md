@@ -42,7 +42,7 @@ issue/pull request on Github!
 - [Thermal Metropolis-Hastings Monte Carlo](@ref)
 - [Thermal Hamiltonian Monte Carlo](@ref)
 - [Langevin dynamics](@ref)
-- [Semiclassical EBK quantisation of diatomic molecules](@ref)
+- [Semiclassical EBK quantisation](@ref)
 
 ### Dynamics with `DifferentialEquations.jl`
 

@@ -23,25 +23,34 @@ ENV["GKSwstype"] = "100"
     pages = [
         "index.md"
         "getting_started.md"
+        "NonadiabaticModels.jl" => [
+            "models/overview.md"
+            "models/model_library.md"
+            "models/ldfa.md"
+        ]
+        "Initial conditions" => Any[
+            "initialconditions/dynamicaldistribution.md"
+            "Sampling methods" => map(
+                s -> "initialconditions/samplingmethods/$(s)",
+                sort(readdir(joinpath(@__DIR__, "src/initialconditions/samplingmethods")))
+            )
+        ]
         "Dynamics simulations" => Any[
-            "dynamicssimulations/dynamicssimulations.md",
+            "dynamicssimulations/dynamicssimulations.md"
             "Dynamics methods" => map(
                 s -> "dynamicssimulations/dynamicsmethods/$(s)",
                 sort(readdir(joinpath(@__DIR__, "src/dynamicssimulations/dynamicsmethods")))
             )
         ]
-        "initial_conditions.md"
         "ensemble_simulations.md"
-        "Models" => [
-            "models/overview.md"
-            "models/model_library.md"
-            "models/ldfa.md"
-        ]
         "Examples" => [
             "examples/mdef.md"
             "examples/fssh.md"
             "examples/nrpmd.md"
             "examples/quantisation.md"
+        ]
+        "Developer documentation" => [
+            "devdocs/new_methods.md"
         ]
         "API" => Any[
             "NonadiabaticModels" => map(
