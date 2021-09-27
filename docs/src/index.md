@@ -93,9 +93,16 @@ pkg> test NonadiabaticMolecularDynamics
 ```
 Alternatively, you can proceed directly the next section for a walkthrough of some basic functionality.
 
+### How to use this documentation
+
+The first page to read is the [Getting started](@ref) section which walks through all the ingredients
+needed to perform a simple classical dynamics simulation.
+After this, the reader is free to explore at their leisure since everything else builds directly
+upon sections from the [Getting started](@ref) page.
+
 ### Package ecosystem
 
-Included in the registry alongside the main package are a few others that provide extra
+Included in the `NQCDRegistry` alongside the main package are a few others that provide extra
 models and add-ons. Here is an overview of the currently existing packages included in
 the registry:
 
