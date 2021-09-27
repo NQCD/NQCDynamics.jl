@@ -23,16 +23,15 @@ ENV["GKSwstype"] = "100"
     pages = [
         "index.md"
         "getting_started.md"
-        "Dynamics methods" => [
-            "dynamics_methods/classical.md"
-            "dynamics_methods/fssh.md"
-            "dynamics_methods/nrpmd.md"
-            "dynamics_methods/mdef.md"
-            "dynamics_methods/new_methods.md"
+        "Dynamics simulations" => Any[
+            "dynamicssimulations/dynamicssimulations.md",
+            "Dynamics methods" => map(
+                s -> "dynamicssimulations/dynamicsmethods/$(s)",
+                sort(readdir(joinpath(@__DIR__, "src/dynamicssimulations/dynamicsmethods")))
+            )
         ]
         "initial_conditions.md"
         "ensemble_simulations.md"
-        # "calculators.md"
         "Models" => [
             "models/overview.md"
             "models/model_library.md"
