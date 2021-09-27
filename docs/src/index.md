@@ -8,7 +8,7 @@ intricacies of the implementations, hoping to make further contributions as simp
 ### Objectives
 
 - Achieve high performance along with good readability, extensibility, maintainability
-- Provide for both model and high-dimensional systems
+- Provide for both simple models and high-dimensional systems
 - Highlight the advantages of Julia in the field of nonadiabatic dynamics
 - Encourage code sharing and reuse within the nonadiabatic dynamics community
 
