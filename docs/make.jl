@@ -23,10 +23,13 @@ ENV["GKSwstype"] = "100"
     pages = [
         "index.md"
         "getting_started.md"
-        "NonadiabaticModels.jl" => [
-            "models/overview.md"
-            "models/model_library.md"
-            "models/ldfa.md"
+        "NonadiabaticModels.jl" => Any[
+            "nonadiabaticmodels/overview.md"
+            "nonadiabaticmodels/analyticmodels.md"
+            "Extra models and interfaces" => map(
+                s -> "nonadiabaticmodels/models/$(s)",
+                sort(readdir(joinpath(@__DIR__, "src/nonadiabaticmodels/models")))
+            )
         ]
         "Initial conditions" => Any[
             "initialconditions/dynamicaldistribution.md"
