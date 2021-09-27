@@ -1,28 +1,30 @@
 # Analytic model library
 
-Provided by the package are a few analytic models that can be used to test new
-algorithms. Here you can find descriptions of the models and examples of their usage. 
+This page plots many of the analytic models included in `NonadiabaticMolecularDynamics`.
 
-!!! tip
-
-    In some of the examples we use `Symbolics.jl` to show the functional form of the output,
-    this can be useful for checking the model has been defined correctly.
-    The models have been defined in a type-agnostic way such that they should be easily
-    extensible with custom types.
+!!! tip 
+    To produce the plots we use two of Julia's plotting options [`Plots`](http://docs.juliaplots.org/latest/)
+    and [`Makie`](https://makie.juliaplots.org/dev/).
+    Plots has a mature recipe system that allows us to define custom plots for the 1D models
+    but we use Makie to produce the more complex images.
 
 ```@setup model
 using NonadiabaticModels
 using Plots: plot, contour
 ```
 
-## Adiabatic models
+## [`AdiabaticModels`](@ref NonadiabaticModels.AdiabaticModels)
 These models are used for classical dynamics and provide a single potential energy surface.
+
+### [`DiatomicHarmonic`](@ref)
 
 ```@example model
 model = DiatomicHarmonic(r₀=1.0)
 f(x,y) = potential(model, [x y])[1]
 contour(-10:0.1:10, -10:0.1:10, f, fill=true)
 ```
+
+### [`DarlingHollowayElbow`](@ref)
 
 ```@example
 using NonadiabaticModels # hide
@@ -46,27 +48,35 @@ ylims!(-0.5, 4.5)
 fig
 ```
 
-## Diabatic models
+## [`DiabaticModels`](@ref NonadiabaticModels.DiabaticModels)
 These models define a Hermitian potential operator in a diabatic basis.
 These can be used for various forms of nonadiabatic dynamics.
+
+### [`TullyModelOne`](@ref)
 ```@example model
 plot(-10:0.1:10, TullyModelOne())
 ```
+### [`TullyModelTwo`](@ref)
 ```@example model
 plot(-10:0.1:10, TullyModelTwo())
 ```
+### [`TullyModelThree`](@ref)
 ```@example model
 plot(-10:0.1:10, TullyModelThree())
 ```
+### [`ThreeStateMorse`](@ref)
 ```@example model
 plot(2:0.01:12, ThreeStateMorse(), ylims=(0, 0.06))
 ```
+### [`OuyangModelOne`](@ref)
 ```@example model
 plot(-10:0.1:10, OuyangModelOne())
 ```
+### [`DoubleWell`](@ref)
 ```@example model
 plot(-5:0.1:5, DoubleWell())
 ```
+### [`GatesHollowayElbow`](@ref)
 ```@example
 using NonadiabaticModels # hide
 using CairoMakie

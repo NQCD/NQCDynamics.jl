@@ -54,6 +54,7 @@ ENV["GKSwstype"] = "100"
         ]
         "Developer documentation" => [
             "devdocs/new_methods.md"
+            "devdocs/models.md"
         ]
         "API" => Any[
             "NonadiabaticModels" => map(
