@@ -1,40 +1,31 @@
 # Analytic model library
 
-Provided by the package are a few analytic models that can be used to test new
-algorithms. Here you can find descriptions of the models and examples of their usage. 
+This page plots many of the analytic models included in `NonadiabaticMolecularDynamics`.
 
-!!! tip
-
-    In some of the examples we use `Symbolics.jl` to show the functional form of the output,
-    this can be useful for checking the model has been defined correctly.
-    The models have been defined in a type-agnostic way such that they should be easily
-    extensible with custom types.
+!!! tip 
+    To produce the plots we use two of Julia's plotting options [`Plots`](http://docs.juliaplots.org/latest/)
+    and [`Makie`](https://makie.juliaplots.org/dev/).
+    Plots has a mature recipe system that allows us to define custom plots for the 1D models
+    but we use Makie to produce the more complex images.
 
 ```@setup model
 using NonadiabaticModels
 using Plots: plot, contour
 ```
 
-## Adiabatic models
+## [`AdiabaticModels`](@ref NonadiabaticModels.AdiabaticModels)
 These models are used for classical dynamics and provide a single potential energy surface.
-```@docs
-NonadiabaticModels.Free
-NonadiabaticModels.Harmonic
-NonadiabaticModels.JuLIPModel
-```
 
-```@docs
-NonadiabaticModels.DiatomicHarmonic
-```
+### [`DiatomicHarmonic`](@ref)
+
 ```@example model
 model = DiatomicHarmonic(r₀=1.0)
 f(x,y) = potential(model, [x y])[1]
 contour(-10:0.1:10, -10:0.1:10, f, fill=true)
 ```
 
-```@docs
-NonadiabaticModels.DarlingHollowayElbow
-```
+### [`DarlingHollowayElbow`](@ref)
+
 ```@example
 using NonadiabaticModels # hide
 using NonadiabaticDynamicsBase: eV_to_au
@@ -57,45 +48,35 @@ ylims!(-0.5, 4.5)
 fig
 ```
 
-```@docs
-NonadiabaticModels.DebyeBosonBath
-```
-## Diabatic models
+## [`DiabaticModels`](@ref NonadiabaticModels.DiabaticModels)
 These models define a Hermitian potential operator in a diabatic basis.
 These can be used for various forms of nonadiabatic dynamics.
-```@docs
-NonadiabaticModels.TullyModelOne
-```
+
+### [`TullyModelOne`](@ref)
 ```@example model
 plot(-10:0.1:10, TullyModelOne())
 ```
-```@docs
-NonadiabaticModels.TullyModelTwo
-```
+### [`TullyModelTwo`](@ref)
 ```@example model
 plot(-10:0.1:10, TullyModelTwo())
 ```
-```@docs
-NonadiabaticModels.ThreeStateMorse
+### [`TullyModelThree`](@ref)
+```@example model
+plot(-10:0.1:10, TullyModelThree())
 ```
+### [`ThreeStateMorse`](@ref)
 ```@example model
 plot(2:0.01:12, ThreeStateMorse(), ylims=(0, 0.06))
 ```
-```@docs
-NonadiabaticModels.OuyangModelOne
-```
+### [`OuyangModelOne`](@ref)
 ```@example model
 plot(-10:0.1:10, OuyangModelOne())
 ```
-```@docs
-NonadiabaticModels.DoubleWell
-```
+### [`DoubleWell`](@ref)
 ```@example model
 plot(-5:0.1:5, DoubleWell())
 ```
-```@docs
-NonadiabaticModels.GatesHollowayElbow
-```
+### [`GatesHollowayElbow`](@ref)
 ```@example
 using NonadiabaticModels # hide
 using CairoMakie
@@ -116,8 +97,4 @@ contour!(fig[1,1], x, z, v2, color=:red, levels=0:0.01:0.1)
 xlims!(-0.5, 4.0)
 ylims!(-0.5, 4.0)
 fig
-```
-
-```@docs
-NonadiabaticModels.DebyeSpinBoson
 ```

@@ -23,32 +23,47 @@ ENV["GKSwstype"] = "100"
     pages = [
         "index.md"
         "getting_started.md"
-        "Dynamics methods" => [
-            "dynamics_methods/classical.md"
-            "dynamics_methods/fssh.md"
-            "dynamics_methods/nrpmd.md"
-            "dynamics_methods/mdef.md"
-            "dynamics_methods/new_methods.md"
+        "NonadiabaticModels.jl" => Any[
+            "nonadiabaticmodels/overview.md"
+            "nonadiabaticmodels/analyticmodels.md"
+            "Extra models and interfaces" => map(
+                s -> "nonadiabaticmodels/models/$(s)",
+                sort(readdir(joinpath(@__DIR__, "src/nonadiabaticmodels/models")))
+            )
         ]
-        "initial_conditions.md"
+        "Initial conditions" => Any[
+            "initialconditions/dynamicaldistribution.md"
+            "Sampling methods" => map(
+                s -> "initialconditions/samplingmethods/$(s)",
+                sort(readdir(joinpath(@__DIR__, "src/initialconditions/samplingmethods")))
+            )
+        ]
+        "Dynamics simulations" => Any[
+            "dynamicssimulations/dynamicssimulations.md"
+            "Dynamics methods" => map(
+                s -> "dynamicssimulations/dynamicsmethods/$(s)",
+                sort(readdir(joinpath(@__DIR__, "src/dynamicssimulations/dynamicsmethods")))
+            )
+        ]
         "ensemble_simulations.md"
-        # "calculators.md"
-        "Models" => [
-            "models/overview.md"
-            "models/model_library.md"
-            "models/ldfa.md"
-        ]
         "Examples" => [
             "examples/mdef.md"
             "examples/fssh.md"
             "examples/nrpmd.md"
             "examples/quantisation.md"
         ]
-        "Library" => Any[
-            "Public" => "lib/public.md",
-            "Internals" => map(
-                s -> "lib/internals/$(s)",
-                sort(readdir(joinpath(@__DIR__, "src/lib/internals")))
+        "Developer documentation" => [
+            "devdocs/new_methods.md"
+            "devdocs/models.md"
+        ]
+        "API" => Any[
+            "NonadiabaticModels" => map(
+                s -> "api/nonadiabaticmodels/$(s)",
+                sort(readdir(joinpath(@__DIR__, "src/api/nonadiabaticmodels")))
+            ),
+            "NonadiabaticMolecularDynamics" => map(
+                s -> "api/nonadiabaticmoleculardynamics/$(s)",
+                sort(readdir(joinpath(@__DIR__, "src/api/nonadiabaticmoleculardynamics")))
             ),
         ]
     ])
