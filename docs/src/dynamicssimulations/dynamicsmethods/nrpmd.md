@@ -1,5 +1,4 @@
-
-# NRPMD
+# Nonadiabatic ring polymer molecular dynamics (NRPMD)
 
 ## Theory
 

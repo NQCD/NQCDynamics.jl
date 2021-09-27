@@ -1,4 +1,4 @@
-# Ensemble Simulations
+# Ensemble simulations
 
 Typically we'll be interested in computing observables based upon the statistics
 obtained from many trajectories.
