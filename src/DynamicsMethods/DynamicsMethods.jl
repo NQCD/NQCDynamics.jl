@@ -6,7 +6,7 @@ Dynamics is performed using [`DifferentialEquations.jl`](https://diffeq.sciml.ai
 As such, this module is centered around the implementation of the functions
 necessary to integrate the dynamics.
 
-For deterministic Hamiltonian methods, the central function is [`Dynamics.motion!`](@ref),
+For deterministic Hamiltonian methods, the central function is [`DynamicsMethods.motion!`](@ref),
 which is the inplace form of the function
 to be integrated by [`DifferentialEquations.jl`](https://diffeq.sciml.ai/stable/).
 

@@ -21,16 +21,19 @@ set of popular models often used in the field of nonadiabatic dynamics.
 
 Depending on the quantities provided by the `Model`, we use Julia's abstract type system
 to group models that provide the same quantities.
-Currently there are two top-level abstract types: [`AdiabaticModel`](@ref AdiabaticModels.AdiabaticModel)
-and [`DiabaticModel`](@ref DiabaticModels.DiabaticModel).
-The [`AdiabaticModel`](@ref AdiabaticModels.AdiabaticModel) is used for adiabatic dynamics, providing only the potential
+Currently there are two top-level abstract types: [`AdiabaticModel`](@ref NonadiabaticModels.AdiabaticModels.AdiabaticModel)
+and [`DiabaticModel`](@ref NonadiabaticModels.DiabaticModels.DiabaticModel).
+The [`AdiabaticModel`](@ref NonadiabaticModels.AdiabaticModels.AdiabaticModel)
+is used for adiabatic dynamics, providing only the potential
 and force used in classical mechanics.
-The [`DiabaticModel`](@ref DiabaticModels.DiabaticModel) is used for nonadiabatic dynamics, where the potential
-is instead a [`Hermitian`](@ref) matrix.
+The [`DiabaticModel`](@ref NonadiabaticModels.DiabaticModels.DiabaticModel) is used for nonadiabatic dynamics, 
+where the potential is instead a `Hermitian` matrix.
 
-In the [Getting started](@ref) section we briefly touched on how the [`AdiabaticModel`](@ref AdiabaticModels.AdiabaticModel)
+In the [Getting started](@ref) section we briefly touched on how the
+[`AdiabaticModel`](@ref NonadiabaticModels.AdiabaticModels.AdiabaticModel)
 works and introduced one of the included models.
-Here let's take a look at a [`DiabaticModel`](@ref DiabaticModels.DiabaticModel) which is more appropriate for nonadiabatic dynamics.
+Here let's take a look at a [`DiabaticModel`](@ref NonadiabaticModels.DiabaticModels.DiabaticModel)
+which is more appropriate for nonadiabatic dynamics.
 
 ```@example diabaticmodel
 using NonadiabaticModels
@@ -53,7 +56,7 @@ ndofs(model)
 Since this is a 1D model, the position argument that appears in the derivative and the potential
 is a real number.
 Instead, for higher dimensional models with multiple atoms the position should be provided as
-an [`AbstractMatrix`](@ref).
+an `AbstractMatrix`.
 
 The type tree of the [`Model`](@ref NonadiabaticModels.Model) can be seen below.
 The leaves of the tree are the concrete models, whereas each branch is one of the abstract types.
