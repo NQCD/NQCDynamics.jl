@@ -27,10 +27,7 @@ for the friction coefficient.
 <img src="./assets/ldfa_graph.png">
 ```
 
-Currently provided is the `CubeLDFAModel` which attaches LDFA friction to an existing
-model, where the density is obtained from a cube file.
-```@docs 
-CubeLDFAModel.LDFAModel
-```
+Currently provided is the [`CubeLDFAModel`](@ref NonadiabaticModels.FrictionModels.CubeLDFAModel)
+which attaches LDFA friction to an existing model, where the density is obtained from a cube file.
 Further models could be added that obtain the density from other sources, such as from
 a machine-learning model.

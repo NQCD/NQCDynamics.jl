@@ -14,9 +14,7 @@ This module exports two user facing functions:
 The central concept of this module is the EBK procedure which is nicely detailed here:
 Am. J. Phys., Vol. 74, No. 7, July 2006
 
-Inspired by VENUS96:
-Hase, WL et al. 1996, VENUS96: A general chemical dynamics computer program,
-Quantum Chemical Program Exchange Bulletin, vol. 16(4), pp. 43-43.
+Inspired by VENUS96: [Hase1996](@cite)
 """
 module QuantisedDiatomic
 
@@ -63,7 +61,9 @@ function generate_configurations(sim, ν, J; samples=1000, height=10, normal_vec
 end
 
 """
-Identify the energy and turning points associated with the specified quantum numbers
+    extract_energy_and_bounds(sim, ν, J; height=10, normal_vector=[0, 0, 1])
+
+Returns the energy and turning points associated with the specified quantum numbers
 """
 function extract_energy_and_bounds(sim, ν, J; height=10, normal_vector=[0, 0, 1])
 
@@ -72,19 +72,21 @@ function extract_energy_and_bounds(sim, ν, J; height=10, normal_vector=[0, 0, 1
     ω = sqrt(k / μ)
     E_guess = (ν + 1/2) * ω
 
+    "Target function to optimise. Find energy `E` where vibrational numbers `ν` match."
     function target(E)
-        ν_tmp, J_tmp, bounds = extract_quantum_numbers(sim, μ, E, J; height=height, normal_vector=normal_vector)
+        ν_tmp, _, _ = extract_quantum_numbers(sim, μ, E, J; height=height, normal_vector=normal_vector)
         ν_tmp - ν
     end
 
     E = Roots.find_zero(target, E_guess)
-    ν_tmp, J_tmp, bounds = extract_quantum_numbers(sim, μ, E, J; height=height, normal_vector=normal_vector)
+    _, _, bounds = extract_quantum_numbers(sim, μ, E, J; height=height, normal_vector=normal_vector)
 
     E, bounds 
 end
 
 """
-    quantise_diatomic(sim::Simulation, v::Matrix, r::Matrix)
+    quantise_diatomic(sim::Simulation, v::Matrix, r::Matrix;
+        height=10, normal_vector=[0, 0, 1])
 
 Quantise the vibrational and rotational degrees of freedom for the specified
 positions and velocities
@@ -93,7 +95,8 @@ When evaluating the potential, the molecule is moved to `height` in direction `n
 If the potential is independent of centre of mass position, this has no effect.
 Otherwise, be sure to modify these parameters to give the intended behaviour.
 """
-function quantise_diatomic(sim::Simulation, v::Matrix, r::Matrix; height=10, normal_vector=[0, 0, 1])
+function quantise_diatomic(sim::Simulation, v::Matrix, r::Matrix;
+    height=10, normal_vector=[0, 0, 1])
     # Select only the first two atoms
     if length(sim.atoms) > 2
         sim = Simulation(sim.atoms[1:2], sim.calculator.model; cell=sim.cell)
@@ -244,8 +247,8 @@ function apply_translational_impulse!(v, masses, translational_energy, direction
 end
 
 """
-    calculate_diatomic_energy(sim::Simulation, bond_length::Real; height::Real=10,
-                               normal_vector::Vector=[0, 0, 1])
+    calculate_diatomic_energy(sim::Simulation, bond_length::Real;
+        height=10, normal_vector=[0, 0, 1])
 
 Returns potential energy of diatomic with `bond_length` at `height` from surface.
 
@@ -254,8 +257,7 @@ to intersect the origin.
 This requires that the model implicitly provides the surface, or works fine without one.
 """
 function calculate_diatomic_energy(sim::Simulation, bond_length::Real;
-                                   height::Real=10,
-                                   normal_vector::Vector=[0, 0, 1])
+    height=10, normal_vector=[0, 0, 1])
 
     orthogonals = nullspace(reshape(normal_vector, 1, :)) # Plane parallel to surface
     R = normal_vector .* height .+ orthogonals .* bond_length ./ sqrt(2)
@@ -266,14 +268,15 @@ function calculate_diatomic_energy(sim::Simulation, bond_length::Real;
 end
 
 """
+    calculate_force_constant(sim::Simulation;
+        height=10.0, bond_length=2.5, normal_vector=[0.0, 0.0, 1.0])
+
 Evaluate energy for different bond lengths and identify force constant. 
 
 This uses LsqFit.jl to fit a harmonic potential with optimised minimum.
 """
 function calculate_force_constant(sim::Simulation;
-                                  height::Real=10.0,
-                                  bond_length=2.5,
-                                  normal_vector::Vector=[0.0, 0.0, 1.0])
+    height=10.0, bond_length=2.5, normal_vector=[0.0, 0.0, 1.0])
 
     harmonic(f, x, p) = (@. f = p[1]*(x - p[2])^2/2)
     function jacobian(J, x, p)

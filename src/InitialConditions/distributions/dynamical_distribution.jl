@@ -14,6 +14,41 @@ struct DynamicalDistribution{V,R,S,N} <: Sampleable{DynamicalVariate,Continuous}
     state::N
     type::Symbol
 end
+
+"""
+    DynamicalDistribution(velocity, position, size; state=0, type=:adiabatic)
+
+Sampleable that provides positions and velocities sampled from a variety of distributions.
+
+# Arguments
+
+**`velocity`** and **`position`** provide the velocities and positions and can be any type for
+which `select_item` has been implemented.
+
+**`size`** denotes to the size of the samples that should be produced.
+
+# Keywords
+
+**`state`** is used for nonequilibrium simulations when the population is restricted
+to a single electronic state.
+
+**`type`** can be either `:adiabatic` or `:diabatic` and chooses whether `state` is an adiabatic
+or diabatic state.
+
+# Example
+
+```jldoctest; setup = :(using Random; Random.seed!(1))
+using NonadiabaticMolecularDynamics.InitialConditions
+using Distributions
+
+d = DynamicalDistribution(5.0, Normal(), (1, 1))
+rand(d)
+
+# output
+
+ComponentVector{Float64}(v = [5.0], r = [-0.3170409357632898])
+```
+"""
 DynamicalDistribution(velocity, position, size; state=0, type=:adiabatic) =
     DynamicalDistribution(velocity, position, size, state, type)
 
