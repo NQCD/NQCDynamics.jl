@@ -50,12 +50,10 @@ bib = CitationBibliography(joinpath(@__DIR__, "references.bib"), sorting=:nyt)
             )
         ]
         "Ensemble simulations" => "ensemble_simulations.md"
-        "Examples" => [
-            "examples/mdef.md"
-            "examples/fssh.md"
-            "examples/nrpmd.md"
-            "examples/quantisation.md"
-        ]
+        "Examples" => map(
+            s -> "examples/$(s)",
+            sort(readdir(joinpath(@__DIR__, "src/examples")))
+        )
         "Developer documentation" => [
             "devdocs/new_methods.md"
             "devdocs/models.md"
