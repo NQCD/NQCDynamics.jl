@@ -4,12 +4,13 @@
 
 Nonadiabatic ring polymer molecular dynamics is a method that uses the ring polymer
 formalism to include quantum effects in the nuclear dynamics and mapping variables
-for the electronic degrees of freedom.[^Richardson2013] [^Richardson2017] [^Chowdhury2019]
+for the electronic degrees of freedom.
+([Richardson2013](@cite), [Richardson2017](@cite), [Chowdhury2019](@cite))
 This results in a classical dynamics in an extended phasespace of the ring polymer
 with each bead coupled to a set of classical mapping variables.
 Originallly, this method was proposed as a simple combination of the 
 Meyer-Miller-Stock-Thoss mapping formalism with RPMD but has since been
-rigorously derived from nonadiabatic Matsubara dynamics.[^Chowdhury2021]
+rigorously derived from nonadiabatic Matsubara dynamics ([Chowdhury2021](@cite)).
 
 The classical Hamiltonian conserved by the NRPMD dynamics is given by
 
@@ -53,11 +54,11 @@ The equations of motion obtained from this Hamiltonian are
 
 ### Solving the differential equations
 
-For mapping variable methods of this type, a symplectic algorithm [^Church2018]
+For mapping variable methods of this type, a symplectic algorithm ([Church2018](@cite))
 exists which has the advantage of long time stability and can be easily combined
 with the standard algorithms for ring polymer time-evolution.
 For NRPMD we have implemented this algorithm using the Cayley modified ring polymer
-propagator[^Korol2019] and obtain accurate and efficient dynamics.
+propagator ([Korol2019](@cite)) and obtain accurate and efficient dynamics.
 For few beads, similar performance to the OrdinaryDiffEq.jl algorithms
 is obtained, but as the number of beads increases this algorithm becomes more effective.
 
@@ -83,7 +84,7 @@ simplicity.
 ## Example
 
 Using NRPMD we can reproduce the figure 3a in the 2019 paper of Chowdhury
-and Huo[^Chowdhury2019].
+and Huo ([Chowdhury2019](@cite)).
 
 First we must generate a thermal ring polymer distribution in a harmonic potential.
 A simple way to do this is to use Monte Carlo sampling for the positions and
@@ -152,12 +153,3 @@ ensemble = Ensembles.run_ensemble(sim, (0.0, 30.0), distribution; trajectories=1
 
 lines(0:0.1:30, [p[1]-p[2] for p in ensemble.u])
 ```
-
-## References
-
-[^Richardson2013]: Jeremy O. Richardson, Michael Thoss, [J. Chem. Phys. 139, 031102 (2013)](https://doi.org/10.1063/1.4816124)
-[^Richardson2017]: Jeremy O. Richardson et al., [Chemical Physics 482 124–134 (2017)](https://doi.org/10.1016/j.chemphys.2016.09.036)
-[^Chowdhury2019]: Sutirtha N. Chowdhury, Pengfei Huo, [J. Chem. Phys. 150, 244102 (2019)](https://doi.org/10.1063/1.5096276)
-[^Chowdhury2021]: Sutirtha N. Chowdhury, Pengfei Huo, [J. Chem. Phys. 154, 124124 (2021)](https://doi.org/10.1063/5.0042136)
-[^Church2018]: Matthew S. Church et al., [J. Chem. Phys. 148, 102326 (2018)](https://doi.org/10.1063/1.5005557)
-[^Korol2019]: Roman Korol, Nawaf Bou-Rabee, Thomas F. Miller, [https://doi.org/10.1063/1.5120282](https://doi.org/10.1063/1.5120282)
