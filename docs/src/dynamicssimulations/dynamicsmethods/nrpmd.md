@@ -1,4 +1,4 @@
-# Nonadiabatic ring polymer molecular dynamics (NRPMD)
+# [Nonadiabatic ring polymer molecular dynamics (NRPMD)](@id nrpmd-dynamics)
 
 ## Theory
 

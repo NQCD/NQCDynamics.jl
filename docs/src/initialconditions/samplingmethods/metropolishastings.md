@@ -1,4 +1,4 @@
-# Thermal Metropolis-Hastings Monte Carlo
+# [Thermal Metropolis-Hastings Monte Carlo](@id mhmc-sampling)
 
 Metropolis-Hastings Monte Carlo is a popular method for sampling the canonical
 distribution for a molecular system.
