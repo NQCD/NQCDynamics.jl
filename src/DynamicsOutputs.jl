@@ -46,20 +46,56 @@ function get_saving_function(function_names::NTuple{N, Symbol})::Function where 
     end
 end
 
+"Get the force"
 force(u, t, integrator) = -copy(integrator.p.calculator.derivative)
+
+"Get the velocity"
 velocity(u, t, integrator) = copy(get_velocities(u))
+
+"Get the position"
 position(u, t, integrator) = copy(get_positions(u))
+
+"Get the position of the ring polymer centroid"
 centroid_position(u, t, integrator) = get_centroid(get_positions(u))
+
+"Evaluate the potential from the model"
 potential(u, t, integrator) = NonadiabaticModels.potential(integrator.p.calculator.model, get_positions(u))[1]
+
+"Evaluate the classical Hamiltonian"
 hamiltonian(u, t, integrator) = DynamicsUtils.classical_hamiltonian(integrator.p, u)
+
+"Evaluate the classical kinetic energy"
 kinetic(u, t, integrator) = DynamicsUtils.classical_kinetic_energy(integrator.p, get_velocities(u))
+
+"Get all the dynamics variables. This is the default"
 u(u, t, integrator) = copy(u)
 u(u::ArrayPartition, t, integrator) = ComponentVector(v=copy(get_velocities(u)), r=copy(get_positions(u)))
+
+"""
+Get the quantum subsystem of the dynamics variables.
+Requires that `DynamicsUtils.get_quantum_subsystem` is implemented for your chosen method.
+"""
 quantum_subsystem(u, t, integrator) = copy(get_quantum_subsystem(u))
+
+"""
+Get the currently occupied state from the dynamics variables.
+Requires that the dynamics variable has a field `state`.
+Currently this is for surface hopping methods only.
+Use [`population`](@ref) or [`adiabatic_population`](@ref) for most other methods.
+"""
 state(u, t, integrator) = copy(u.state)
+
+"Get the noise along the stochastic trajectory"
+
 noise(u, t, integrator) = copy(integrator.W.dW) / sqrt(integrator.dt)
+
+"Evaluate the diabatic population"
 population(u, t, integrator) = Estimators.diabatic_population(integrator.p, u)
+
+"Evaluate the adiabatc population"
 adiabatic_population(u, t, integrator) = Estimators.adiabatic_population(integrator.p, u)
+
+"Evaluate the friction. This is used for MDEF only."
 function friction(u, t, integrator)
     integrator.g(integrator.cache.gtmp,get_positions(u),integrator.p,t)
     copy(integrator.cache.gtmp)
