@@ -91,7 +91,7 @@ Estimators.@estimate potential_energy(sim, traj.position)
 
 !!! tip
 
-    Since this is a harmonic system we can verify this result by comparing to the
+    We can verify this result by comparing to the
     equipartion theorem which states that each quadratic degree of freedom should contribute
     ``\frac{1}{2}kT`` to the total energy.
     Since this is a harmonic system, this gives us the exact classical potential energy
