@@ -24,6 +24,8 @@ export DynamicsUtils
 include("Estimators.jl")
 export Estimators
 
+include("DynamicsOutputs.jl")
+
 include("DynamicsMethods/DynamicsMethods.jl")
 @reexport using .DynamicsMethods
 
