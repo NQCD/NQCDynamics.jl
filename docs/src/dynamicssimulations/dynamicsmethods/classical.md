@@ -1,4 +1,4 @@
-# Classical molecular dynamics
+# [Classical molecular dynamics](@id classical-dynamics)
 
 Classical dynamics is the traditional form of molecular dynamics and proceeds
 by solving the dynamics for a system governed by a classical Hamiltonian containing

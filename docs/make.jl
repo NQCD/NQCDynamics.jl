@@ -1,4 +1,5 @@
 using Documenter
+using DocumenterCitations
 using NonadiabaticMolecularDynamics
 using NonadiabaticModels
 using CubeLDFAModel
@@ -6,23 +7,23 @@ using CubeLDFAModel
 DocMeta.setdocmeta!(NonadiabaticMolecularDynamics, :DocTestSetup, :(using NonadiabaticMolecularDynamics); recursive=true)
 DocMeta.setdocmeta!(NonadiabaticModels, :DocTestSetup, :(using NonadiabaticModels, Symbolics); recursive=true)
 
-# Fix plots bug https://discourse.julialang.org/t/generation-of-documentation-fails-qt-qpa-xcb-could-not-connect-to-display/60988
-ENV["GKSwstype"] = "100"
+bib = CitationBibliography(joinpath(@__DIR__, "references.bib"), sorting=:nyt)
 
 @time makedocs(
+    bib,
+    sitename = "NonadiabaticMolecularDynamics.jl",
     modules = [NonadiabaticMolecularDynamics, NonadiabaticModels, CubeLDFAModel],
+    strict = false,
     format = Documenter.HTML(
-        prettyurls = true,
+        prettyurls = get(ENV, "CI", nothing) == "true",
         canonical = "https://nqcd.github.io/NonadiabaticMolecularDynamics.jl/stable/",
-        assets = ["assets/custom.css", "assets/favicon.ico"],
+        assets = ["src/assets/custom.css", "src/assets/favicon.ico"],
         ansicolor = true,
         ),
-    clean = false,
-    sitename = "NonadiabaticMolecularDynamics.jl",
     authors = "James Gardner and contributors.",
     pages = [
-        "index.md"
-        "getting_started.md"
+        "Introduction" => "index.md"
+        "Getting started" => "getting_started.md"
         "NonadiabaticModels.jl" => Any[
             "nonadiabaticmodels/overview.md"
             "nonadiabaticmodels/analyticmodels.md"
@@ -45,13 +46,11 @@ ENV["GKSwstype"] = "100"
                 sort(readdir(joinpath(@__DIR__, "src/dynamicssimulations/dynamicsmethods")))
             )
         ]
-        "ensemble_simulations.md"
-        "Examples" => [
-            "examples/mdef.md"
-            "examples/fssh.md"
-            "examples/nrpmd.md"
-            "examples/quantisation.md"
-        ]
+        "Ensemble simulations" => "ensemble_simulations.md"
+        "Examples" => map(
+            s -> "examples/$(s)",
+            sort(readdir(joinpath(@__DIR__, "src/examples")))
+        )
         "Developer documentation" => [
             "devdocs/new_methods.md"
             "devdocs/models.md"
@@ -66,8 +65,13 @@ ENV["GKSwstype"] = "100"
                 sort(readdir(joinpath(@__DIR__, "src/api/nonadiabaticmoleculardynamics")))
             ),
         ]
+        "References" => "references.md"
     ])
 
-deploydocs(
-    repo = "github.com/NQCD/NonadiabaticMolecularDynamics.jl",
-)
+
+if get(ENV, "CI", nothing) == "true"
+    deploydocs(
+        repo = "github.com/NQCD/NonadiabaticMolecularDynamics.jl",
+        push_preview=true
+    )
+end

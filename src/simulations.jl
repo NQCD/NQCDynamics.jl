@@ -17,6 +17,13 @@ struct Simulation{M,Calc,A,T,C} <: AbstractSimulation{M,Calc,A,T,C}
     method::M
 end
 
+"""
+    Simulation(atoms::Atoms{S,T}, model::Model, method::M;
+        temperature=0u"K", cell::AbstractCell=InfiniteCell()) where {M,S,T}
+
+Simulation parameters that controls the types of atoms, interactions,
+dynamics method, temperature and simulation cell.
+"""
 function Simulation(atoms::Atoms{S,T}, model::Model, method::M;
         temperature=0u"K", cell::AbstractCell=InfiniteCell()) where {M,S,T}
     calc = Calculator(model, length(atoms), T)
