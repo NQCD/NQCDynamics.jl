@@ -38,7 +38,7 @@ and return a function that will evaluate all of the provided functions.
 """
 function get_saving_function(function_names::NTuple{N, Symbol})::Function where {N}
 
-    output_functions = (getfield(DynamicsMethods, f) for f in function_names)
+    output_functions = (getfield(DynamicsOutputs, f) for f in function_names)
 
     function saving(u, t, integrator)
         output_results = (f(u, t, integrator) for f in output_functions)
