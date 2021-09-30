@@ -7,9 +7,6 @@ using CubeLDFAModel
 DocMeta.setdocmeta!(NonadiabaticMolecularDynamics, :DocTestSetup, :(using NonadiabaticMolecularDynamics); recursive=true)
 DocMeta.setdocmeta!(NonadiabaticModels, :DocTestSetup, :(using NonadiabaticModels, Symbolics); recursive=true)
 
-# Fix plots bug https://discourse.julialang.org/t/generation-of-documentation-fails-qt-qpa-xcb-could-not-connect-to-display/60988
-ENV["GKSwstype"] = "100"
-
 bib = CitationBibliography(joinpath(@__DIR__, "references.bib"), sorting=:nyt)
 
 @time makedocs(
