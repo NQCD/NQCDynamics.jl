@@ -1,3 +1,6 @@
+
+module DynamicsOutputs
+
 using RecursiveArrayTools: ArrayPartition
 using DiffEqCallbacks: SavedValues, SavingCallback
 
@@ -61,3 +64,5 @@ function friction(u, t, integrator)
     integrator.g(integrator.cache.gtmp,get_positions(u),integrator.p,t)
     copy(integrator.cache.gtmp)
 end
+
+end # module
