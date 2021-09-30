@@ -13,21 +13,33 @@ using ..DynamicsUtils:
 
 using ..RingPolymers: get_centroid
 
-create_saving_callback(quantities::Symbol; saveat=[]) = create_saving_callback((quantities,), saveat=saveat)
+"""
+    create_saving_callback(quantities::NTuple{N, Symbol}; saveat=[]) where {N}
 
-function create_saving_callback(quantities::NTuple{N, Symbol}; saveat=[]) where {N}
-    saved_values = SavedValues(Float64, NamedTuple{quantities})
-    saving_function = get_saving_function(NamedTuple{quantities})
+Get the `SavingCallback` that will populate `saved_values` with the result obtained
+by evaluating the functions provided in `function_names`.
+"""
+function create_saving_callback(function_names::NTuple{N, Symbol}; saveat=[]) where {N}
+    saved_values = SavedValues(Float64, NamedTuple{function_names})
+    saving_function = get_saving_function(function_names)
     SavingCallback(saving_function, saved_values; saveat=saveat), saved_values
 end
+create_saving_callback(quantities::Symbol; saveat=[]) =
+    create_saving_callback((quantities,), saveat=saveat)
 
-function get_saving_function(::Type{savevalType})::Function where {savevalType}
+"""
+    get_saving_function(function_names::NTuple{N, Symbol})::Function where {N}
 
-    evaluate_field(field, u, t, integrator) = @eval $field($u, $t, $integrator)
+Take a Tuple of symbols representing the names of functions within this module
+and return a function that will evaluate all of the provided functions.
+"""
+function get_saving_function(function_names::NTuple{N, Symbol})::Function where {N}
 
-    function saving(u, t, integrator)::savevalType
-        output = [evaluate_field(field, u, t, integrator) for field in fieldnames(savevalType)]
-        savevalType(output)
+    output_functions = (getfield(DynamicsMethods, f) for f in function_names)
+
+    function saving(u, t, integrator)
+        output_results = (f(u, t, integrator) for f in output_functions)
+        NamedTuple{function_names}(output_results)
     end
 end
 

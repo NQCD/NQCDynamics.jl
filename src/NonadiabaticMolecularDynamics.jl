@@ -17,7 +17,6 @@ export Simulation,
        natoms,
        masses
 
-
 include("DynamicsUtils/DynamicsUtils.jl")
 @reexport using .DynamicsUtils: get_positions, get_velocities
 export DynamicsUtils
