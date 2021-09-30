@@ -24,10 +24,11 @@ nothing # hide
 ```
 
 For our initial conditions let's use a position distribution centred at 2.1 a.u.
-with zero velocity.
+with Boltzmann velocities at 300 K.
 ```@example fssh
 position = Normal(2.1, 1 / sqrt(20000 * 0.005))
-distribution = InitialConditions.DynamicalDistribution(0.0, position, (1,1); state=1)
+velocity = InitialConditions.BoltzmannVelocityDistribution(300u"K", masses(sim))
+distribution = InitialConditions.DynamicalDistribution(velocity, position, (1,1); state=1)
 nothing # hide
 ```
 

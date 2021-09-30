@@ -1,4 +1,4 @@
-# Thermal Hamiltonian Monte Carlo
+# [Thermal Hamiltonian Monte Carlo](@id hmc-sampling)
 
 Our implementation of Hamiltonian Monte Carlo (HMC) is a light wrapper around the
 [AdvancedHMC.jl](https://github.com/TuringLang/AdvancedHMC.jl) package.

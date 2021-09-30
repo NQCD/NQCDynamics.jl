@@ -1,1 +1,1 @@
-# Ehrenfest molecular dynamics
+# [Ehrenfest molecular dynamics](@id ehrenfest-dynamics)

@@ -1,4 +1,4 @@
-# Fewest-switches surface hopping (FSSH)
+# [Fewest-switches surface hopping (FSSH)](@id fssh-dynamics)
 
 Tully's FSSH [Tully1990](@cite) is one of the most popular methods for nonadiabatic
 molecular dynamics and is classified as a mixed-quantum classical method, where the nuclei
@@ -69,7 +69,7 @@ In this section we can investigate the results obtained for a single trajectory 
 and see the results of the above equations.
 
 First, the simulation parameters are created. Here we have a single atom with a mass of
-`2000` and we are using Tully's third model, provided by [`NonadiabaticModels.jl`](@ref).
+`2000` and we are using Tully's third model, provided by [NonadiabaticModels.jl](@ref).
 ```@example fssh
 using Random; Random.seed!(10) # hide
 using NonadiabaticMolecularDynamics
@@ -107,5 +107,5 @@ different depending on the complexity of the model Hamiltonian.
 plot(traj, :population)
 ```
 
-For more examples, have a look in the [Examples](@ref) section where we reproduce some of
-the results from [Tully1990](@cite).
+[Another example is available](@ref examples-tully-model-two) where we FSSH and other
+methods to reproduce some of the results from [Tully1990](@cite).

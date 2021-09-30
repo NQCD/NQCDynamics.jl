@@ -28,21 +28,21 @@ issue/pull request on Github!
 
 #### Dynamics methods
 
-- [Classical molecular dynamics](@ref)
-- [Classical Langevin dynamics](@ref)
-- [Fewest-switches surface hopping (FSSH)](@ref)
-- [Molecular dynamics with electronic friction (MDEF)](@ref)
-- [Ring polymer molecular dynamics (RPMD)](@ref)
-- [Nonadiabatic ring polymer molecular dynamics (NRPMD)](@ref)
-- [Ring polymer surface hopping (RPSH)](@ref)
-- [Ehrenfest molecular dynamics](@ref)
+- [Classical molecular dynamics](@ref classical-dynamics)
+- [Classical Langevin dynamics](@ref langevin-dynamics)
+- [Fewest-switches surface hopping (FSSH)](@ref fssh-dynamics)
+- [Molecular dynamics with electronic friction (MDEF)](@ref mdef-dynamics)
+- [Ring polymer molecular dynamics (RPMD)](@ref rpmd-dynamics)
+- [Nonadiabatic ring polymer molecular dynamics (NRPMD)](@ref nrpmd-dynamics)
+- [Ring polymer surface hopping (RPSH)](@ref rpsh-dynamics)
+- [Ehrenfest molecular dynamics](@ref ehrenfest-dynamics)
 
 #### Generating initial conditions
 
-- [Thermal Metropolis-Hastings Monte Carlo](@ref)
-- [Thermal Hamiltonian Monte Carlo](@ref)
-- [Langevin dynamics](@ref)
-- [Semiclassical EBK quantisation](@ref)
+- [Thermal Metropolis-Hastings Monte Carlo](@ref mhmc-sampling)
+- [Thermal Hamiltonian Monte Carlo](@ref hmc-sampling)
+- [Langevin dynamics](@ref langevin-sampling)
+- [Semiclassical EBK quantisation](@ref ebk-sampling)
 
 ### Dynamics with `DifferentialEquations.jl`
 

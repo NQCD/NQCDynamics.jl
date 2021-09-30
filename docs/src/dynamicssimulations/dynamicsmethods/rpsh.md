@@ -1,11 +1,11 @@
-# Ring polymer surface hopping (RPSH)
+# [Ring polymer surface hopping (RPSH)](@id rpsh-dynamics)
 
 Ring polymer surface hopping was one of the early attempts to extend
-[RPMD](@ref Ring polymer molecular dynamics (RPMD)) to
+[RPMD](@ref rpmd-dynamics) to
 the realm of nonadiabatic dynamics [Shushkov2012](@cite).
 On the surface, the concept is reasonably simple. Since RPMD proceeds on a single
 adiabatic surface, it should be possible to directly combine the
-[FSSH](@ref Fewest-switches surface hopping (FSSH)) scheme with ring
+[FSSH](@ref fssh-dynamics) scheme with ring
 polymer dynamics to approximately include some nuclear quantum effects in the surface
 hopping dynamics.
 However, there are some ambiguities surrounding the exact implementation when

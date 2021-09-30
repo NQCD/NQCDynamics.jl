@@ -1,4 +1,4 @@
-# Classical Langevin dynamics
+# [Classical Langevin dynamics](@id langevin-dynamics)
 
 Langevin dynamics can be used to sample the canonical ensemble for a classical system.
 It involves a classical dynamics that is modified with an additional drag force

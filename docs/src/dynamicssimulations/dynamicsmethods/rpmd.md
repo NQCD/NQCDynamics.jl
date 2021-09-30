@@ -1,4 +1,4 @@
-# Ring polymer molecular dynamics (RPMD)
+# [Ring polymer molecular dynamics (RPMD)](@id rpmd-dynamics)
 
 Ring polymer molecular dynamics is a quantum dynamics methods that attempts
 to approximate Kubo-transformed real-time correlation functions ([Craig2004](@cite)).
