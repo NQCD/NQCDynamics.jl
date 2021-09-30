@@ -6,12 +6,8 @@ Molecular dynamics with electronic friction (MDEF) has been proposed as a correc
 BO dynamics, where a Langevin equation is used to model the dynamics of the molecule
 within the metal electron density.
 
-```@raw html
-<img src="./assets/ldfa_motion.png">
-```
-```@raw html
-<img src="./assets/ldfa_dissociate.png">
-```
+![ldfa motion](../../assets/figures/ldfa_motion.png)
+![ldfa dissociate](../../assets/figures/ldfa_dissociate.png)
 
 The LDFA provides a simple way to relate the electron density to a friction coefficient
 that can be used to propagate the dynamics.
@@ -23,14 +19,9 @@ the Wigner-Seitz radius ``r_s ^{-3} = \frac{4}{3} \pi n_0``.
 A cubic spline interpolation is performed which provides a continuous function
 for the friction coefficient. 
 
-```@raw html
-<img src="./assets/ldfa_graph.png">
-```
+![ldfa graph](../../assets/figures/ldfa_graph.png)
 
-Currently provided is the `CubeLDFAModel` which attaches LDFA friction to an existing
-model, where the density is obtained from a cube file.
-```@docs 
-CubeLDFAModel.LDFAModel
-```
+Currently provided is the [`LDFAModel`](@ref CubeLDFAModel.LDFAModel)
+which attaches LDFA friction to an existing model, where the density is obtained from a cube file.
 Further models could be added that obtain the density from other sources, such as from
 a machine-learning model.

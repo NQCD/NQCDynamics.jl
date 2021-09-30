@@ -91,7 +91,7 @@ set_new_state!(container, new_state::AbstractVector) = copyto!(container.new_sta
 const HoppingCallback = DiffEqBase.DiscreteCallback(check_hop!, execute_hop!;
                                                     save_positions=(false, false))
 
-get_callbacks(::AbstractSimulation{<:SurfaceHopping}) = HoppingCallback
+DynamicsMethods.get_callbacks(::AbstractSimulation{<:SurfaceHopping}) = HoppingCallback
 
 """
 This function should set the field `sim.method.hopping_probability`.
@@ -114,7 +114,8 @@ rescale_velocity!(::AbstractSimulation{<:SurfaceHopping}, u) = true
 
 function DynamicsMethods.create_problem(u0, tspan, sim::AbstractSimulation{<:SurfaceHopping})
     set_state!(sim.method, u0.state)
-    OrdinaryDiffEq.ODEProblem(DynamicsMethods.motion!, u0, tspan, sim; callback=get_callbacks(sim))
+    OrdinaryDiffEq.ODEProblem(DynamicsMethods.motion!, u0, tspan, sim;
+        callback=DynamicsMethods.get_callbacks(sim))
 end
 
 include("fssh.jl")

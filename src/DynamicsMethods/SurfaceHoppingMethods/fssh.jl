@@ -160,7 +160,7 @@ function Estimators.diabatic_population(sim::Simulation{<:FSSH}, u)
 end
 
 function Estimators.adiabatic_population(sim::AbstractSimulation{<:FSSH}, u)
-    population = zeros(sim.calculator.model.n_states)
+    population = zeros(NonadiabaticModels.nstates(sim.calculator.model))
     population[u.state] = 1
     return population
 end
