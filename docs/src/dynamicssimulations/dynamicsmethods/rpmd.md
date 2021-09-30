@@ -29,7 +29,7 @@ H = \sum_\alpha^N \frac{1}{2} \mathbf{P}_\alpha^T \mathbf{M} \mathbf{P}_\alpha
 (\mathbf{R}_\alpha - \mathbf{R}_{\alpha+1})
 + V(\mathbf{R}_\alpha)
 ```
-where the ring polymer spring constant ``\omega_N = 1 \ \hbar\beta_N`` and
+where the ring polymer spring constant ``\omega_N = 1 / \hbar\beta_N`` and
 ``\beta_N = \beta / N``.
 
 When the initial distribution is taken as the thermal ring polymer distribution and
@@ -59,14 +59,14 @@ polymer distribution obtained from a PIMC or Langevin simulation but here for si
 we use a normally distributed configuration.
 ```@example rpmd
 u = DynamicsVariables(sim, zeros(size(sim)), randn(size(sim)))
-#nothing
+nothing # hide
 ```
 
 Now we can run the simulation:
 ```@example rpmd
 dt = 2.5
 traj = run_trajectory(u, (0.0, 2500.0), sim; output=(:position), dt=dt)
-#nothing
+nothing # hide
 ```
 
 We can visualise this ring polymer trajectory with a 2D scatter plot that shows how
