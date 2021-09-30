@@ -30,6 +30,21 @@ end
 create_saving_callback(quantities::Symbol; saveat=[]) =
     create_saving_callback((quantities,), saveat=saveat)
 
+export force
+export velocity
+export position
+export centroid_position
+export potential
+export hamiltonian
+export kinetic
+export u
+export quantum_subsystem
+export state
+export noise
+export population
+export adiabatic_population
+export friction
+
 """
     get_saving_function(function_names::NTuple{N, Symbol})::Function where {N}
 
