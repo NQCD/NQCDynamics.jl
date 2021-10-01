@@ -26,7 +26,7 @@ struct OutputDissociation{T} <: AbstractOutput
 end
 
 function (output::OutputDissociation)(sol, i)
-    R = DynamicsMethods.get_positions(last(sol))
+    R = DynamicsUtils.get_positions(last(sol))
     dissociated = norm(R[:,output.atom_indices[1]] .- R[:,output.atom_indices[2]]) > output.distance
     return dissociated ? (1, false) : (0, false)
 end
