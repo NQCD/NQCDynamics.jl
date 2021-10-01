@@ -154,7 +154,7 @@ For classical dynamics we also provide a timestep `dt` since we're using the
 `VelocityVerlet` algorithm.
 The final keyword argument `output` is used to specify the quantities we want
 to save during the dynamics.
-A list of the available quantities can be found (TODO).
+A list of the available quantities can be found [here](@ref DynamicsOutputs).
 
 As with the models, we provide custom plotting recipes to quickly visualise the results
 before performing further analysis.

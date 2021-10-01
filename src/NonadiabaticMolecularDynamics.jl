@@ -17,13 +17,14 @@ export Simulation,
        natoms,
        masses
 
-
 include("DynamicsUtils/DynamicsUtils.jl")
 @reexport using .DynamicsUtils: get_positions, get_velocities
 export DynamicsUtils
 
 include("Estimators.jl")
 export Estimators
+
+include("DynamicsOutputs.jl")
 
 include("DynamicsMethods/DynamicsMethods.jl")
 @reexport using .DynamicsMethods

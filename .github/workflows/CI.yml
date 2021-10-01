@@ -19,6 +19,16 @@ jobs:
       - uses: actions/checkout@v2
       - uses: julia-actions/setup-julia@latest
 
+      - uses: actions/cache@v1
+        env:
+          cache-name: cache-artifacts
+        with:
+          path: ~/.julia/artifacts
+          key: ${{ runner.os }}-test-${{ env.cache-name }}-${{ hashFiles('**/Project.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-test-${{ env.cache-name }}-
+            ${{ runner.os }}-test-
+
       - name: Add NQCDRegistry
         run: julia -e 'using Pkg; Pkg.Registry.add(RegistrySpec(url="https://github.com/NQCD/NQCDRegistry"))'
         shell: bash

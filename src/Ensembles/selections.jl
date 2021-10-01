@@ -1,6 +1,6 @@
 using DiffEqBase: CallbackSet
 
-using NonadiabaticMolecularDynamics: InitialConditions
+using NonadiabaticMolecularDynamics: InitialConditions, DynamicsOutputs
 
 abstract type AbstractSelection end
 
@@ -44,7 +44,7 @@ struct SelectWithCallbacks{S<:AbstractSelection,C1,C2,V} <: AbstractSelection
         callbacks = []
         values = []
         for i=1:trajectories
-            cb, vals = DynamicsMethods.create_saving_callback(output; saveat=saveat)
+            cb, vals = DynamicsOutputs.create_saving_callback(output; saveat=saveat)
             push!(callbacks, cb)
             push!(values, vals)
         end

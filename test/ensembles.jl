@@ -73,9 +73,9 @@ end
     output = Ensembles.OutputQuantisedDiatomic(sim)
 end
 
-@testset "run_ensemble_standard_output" begin
+@testset "run_trajectories" begin
     tspan = (0.0, 10.0)
-    out = Ensembles.run_ensemble_standard_output(sim, tspan, distribution;
+    out = Ensembles.run_trajectories(sim, tspan, distribution;
         output=(:position), dt=1, trajectories=10)
 end
 
