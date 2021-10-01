@@ -23,7 +23,8 @@ using Reexport: @reexport
 using OrdinaryDiffEq: OrdinaryDiffEq
 using ComponentArrays: ComponentVector
 
-using NonadiabaticMolecularDynamics: AbstractSimulation, Simulation, RingPolymerSimulation
+using NonadiabaticMolecularDynamics: AbstractSimulation, Simulation, RingPolymerSimulation,
+    DynamicsOutputs
 using NonadiabaticDynamicsBase: austrip_kwargs
 
 export DynamicsVariables
@@ -72,8 +73,6 @@ classical dynamics.
 """
 DynamicsVariables(::AbstractSimulation, v, r) = ComponentVector(v=v, r=r)
 
-include("output.jl")
-
 """
     run_trajectory(u0, tspan::Tuple, sim::AbstractSimulation;
                    output=(:u,), saveat=[], algorithm=select_algorithm(sim), kwargs...)
@@ -101,7 +100,7 @@ function run_trajectory(u0, tspan::Tuple, sim::AbstractSimulation;
         output=(:u,), saveat=[], callback=nothing, algorithm=select_algorithm(sim),
         kwargs...)
 
-    saving_callback, vals = create_saving_callback(output; saveat=austrip.(saveat))
+    saving_callback, vals = DynamicsOutputs.create_saving_callback(output; saveat=austrip.(saveat))
     callback_set = DiffEqBase.CallbackSet(callback, saving_callback, get_callbacks(sim))
     problem = create_problem(u0, austrip.(tspan), sim)
     problem = DiffEqBase.remake(problem, callback=callback_set)

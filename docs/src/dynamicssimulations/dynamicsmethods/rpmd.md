@@ -75,7 +75,7 @@ lines, with the end and start beads joined with a different color.
 Hopefully you can see that this interaction appears equivalent to all the others.
 
 ```@example rpmd
-using GLMakie
+using CairoMakie
 
 rs = traj.position
 
