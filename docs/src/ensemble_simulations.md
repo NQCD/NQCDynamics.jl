@@ -58,7 +58,7 @@ If instead it is preferred to output many quantities for each trajectory, this i
 also possible.
 Here the output is specified in the same way as for single trajectories.
 ```@example ensemble
-ensemble = Ensembles.run_ensemble_standard_output(sim, (0.0, 3000.0), distribution;
+ensemble = Ensembles.run_trajectories(sim, (0.0, 3000.0), distribution;
     output=(:population), trajectories=50)
 
 p = plot(legend=(false))
