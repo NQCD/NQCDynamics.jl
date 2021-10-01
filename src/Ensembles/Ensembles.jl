@@ -83,7 +83,7 @@ function run_ensemble(
     solve(ensemble_problem, algorithm, ensemble_algorithm; stripped_kwargs...)
 end
 
-function run_ensemble_standard_output(sim::AbstractSimulation, tspan, distribution;
+function run_trajectories(sim::AbstractSimulation, tspan, distribution;
     selection=nothing, output=(:u),
     ensemble_algorithm=EnsembleThreads(), saveat=[], kwargs...)
 
