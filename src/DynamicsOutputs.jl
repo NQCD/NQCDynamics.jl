@@ -3,6 +3,7 @@ module DynamicsOutputs
 
 using RecursiveArrayTools: ArrayPartition
 using DiffEqCallbacks: SavedValues, SavingCallback
+using ComponentArrays: ComponentVector
 
 using NonadiabaticModels: NonadiabaticModels
 using NonadiabaticMolecularDynamics:
