@@ -32,7 +32,7 @@ end
 
 @testset "SelectWithCallbacks" begin
     selector = Ensembles.RandomSelection(distribution)
-    Ensembles.SelectWithCallbacks(selector, CallbackSet(), (:position), 10)
+    Ensembles.SelectWithCallbacks(selector, CallbackSet(), (:position,), 10)
 end
 
 @testset "SumReduction" begin

@@ -24,12 +24,49 @@ Get the `SavingCallback` that will populate `saved_values` with the result obtai
 by evaluating the functions provided in `function_names`.
 """
 function create_saving_callback(function_names::NTuple{N, Symbol}; saveat=[]) where {N}
-    saved_values = SavedValues(Float64, NamedTuple{function_names})
-    saving_function = get_saving_function(function_names)
+    saved_values = SavedValues(Float64, Vector{Any})
+    saving_function = OutputSaver(function_names)
     SavingCallback(saving_function, saved_values; saveat=saveat), saved_values
 end
-create_saving_callback(quantities::Symbol; saveat=[]) =
-    create_saving_callback((quantities,), saveat=saveat)
+
+struct OutputSaver{N,F}
+    function_names::NTuple{N, Symbol}
+    output_functions::F
+end
+
+"""
+    OutputSaver(function_names::NTuple{N, Symbol}) where {N}
+
+Used to obtain the outputs for all functions given in `function_names`.
+"""
+function OutputSaver(function_names::NTuple{N, Symbol}) where {N}
+    output_functions = tuple([getfield(DynamicsOutputs, f) for f in function_names]...)
+    OutputSaver(function_names, output_functions)
+end
+
+"""
+    (output::OutputSaver)(u, t, integrator)
+
+Evaluates every function listed in `output.function_names` and returns all the results.
+"""
+function (output::OutputSaver)(u, t, integrator)
+    out = Any[]
+    sizehint!(out, length(output.function_names))
+    evaluate_output!(out, u, t, integrator, output.output_functions...)
+    return out
+end
+
+"""
+Used to recursively evaluate every function for the [`OutputSaver`](@ref). 
+
+See here for a description of why it is written like this: 
+https://stackoverflow.com/questions/55840333/type-stability-for-lists-of-closures
+"""
+function evaluate_output!(out, u, t, integrator, f::F, output_functions...) where {F}
+    push!(out, f(u, t, integrator))
+    return evaluate_output!(out, u, t, integrator, output_functions...)
+end
+evaluate_output!(out, u, t, integrator) = out
 
 export force
 export velocity
@@ -45,22 +82,6 @@ export noise
 export population
 export adiabatic_population
 export friction
-
-"""
-    get_saving_function(function_names::NTuple{N, Symbol})::Function where {N}
-
-Take a Tuple of symbols representing the names of functions within this module
-and return a function that will evaluate all of the provided functions.
-"""
-function get_saving_function(function_names::NTuple{N, Symbol})::Function where {N}
-
-    output_functions = (getfield(DynamicsOutputs, f) for f in function_names)
-
-    function saving(u, t, integrator)
-        output_results = (f(u, t, integrator) for f in output_functions)
-        NamedTuple{function_names}(output_results)
-    end
-end
 
 "Get the force"
 force(u, t, integrator) = -copy(integrator.p.calculator.derivative)
