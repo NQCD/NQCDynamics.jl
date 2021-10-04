@@ -100,14 +100,20 @@ function run_trajectory(u0, tspan::Tuple, sim::AbstractSimulation;
         output=(:u,), saveat=[], callback=nothing, algorithm=select_algorithm(sim),
         kwargs...)
 
+    if !(output isa Tuple)
+        output = (output,)
+    end
+
+    problem = create_problem(u0, austrip.(tspan), sim)
+
     saving_callback, vals = DynamicsOutputs.create_saving_callback(output; saveat=austrip.(saveat))
     callback_set = DiffEqBase.CallbackSet(callback, saving_callback, get_callbacks(sim))
-    problem = create_problem(u0, austrip.(tspan), sim)
     problem = DiffEqBase.remake(problem, callback=callback_set)
 
     stripped_kwargs = austrip_kwargs(;kwargs...)
     DiffEqBase.solve(problem, algorithm; stripped_kwargs...)
-    TypedTables.Table(t=vals.t, vals.saveval)
+    out = [(;zip(output, val)...) for val in vals.saveval]
+    TypedTables.Table(t=vals.t, out)
 end
 
 include("ClassicalMethods/ClassicalMethods.jl")
