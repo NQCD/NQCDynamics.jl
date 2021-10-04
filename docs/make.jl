@@ -27,10 +27,8 @@ bib = CitationBibliography(joinpath(@__DIR__, "references.bib"), sorting=:nyt)
         "NonadiabaticModels.jl" => Any[
             "nonadiabaticmodels/overview.md"
             "nonadiabaticmodels/analyticmodels.md"
-            "Extra models and interfaces" => map(
-                s -> "nonadiabaticmodels/models/$(s)",
-                sort(readdir(joinpath(@__DIR__, "src/nonadiabaticmodels/models")))
-            )
+            "nonadiabaticmodels/ase.md"
+            "nonadiabaticmodels/ldfa.md"
         ]
         "Initial conditions" => Any[
             "initialconditions/dynamicaldistribution.md"
