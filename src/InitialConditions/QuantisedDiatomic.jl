@@ -12,7 +12,7 @@ This module exports two user facing functions:
     with a given set of velocities and positions.
 
 The central concept of this module is the EBK procedure which is nicely detailed here:
-Am. J. Phys., Vol. 74, No. 7, July 2006
+[Larkoski2006](@cite)
 
 Inspired by VENUS96: [Hase1996](@cite)
 """

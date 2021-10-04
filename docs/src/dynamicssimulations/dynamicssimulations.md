@@ -3,7 +3,7 @@
 Performing dynamics simulations is at the core of this package's functionality
 (as you might have guessed from the name).
 This section of the documentation will describe how to perform dynamics simulations,
-building on the simple introduction from [`Getting started`].
+building on the simple introduction from [Getting started](@ref).
 
 Since we use [DifferentialEquations](https://diffeq.sciml.ai/stable/)
 to perform the dynamics, it is most natural
