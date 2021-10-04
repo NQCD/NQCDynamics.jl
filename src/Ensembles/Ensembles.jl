@@ -87,6 +87,10 @@ function run_trajectories(sim::AbstractSimulation, tspan, distribution;
     selection=nothing, output=(:u),
     ensemble_algorithm=EnsembleThreads(), saveat=[], kwargs...)
 
+    if !(output isa Tuple)
+        output = (output,)
+    end
+
     stripped_kwargs = NonadiabaticDynamicsBase.austrip_kwargs(;kwargs...)
     saveat = austrip.(saveat)
 
@@ -108,7 +112,7 @@ function run_trajectories(sim::AbstractSimulation, tspan, distribution;
     ensemble_problem = EnsembleProblem(problem, prob_func=new_selection)
 
     solve(ensemble_problem, DynamicsMethods.select_algorithm(sim), ensemble_algorithm; saveat=saveat, stripped_kwargs...)
-    [TypedTables.Table(t=vals.t, vals.saveval) for vals in new_selection.values]
+    [TypedTables.Table(t=vals.t, [(;zip(output, val)...) for val in vals.saveval]) for vals in new_selection.values]
 end
 
 end # module
