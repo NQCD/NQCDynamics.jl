@@ -42,24 +42,28 @@ evolves.
 These `Model`s are provided by [NonadiabaticModels.jl](@ref), which 
 is a convenient infrastructure for defining different kinds of models
 for adiabatic and nonadiabatic dynamics.
-But for now we can look at a simple `AdiabaticModel` which provides a simple
+But for now we can look at an `AdiabaticModel` which provides a simple
 harmonic potential energy function.
 
 ```@repl started
 model = Harmonic()
 ```
-Here, _m_ _\omega_, r_0 and _dofs_ are the parameters and the default value of 
-harmonic potential energy function. The value of the parameters can be changed,
-for example for _m_:
+Here, the four parameters (`m`, `ω`, `r₀` and `dofs`) for this model are shown along with
+their types and default values.
+These values can be modified by specifying a new value in the constructor.
+For example for `m`:
 ```@repl started
 model = Harmonic(m=0.4)
 ```
 
-
 !!! tip "Check out Parameters.jl"
 
     Many of the models use [Parameters.jl](https://github.com/mauro3/Parameters.jl)
-    to provide convenient keyword constructors and nice printing for the models.
+    to provide convenient keyword constructors and formatted printing for the models.
+    The `Harmonic` model above is defined using the `@with_kw` macro from `Parameters.jl`
+    to give it a set of default parameters.
+    Each of these can be modified by specifying a new value using keyword arguments in the
+    constructor as demonstrated above.
 
 Adiabatic models implement two functions to calculate the total energy and the forces,
 respectively: `potential(model, R)` and `derivative(model, R)`.
