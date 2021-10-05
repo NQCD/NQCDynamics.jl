@@ -7,7 +7,7 @@ cell = InfiniteCell()
 
 model = NonadiabaticModels.Free()
 
-@test RingPolymerSimulation(3, 100, cell, atoms, model, Classical(), 10, [:H]) isa RingPolymerSimulation
+@test RingPolymerSimulation(100, cell, atoms, model, Classical(), 10, [:H]) isa RingPolymerSimulation
 
 @test Simulation(atoms, model, Classical()) isa Simulation
 @test RingPolymerSimulation(atoms, model, Classical(), 10) isa RingPolymerSimulation
@@ -24,9 +24,23 @@ model = NonadiabaticModels.Free()
 
 @testset "get_temperature" begin
     sim = Simulation(atoms, model; temperature=10u"K")
-    @test get_temperature(sim) isa Real
+    @test NonadiabaticMolecularDynamics.get_temperature(sim) isa Real
     sim = Simulation(atoms, model; temperature=x->10u"K")
-    @test get_temperature(sim) isa Real
+    @test NonadiabaticMolecularDynamics.get_temperature(sim) isa Real
     sim = Simulation(atoms, model; temperature=10)
-    @test get_temperature(sim, 1) isa Real
+    @test NonadiabaticMolecularDynamics.get_temperature(sim, 1) isa Real
+end
+
+@testset "nfunctions and size" begin
+    sim = Simulation(atoms, model)
+    @test natoms(sim) == 2
+    @test ndofs(sim) == 1
+    @test_throws MethodError nbeads(sim)
+    @test size(sim) == (1, 2)
+
+    sim = RingPolymerSimulation(atoms, model, 10)
+    @test natoms(sim) == 2
+    @test ndofs(sim) == 1
+    @test nbeads(sim) == 10
+    @test size(sim) == (1, 2, 10)
 end

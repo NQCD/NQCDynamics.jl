@@ -5,16 +5,24 @@ Functions and types for generating initial conditions for simulations.
 """
 module InitialConditions
 
-using Reexport
-using ..NonadiabaticMolecularDynamics
+include("distributions/dynamical_distribution.jl")
+export DynamicalDistribution
 
-include("nuclear_distributions.jl")
+include("distributions/boltzmann_velocity.jl")
+export BoltzmannVelocityDistribution
 
-include("MetropolisHastings.jl")
-export MetropolisHastings
+include("distributions/harmonic_wigner.jl")
+export MomentumHarmonicWigner
+export PositionHarmonicWigner
+export VelocityHarmonicWigner
+
 include("QuantisedDiatomic.jl")
 export QuantisedDiatomic
 
-include("advancedmh_sampling.jl")
+include("ThermalMonteCarlo.jl")
+export ThermalMonteCarlo
+
+include("MetropolisHastings.jl")
+export MetropolisHastings
 
 end # module

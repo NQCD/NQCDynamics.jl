@@ -1,4 +1,4 @@
-# Getting Started
+# Getting started
 
 To get started with the package we can identify the necessary ingredients to
 perform a simple classical dynamics simulation and walk through how
@@ -54,8 +54,8 @@ model = Harmonic()
     Many of the models use [Parameters.jl](https://github.com/mauro3/Parameters.jl)
     to provide convenient keyword constructors and nice printing for the models.
 
-Adiabatic models implement two functions: `get_potential(model, R)` and 
-`get_derivative(model, R)`.
+Adiabatic models implement two functions: `potential(model, R)` and 
+`derivative(model, R)`.
 
 Let's try these out and take a look at the results:
 ```@repl started
@@ -94,7 +94,7 @@ which will contain both the `Atoms` and `Model`s mentioned previously, along wit
 extra information required for the simulation.
 
 ```@repl started
-sim = Simulation{Classical}(Atoms(:H), model; DoFs=1)
+sim = Simulation{Classical}(Atoms(:H), model)
 ```
 
 Here we have specified that each atom has a single degree of freedom and have not
@@ -141,8 +141,8 @@ Here we'll have two atoms in a harmonic potential, each with a single degree of 
 using NonadiabaticMolecularDynamics # hide
 
 atoms = Atoms([:H, :C])
-sim = Simulation{Classical}(atoms, Harmonic(ω=50.0); DoFs=1)
-z = DynamicsVariables(sim, randn(1, 2), randn(1, 2))
+sim = Simulation{Classical}(atoms, Harmonic(ω=50.0))
+z = DynamicsVariables(sim, randn(size(sim)), randn(size(sim)))
 
 nothing # hide
 ```
@@ -154,7 +154,7 @@ For classical dynamics we also provide a timestep `dt` since we're using the
 `VelocityVerlet` algorithm.
 The final keyword argument `output` is used to specify the quantities we want
 to save during the dynamics.
-A list of the available quantities can be found [here](@ref).
+A list of the available quantities can be found [here](@ref DynamicsOutputs).
 
 As with the models, we provide custom plotting recipes to quickly visualise the results
 before performing further analysis.
@@ -162,7 +162,7 @@ before performing further analysis.
 ```@example classical
 using Plots # hide
 
-solution = Dynamics.run_trajectory(z, (0.0, 50.0), sim;
+solution = run_trajectory(z, (0.0, 50.0), sim;
                                    dt=0.1, output=(:position, :velocity))
 
 plot(solution, :position)

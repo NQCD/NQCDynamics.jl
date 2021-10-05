@@ -17,7 +17,7 @@ atoms = Atoms([:C, :O])
 model = DiatomicHarmonic()
 sim = Simulation(atoms, model)
 
-configs = QuantisedDiatomic.generate_configurations(sim, v, J;
+configs = InitialConditions.QuantisedDiatomic.generate_configurations(sim, v, J;
     samples=10, translational_energy=10)
 
 v = first.(configs)
@@ -27,9 +27,8 @@ nothing # hide
 ```
 
 ```@example quantise
-selection = Ensembles.RandomSelection(distribution)
 output = Ensembles.OutputQuantisedDiatomic(sim)
-ensemble = Ensembles.run_ensemble(sim, (0.0, 10.0), selection;
+ensemble = Ensembles.run_ensemble(sim, (0.0, 10.0), distribution;
     output=output, trajectories=10, dt=0.1)
 (first.(ensemble.u), last.(ensemble.u))
 ```

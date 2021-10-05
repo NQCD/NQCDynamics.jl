@@ -3,8 +3,6 @@ using StatsBase: mean
 abstract type AbstractReduction end
 
 """
-$(TYPEDEF)
-
 Sum the outputs from each trajectory.
 """
 struct SumReduction{T} <: AbstractReduction
@@ -17,8 +15,6 @@ SumReduction() = SumReduction(0.0)
 (reduction::SumReduction)(u, batch, I) = u + sum(batch), false
 
 """
-$(TYPEDEF)
-
 Average the outputs over all trajectories.
 """
 struct MeanReduction <: AbstractReduction end
