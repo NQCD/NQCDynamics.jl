@@ -38,7 +38,7 @@ tspan = (0.0, 5.0u"ps")
 # model = Models.ScatteringAndersonHolstein(N=n_states, a0=1, Bg=B_na, 
 # Cg=1, alpha=-5.0, beta=.5)
 #model = Models.MiaoSubotnik(n_states=n_states, W=0.064, Gamma=0.0064)
-model = Models.MiaoSubotnik(n_states=n_states, W=0.064, Gamma=0.0064)
+model = MiaoSubotnik(n_states=n_states, W=0.064, Γ=0.0064)
 #model = Models.TullyModelOne()
 #println(model.n_states)
 
@@ -76,7 +76,7 @@ outbolz = MetropolisHastings.run_monte_carlo_sampling(tsim, R0, Δ, passes)
 
 
 # # Initialize the simulation problem; Simulation is defined in src/simulation_constructors.jl 
-sim = Simulation{wave_IESH}(atoms, model; DoFs=1)
+sim = Simulation{IESH}(atoms, model; DoFs=1)
 
 
 # # Do dynamics

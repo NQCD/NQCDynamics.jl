@@ -246,6 +246,7 @@ end
 
 - HammesSchifferTully_JChemPhys_101_4657_1994 Eq. (32)
 - SubotnikBellonzi_AnnuRevPhyschem_67_387_2016, section 2.3
+i and j are the electronic states
 """
 function evaluate_nonadiabatic_coupling(adiabatic_derivative::SMatrix, eigenvalues::SVector)
     n = length(eigenvalues)

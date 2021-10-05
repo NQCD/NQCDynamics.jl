@@ -52,6 +52,7 @@ function acceleration!(dv, v, r, sim::Simulation{<:IESH}, t, state)
     for I in eachindex(dv)
         for k in state
             # Contribution to the force from each occupied state `k`
+            # Goes to Calculator.jl
             dv[I] -= sim.calculator.adiabatic_derivative[I][k, k]
         end
     end
@@ -188,13 +189,19 @@ function get_adiabatic_population(sim::Simulation{<:IESH}, u)
 end
 
 function rescale_velocity!(sim::Simulation{<:IESH}, u)::Bool
+    # ShakibHuo_JPhysChemLett_8_3073_2017_rescale
     new_state, old_state = symdiff(sim.method.new_state, sim.method.state)
     velocity = get_velocities(u)
     
+    # Calculate difference in eigenvalues between old and new state, weighed by mass:
+    # c = (E_{new} - E_{old})/mass
     c = calculate_potential_energy_change(sim.calculator, new_state, old_state)
+    # a = d^2_{new,old}/mass (where d is the nonadiabatic coupling)
+    # b = v*d_{new,old}
     a, b = evaluate_a_and_b(sim, velocity, new_state, old_state)
     discriminant = b.^2 .- 2a.*c
 
+    # If smaller zero, hop is frustrated
     any(discriminant .< 0) && return false
 
     root = sqrt.(discriminant)
@@ -204,6 +211,29 @@ function rescale_velocity!(sim::Simulation{<:IESH}, u)::Bool
     perform_rescaling!(sim, velocity, velocity_rescale, new_state, old_state)
 
     return true
+end
+
+function calculate_potential_energy_change(calc::AbstractDiabaticCalculator, new_state::Integer, current_state::Integer)
+    return calc.eigenvalues[new_state] - calc.eigenvalues[current_state]
+end
+
+function evaluate_a_and_b(sim::Simulation{<:SurfaceHopping}, velocity, new_state, old_state)
+    a = zeros(length(sim.atoms))
+    b = zero(a)
+    @views for i in range(sim.atoms)
+        coupling = [sim.calculator.nonadiabatic_coupling[j,i][new_state, old_state] for j=1:sim.DoFs]
+        a[i] = dot(coupling, coupling) / sim.atoms.masses[i]
+        b[i] = dot(velocity[:,i], coupling)
+    end
+    return (a, b)
+end
+
+function perform_rescaling!(sim::Simulation{<:SurfaceHopping}, velocity, velocity_rescale, new_state, old_state)
+    for i in range(sim.atoms)
+        coupling = [sim.calculator.nonadiabatic_coupling[j,i][new_state, old_state] for j=1:sim.DoFs]
+        velocity[:,i] .-= velocity_rescale[i] .* coupling ./ sim.atoms.masses[i]
+    end
+    return nothing
 end
 
 # function impurity_summary(model::DiabaticModel, R::AbstractMatrix, state::AbstractArray, σ::AbstractArray)
