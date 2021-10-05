@@ -19,21 +19,22 @@ To illustrate the fewest-switches dynamics we can use a popular three state Mors
 ```@example fssh
 atoms = Atoms(20000)
 model = ThreeStateMorse()
-sim = Simulation{FSSH}(atoms, model; DoFs=1)
+sim = Simulation{FSSH}(atoms, model)
 nothing # hide
 ```
 
 For our initial conditions let's use a position distribution centred at 2.1 a.u.
-with zero velocity.
+with Boltzmann velocities at 300 K.
 ```@example fssh
 position = Normal(2.1, 1 / sqrt(20000 * 0.005))
-distribution = InitialConditions.DynamicalDistribution(0.0, position, (1,1); state=1)
+velocity = InitialConditions.BoltzmannVelocityDistribution(300u"K", masses(sim))
+distribution = InitialConditions.DynamicalDistribution(velocity, position, (1,1); state=1)
 nothing # hide
 ```
 
 Now let's run an ensemble of trajectories that sample from this distribution.
 ```@example fssh
-solution = Ensembles.run_ensemble(sim, (0.0, 3000.0), Ensembles.RandomSelection(distribution);
+solution = Ensembles.run_ensemble(sim, (0.0, 3000.0), distribution;
     saveat=50, trajectories=5e2,
     output=Ensembles.OutputDiabaticPopulation(sim), reduction=Ensembles.MeanReduction())
 

@@ -19,4 +19,6 @@ doctest(NonadiabaticMolecularDynamics)
 @time @safetestset "AdvancedMH Sampling Tests" begin include("advancedmh_sampling.jl") end
 include("dynamics/dynamics.jl")
 @time @safetestset "Distribution Tests" begin include("nuclear_distributions.jl") end
+@time @safetestset "Estimator tests" begin include("estimators.jl") end
+@time @safetestset "Harmonic Wigner distribution tests" begin include("harmonic_wigner.jl") end
 @time @safetestset "Ensemble Tests" begin include("ensembles.jl") end

@@ -61,7 +61,7 @@ temperature = 5*298u"K"
 # for the number of trajectories and atoms
 # atoms and step size
 Δ = Dict([(:H, 0.3)])
-tsim = Simulation{Classical}(atoms, model; DoFs=1, temperature=temperature)
+tsim = Simulation{Classical}(atoms, model; temperature=temperature)
 R0 = zeros(3, length(tsim.atoms))
 Δ = Dict([(:H, 0.3)])
 R0 = zeros(1, length(tsim.atoms))
@@ -76,7 +76,7 @@ outbolz = MetropolisHastings.run_monte_carlo_sampling(tsim, R0, Δ, passes)
 
 
 # # Initialize the simulation problem; Simulation is defined in src/simulation_constructors.jl 
-sim = Simulation{IESH}(atoms, model; DoFs=1)
+sim = Simulation{wave_IESH}(atoms, model)
 
 
 # # Do dynamics
@@ -89,7 +89,7 @@ for i=1:ntrajes
 
     #r = fill(-5.0, sim.DoFs, length(sim.atoms))
     r = rand(outbolz.R)
-    v = fill(sqrt(rand(outbolz.energy)*2/sim.atoms.masses[1]), sim.DoFs, length(sim.atoms))
+    v = fill(sqrt(rand(outbolz.energy)*2/sim.atoms.masses[1]), size(sim))
     #v = fill(5/sim.atoms.masses[1], sim.DoFs, length(sim.atoms))
     println(r, v)
 
