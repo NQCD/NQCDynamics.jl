@@ -37,25 +37,32 @@ Atoms([1, 2, 3, 4, 5, 6])
 ### Models
 
 The next ingredient required to set up the simulation is the `Model`.
-These are how we tell the simulation about the potentials in which the particles
-evolve.
-These `Model`s are provided by [NonadiabaticModels.jl](@ref) which 
-provides a convenient infrastructure for defining different kinds of models
-for nonadiabatic dynamics.
+These are how we tell the simulation about the potentials in which the system
+evolves.
+These `Model`s are provided by [NonadiabaticModels.jl](@ref), which 
+is a convenient infrastructure for defining different kinds of models
+for adiabatic and nonadiabatic dynamics.
 But for now we can look at a simple `AdiabaticModel` which provides a simple
 harmonic potential energy function.
 
 ```@repl started
 model = Harmonic()
 ```
+Here, _m_ _\omega_, r_0 and _dofs_ are the parameters and the default value of 
+harmonic potential energy function. The value of the parameters can be changed,
+for example for _m_:
+```@repl started
+model = Harmonic(m=0.4)
+```
+
 
 !!! tip "Check out Parameters.jl"
 
     Many of the models use [Parameters.jl](https://github.com/mauro3/Parameters.jl)
     to provide convenient keyword constructors and nice printing for the models.
 
-Adiabatic models implement two functions: `potential(model, R)` and 
-`derivative(model, R)`.
+Adiabatic models implement two functions to calculate the total energy and the forces,
+respectively: `potential(model, R)` and `derivative(model, R)`.
 
 Let's try these out and take a look at the results:
 ```@repl started
@@ -89,15 +96,15 @@ plot(-5:0.1:5, model)
 
 ### Simulation
 
-To group all simulation parameters together, we use the `Simulation` type
-which will contain both the `Atoms` and `Model`s mentioned previously, along with any
+To controll all simulation parameters in one environment, we use the `Simulation` type
+which will contain both the `Atoms` and `Model`s explained above, along with any
 extra information required for the simulation.
 
 ```@repl started
 sim = Simulation{Classical}(Atoms(:H), model)
 ```
 
-Here we have specified that each atom has a single degree of freedom and have not
+Here, we have specified that each atom has a single degree of freedom and have not
 provided a simulation cell.
 `Classical` is a type parameter, and specifies the dynamics method that we want to use.
 Check out [Dynamics methods](@ref) to learn about the other kinds of dynamics available.
@@ -148,10 +155,10 @@ nothing # hide
 ```
 
 Now, we can finally run the trajectory using the `run_trajectory` function.
-This takes three positional arguments: the dynamics variable, the time span
-we want to solve for, and the simulation parameters.
+This takes three positional arguments: the dynamics variable (_z_), the time span
+we want to solve for ((0.0, 50.0)), and the simulation parameters (_sim_).
 For classical dynamics we also provide a timestep `dt` since we're using the
-`VelocityVerlet` algorithm.
+`VelocityVerlet` algorithm by default.
 The final keyword argument `output` is used to specify the quantities we want
 to save during the dynamics.
 A list of the available quantities can be found [here](@ref DynamicsOutputs).
