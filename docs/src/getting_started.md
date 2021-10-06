@@ -11,8 +11,8 @@ using NonadiabaticMolecularDynamics
 ### Atoms
 
 First, we must define the particles in the simulation.
-For this purpose we provide the `Atoms` type which will contain
-the symbols, atomic numbers and masses for our atoms.
+For this purpose we provide the [`Atoms`](@ref NonadiabaticDynamicsBase.Atoms) 
+type which will contain the symbols, atomic numbers and masses for our atoms.
 Technically these need not be actual atoms and be a generic particle.
 
 If using real atoms, then they can be constructed using the chemical symbols
@@ -28,11 +28,16 @@ with their masses in atomic units.
     Internally atomic units are used for all quantities. This makes things extra
     simple when performing nonadiabatic dynamics.
 
-Alternatively, if not using real atoms, `Atoms` can be created using
-a `Vector{<:Real}` where the provided numbers are the masses of the particles.
+Alternatively, if not using real atoms, [`Atoms`](@ref NonadiabaticDynamicsBase.Atoms)
+can be created using a `Vector{<:Real}` where the provided numbers are the masses of the
+particles.
 ```@repl started
 Atoms([1, 2, 3, 4, 5, 6])
 ```
+
+A more detailed look into the [`Atoms`](@ref NonadiabaticDynamicsBase.Atoms) type along
+with a description of how to save and load structures can be found
+[here](@ref Handling Atoms).
 
 ### Models
 

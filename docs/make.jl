@@ -24,6 +24,7 @@ bib = CitationBibliography(joinpath(@__DIR__, "references.bib"), sorting=:nyt)
     pages = [
         "Introduction" => "index.md"
         "Getting started" => "getting_started.md"
+        "Atoms" => "atoms.md"
         "NonadiabaticModels.jl" => Any[
             "nonadiabaticmodels/overview.md"
             "nonadiabaticmodels/analyticmodels.md"
