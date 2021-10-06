@@ -163,24 +163,35 @@ The final keyword argument `output` is used to specify the quantities we want
 to save during the dynamics.
 A list of the available quantities can be found [here](@ref DynamicsOutputs).
 
-As with the models, we provide custom plotting recipes to quickly visualise the results
-before performing further analysis.
-
-```@example classical
-using Plots # hide
-
-solution = run_trajectory(z, (0.0, 50.0), sim;
-                                   dt=0.1, output=(:position, :velocity))
-
-plot(solution, :position)
-plot!(solution, :velocity)
-```
-
 !!! note
 
     `run_trajectory` returns a `Table` from `TypedTables.jl` that has columns containing
     the time and the output quantities saved at each time.
     By default, it outputs the value of the dynamics variables into the field `u`.
+
+```@example classical
+solution = run_trajectory(z, (0.0, 50.0), sim;
+                                   dt=0.1, output=(:position, :velocity))
+```
+
+Here you can see the output table with columns for the time and the output quantities
+we specified.
+These can be accessed directly as shown here:
+```@repl classical
+solution.t
+solution.position
+```
+
+As with the models, we provide custom plotting recipes to quickly visualise the results
+before performing further analysis by manually accessing the fields of the solution table.
+To use these recipes, simply provide the solution to the `plot` function from `Plots.jl`
+and give the name of the output quantity as the second argument.
+This will only work if this quantity was specified in `run_trajectory`.
+```@example classical
+using Plots # hide
+plot(solution, :position)
+plot!(solution, :velocity)
+```
 
 ### Ensemble simulations
 
