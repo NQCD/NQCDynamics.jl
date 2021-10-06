@@ -34,6 +34,43 @@ a `Vector{<:Real}` where the provided numbers are the masses of the particles.
 Atoms([1, 2, 3, 4, 5, 6])
 ```
 
+### Representing atomic positions and velocities 
+
+This package chooses to separate the dynamical variables from the static atomic parameters
+included in the [`Atoms`](@ref NonadiabaticDynamicsBase.Atoms) type.
+This allows us to easily interface with other numerical packages like
+[DifferentialEquations.jl](https://diffeq.sciml.ai/stable/) and
+[AdvancedMH.jl](https://github.com/TuringLang/AdvancedMH.jl).
+As such, both positions and velocities are represented using Julia's standard `Array`
+type, specifically as an `Array{T,2}` or the `Matrix{T}` type, which are equivalent.
+If you are new to Julia, you can find a description of the `Array`
+[here](https://docs.julialang.org/en/v1/manual/arrays/).
+The first dimension contains each atomic degree of freedom, and the second dimension
+contains each atom. For example, a 3D system with two atoms would have positions:
+```@repl positions
+using Symbolics
+@variables x1, y1, z1, x2, z2, z3
+r = [x1 x2;
+     y1 y2;
+     z1 z2]
+```
+
+For a 1D system it would be necessary to create a 1x1 matrix:
+```@repl positions
+r = fill(x1, (1,1))
+```
+Velocities are handled in the same way as positions and the data structures are the same.
+Usually manual initialisation like this will only be necessary for small model systems,
+whereas full dimensional model system will be read from a file instead.
+This is explored in the [`Atoms` documentation](@ref Reading and writing atomic structures).
+
+!!! tip "Ring polymer simulations?"
+
+    We can also perform simulations using ring polymers which have multiple replicas
+    of each atom, these are implemented using `Array{T,3}` where the third dimension is
+    used for each ring polymer bead.
+    For more information, see the ring polymer methods in the dynamics methods section.
+
 ### Models
 
 The next ingredient required to set up the simulation is the `Model`.
