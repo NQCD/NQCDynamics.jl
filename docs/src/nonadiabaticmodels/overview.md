@@ -35,6 +35,9 @@ works and introduced one of the included models.
 Here let's take a look at a [`DiabaticModel`](@ref NonadiabaticModels.DiabaticModels.DiabaticModel)
 which is more appropriate for nonadiabatic dynamics.
 
+The [`DoubleWell`](@ref) is a two state, 1 dimensional model where each state is harmonic
+with linear coupling to the single degree of freedom.
+
 ```@example diabaticmodel
 using NonadiabaticModels
 
