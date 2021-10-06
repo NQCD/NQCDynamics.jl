@@ -8,22 +8,19 @@ intricacies of the implementations, hoping to make further contributions as simp
 ### Objectives
 
 - Achieve high performance along with good readability, extensibility, maintainability
-- Provide for both simple models and high-dimensional systems
+- For both simple models and high-dimensional systems
 - Highlight the advantages of Julia in the field of nonadiabatic dynamics
 - Encourage code sharing and reuse within the nonadiabatic dynamics community
 
-Often research papers present dynamics methods and apply them
-to small model systems without providing the reader with the code used to obtain the results.
-This can lead to difficulties when attempting to reproduce the results or better understand
-the theory and implementation of the method.
+Reproducibility is a pressing issue in the field of theoretical chemistry and physics as often studies either do not attempt to provide all necessary data or code for full reproducibility of the work. This can lead to difficulties when attempting to better understand the theory and implementation of the method and makes it difficult for students not only to learn existing models and theories, but also to improve and extend these. 
 This project provides implementations for existing dynamics methods along with
 a framework that can be used for future research with the goal of encouraging greater
 code sharing and reuse within the nonadiabatic dynamics community.
 
 ### Features
 
-Here we have a list of the currently implemented features that the code provides.
-If you are interested in contributing further methods, please open up an
+Here we provide a list of currently implemented features of the code.
+We encourage contributions and implementations of methods. To do so, please open up an
 issue/pull request on Github!
 
 #### Dynamics methods
@@ -61,7 +58,7 @@ which significantly simplifies the implementation of new methods.
 
 #### 1. Install Julia
 Download and install the current stable release from the [Julia website](https://julialang.org/downloads/).
-For most platforms `julia` is provided as a precompiled binary.
+For most platforms `julia` is provided as a precompiled binary and do not require any installation procedure. However, you need to specify the path to julia or create a symbolic link to the executable that is in your systempath. 
 
 #### 2. Install the `NQCDRegistry`
 Since the package is not included in the default registry (`General`), we must first
@@ -96,7 +93,7 @@ Alternatively, you can proceed directly the next section for a walkthrough of so
 ### How to use this documentation
 
 The first page to read is the [Getting started](@ref) section which walks through all the ingredients
-needed to perform a simple classical dynamics simulation.
+needed to perform a conventional classical molecular dynamics simulation.
 After this, the reader is free to explore at their leisure since everything else builds directly
 upon sections from the [Getting started](@ref) page.
 
