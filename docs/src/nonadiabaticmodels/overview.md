@@ -2,9 +2,9 @@
 
 To perform nonadiabatic molecular dynamics simulations, it is necessary to define
 system Hamiltonian.
-For simple models, this often comes in the form of small matrix in the diabatic
-representation but equally the electronic Hamiltonian could be obtained directly
-from ab-initio electronic structure theory.
+This Hamiltonian can be anything from just the calculation of energies and forces
+on a single potential energy surface to a more complex Hamiltonian with a diabatic 
+representation of the states involved in the propagation of the system.
 
 `NonadiabaticModels.jl` is a package that aims to provide a common interface
 for defining these models that is flexible enough to allow for a wide range
@@ -16,7 +16,7 @@ set of popular models often used in the field of nonadiabatic dynamics.
 
 !!! note
 
-    Taking advantages of Julia's seamless modularity, `NonadiabaticModels.jl` is provided
+    Taking advantages of Julia's seamless modularity, `NonadiabaticModels.jl` is designed
     as a separate package so that it can also be used independently from the main package.
 
 Depending on the quantities provided by the `Model`, we use Julia's abstract type system
@@ -32,7 +32,7 @@ where the potential is instead a `Hermitian` matrix.
 In the [Getting started](@ref) section we briefly touched on how the
 [`AdiabaticModel`](@ref NonadiabaticModels.AdiabaticModels.AdiabaticModel)
 works and introduced one of the included models.
-Here let's take a look at a [`DiabaticModel`](@ref NonadiabaticModels.DiabaticModels.DiabaticModel)
+Here let's take a look at a [`DiabaticModel`](@ref NonadiabaticModels.DiabaticModels.DiabaticModel),
 which is more appropriate for nonadiabatic dynamics.
 
 ```@example diabaticmodel
@@ -43,7 +43,7 @@ model = DoubleWell()
 
 Our [`DoubleWell`](@ref) implements the functions [`potential`](@ref), [`derivative`](@ref),
 [`nstates`](@ref) and [`ndofs`](@ref)
-which return the potential, the derivative of the potential, the number of states,
+that return the potential, the derivative of the potential, the number of states,
 and the number of degrees of freedom, respectively.
 
 ```@repl diabaticmodel
@@ -54,8 +54,8 @@ ndofs(model)
 ```
 
 Since this is a 1D model, the position argument that appears in the derivative and the potential
-is a real number.
-Instead, for higher dimensional models with multiple atoms the position should be provided as
+as 0.2 is a real number.
+For higher dimensional models with multiple atoms, the position will need to be provided as
 an `AbstractMatrix`.
 
 The type tree of the [`Model`](@ref NonadiabaticModels.Model) can be seen below.
