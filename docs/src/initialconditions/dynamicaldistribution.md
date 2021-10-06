@@ -1,11 +1,10 @@
 # Storing and sampling distributions
 
-In order to perform ensembles of trajectories, it is useful to have a convenient way
-to generate distributions of velocities and positions which can be sampled to
-initialise trajectories.
+When running an ensemble of trajectories, sampling a distribution of velocities and
+positions may be desired.
 
 We provide the [`DynamicalDistribution`](@ref InitialConditions.DynamicalDistribution)
-type which can be used to store initial velocities and positions:
+type to store initial velocities and positions:
 ```@setup distribution
 using NonadiabaticMolecularDynamics
 ```
@@ -13,14 +12,13 @@ using NonadiabaticMolecularDynamics
 d = InitialConditions.DynamicalDistribution(10, 5, (3, 2))
 nothing # hide
 ``` 
-Here we have created a delta distribution with fixed velocities and positions,
+Here, we have created a delta distribution with fixed velocities and positions,
 the final argument specifies the size of each sample.
 The `(3, 2)` case shown here would be appropriate when using 2 atoms each with 3 degrees of freedom.
 ```@repl distribution
 rand(d)
 ```
 
-However, a delta distribution is not particularly useful, fortunately,
 [`DynamicalDistribution`](@ref InitialConditions.DynamicalDistribution)
 is flexible and each of the first two arguments can be `Real`, `Vector` or `Sampleable`.
 
@@ -50,8 +48,7 @@ confined to a single electronic state. View the docstring in the API section to
 view the available keywords.
 
 This type is currently limited only to nonequilibrium simulations on a single electronic state.
-It would be necessary to add further fields to store electronic variables if equilibrium
-configurations were desired. This is something that can be added in the future.
+In future, further fields to store electronic variables will be added.
 
-To learn how to generate configurations to use with this type, read on to the next sections
+To learn how to generate configurations using this type, continue reading the next sections
 about the included sampling methods.
