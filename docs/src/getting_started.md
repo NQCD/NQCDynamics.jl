@@ -11,8 +11,8 @@ using NonadiabaticMolecularDynamics
 ### Atoms
 
 First, we must define the particles in the simulation.
-For this purpose we provide the `Atoms` type which will contain
-the symbols, atomic numbers and masses for our atoms.
+For this purpose we provide the [`Atoms`](@ref NonadiabaticDynamicsBase.Atoms) 
+type which will contain the symbols, atomic numbers and masses for our atoms.
 Technically these need not be actual atoms and be a generic particle.
 
 If using real atoms, then they can be constructed using the chemical symbols
@@ -28,11 +28,16 @@ with their masses in atomic units.
     Internally atomic units are used for all quantities. This makes things extra
     simple when performing nonadiabatic dynamics.
 
-Alternatively, if not using real atoms, `Atoms` can be created using
-a `Vector{<:Real}` where the provided numbers are the masses of the particles.
+Alternatively, if not using real atoms, [`Atoms`](@ref NonadiabaticDynamicsBase.Atoms)
+can be created using a `Vector{<:Real}` where the provided numbers are the masses of the
+particles.
 ```@repl started
 Atoms([1, 2, 3, 4, 5, 6])
 ```
+
+A more detailed look into the [`Atoms`](@ref NonadiabaticDynamicsBase.Atoms) type along
+with a description of how to save and load structures can be found
+[here](@ref Handling Atoms).
 
 ### Representing atomic positions and velocities 
 
@@ -79,24 +84,28 @@ evolves.
 These `Model`s are provided by [NonadiabaticModels.jl](@ref), which 
 is a convenient infrastructure for defining different kinds of models
 for adiabatic and nonadiabatic dynamics.
-But for now we can look at a simple `AdiabaticModel` which provides a simple
+But for now we can look at an `AdiabaticModel` which provides a simple
 harmonic potential energy function.
 
 ```@repl started
 model = Harmonic()
 ```
-Here, _m_ _\omega_, r_0 and _dofs_ are the parameters and the default value of 
-harmonic potential energy function. The value of the parameters can be changed,
-for example for _m_:
+Here, the four parameters (`m`, `ω`, `r₀` and `dofs`) for this model are shown along with
+their types and default values.
+These values can be modified by specifying a new value in the constructor.
+For example for `m`:
 ```@repl started
 model = Harmonic(m=0.4)
 ```
 
-
 !!! tip "Check out Parameters.jl"
 
     Many of the models use [Parameters.jl](https://github.com/mauro3/Parameters.jl)
-    to provide convenient keyword constructors and nice printing for the models.
+    to provide convenient keyword constructors and formatted printing for the models.
+    The `Harmonic` model above is defined using the `@with_kw` macro from `Parameters.jl`
+    to give it a set of default parameters.
+    Each of these can be modified by specifying a new value using keyword arguments in the
+    constructor as demonstrated above.
 
 Adiabatic models implement two functions to calculate the total energy and the forces,
 respectively: `potential(model, R)` and `derivative(model, R)`.
@@ -223,7 +232,17 @@ plot!(solution, :velocity)
 
 So we have solved a single trajectory? That's pretty cool but wouldn't it be great
 if we could do a whole bunch at once? Well, fortunately we can thanks to the
-`run_ensemble` function. 
+[`Ensembles`](@ref) module. 
+This provides two useful functions that help to solve this problem:
+[`Ensembles.run_trajectories`](@ref) and [`Ensembles.run_ensemble`](@ref).
+The first of these is named similarly to the familiar [`run_trajectory`](@ref)
+function since it behaves almost identically, but runs multiple trajectories
+sampling from a given distribution.
+The second is a little more complicated but can be used to compute specialised
+outputs and reductions from the trajectories as they are completed.
+
+To learn more about these functions and see some examples, refer to the
+[Ensemble simulations](@ref) section.
 
 ### What's next?
 
