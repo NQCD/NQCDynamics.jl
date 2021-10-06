@@ -195,7 +195,17 @@ plot!(solution, :velocity)
 
 So we have solved a single trajectory? That's pretty cool but wouldn't it be great
 if we could do a whole bunch at once? Well, fortunately we can thanks to the
-`run_ensemble` function. 
+[`Ensembles`](@ref) module. 
+This provides two useful functions that help to solve this problem:
+[`Ensembles.run_trajectories`](@ref) and [`Ensembles.run_ensemble`](@ref).
+The first of these is named similarly to the familiar [`run_trajectory`](@ref)
+function since it behaves almost identically, but runs multiple trajectories
+sampling from a given distribution.
+The second is a little more complicated but can be used to compute specialised
+outputs and reductions from the trajectories as they are completed.
+
+To learn more about these functions and see some examples, refer to the
+[Ensemble simulations](@ref) section.
 
 ### What's next?
 
