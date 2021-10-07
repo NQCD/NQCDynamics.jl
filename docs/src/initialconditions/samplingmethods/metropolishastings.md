@@ -51,14 +51,14 @@ sim.temperature / 2 * 5
 
 ## Legacy version
 
-Prior to the use of [`AdvancedMH.jl`](https://github.com/TuringLang/AdvancedMH.jl)
+Prior to the use of [`AdvancedMH.jl`](https://github.com/TuringLang/AdvancedMH.jl),
 an alternative version of the algorithm was implemented that works for both classical
 and ring polymer systems.
 This is currently still included in the code but should be regarded as deprecated and
 will likely be removed/combined with the [`AdvancedMH.jl`](https://github.com/TuringLang/AdvancedMH.jl)
 version.
 
-Here we use the legacy version to obtain a thermal distribution in a simple
+Here, we use the legacy version to obtain a thermal distribution in a simple
 model system.
 
 ```@setup monte
