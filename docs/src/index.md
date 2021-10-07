@@ -72,6 +72,14 @@ Install the registry directly from Github with:
 pkg> registry add "https://github.com/NQCD/NQCDRegistry"
 ```
 
+!!! warning
+
+    If this is the first time you're using Julia there's a chance that the
+    [General registry](https://github.com/JuliaRegistries/General) will not have been
+    installed. Run `pkg> registry status` to view the installed registries.
+    If `General` is not present, run `pkg> registry add General` before proceeding
+    to the next step.
+
 #### 3. Install the package
 Now that the registry has been added, the package can be installed in the same way as any other registered Julia package:
 ```julia-repl
@@ -82,13 +90,24 @@ pkg> add NonadiabaticMolecularDynamics
 ```julia-repl
 julia> using NonadiabaticMolecularDynamics
 ```
+You are now free to proceed to the next section and learn how to use the package.
+If you would like you can complete step 5 to double check your installation.
 
-To check the package has been installed correctly and everything is working, you can execute the tests
-with:
+#### 5. Run the tests (optional)
+
+To check the package has been installed correctly and everything is working,
+you can execute the tests with:
 ```julia-repl
 pkg> test NonadiabaticMolecularDynamics
 ```
-Alternatively, you can proceed directly the next section for a walkthrough of some basic functionality.
+
+!!! warning
+
+    The tests use some extra functionality from the
+    [JuliaMolSim registry](https://github.com/JuliaMolSim/MolSim)
+    which can be added directly from Github with
+    `pkg> registry add "https://github.com/JuliaMolSim/MolSim"`.
+    Without this, the tests will not run successfully.
 
 ### How to use this documentation
 
