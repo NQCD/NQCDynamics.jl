@@ -25,7 +25,7 @@ with their masses in atomic units.
 
 !!! note "Atomic units"
 
-    Internally atomic units are used for all quantities. This makes things extra
+    Internally atomic units are used for all quantities. This makes things
     simple when performing nonadiabatic dynamics.
 
 Alternatively, if not using real atoms, [`Atoms`](@ref NonadiabaticDynamicsBase.Atoms)
@@ -54,11 +54,21 @@ The first dimension contains each atomic degree of freedom, and the second dimen
 contains each atom. For example, a 3D system with two atoms would have positions:
 ```@repl positions
 using Symbolics
-@variables x1, y1, z1, x2, z2, z3
+@variables x1, y1, z1, x2, y2, z2
 r = [x1 x2;
      y1 y2;
      z1 z2]
 ```
+
+!!! info "Adding external packages"
+
+    [Symbolics](https://github.com/JuliaSymbolics/Symbolics.jl) is a package available from
+    the General registry. You will have to add it to your current environment using
+    `pkg> add Symbolics` to be able to reproduce this example.
+    Throughout the documentation we occasionally use external packages, if you run into
+    an error you will likely have to `add` the package before being able to use it.
+    Refer to the [Julia manual](https://docs.julialang.org/en/v1/stdlib/Pkg/) for further
+    information on installing packages.
 
 For a 1D system it would be necessary to create a 1x1 matrix:
 ```@repl positions
@@ -78,13 +88,17 @@ This is explored in the [`Atoms` documentation](@ref Reading and writing atomic 
 
 ### Models
 
-The next ingredient required to set up the simulation is the `Model`.
-These are how we tell the simulation about the potentials in which the system
+The next ingredient required to set up the simulation is the `Model`, i.e., the potentials in which the system
 evolves.
 These `Model`s are provided by [NonadiabaticModels.jl](@ref), which 
 is a convenient infrastructure for defining different kinds of models
 for adiabatic and nonadiabatic dynamics.
-But for now we can look at an `AdiabaticModel` which provides a simple
+These models can range from simple analytic potentials all the way up to multi-dimensional
+ab-initio potentials.
+Refer to the [NonadiabaticModels.jl](@ref) page for information on the available models
+and a description of how to implement further models.
+ 
+For now we can look at an `AdiabaticModel` which provides a simple
 harmonic potential energy function.
 
 ```@repl started
@@ -142,7 +156,7 @@ plot(-5:0.1:5, model)
 
 ### Simulation
 
-To controll all simulation parameters in one environment, we use the `Simulation` type
+To control all simulation parameters in one environment, we use the `Simulation` type
 which will contain both the `Atoms` and `Model`s explained above, along with any
 extra information required for the simulation.
 
@@ -169,7 +183,8 @@ the dynamics variables for us.
 For classical dynamics we must provide a `Matrix` of velocities and of positions.
 These should have `size = (dofs, natoms)`, matching the arguments of the `potential`
 and `derivative` functions.
-
+Usually the initial coordinates would have some physical significance, perhaps sampled
+from a relevant distribution, but here we use random numbers for simplicity.
 ```@repl started
 v = rand(3, 3);
 r = rand(3, 3);
@@ -185,8 +200,8 @@ DynamicsVariables(sim, v, r)
 
 ### Bringing it all together
 
-Now we have all the parts necessary to perform our first classical dynamics simulation!
-
+We have now covered all the parts necessary to perform our first classical dynamics
+simulation.
 Let's quickly set up our simulation parameters using what we've learned.
 Here we'll have two atoms in a harmonic potential, each with a single degree of freedom.
 
