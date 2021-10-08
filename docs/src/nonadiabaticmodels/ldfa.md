@@ -9,10 +9,11 @@ within the metal electron density.
 ![ldfa motion](../assets/figures/ldfa_motion.png)
 ![ldfa dissociate](../assets/figures/ldfa_dissociate.png)
 
+
 The LDFA provides a simple way to relate the electron density to a friction coefficient
 that can be used to propagate the dynamics.
 
-Here, LDFA is implemented using the LDA data provided by Gerrits et al. in
+Here, local density friction approximation (LDFA) is implemented using the LDA data provided by Gerrits et al. in
 [Phys. Rev. B 102, 155130](https://doi.org/10.1103/PhysRevB.102.155130).
 This data provides the friction coefficient evaluated at a few discrete values of
 the Wigner-Seitz radius ``r_s ^{-3} = \frac{4}{3} \pi n_0``.
@@ -22,6 +23,6 @@ for the friction coefficient.
 ![ldfa graph](../assets/figures/ldfa_graph.png)
 
 Currently provided is the [`LDFAModel`](@ref CubeLDFAModel.LDFAModel)
-which attaches LDFA friction to an existing model, where the density is obtained from a cube file.
+which attaches LDFA to an existing model, where the density is obtained from a cube file.
 Further models could be added that obtain the density from other sources, such as from
 a machine-learning model.
