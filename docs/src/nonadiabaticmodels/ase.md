@@ -12,6 +12,10 @@ associated calculator to implement the required [`potential`](@ref) and
     The interface works by directly calling the relevant Python functions using
     [PyCall](https://github.com/JuliaPy/PyCall.jl).
 
+!!! note
+
+    To use PyCall, you must make sure that the python version contains all relevant packages, such as ase. Alternatively, you can add the Pkg "conda", which installs miniconda private to julia. With this, you can then install necessary packages, such as ase.
+    
 ## Example
 
 First, it is necessary to import `ase` and create the `ase.Atoms` object and attach
