@@ -43,4 +43,31 @@ derivative(model, rand(3, 2))
 !!! tip 
 
     In theory, this should work with any of the ASE calculators that correctly implement
-    the `get_potential_energy` and `get_forces` functions.
+    the `get_potential_energy` and `get_forces` functions. For isnstance, you can install SchNetPack (SPK) in your python version and import it via "spk=pyimport("schnetpack"). You then have to load a model and use this as the calculator. 
+
+
+To use a SchNet model, please load any pre-trained model into a given path you can access. Here, we assume that the SchNet model is named "best_model" as usually in SchNet and is in the same path where we are executing the code.
+
+```@repl spk
+using PyCall
+
+ase = pyimport("ase")
+spk = pyimport("schnetpack")
+
+#load model
+model = spk.utils.load_model("best_model")
+
+#define ase-atoms type
+h2 = ase.Atoms("H2", [(0, 0, 0), (0, 0, 0.74)])
+
+#set SPK calculator
+calc = spk.interfaces.SpkCalculator(model, energy="energy", forces="forces")
+h2.set_calculator(calc)
+
+#predict energy and forces
+
+h2.get_total_energy()
+h2.get_forces()```
+
+!!! note
+Note that this is an arbitrary model not trained on H2, hence the calculation of the potential energy and forces most likely do not make sense.
