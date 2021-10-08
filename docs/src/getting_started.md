@@ -25,7 +25,7 @@ with their masses in atomic units.
 
 !!! note "Atomic units"
 
-    Internally atomic units are used for all quantities. This makes things extra
+    Internally atomic units are used for all quantities. This makes things
     simple when performing nonadiabatic dynamics.
 
 Alternatively, if not using real atoms, [`Atoms`](@ref NonadiabaticDynamicsBase.Atoms)
@@ -37,7 +37,7 @@ Atoms([1, 2, 3, 4, 5, 6])
 
 A more detailed look into the [`Atoms`](@ref NonadiabaticDynamicsBase.Atoms) type along
 with a description of how to save and load structures can be found
-[here](@ref Handling Atoms).
+[here](@ref Handling Atoms). COMMENT: these two links do not work!
 
 ### Representing atomic positions and velocities 
 
@@ -52,14 +52,15 @@ If you are new to Julia, you can find a description of the `Array`
 [here](https://docs.julialang.org/en/v1/manual/arrays/).
 The first dimension contains each atomic degree of freedom, and the second dimension
 contains each atom. For example, a 3D system with two atoms would have positions:
+COMMENT I needed to import the package symbolics in advance; after that the test was 
 ```@repl positions
 using Symbolics
-@variables x1, y1, z1, x2, z2, z3
+@variables x1, y1, z1, x2, y2, z2
 r = [x1 x2;
      y1 y2;
      z1 z2]
 ```
-
+COMMENT: Was this on purpose? that you use z2 and z3 instead of y2, because you then get an error later when you define r
 For a 1D system it would be necessary to create a 1x1 matrix:
 ```@repl positions
 r = fill(x1, (1,1))
@@ -67,7 +68,7 @@ r = fill(x1, (1,1))
 Velocities are handled in the same way as positions and the data structures are the same.
 Usually manual initialisation like this will only be necessary for small model systems,
 whereas full dimensional model system will be read from a file instead.
-This is explored in the [`Atoms` documentation](@ref Reading and writing atomic structures).
+This is explored in the [`Atoms` documentation](@ref Reading and writing atomic structures). --> LINK DOES NOT WORK
 
 !!! tip "Ring polymer simulations?"
 
@@ -78,12 +79,11 @@ This is explored in the [`Atoms` documentation](@ref Reading and writing atomic 
 
 ### Models
 
-The next ingredient required to set up the simulation is the `Model`.
-These are how we tell the simulation about the potentials in which the system
+The next ingredient required to set up the simulation is the `Model`, i.e., the potentials in which the system
 evolves.
 These `Model`s are provided by [NonadiabaticModels.jl](@ref), which 
 is a convenient infrastructure for defining different kinds of models
-for adiabatic and nonadiabatic dynamics.
+for adiabatic and nonadiabatic dynamics. COMMENT Can we add here what is available? For instance: We can use analytical potentials, e.g., a simple harmonic potential as provided with the AdiabaticModel, or more complex, high-dimensional models that could be provided 
 But for now we can look at an `AdiabaticModel` which provides a simple
 harmonic potential energy function.
 
@@ -128,6 +128,7 @@ derivative(model, hcat(25.0))
 
 To make sure the model is what we expect, we can plot the potential and derivative 
 using a custom plotting recipe. This looks pretty harmonic to me!
+COMMENT II have to import Plots as well - but I guess it's no problem. Just mention in the beginning that if an error occurs the user has to import pkg and mention "import Pkg; Pkg.add("NAME")
 
 ```@example started
 using Plots
@@ -142,7 +143,7 @@ plot(-5:0.1:5, model)
 
 ### Simulation
 
-To controll all simulation parameters in one environment, we use the `Simulation` type
+To control all simulation parameters in one environment, we use the `Simulation` type
 which will contain both the `Atoms` and `Model`s explained above, along with any
 extra information required for the simulation.
 
@@ -169,7 +170,7 @@ the dynamics variables for us.
 For classical dynamics we must provide a `Matrix` of velocities and of positions.
 These should have `size = (dofs, natoms)`, matching the arguments of the `potential`
 and `derivative` functions.
-
+COMMENT Can you add a sentence and say that here we initialize the positions randomly, but usually this should be done via proper sampling, e.g., Wigner sampling?
 ```@repl started
 v = rand(3, 3);
 r = rand(3, 3);
@@ -185,7 +186,7 @@ DynamicsVariables(sim, v, r)
 
 ### Bringing it all together
 
-Now we have all the parts necessary to perform our first classical dynamics simulation!
+Now we have all the parts necessary to perform our first classical dynamics simulation.
 
 Let's quickly set up our simulation parameters using what we've learned.
 Here we'll have two atoms in a harmonic potential, each with a single degree of freedom.
