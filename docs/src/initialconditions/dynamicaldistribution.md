@@ -8,6 +8,7 @@ We provide the [`DynamicalDistribution`](@ref InitialConditions.DynamicalDistrib
 type which can be used to store initial velocities and positions:
 ```@setup distribution
 using NonadiabaticMolecularDynamics
+using NonadiabaticMolecularDynamics.InitialConditions
 ```
 ```@example distribution
 d = InitialConditions.DynamicalDistribution(10, 5, (3, 2))
