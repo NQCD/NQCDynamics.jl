@@ -15,7 +15,7 @@ steps to perform.
 
 ## Example
 
-In this example we use Hamiltonian Monte Carlo to sample the canonical distribution for
+In this example we use Hamiltonian Monte Carlo to sample the canonical distribution of
 a 3 dimensional harmonic oscillator potential containing 4 atoms.
 
 ```@example hmc
