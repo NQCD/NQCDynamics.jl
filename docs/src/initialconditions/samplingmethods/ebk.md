@@ -6,7 +6,7 @@ In particular, for diatomic molecules, the rotational and vibrational quantum nu
 can undergo significant changes when the molecule impacts the surface.
 
 Einstein-Brillouinn-Keller (EBK) quantisation allows for a semiclassical investigation
-into this phenomena by providing a link between the quantum numbers and classical
+into these phenomena by providing a link between the quantum numbers and classical
 positions and velocities.
 The quantisation procedure allows the user to generate a classical distribution
 with a given set of quantum numbers, then perform semiclassical dynamics
