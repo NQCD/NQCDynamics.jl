@@ -12,4 +12,4 @@ atoms = Atoms(2000)
 sim = Simulation{FSSH}(atoms, TullyModelTwo())
 ```
 
-Each data point in the figure is obtained from an ensemble average of 
+Each data point in the figure is obtained from an ensemble average of ...
