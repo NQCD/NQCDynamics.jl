@@ -15,11 +15,11 @@ using PyCall
 ase = pyimport("ase")
 spk = pyimport("schnetpack")
 
-spk_model = spk.utils.load_model("../assets/schnetpack/best_model")
+spk_model = spk.utils.load_model("../assets/schnetpack/best_model"; map_location="cpu")
 
 h2 = ase.Atoms("H2", [(0, 0, 0), (0, 0, 0.74)])
 
-calc = spk.interfaces.SpkCalculator(model, energy="energy", forces="forces")
+calc = spk.interfaces.SpkCalculator(spk_model, energy="energy", forces="forces")
 h2.set_calculator(calc)
 ```
 
@@ -39,10 +39,9 @@ austrip.(h2.get_forces() .* u"eV/Å")
 Then we can obtain the same numbers using the NonadiabaticModels interface:
 ```@repl spk
 using NonadiabaticModels;
+model = AdiabaticASEModel(h2);
 
-model = AdiabaticASEModel(spk_model)
-
-r = [0 0; 0 0; 0 auconvert(0.74u"Å")]
+r = [0 0; 0 0; 0 ustrip(auconvert(0.74u"Å"))]
 
 potential(model, r)
 derivative(model, r)
