@@ -29,6 +29,7 @@ bib = CitationBibliography(joinpath(@__DIR__, "references.bib"), sorting=:nyt)
             "nonadiabaticmodels/overview.md"
             "nonadiabaticmodels/analyticmodels.md"
             "nonadiabaticmodels/ase.md"
+            "nonadiabaticmodels/neuralnetworkmodels.md"
             "nonadiabaticmodels/ldfa.md"
         ]
         "Initial conditions" => Any[

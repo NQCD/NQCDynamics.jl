@@ -49,4 +49,7 @@ derivative(model, rand(3, 2))
 !!! tip 
 
     In theory, this should work with any of the ASE calculators that correctly implement
-    the `get_potential_energy` and `get_forces` functions.
+    the `get_potential_energy` and `get_forces` functions. For instance, you can use
+    [SchNetPack (SPK)](https://github.com/atomistic-machine-learning/schnetpack) by
+    passing their ASE calculator to the `AdiabaticASEModel`.
+    Take a look at [Neural network models](@ref) to learn more.
