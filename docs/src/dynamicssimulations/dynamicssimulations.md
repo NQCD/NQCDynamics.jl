@@ -1,4 +1,4 @@
-# Introduction
+# [Introduction](@id dynamicssimulations)
 
 Performing dynamics simulations is at the core of this package's functionality
 (as you might have guessed from the name).
