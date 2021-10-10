@@ -83,11 +83,12 @@ with respect to each degree of freedom.
 In this case, the `Matrix` has `size = (1, 2)`, but it should be clear how this can extend
 to arbitrary numbers of atoms and degrees of freedom for complex models.
 
-The type tree of the [`Model`](@ref NonadiabaticModels.Model) can be seen below.
-The leaves of the tree are the concrete models, whereas each branch is one of the abstract types.
-Details on each of the abstract types and the quantities that they provide can be found in
-the API section and a more detailed discussion of how
-to implement new models be found in the developer documentation ([Implementing a new model](@ref)).
+The models currently available can be seen in type tree of the
+[`Model`](@ref NonadiabaticModels.Model) below.
+The leaves of the tree are the concrete models, whereas each branch is one of the abstract
+types.
+Each of these models can be seen in the [Analytic model library](@ref) and
+many shall return later when we investigate the dynamics methods.
 
 ```@example
 import AbstractTrees # hide
@@ -97,7 +98,7 @@ AbstractTrees.children(x::Type) = subtypes(x) # hide
 AbstractTrees.print_tree(Model) # hide
 ```
 
-Each of these included models can be seen in the [Analytic model library](@ref) and
-we will see a few of them again later when investigating the dynamics methods.
-The interface can of course also be used for more complex models and these can be found
-in the Extra models and interfaces section available in the sidebar.
+!!! note "Contributing new models"
+
+    To learn more about NonadiabaticModels.jl and learn how to implement new models,
+    visit the [developer documentation](@ref devdocs-model).
