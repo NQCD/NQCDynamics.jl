@@ -216,21 +216,30 @@ nothing # hide
 ```
 
 Now, we can finally run the trajectory using the `run_trajectory` function.
-This takes three positional arguments: the dynamics variable (_z_), the time span
-we want to solve for ((0.0, 50.0)), and the simulation parameters (_sim_).
+This takes three positional arguments: the dynamics variables `z`, the time span
+we want to solve for `tspan`, and the simulation parameters `sim`.
 For classical dynamics we also provide a timestep `dt` since we're using the
 `VelocityVerlet` algorithm by default.
+
+!!! note "Integration algorithms"
+
+    Each method will default to an appropriate integration algorithm though it is possible
+    to specify via a keyword argument to [`run_trajectory`](@ref) if an alternative
+    algorithm is preferred.
+    Refer to the [dynamics documentation](@ref dynamicssimulations) for more information.
+
 The final keyword argument `output` is used to specify the quantities we want
 to save during the dynamics.
 A list of the available quantities can be found [here](@ref DynamicsOutputs).
 
-!!! note
+!!! tip "Output format"
 
     `run_trajectory` returns a `Table` from `TypedTables.jl` that has columns containing
     the time and the output quantities saved at each time.
     By default, it outputs the value of the dynamics variables into the field `u`.
 
 ```@example classical
+tspan = (0.0, 50.0)
 solution = run_trajectory(z, (0.0, 50.0), sim;
                                    dt=0.1, output=(:position, :velocity))
 ```
