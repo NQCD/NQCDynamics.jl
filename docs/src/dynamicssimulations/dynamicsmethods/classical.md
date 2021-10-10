@@ -16,6 +16,11 @@ algorithms for molecular dynamics.
 
 As a simple example we can create two particles with `mass = 1` and attach a `DiatomicHarmonic` interaction which provides an interatomic potential.
 
+!!! note
+
+    Recall that the constructor for `Simulation(...)` when called without a type
+    parameter as below defaults to `Simulation{Classical}(...)`.
+
 ```@example
 using NonadiabaticMolecularDynamics
 using Plots
