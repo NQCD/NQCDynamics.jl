@@ -61,6 +61,28 @@ is a real number.
 Instead, for higher dimensional models with multiple atoms the position should be provided as
 an `AbstractMatrix`.
 
+To understand how this can extend to another dimension, we can take a quick look at the
+[`GatesHollowayElbow`](@ref) model which is another two state diabatic model, but this
+one uses two dimensions to model a diatomic molecule interacting with a surface.
+The two coordinates are the molecular bond length and the distance from the surface.
+Technically, the model has been defined such that there are two atoms, each with only a
+single degree of freedom.
+This allows us to use different masses for each of the coordinates when performing dynamics.
+
+```@repl diabaticmodel
+model = GatesHollowayElbow()
+potential(model, [1.0 1.0])
+derivative(model, [1.0 1.0])
+nstates(model)
+ndofs(model)
+```
+
+Here we see how the derivative now becomes a `Matrix` with size matching our input,
+but each entry is a `Hermitian` containing the elementwise derivative of the potential
+with respect to each degree of freedom.
+In this case, the `Matrix` has `size = (1, 2)`, but it should be clear how this can extend
+to arbitrary numbers of atoms and degrees of freedom for complex models.
+
 The type tree of the [`Model`](@ref NonadiabaticModels.Model) can be seen below.
 The leaves of the tree are the concrete models, whereas each branch is one of the abstract types.
 Details on each of the abstract types and the quantities that they provide can be found in
