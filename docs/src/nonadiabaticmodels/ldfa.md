@@ -10,7 +10,7 @@ equation is used to model the dynamics of the molecule within the metal electron
 ![ldfa dissociate](../assets/figures/ldfa_dissociate.png)
 
 The local density friction approximation (LDFA) obtains the friction coefficient within the 
-Langevin equations from the local electron density.
+Langevin equation from the local electron density.
 
 Here, LDFA is implemented using the LDA data provided in [Gerrits2020](@cite).
 This data provides the friction coefficient evaluated at a few discrete values of
