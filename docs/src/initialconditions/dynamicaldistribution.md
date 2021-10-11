@@ -46,8 +46,9 @@ we provided.
 
 The [`DynamicalDistribution`](@ref InitialConditions.DynamicalDistribution) also accepts
 keyword arguments to provide extra metadata when performing nonequilibrium simulations
-confined to a single electronic state. View the docstring in the API section to
-view the available keywords.
+confined to a single electronic state.
+Visit the docstring in API section by clicking the link in the previous sentence to learn
+more about the available keywords.
 
 This type is currently limited only to nonequilibrium simulations on a single electronic state.
 It would be necessary to add further fields to store electronic variables if equilibrium
