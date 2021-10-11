@@ -104,14 +104,26 @@ end
 f
 ```
 
-
 ## MDEF with neural network friction 
 
-In this case a similar setting than LDFA is used but without the cube file. 
+Above, we used the LDFA interpretation of MDEF to perform the simulation.
+However, the [`H2AgModel`](@ref NNInterfaces.H2AgModel) actually provides it's own
+friction tensor trained on ab-initio data.
+This can be used by simply using the model directly, without wrapping it with the
+[`LDFAModel`](@ref CubeLDFAModel.LDFAModel).
 
 ```@example h2scatter
- model = H2AgModel()
+model = H2AgModel()
+sim = Simulation{MDEF}(atoms, model, cell=cell, temperature=300u"K")
+ensemble = Ensembles.run_trajectories(sim, tspan, distribution;
+    dt=0.1u"fs", output=:position, trajectories=20, callback=terminate)
 
-sim = Simulation{MDEF}(atoms, model, cell=cell,temperature=Tel)
-ensemble = Ensembles.run_ensemble(sim,tspan,selection;dt=0.1u"fs",trajectories=75000,output=Ensembles.OutputFinal(),callback=terminate,ensemble_algorithm=EnsembleDistributed())
+f = Figure()
+ax = Axis(f[1,1])
+
+for i=1:length(ensemble)
+    lines!(au_to_ps.(ensemble[i].t), au_to_ang.(h2distance.(ensemble[i].position)))
+end
+
+f
 ```
