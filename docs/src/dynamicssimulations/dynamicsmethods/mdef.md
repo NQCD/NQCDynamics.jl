@@ -44,6 +44,8 @@ z = DynamicsVariables(sim, zeros(size(sim)), zeros(size(sim)))
 With these parameters, we can run a single trajectory and visualise the total energy as
 a function of time.
 ```@example mdef
+using Plots
+
 solution = run_trajectory(z, (0.0, 100u"fs"), sim, dt=0.1u"fs", output=(:hamiltonian))
 plot(solution, :hamiltonian)
 ```
