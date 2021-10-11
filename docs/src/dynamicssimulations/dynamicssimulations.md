@@ -56,9 +56,12 @@ The output of this function takes the place of the `u` argument seen throughout
 
 With both the [`Simulation`](@ref) and [`DynamicsVariables`](@ref) in hand,
 the central function is [`run_trajectory`](@ref) which allows us to perform a single dynamics trajectory.
+This takes the simulation parameters and the initial conditions, along with a time span `tspan`
+that the trajectory will cover.
 
 ```@example dynamics
-run_trajectory(u0, (0.0, 2000.0), sim)
+tspan = (0.0, 2000.0)
+run_trajectory(u0, tspan, sim)
 ```
 
 By default, we can see that the output contains both `t` and `u`. These are the time and dynamics variables
@@ -66,7 +69,7 @@ respectively.
 By passing a `Tuple` to the `output` keyword argument we can ask for specific quantities.
 
 ```@example dynamics
-out = run_trajectory(u0, (0.0, 2000.0), sim; output=(:position, :adiabatic_population))
+out = run_trajectory(u0, tspan, sim; output=(:position, :adiabatic_population))
 ```
 
 This time we can see that the output contains only the quantities that we asked for.
