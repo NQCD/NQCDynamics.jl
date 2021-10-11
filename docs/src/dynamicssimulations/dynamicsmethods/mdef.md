@@ -28,7 +28,7 @@ is defined such that it can wrap any given
 attaching electronic friction to an otherwise adiabatic system.
 ```@example mdef
 using NonadiabaticMolecularDynamics
-usign Unitful
+using Unitful
 
 atoms = Atoms([:H])
 model = RandomFriction(Harmonic(dofs=3))
