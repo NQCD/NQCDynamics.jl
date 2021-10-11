@@ -36,12 +36,11 @@ The simulation can be set up in the usual way, by specifying the atoms along wit
 model and the simulation cell.
 ```@example
 using NonadiabaticMolecularDynamics
-using NNInterfaces
 using Unitful
 
 atoms = Atoms([:H, :H])
 model = DiatomicHarmonic()
-cell = PeriodicCell([5.883 0 0; -2.942 5.095 0; 0 0 20])
+cell = PeriodicCell(austrip.([5.883 -2.942 0; 0 5.095 0; 0 0 20] .* u"Å"))
 sim = Simulation(atoms, model; cell=cell)
 ```
 

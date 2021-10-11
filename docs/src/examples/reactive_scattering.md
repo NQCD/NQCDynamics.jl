@@ -1,4 +1,4 @@
-# Reactive scattering from a metal surface
+# [Reactive scattering from a metal surface](@id example-h2scattering)
 
 The current version of our Julia implementation allow us to simulate the state-to-state
 vibrational de-excitation probability on reactive scattering events at metal surfaces.
@@ -12,84 +12,106 @@ A full description of our reactive system also includes other basic variables de
 like type of atoms, unit cell and electronic temperature which can be properly defined
 before to run any simulation.
 
-```@example mdef
-system = load("distribution.jld2")
+As shown earlier in the [EBK documentation](@ref ebk-sampling) we are able to generate
+a semiclassically quantised distribution for a diatomic molecule on a collision course
+with a metal surface.
+Here we can follow that example with the [`H2AgModel`](@ref NNInterfaces.H2AgModel)
+to prepare our initial distribution.
 
-Tel = 0u"K"
-cell = system["cell"]
-distribution = system["dist"]
-atoms = system["atoms"]
+```@example h2scatter
+using NonadiabaticMolecularDynamics
+using NNInterfaces
+using NonadiabaticMolecularDynamics.InitialConditions: QuantisedDiatomic
 
+atoms = Atoms([:H, :H])
+model = H2AgModel()
+cell = PeriodicCell([11.1175 -5.5588 0.0; 0.0 9.628 0.0; 0.0 0.0 70.3079])
+sim = Simulation(atoms, model; cell=cell)
+
+ν, J = 2, 0
+nsamples = 20
+
+configurations = QuantisedDiatomic.generate_configurations(sim, ν, J;
+    samples=nsamples, translational_energy=2.5u"eV", height=10)
+
+distribution = DynamicalDistribution(first.(configurations), last.(configurations), (3,2))
 ```
-Here, "distribution.jld2" is a binary file which was previously generated
-(see initial conditions section) and contains relevant information about simulated system
-like the initial distribution (positions and velocities), substrate unit cell and types of
-adsorbate atoms.
-Each one of these variables can be accessed providing the "key" string to get the associated
- "value" due to dictionary structure associted with jld2 files.
- Also, the electronic temperature (``T_el``) can be selected for our MDEF simulations.
- For the reactive scattering event the electronic temperature was set equal to 0 neglecting
- the last term (random force) in the equation 1.  
+As in other molecular dynamics simulations,
+the simulated total time `tspan` and time steps
+`dt` can be suitably selected depending on the specific conditions and simulated system.
 
-The set of velocities and positions stored on "distribution.jld2" ("system ["dist"]") can
-be read in two different ways, OrderedSelection or RandomSelection.
-The first one reads the velocities and positons in a ordered way starting from the first
-member of the list and Randomselction randomly selects the positions and velocities.
-In our examples, we have used the orderedSelections but in other situation the
-RandomSelection can be useful.
+Since we are interested in the dynamics only when the molecule is close to the surface,
+we can use a callback to terminate the simulation early to save us some time.
+This requires defining a function that returns `true` when we want the simulation to
+terminate.
+This means we can set our time span relatively long since we expect most simulations to
+terminate before reaching the time limit.
 
-```@example mdef
-selection = Ensembles.OrderedSelection(distribution)
+```@example h2scatter
+using Statistics: mean
 
-```
-As other molecular dynamics simulations, the simulated total time (tspan) and time steps
-(dt) can be suitably selected depending on the specific conditons and simulated system, 
+h2distance(p) = norm(p[:,1] .- p[:,2])
 
-```@example mdef
-tspan = (0.0, 420.0u"fs")
-dt=0.1u"fs"
-
-```
-Finally, depending on the simulated system is possible to include a "termination function" which stops the simulation when a set of conditions are satified. This feature can be especially useful for scattering events to reduce the computational cost and prevent any unphysical situation.
-
-
-```@example mdef
 function termination_condition(u, t, integrator)::Bool
-   add_conditions
+    R = get_positions(u)
+    zcom = au_to_ang(mean(R[3,:]))
+    if zcom > 8.1
+        return true
+    elseif au_to_ang(h2distance(R)) > 2.5
+        return true
+    else
+        return false
+    end
 end
 
-terminate = Dynamics.TerminatingCallback(termination_condition)
-
+terminate = DynamicsUtils.TerminatingCallback(termination_condition)
+tspan = (0.0, 420.0u"fs")
 ```
 
-### Computational settings
+## MDEF with the LDFA
 
-To run any MDEF simulation, we need first to provide a model to compute both the electronic friction elements and the conservative forces from a potential surface energy (PES). In the case of LDFA simulation is also necesary to provide a "cube" file which is used to get the elecronic friction coefficients by using the fittng function.
+To run any MDEF simulation, we need first to provide a model to compute both the
+electronic friction elements and the conservative forces from a potential surface energy
+(PES).
+For LDFA the friction can be obtained by fitting the electron density contained within
+a `.cube` file.
 
-
-```@example mdef
- model = H2AgModel()
- model=LDFAModel(model,"density.cube",atoms,friction_atoms=[1,2],cell)
+```@example h2scatter
+using CubeLDFAModel
+model = LDFAModel(model, "docs/src/assets/friction/test.cube", atoms, friction_atoms=[1,2], cell)
 
 ```
 Here, the models variable contains the potential, force and friction data. For this example, "H2AgModel" contains the data associated with PES and friction machine learning models pre-calculated. The second line only modify the way the friction object is computed in the context of LDFA model. Also, it is necesarry to selected the atoms which we want to compute the frictions coefficients.
 
 Now, we have all the necesary parameters to run our MDEF simulations, 
 
-```@example mdef
-sim = Simulation{MDEF}(atoms, model, cell=cell,temperature=Tel)
-ensemble = Ensembles.run_ensemble(sim,tspan,selection;dt=0.1u"fs",trajectories=75000,output=Ensembles.OutputFinal(),callback=terminate,ensemble_algorithm=EnsembleDistributed())
+```@example h2scatter
+sim = Simulation{MDEF}(atoms, model, cell=cell, temperature=300u"K")
+ensemble = Ensembles.run_trajectories(sim, tspan, distribution;
+    dt=0.1u"fs", output=:position, trajectories=20, callback=terminate)
 ```
- 
 
-### Computational settings
+```@example
+using CairoMakie
+
+f = Figure()
+ax = Axis(f[1,1])
+
+for i=1:length(ensemble)
+    lines!(au_to_ps.(ensemble[i].t), au_to_ang.(h2distance.(ensemble[i].position)))
+end
+
+f
+```
+
+
+## MDEF with neural network friction 
 
 In this case a similar setting than LDFA is used but without the cube file. 
 
-```@example mdef
+```@example h2scatter
  model = H2AgModel()
 
 sim = Simulation{MDEF}(atoms, model, cell=cell,temperature=Tel)
 ensemble = Ensembles.run_ensemble(sim,tspan,selection;dt=0.1u"fs",trajectories=75000,output=Ensembles.OutputFinal(),callback=terminate,ensemble_algorithm=EnsembleDistributed())
 ```
-
