@@ -13,13 +13,14 @@ hydrogen molecule.
 using PyCall
 
 ase = pyimport("ase")
-spk = pyimport("schnetpack")
+spkutils = pyimport("schnetpack.utils")
+spkinterfaces = pyimport("schnetpack.interfaces")
 
-spk_model = spk.utils.load_model("../assets/schnetpack/best_model"; map_location="cpu")
+spk_model = spkutils.load_model("../assets/schnetpack/best_model"; map_location="cpu")
 
 h2 = ase.Atoms("H2", [(0, 0, 0), (0, 0, 0.74)])
 
-calc = spk.interfaces.SpkCalculator(spk_model, energy="energy", forces="forces")
+calc = spkinterfaces.SpkCalculator(spk_model, energy="energy", forces="forces")
 h2.set_calculator(calc)
 ```
 
