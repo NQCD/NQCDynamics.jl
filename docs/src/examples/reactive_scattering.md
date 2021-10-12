@@ -34,8 +34,10 @@ nsamples = 20
 
 configurations = QuantisedDiatomic.generate_configurations(sim, ν, J;
     samples=nsamples, translational_energy=2.5u"eV", height=10)
+v = first.(configurations)
+r = last.(configurations)
 
-distribution = DynamicalDistribution(first.(configurations), last.(configurations), (3,2))
+distribution = InitialConditions.DynamicalDistribution(v, r, (3,2))
 ```
 As in other molecular dynamics simulations,
 the simulated total time `tspan` and time steps
@@ -92,7 +94,7 @@ ensemble = Ensembles.run_trajectories(sim, tspan, distribution;
     dt=0.1u"fs", output=:position, trajectories=20, callback=terminate)
 ```
 
-```@example
+```@example h2scatter
 using CairoMakie
 
 f = Figure()
