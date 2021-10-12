@@ -77,9 +77,10 @@ This would require also sampling a thermal distribution for the mapping variable
 Diabatic models defined in `NonadiabaticModels.jl` are of the appropriate form for
 this method though they provide the potential as a single matrix, rather than separating
 the state-dependent and independent parts.
-It has been suggested that defining the Hamiltonian such that the trace of the diabatic
-matrix is minimised leads to more accurate results, but here we have not done this for
-simplicity.
+It has been suggested that defining the Hamiltonian such that the lowest eigenvalue
+of the diabatic matrix is zero everywhere leads to improved convergence in the sampling
+([Richardson2013](@cite)).
+However, here we have not done this for simplicity when defining the models.
 
 ## Example
 
