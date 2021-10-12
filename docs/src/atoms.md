@@ -1,4 +1,4 @@
-# Handling Atoms
+# [Handling Atoms](@id atoms)
 
 This package makes the choice to separate the atomic parameters from their positions and
 velocities for ease of use with the differential equations solvers.
@@ -26,7 +26,7 @@ auno = [au; no]
 Atoms(auno)
 ```
 
-## Reading and writing atomic structures
+## [Reading and writing atomic structures](@id reading-and-writing)
 
 When using a complex system however, it is likely more effective to read structures directly
 from a file.
