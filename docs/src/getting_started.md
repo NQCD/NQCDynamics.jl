@@ -37,7 +37,7 @@ Atoms([1, 2, 3, 4, 5, 6])
 
 A more detailed look into the [`Atoms`](@ref NonadiabaticDynamicsBase.Atoms) type along
 with a description of how to save and load structures can be found
-[here](@ref Handling Atoms).
+[here](@ref atoms).
 
 ### Representing atomic positions and velocities 
 
@@ -77,7 +77,7 @@ r = fill(x1, (1,1))
 Velocities are handled in the same way as positions and the data structures are the same.
 Usually manual initialisation like this will only be necessary for small model systems,
 whereas full dimensional model system will be read from a file instead.
-This is explored in the [`Atoms` documentation](@ref Reading and writing atomic structures).
+This is explored in the [`Atoms` documentation](@ref reading-and-writing).
 
 !!! tip "Ring polymer simulations?"
 
@@ -277,7 +277,7 @@ The second is a little more complicated but can be used to compute specialised
 outputs and reductions from the trajectories as they are completed.
 
 To learn more about these functions and see some examples, refer to the
-[Ensemble simulations](@ref) section.
+[Ensemble simulations](@ref ensembles) section.
 
 ### What's next?
 
