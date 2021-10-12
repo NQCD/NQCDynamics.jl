@@ -2,6 +2,7 @@
 
 [![CI](https://github.com/nqcd/NonadiabaticMolecularDynamics.jl/actions/workflows/CI.yml/badge.svg)](https://github.com/nqcd/NonadiabaticMolecularDynamics.jl/actions/workflows/CI.yml)
 [![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://nqcd.github.io/NonadiabaticMolecularDynamics.jl/dev/)
+[![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://nqcd.github.io/NonadiabaticMolecularDynamics.jl/stable/)
 
 This is a package for performing nonadiabatic molecular dynamics simulations for both simple models and full-dimensional systems using the [DifferentialEquations.jl](https://github.com/SciML/DifferentialEquations.jl) framework.
 
