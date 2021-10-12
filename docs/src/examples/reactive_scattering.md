@@ -52,6 +52,7 @@ terminate before reaching the time limit.
 
 ```@example h2scatter
 using Statistics: mean
+using LinearAlgebra: norm
 
 h2distance(p) = norm(p[:,1] .- p[:,2])
 
@@ -82,8 +83,8 @@ a `.cube` file.
 ```@example h2scatter
 using CubeLDFAModel
 model = LDFAModel(model, "../assets/friction/test.cube", atoms, friction_atoms=[1,2], cell)
-
 ```
+
 Here, the models variable contains the potential, force and friction data. For this example, "H2AgModel" contains the data associated with PES and friction machine learning models pre-calculated. The second line only modify the way the friction object is computed in the context of LDFA model. Also, it is necesarry to selected the atoms which we want to compute the frictions coefficients.
 
 Now, we have all the necesary parameters to run our MDEF simulations, 
