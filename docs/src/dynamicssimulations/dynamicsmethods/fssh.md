@@ -36,7 +36,7 @@ then calculating the probability with
 ```
 At each timestep a random number between 0 and 1 is generated which is compared to the
 probabilities. If the probability is higher than the random number then a hop is attempted.
-A further complexity of the fewest-switches scheme is that Hamiltonian above is conserved
+A further complexity of the fewest-switches scheme is that the Hamiltonian above is conserved
 for each trajectory by rescaling the momenta whenever a hop is performed.
 As such, when a hop is attempted, it will only be successful when there is sufficient
 kinetic energy for the Hamiltonian to be conserved after the hop.
@@ -44,9 +44,11 @@ If there is insufficient kinetic energy this is termed a frustrated hop, and
 the dynamics proceeds without performing a hop.
 When a hop is successful, the kinetic energy is adjusted and ``s(t)`` takes on the value
 of the newly occupied state.
-
-For a more detailed description of the algorithm and the momentum rescaling procedure,
-refer to [Subotnik2016](@cite).
+For a more detailed description of the algorithm and the momentum rescaling procedure, please
+refer to [Subotnik2016](@cite). 
+In this reference, the notion of reversing the momenta during frustrated hops is discussed.
+In our implementation we leave the frustrated trajectories unchanges, though it is suggested
+that the reversal procedure may lead to better results.
 
 ## Algorithm
 
