@@ -106,7 +106,7 @@ cubic Spline functions. The Wigner-Sietz radius is connected with the metal subs
 ```
 
 In this way, the electron density associated with the current substrate atom position is used to compute the respective friction coefficient through fitting function for each point of the trajectory.
-Visit the [CubeLDFAModel.jl](@ref model-cubeldfa) to learn more about how this is evaluated.
+Visit the [CubeLDFAModel.jl](@ref models-cubeldfa) to learn more about how this is evaluated.
 
 ## Time-dependent Perturbation theory (TDPT)
 
@@ -121,7 +121,7 @@ Each electronic friction tensor (EFT) elements corresponds to relaxation rate du
 Here, ``\vert \psi_{k\nu} \rangle`` and ``\epsilon_{k\nu}`` are the Kohn-Sham (KS) ground state eigenstates and eigenenergies, respectively. The derivatives quantities are computed by finite difference numerically and normalized Gaussian distribution of finite width (``\sigma``) centered at Fermi level is used to facilitate convergence instead to the ``\delta`` function. A ``\delta`` value of 0.6 is often selected to due is able to produce converged results in the majority of the systems analyzed.
 
 ``\Lambda_{ij}`` is object with (``3N\times3N``)-dimension where N is often the total number of adsorbate atoms considered explicitly on the study system.
-View the [friction models page](@ref friction-models) to learn about how this can be used.
+View the [friction models page](@ref models-friction) to learn about how this can be used.
 
 !!! tip "TDPT friction and LDFA in action?"
 
