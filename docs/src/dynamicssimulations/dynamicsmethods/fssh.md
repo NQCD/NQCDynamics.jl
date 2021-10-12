@@ -47,7 +47,7 @@ of the newly occupied state.
 For a more detailed description of the algorithm and the momentum rescaling procedure, please
 refer to [Subotnik2016](@cite). 
 In this reference, the notion of reversing the momenta during frustrated hops is discussed.
-In our implementation we leave the frustrated trajectories unchanges, though it is suggested
+In our implementation we leave the frustrated trajectories unchanged, though it is suggested
 that the reversal procedure may lead to better results.
 
 ## Algorithm
