@@ -36,7 +36,7 @@ The simulation can be set up in the usual way, by specifying the atoms along wit
 model and the simulation cell.
 ```@example ebk
 using NonadiabaticMolecularDynamics
-using Unitful
+using Unitful, UnitfulAtomic
 
 atoms = Atoms([:H, :H])
 model = DiatomicHarmonic()
