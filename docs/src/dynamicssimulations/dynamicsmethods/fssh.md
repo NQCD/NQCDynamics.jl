@@ -44,9 +44,11 @@ If there is insufficient kinetic energy this is termed a frustrated hop, and
 the dynamics proceeds without performing a hop.
 When a hop is successful, the kinetic energy is adjusted and ``s(t)`` takes on the value
 of the newly occupied state.
-
-Different rescaling schemes exist. In this implementation, we use the rescaling scheme as described in XXX. For a more detailed description of the algorithm and the momentum rescaling procedure, please
+For a more detailed description of the algorithm and the momentum rescaling procedure, please
 refer to [Subotnik2016](@cite). 
+In this reference, the notion of reversing the momenta during frustrated hops is discussed.
+In our implementation we leave the frustrated trajectories unchanges, though it is suggested
+that the reversal procedure may lead to better results.
 
 ## Algorithm
 
