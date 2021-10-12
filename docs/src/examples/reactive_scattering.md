@@ -21,6 +21,7 @@ to prepare our initial distribution.
 ```@example h2scatter
 using NonadiabaticMolecularDynamics
 using NNInterfaces
+using Unitful
 using NonadiabaticMolecularDynamics.InitialConditions: QuantisedDiatomic
 
 atoms = Atoms([:H, :H])

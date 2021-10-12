@@ -34,7 +34,7 @@ conditions for hydrogen scattering simulations.
 
 The simulation can be set up in the usual way, by specifying the atoms along with the
 model and the simulation cell.
-```@example
+```@example ebk
 using NonadiabaticMolecularDynamics
 using Unitful
 
@@ -51,7 +51,7 @@ We have to provide the desired vibrational `ν` and rotational `J` quantum numbe
 along with the number of samples and some other options as keyword arguments.
 In addition to the rotational and vibrational energy we have applied a translational impulse
 of 1 eV and positioned the molecule at a height of 10 bohr.
-```@example
+```@example ebk
 using NonadiabaticMolecularDynamics.InitialConditions: QuantisedDiatomic
 
 ν, J = 2, 0
@@ -66,14 +66,14 @@ to the [`InitialConditions.DynamicalDistribution`](@ref) for use with dynamics.
 Here however, let's focus on the positions and visualise the distribution.
 
 This collects the x and y coordinate for each atom:
-```@example
+```@example ebk
 r = last.(configurations)
 x = hcat([i[1,:] for i in r]...)
 y = hcat([i[2,:] for i in r]...)
 ```
 
 Now we can plot the distribution using [CairoMakie](https://github.com/JuliaPlots/Makie.jl)
-```@example
+```@example ebk
 using CairoMakie
 
 f = Figure()
