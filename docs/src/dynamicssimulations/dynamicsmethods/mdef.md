@@ -13,6 +13,10 @@ Molecular dynamics with electronic friction (MDEF) is one of main workhorse used
 ```
 The first term on the right hand side of the equation (1) corresponds to conservative force associated with potential energy surface (PES) as in the adiabatic case. The second term is the friction force and it come from multiplication between the electronic friction object (``f_{e,i}^{fric}``) and the velocity. This means that the final friction force contribution depends dramatically of both quantities. Finally, the last term is temperature and friction-dependent stochastic random force which assure the detailed balance. For some particular cases, the random force can be neglected setting the electronic temperature at 0 K (see scattering event example below).
 
+This figure shows an atom moving near a metal surface ``M_A``, when the atom moves into the
+region of electron density ``\rho_0^{M_A}`` it experiences the forces described above.
+![ldfa motion](../../assets/figures/ldfa_motion.png)
+
 ### Simple example
 
 We can explore the MDEF concept first by introducing a model system with non-physical
@@ -102,6 +106,7 @@ cubic Spline functions. The Wigner-Sietz radius is connected with the metal subs
 ```
 
 In this way, the electron density associated with the current substrate atom position is used to compute the respective friction coefficient through fitting function for each point of the trajectory.
+Visit the [CubeLDFAModel.jl](@ref model-cubeldfa) to learn more about how this is evaluated.
 
 ## Time-dependent Perturbation theory (TDPT)
 
@@ -113,9 +118,10 @@ A more general formulation of the electronic friction object was also developed 
 
 Each electronic friction tensor (EFT) elements corresponds to relaxation rate due to electron-nuclear coupling along the Cartesian coordinate ``i`` due to motion in the ``j`` direction. The electronic friction tensor elements can be computed by using the Fermi's golden rule.
 
-Here, ``\vert \psi_{k\nu} \rangle`` and ``\epsilon_{k\nu}`` are the Kohn-Sham (KS) ground state eigenstates and eigenenergies, respectively. The derivatives quatities are computed by finite difference numerically and normalized Gaussian distribution of finite width (``\sigma``) centered at Fermi level is used to facilitate convergence instead to the ``\delta`` function. A ``\delta`` value of 0.6 is often selected to due is able to produce converged results in the majority of the systems analyzed.
+Here, ``\vert \psi_{k\nu} \rangle`` and ``\epsilon_{k\nu}`` are the Kohn-Sham (KS) ground state eigenstates and eigenenergies, respectively. The derivatives quantities are computed by finite difference numerically and normalized Gaussian distribution of finite width (``\sigma``) centered at Fermi level is used to facilitate convergence instead to the ``\delta`` function. A ``\delta`` value of 0.6 is often selected to due is able to produce converged results in the majority of the systems analyzed.
 
 ``\Lambda_{ij}`` is object with (``3N\times3N``)-dimension where N is often the total number of adsorbate atoms considered explicitly on the study system.
+View the [friction models page](@ref friction-models) to learn about how this can be used.
 
 !!! tip "TDPT friction and LDFA in action?"
 
