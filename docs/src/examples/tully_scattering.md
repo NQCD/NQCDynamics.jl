@@ -20,7 +20,7 @@ output = Ensembles.OutputStateResolvedScattering1D(sim, :adiabatic)
 reduction = Ensembles.MeanReduction()
 ```
 Here we are using the
-[`OutputStateResolvedScattering1D`](@ref Ensembles.OutpuStateResolvedScattering1D)
+[`OutputStateResolvedScattering1D`](@ref Ensembles.OutputStateResolvedScattering1D)
 along with the [`MeanReduction`](@ref Ensembles.MeanReduction) which will give us
 the average scattering outcome from the entire ensemble.
 Each trajectory output the scattering outcome along with its final state, and the reduction
