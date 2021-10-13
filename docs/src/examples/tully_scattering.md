@@ -75,3 +75,4 @@ scatter!(ax, momenta, t2; label="T2", color=:blue)
 axislegend(ax)
 
 f
+```
