@@ -2,7 +2,7 @@ using Documenter
 using DocumenterCitations
 using NonadiabaticMolecularDynamics
 using NonadiabaticModels
-using CubeLDFAModel
+using CubeLDFAModel, NNInterfaces
 
 DocMeta.setdocmeta!(NonadiabaticMolecularDynamics, :DocTestSetup, :(using NonadiabaticMolecularDynamics); recursive=true)
 DocMeta.setdocmeta!(NonadiabaticModels, :DocTestSetup, :(using NonadiabaticModels, Symbolics); recursive=true)
