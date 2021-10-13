@@ -17,7 +17,7 @@ bib = CitationBibliography(joinpath(@__DIR__, "references.bib"), sorting=:nyt)
     format = Documenter.HTML(
         prettyurls = get(ENV, "CI", nothing) == "true",
         canonical = "https://nqcd.github.io/NonadiabaticMolecularDynamics.jl/stable/",
-        assets = ["src/assets/custom.css", "src/assets/favicon.ico"],
+        assets = ["assets/custom.css", "assets/favicon.ico"],
         ansicolor = true,
         ),
     authors = "James Gardner and contributors.",
