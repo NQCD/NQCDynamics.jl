@@ -7,7 +7,7 @@ function enforce_periodicity!(integrator)
 end
 
 """
-    CellBoundaryCallback
+    CellBoundaryCallback()
 
 Whenever atoms leave the simulation cell, enforce the periodicity by wrapping the positions
 at the cell boundary.
@@ -15,7 +15,7 @@ at the cell boundary.
 CellBoundaryCallback() = DiscreteCallback(outside_cell, enforce_periodicity!)
 
 """
-    TerminateCellCallback
+    TerminateCellCallback()
 
 If the atoms leave the simulation cell, terminate the simulation.
 """
