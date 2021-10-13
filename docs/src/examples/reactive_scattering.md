@@ -39,9 +39,6 @@ r = last.(configurations)
 
 distribution = InitialConditions.DynamicalDistribution(v, r, (3,2))
 ```
-As in other molecular dynamics simulations,
-the simulated total time `tspan` and time steps
-`dt` can be suitably selected depending on the specific conditions and simulated system.
 
 Since we are interested in the dynamics only when the molecule is close to the surface,
 we can use a callback to terminate the simulation early to save us some time.
@@ -70,36 +67,39 @@ end
 
 terminate = DynamicsUtils.TerminatingCallback(termination_condition)
 tspan = (0.0, 420.0u"fs")
+nothing # hide
 ```
 
 ## MDEF with the LDFA
 
-To run any MDEF simulation, we need first to provide a model to compute both the
-electronic friction elements and the conservative forces from a potential surface energy
-(PES).
-For LDFA the friction can be obtained by fitting the electron density contained within
-a `.cube` file.
+Now that we've set up the initial distribution and some of our simulation parameters,
+we can choose which form of friction we would like use.
+First, let's use the LDFA implementation provided by the
+[CubeLDFAModel](@ref models-cubeldfa).
+This takes a `.cube` file containing the electron density and will provide the friction
+during the dynamics.
+Here we have given the new model our model from above, which will provide the forces.
 
 ```@example h2scatter
 using CubeLDFAModel
 model = LDFAModel(model, "../assets/friction/test.cube", atoms, friction_atoms=[1,2], cell)
 ```
 
-Here, the models variable contains the potential, force and friction data. For this example, "H2AgModel" contains the data associated with PES and friction machine learning models pre-calculated. The second line only modify the way the friction object is computed in the context of LDFA model. Also, it is necesarry to selected the atoms which we want to compute the frictions coefficients.
-
-Now, we have all the necesary parameters to run our MDEF simulations, 
-
+Now we can pass all the variables defined so far to the `Simulation` and run multiple
+trajectories using [`Ensembles.run_trajectories`](@ref).
 ```@example h2scatter
 sim = Simulation{MDEF}(atoms, model, cell=cell, temperature=300u"K")
 ensemble = Ensembles.run_trajectories(sim, tspan, distribution;
     dt=0.1u"fs", output=:position, trajectories=20, callback=terminate)
 ```
 
+Now we can plot the hydrogen bond length during the dynamics and see how some
+of the trajectories lead to dissociation.
 ```@example h2scatter
 using CairoMakie
 
 f = Figure()
-ax = Axis(f[1,1])
+ax = Axis(f[1,1], xlabel="Time /ps", ylabel="H2 bond length /bohr")
 
 for i=1:length(ensemble)
     lines!(au_to_ps.(ensemble[i].t), au_to_ang.(h2distance.(ensemble[i].position)))
@@ -123,7 +123,7 @@ ensemble = Ensembles.run_trajectories(sim, tspan, distribution;
     dt=0.1u"fs", output=:position, trajectories=20, callback=terminate)
 
 f = Figure()
-ax = Axis(f[1,1])
+ax = Axis(f[1,1], xlabel="Time /ps", ylabel="H2 bond length /bohr")
 
 for i=1:length(ensemble)
     lines!(au_to_ps.(ensemble[i].t), au_to_ang.(h2distance.(ensemble[i].position)))
