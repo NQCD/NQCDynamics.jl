@@ -9,11 +9,6 @@ Currently, our implementation works for systems with classical nuclei
 (i.e. `Simulation` but not `RingPolymerSimulation`). We plan to extend in it in 
 future.
 
-To perform this kind of sampling
-[`run_advancedhmc_sampling`](@ref InitialConditions.ThermalMonteCarlo.run_advancedhmc_sampling)
-is called by providing the simulation parameters, initial coordinates and the number of
-steps to perform.
-
 ## Example
 
 In this example we use Hamiltonian Monte Carlo to sample the canonical distribution of
