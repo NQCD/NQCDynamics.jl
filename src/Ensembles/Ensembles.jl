@@ -123,7 +123,7 @@ end
         ensemble_algorithm=EnsembleThreads(), saveat=[], kwargs...)
 
 Run multiple trajectories and output the results in the same way as the
-[`run_trajectory`](@ref) function.
+[`run_trajectory`](@ref DynamicsMethods.run_trajectory) function.
 """
 function run_trajectories(sim::AbstractSimulation, tspan, distribution;
     selection=nothing, output=(:u),

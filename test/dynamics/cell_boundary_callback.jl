@@ -13,6 +13,6 @@ solution = run_trajectory(z, (0.0, 300), sim; dt=0.1)
 Rs = vcat(get_positions.(solution.u)...)
 @test !isapprox(minimum(Rs), 0, atol=1e-4) | (minimum(Rs) >= 0) # check atom leaves cell
 
-solution = run_trajectory(z, (0.0, 300), sim; callback=DynamicsUtils.CellBoundaryCallback, dt=0.1)
+solution = run_trajectory(z, (0.0, 300), sim; callback=DynamicsUtils.CellBoundaryCallback(), dt=0.1)
 Rs = vcat(get_positions.(solution.u)...)
 @test isapprox(minimum(Rs), 0, atol=1e-4) | (minimum(Rs) >= 0) # Check atom remains inside
