@@ -3,11 +3,11 @@
 Using the [ASE interface](@ref) we can directly use models trained using
 [SchNetPack](https://github.com/atomistic-machine-learning/schnetpack).
 
-To use a SchNet model, please load any pre-trained model into a given path you can access.
-Here, our SchNet model is named "best_model" as is common in SchNet and
-provide the relative path.
+To use a SchNet model, load any pre-trained model into a given path you can access.
+In the example below, our SchNet model is named "best_model" as is common in SchNet and
+uses the the relative path.
 
-First we can load the model into an `ase` calculator and attach it to our diatomic
+First we load the model into an `ase` calculator and attach it to our diatomic
 hydrogen molecule.
 ```@example spk
 using PyCall
@@ -37,7 +37,9 @@ austrip.(h2.get_forces() .* u"eV/Å")
     Note that this is an arbitrary model not trained on H2, hence the calculation of the
     potential energy and forces most likely do not make sense.
 
-Then we can obtain the same numbers using the NonadiabaticModels interface:
+Then, we can convert the ASE output into the format used in NonadiabaticModels,
+which makes it possible to use the SchNet model e.g. for molecular dynamics calculations
+within NonadiabaticModels:
 ```@repl spk
 using NonadiabaticModels;
 model = AdiabaticASEModel(h2);
