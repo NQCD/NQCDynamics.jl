@@ -126,4 +126,4 @@ View the [friction models page](@ref models-friction) to learn about how this ca
 !!! tip "TDPT friction and LDFA in action?"
 
     If you would like to see an example using both LDFA and TDPT during full dimensional
-    dynamics, refer to the [reactive scattering example](@ref ).
+    dynamics, refer to the [reactive scattering example](@ref examples-tully-model-two).

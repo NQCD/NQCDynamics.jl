@@ -94,6 +94,6 @@ f
 Here we can see that the molecule is randomly distributed within the unit cell.
 Since we have used a harmonic potential, this could have been produced without using the EBK
 procedure, but this technique can use any arbitrary potential.
-In the [hydrogen scattering example](@id example-h2scattering) we build on this example
+In the [hydrogen scattering example](@ref example-h2scattering) we build on this example
 and use the sample procedure to perform scattering simulations starting from this
 distribution.
