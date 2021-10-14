@@ -1,5 +1,10 @@
 using LinearAlgebra: lmul!
 
+"""
+    CMM2{T} <: DynamicsMethods.Method
+
+Classical mapping model 2 from Xin He and Jian Liu (2019).
+"""
 struct CMM2{T} <: DynamicsMethods.Method
     temp_q::Vector{T}
     temp_p::Vector{T}
@@ -59,10 +64,14 @@ function set_mapping_force!(du, u, sim::Simulation{<:CMM2})
     lmul!(-1, get_mapping_momenta(du))
 end
 
-function get_diabatic_population(::Simulation{<:CMM2}, u)
+function Estimators.diabatic_population(sim::Simulation{<:CMM2}, u)
     qmap = get_mapping_positions(u)
     pmap = get_mapping_momenta(u)
-    (qmap.^2 .+ pmap.^2) / 2
+    out = zero(qmap)
+    for i=1:NonadiabaticModels.nstates(sim)
+        out[i] = (qmap[i]^2 + pmap[i]^2) / 2
+    end
+    out
 end
 
 function DynamicsUtils.classical_hamiltonian(sim::Simulation{<:CMM2}, u)
