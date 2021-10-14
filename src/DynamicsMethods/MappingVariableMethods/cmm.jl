@@ -1,6 +1,5 @@
-export CMM2
 
-struct CMM2{T} <: Method
+struct CMM2{T} <: DynamicsMethods.Method
     temp_q::Vector{T}
     temp_p::Vector{T}
     function CMM2{T}(n_states::Integer) where {T}
@@ -8,9 +7,11 @@ struct CMM2{T} <: Method
     end
 end
 
-const MeyerMillerMappingVariables{T} = ArrayPartition{T, Tuple{Matrix{T}, Matrix{T}, Vector{T}, Vector{T}}}
+function NonadiabaticMolecularDynamics.Simulation{CMM2}(atoms::Atoms{S,T}, model::Model; kwargs...) where {S,T}
+    NonadiabaticMolecularDynamics.Simulation(atoms, model, CMM2{T}(NonadiabaticModels.nstates(model)); kwargs...)
+end
 
-function MeyerMillerMappingVariables(v::AbstractMatrix, r::AbstractMatrix, n_states, state)
+function DynamicsMethods.DynamicsVariables(sim::Simulation{<:CMM2}, v, r, states::Integer; type=:diabatic)
 
     qmap = zeros(n_states)
     pmap = zeros(n_states)
@@ -19,24 +20,21 @@ function MeyerMillerMappingVariables(v::AbstractMatrix, r::AbstractMatrix, n_sta
     qmap[state] = cos(θ) * sqrt(2)
     pmap[state] = sin(θ) * sqrt(2)
 
-    ArrayPartition(v, r, pmap, qmap)
+    ComponentVector(v=v, r=r, pmap=pmap, qmap=qmap)
 end
 
-get_mapping_positions(z::MeyerMillerMappingVariables) = z.x[4]
-get_mapping_momenta(z::MeyerMillerMappingVariables) = z.x[3]
-
 function motion!(du, u, sim::Simulation{<:CMM2}, t)
-    dr = get_positions(du)
-    dv = get_velocities(du)
-    r = get_positions(u)
-    v = get_velocities(u)
+    dr = DynamicsUtils.get_positions(du)
+    dv = DynamicsUtils.get_velocities(du)
+    r = DynamicsUtils.get_positions(u)
+    v = DynamicsUtils.get_velocities(u)
 
-    velocity!(dr, v, r, sim, t)
+    DynamicsUtils.velocity!(dr, v, r, sim, t)
     acceleration!(dv, u, sim)
     set_mapping_force!(du, u, sim)
 end
 
-function acceleration!(dv, u::MeyerMillerMappingVariables, sim::Simulation{<:CMM2})
+function acceleration!(dv, u, sim::Simulation{<:CMM2})
 
     Calculators.evaluate_derivative!(sim.calculator, get_positions(u))
     qmap = get_mapping_positions(u)
@@ -52,7 +50,7 @@ function acceleration!(dv, u::MeyerMillerMappingVariables, sim::Simulation{<:CMM
     divide_by_mass!(dv, sim.atoms.masses)
 end
 
-function set_mapping_force!(du, u::MeyerMillerMappingVariables, sim::Simulation{<:CMM2})
+function set_mapping_force!(du, u, sim::Simulation{<:CMM2})
     Calculators.evaluate_potential!(sim.calculator, get_positions(u))
     V = sim.calculator.potential
     mul!(get_mapping_positions(du), V, get_mapping_momenta(u))
@@ -66,11 +64,11 @@ function get_diabatic_population(::Simulation{<:CMM2}, u)
     (qmap.^2 .+ pmap.^2) / 2
 end
 
-function NonadiabaticMolecularDynamics.evaluate_hamiltonian(sim::Simulation{<:CMM2}, u::MeyerMillerMappingVariables)
-    r = get_positions(u)
-    v = get_velocities(u)
+function DyanmicsUtils.classical_hamiltonian(sim::Simulation{<:CMM2}, u)
+    r = DynamicsUtils.get_positions(u)
+    v = DynamicsUtils.get_velocities(u)
 
-    kinetic = evaluate_kinetic_energy(sim.atoms.masses, v)
+    kinetic = DynamicsUtils.classical_kinetic_energy(sim.atoms.masses, v)
 
     Calculators.evaluate_potential!(sim.calculator, r)
     V = sim.calculator.potential
