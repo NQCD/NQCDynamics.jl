@@ -193,116 +193,50 @@ function Estimators.adiabatic_population(sim::Simulation{<:IESH}, u)
     return population
 end
 
-function rescale_velocity!(sim::Simulation{<:IESH}, u)::Bool
-    # ShakibHuo_JPhysChemLett_8_3073_2017_rescale
-    new_state, old_state = symdiff(sim.method.new_state, sim.method.state)
-    velocity = DynamicsUtils.get_velocities(u)
+# function rescale_velocity!(sim::Simulation{<:IESH}, u)::Bool
+#     # ShakibHuo_JPhysChemLett_8_3073_2017_rescale
+#     new_state, old_state = symdiff(sim.method.new_state, sim.method.state)
+#     velocity = DynamicsUtils.get_velocities(u)
     
-    # Calculate difference in eigenvalues between old and new state, weighed by mass:
-    # c = (E_{new} - E_{old})/mass
-    c = calculate_potential_energy_change(sim.calculator, new_state, old_state)
-    # a = d^2_{new,old}/mass (where d is the nonadiabatic coupling)
-    # b = v*d_{new,old}
-    a, b = evaluate_a_and_b(sim, velocity, new_state, old_state)
-    discriminant = b.^2 .- 2a.*c
+#     # Calculate difference in eigenvalues between old and new state, weighed by mass:
+#     # c = (E_{new} - E_{old})/mass
+#     c = calculate_potential_energy_change(sim.calculator, new_state, old_state)
+#     # a = d^2_{new,old}/mass (where d is the nonadiabatic coupling)
+#     # b = v*d_{new,old}
+#     a, b = evaluate_a_and_b(sim, velocity, new_state, old_state)
+#     discriminant = b.^2 .- 2a.*c
 
-    # If smaller zero, hop is frustrated
-    any(discriminant .< 0) && return false
+#     # If smaller zero, hop is frustrated
+#     any(discriminant .< 0) && return false
 
-    root = sqrt.(discriminant)
-    plus = (b .+ root) ./ a
-    minus = (b .- root) ./ a 
-    velocity_rescale = sum(abs.(plus)) < sum(abs.(minus)) ? plus : minus
-    perform_rescaling!(sim, velocity, velocity_rescale, new_state, old_state)
+#     root = sqrt.(discriminant)
+#     plus = (b .+ root) ./ a
+#     minus = (b .- root) ./ a 
+#     velocity_rescale = sum(abs.(plus)) < sum(abs.(minus)) ? plus : minus
+#     perform_rescaling!(sim, velocity, velocity_rescale, new_state, old_state)
 
-    return true
-end
+#     return true
+# end
 
-function calculate_potential_energy_change(calc::AbstractDiabaticCalculator, new_state::Integer, current_state::Integer)
-    return calc.eigenvalues[new_state] - calc.eigenvalues[current_state]
-end
+# function calculate_potential_energy_change(calc::AbstractDiabaticCalculator, new_state::Integer, current_state::Integer)
+#     return calc.eigenvalues[new_state] - calc.eigenvalues[current_state]
+# end
 
-function evaluate_a_and_b(sim::Simulation{<:SurfaceHopping}, velocity, new_state, old_state)
-    a = zeros(length(sim.atoms))
-    b = zero(a)
-    @views for i in range(sim.atoms)
-        coupling = [sim.calculator.nonadiabatic_coupling[j,i][new_state, old_state] for j=1:sim.DoFs]
-        a[i] = dot(coupling, coupling) / sim.atoms.masses[i]
-        b[i] = dot(velocity[:,i], coupling)
-    end
-    return (a, b)
-end
-
-function perform_rescaling!(sim::Simulation{<:SurfaceHopping}, velocity, velocity_rescale, new_state, old_state)
-    for i in range(sim.atoms)
-        coupling = [sim.calculator.nonadiabatic_coupling[j,i][new_state, old_state] for j=1:sim.DoFs]
-        velocity[:,i] .-= velocity_rescale[i] .* coupling ./ sim.atoms.masses[i]
-    end
-    return nothing
-end
-
-# function impurity_summary(model::DiabaticModel, R::AbstractMatrix, state::AbstractArray, σ::AbstractArray)
-#     """Calculate impurity population according to MiaoSubotnik_JChemPhys_150_041711_2019"""
-
-#     eig_vec = zeros(model.n_states,model.n_states)
-
-#     eival = zeros(model.n_states)
-#     σad = zeros(Complex, model.n_states, model.n_states)
-#     tmp = 0
-#     σdia = zeros(Complex, model.n_states, model.n_states)
-#     eig_array = zeros(4+model.n_states)
-#     V = Hermitian(zeros(model.n_states,model.n_states))
-#     dvect = zeros(model.n_states)
-#     dvect[2] = 1
-    
-#     # get potential
-#     potential!(model,V,R)
-#     eig_vec .= eigvecs(V)
-#     ieig = inv(eig_vec)
-#     # Get density matrix matrix
-#     for i = 1:length(state)
-#         eig_array[4 + i] = norm(σ[i,:])
-#         for j = 1:length(state)
-#             for k in axes(σ,2)
-#                 σad[i,j] = σad[i,j] + σ[i,k]*σ[j,k]
-#             end
-#         end
+# function evaluate_a_and_b(sim::Simulation{<:SurfaceHopping}, velocity, new_state, old_state)
+#     a = zeros(length(sim.atoms))
+#     b = zero(a)
+#     @views for i in range(sim.atoms)
+#         coupling = [sim.calculator.nonadiabatic_coupling[j,i][new_state, old_state] for j=1:sim.DoFs]
+#         a[i] = dot(coupling, coupling) / sim.atoms.masses[i]
+#         b[i] = dot(velocity[:,i], coupling)
 #     end
+#     return (a, b)
+# end
 
-
-#     #Turn into diabatic matrix for impurity population
-#     σdia .= eig_vec *σad * ieig
-#     eig_array[4] = real(σdia[2,2])^2 + imag(σdia[2,2])^2
-
-#     # eig_array[4] = 0
-#     # for k in axes(σ,2)
-#     #     for i = 1:length(state)
-#     #         σad[i,i] = σ[i,k]
-#     #     end
-#     #     σdia .= 0
-#     #     σdia .= eig_vec *σad * ieig
-#     #     eig_array[4] = eig_array[4] + real(σdia[2,2])^2 + imag(σdia[2,2])^2
-#     # end
-    
-
-#     # Get the eigenvectors and values
-#     eival .= eigvals(V)
-
-#     # save position
-#     eig_array[1] = R[1]
-#     for i = 1:length(state)
-#         # Energy
-#         eig_array[2] = eig_array[2] + eival[state[i]]
-#         # Hopping prob. by hopping array
-#         eig_array[3] = eig_array[3] + state[i]
-        
+# function perform_rescaling!(sim::Simulation{<:SurfaceHopping}, velocity, velocity_rescale, new_state, old_state)
+#     for i in range(sim.atoms)
+#         coupling = [sim.calculator.nonadiabatic_coupling[j,i][new_state, old_state] for j=1:sim.DoFs]
+#         velocity[:,i] .-= velocity_rescale[i] .* coupling ./ sim.atoms.masses[i]
 #     end
-
-#     # # over electrons. This is adiabatic.
-#     # for i in axes(σ, 2)
-#     #     eig_array[4] = eig_array[4] + real(σ[2,i])^2 + imag(σ[2,i])^2
-#     # end
-
-#     # Export an array of eigenvalues with last two elements being hopping prob
-#     eig_array = eig_array
+#     return nothing
 # end

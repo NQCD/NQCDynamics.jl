@@ -1,8 +1,8 @@
 push!(LOAD_PATH, pwd())
-#using NonadiabaticModels
+using NonadiabaticModels
 using NonadiabaticMolecularDynamics
 using Random, Distributions
-#using Revise
+using Revise
 
 using PyCall
 using Unitful, UnitfulAtomic
