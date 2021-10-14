@@ -1,3 +1,4 @@
+using LinearAlgebra: lmul!
 
 struct CMM2{T} <: DynamicsMethods.Method
     temp_q::Vector{T}
@@ -11,10 +12,10 @@ function NonadiabaticMolecularDynamics.Simulation{CMM2}(atoms::Atoms{S,T}, model
     NonadiabaticMolecularDynamics.Simulation(atoms, model, CMM2{T}(NonadiabaticModels.nstates(model)); kwargs...)
 end
 
-function DynamicsMethods.DynamicsVariables(sim::Simulation{<:CMM2}, v, r, states::Integer; type=:diabatic)
+function DynamicsMethods.DynamicsVariables(sim::Simulation{<:CMM2}, v, r, state::Integer; type=:diabatic)
 
-    qmap = zeros(n_states)
-    pmap = zeros(n_states)
+    qmap = zeros(NonadiabaticModels.nstates(sim))
+    pmap = zeros(NonadiabaticModels.nstates(sim))
 
     θ = rand() * 2π
     qmap[state] = cos(θ) * sqrt(2)
@@ -23,7 +24,7 @@ function DynamicsMethods.DynamicsVariables(sim::Simulation{<:CMM2}, v, r, states
     ComponentVector(v=v, r=r, pmap=pmap, qmap=qmap)
 end
 
-function motion!(du, u, sim::Simulation{<:CMM2}, t)
+function DynamicsMethods.motion!(du, u, sim::Simulation{<:CMM2}, t)
     dr = DynamicsUtils.get_positions(du)
     dv = DynamicsUtils.get_velocities(du)
     r = DynamicsUtils.get_positions(u)
@@ -36,7 +37,7 @@ end
 
 function acceleration!(dv, u, sim::Simulation{<:CMM2})
 
-    Calculators.evaluate_derivative!(sim.calculator, get_positions(u))
+    Calculators.evaluate_derivative!(sim.calculator, DynamicsUtils.get_positions(u))
     qmap = get_mapping_positions(u)
 	pmap = get_mapping_momenta(u)
     for I in eachindex(dv)
@@ -47,11 +48,11 @@ function acceleration!(dv, u, sim::Simulation{<:CMM2})
         dv[I] += dot(pmap, sim.method.temp_p)
     end
     lmul!(-1/2, dv)
-    divide_by_mass!(dv, sim.atoms.masses)
+    DynamicsUtils.divide_by_mass!(dv, sim.atoms.masses)
 end
 
 function set_mapping_force!(du, u, sim::Simulation{<:CMM2})
-    Calculators.evaluate_potential!(sim.calculator, get_positions(u))
+    Calculators.evaluate_potential!(sim.calculator, DynamicsUtils.get_positions(u))
     V = sim.calculator.potential
     mul!(get_mapping_positions(du), V, get_mapping_momenta(u))
     mul!(get_mapping_momenta(du), V, get_mapping_positions(u))
@@ -64,11 +65,11 @@ function get_diabatic_population(::Simulation{<:CMM2}, u)
     (qmap.^2 .+ pmap.^2) / 2
 end
 
-function DyanmicsUtils.classical_hamiltonian(sim::Simulation{<:CMM2}, u)
+function DynamicsUtils.classical_hamiltonian(sim::Simulation{<:CMM2}, u)
     r = DynamicsUtils.get_positions(u)
     v = DynamicsUtils.get_velocities(u)
 
-    kinetic = DynamicsUtils.classical_kinetic_energy(sim.atoms.masses, v)
+    kinetic = DynamicsUtils.classical_kinetic_energy(sim, v)
 
     Calculators.evaluate_potential!(sim.calculator, r)
     V = sim.calculator.potential
