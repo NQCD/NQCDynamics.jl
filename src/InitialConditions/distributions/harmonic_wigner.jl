@@ -16,9 +16,9 @@ end
 
 Wigner distribution in a 1D harmonic potential for the position
 """
-function PositionHarmonicWigner(ω, β)
-    σ = sqrt(Q(ω, β) / β) / ω  
-    Normal(0, σ)
+function PositionHarmonicWigner(ω, β, m; centre=0)
+    σ = sqrt(Q(ω, β) / β / m) / ω  
+    Normal(centre, σ)
 end
 
 """
