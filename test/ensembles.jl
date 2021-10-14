@@ -2,20 +2,27 @@ using NonadiabaticMolecularDynamics
 using Test
 using RecursiveArrayTools
 using OrdinaryDiffEq
+using ComponentArrays
 
 atoms = Atoms([:H])
 model = NonadiabaticModels.Harmonic()
-sim = Simulation(atoms, model; DoFs=1)
+sim = Simulation(atoms, model)
 
 positions = [randn(1, length(atoms)) for i=1:10]
 velocities = [randn(1, length(atoms)) for i=1:10]
 distribution = InitialConditions.DynamicalDistribution(positions, velocities, (1, 1))
 
-prob = Dynamics.create_problem(ArrayPartition(rand(distribution)...), (0.0, 1.0), sim)
+u = rand(distribution)
+prob = DynamicsMethods.create_problem(u, (0.0, 1.0), sim)
 @testset "OrderedSelection" begin 
-    selector = Ensembles.OrderedSelection(distribution)
+    selector = Ensembles.OrderedSelection(distribution, 1:10)
     new_prob = selector(prob, 3, false)
-    @test new_prob.u0 == ArrayPartition(InitialConditions.pick(distribution, 3)...)
+    u = InitialConditions.pick(distribution, 3)
+    @test new_prob.u0 == ArrayPartition(u.v, u.r)
+    selector = Ensembles.OrderedSelection(distribution, 6:10)
+    new_prob = selector(prob, 3, false)
+    u = InitialConditions.pick(distribution, 8)
+    @test new_prob.u0 == ArrayPartition(u.v, u.r)
 end
 
 @testset "RandomSelection" begin
@@ -25,7 +32,7 @@ end
 
 @testset "SelectWithCallbacks" begin
     selector = Ensembles.RandomSelection(distribution)
-    Ensembles.SelectWithCallbacks(selector, CallbackSet(), (:position), 10)
+    Ensembles.SelectWithCallbacks(selector, CallbackSet(), (:position,), 10)
 end
 
 @testset "SumReduction" begin
@@ -44,7 +51,7 @@ end
 end
 
 @testset "OutputDissociation" begin
-    output = Ensembles.OutputDissociation(1.0, [1, 2])
+    output = Ensembles.OutputDissociation(1.0, (1, 2))
     r = [1 0; 0 0; 0 0]
     v = zeros(3, 2)
     u = ArrayPartition(v, r)
@@ -57,7 +64,7 @@ end
 end
 
 @testset "OutputDiabaticPopulation" begin
-    sim = Simulation{FSSH}(atoms, NonadiabaticModels.TullyModelTwo(); DoFs=1)
+    sim = Simulation{FSSH}(atoms, NonadiabaticModels.TullyModelTwo())
     output = Ensembles.OutputDiabaticPopulation(sim)
 end
 
@@ -66,10 +73,9 @@ end
     output = Ensembles.OutputQuantisedDiatomic(sim)
 end
 
-@testset "run_ensemble_standard_output" begin
-    selection = Ensembles.RandomSelection(distribution)
+@testset "run_trajectories" begin
     tspan = (0.0, 10.0)
-    out = Ensembles.run_ensemble_standard_output(sim, tspan, selection; output=(:position), dt=1,
-        trajectories=10)
+    out = Ensembles.run_trajectories(sim, tspan, distribution;
+        output=(:position), dt=1, trajectories=10)
 end
 

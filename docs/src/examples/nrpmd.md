@@ -18,8 +18,9 @@ N = 4
 atoms = Atoms(fill(1, N))
 T = 1 / 16
 n_beads = 5
-model = DebyeSpinBoson(N)
-sim = RingPolymerSimulation{NRPMD}(atoms, model, n_beads; temperature=T, DoFs=1)
+density = OhmicSpectralDensity(0.25, 0.09)
+model = SpinBoson(density, N, 0.0, 1.0)
+sim = RingPolymerSimulation{NRPMD}(atoms, model, n_beads; temperature=T)
 nothing # hide
 ```
 
@@ -30,7 +31,7 @@ boson bath in isolation from the spin.
 This is done most easily by defining a second model that includes only the boson
 degrees of freedom.
 ```@example nrpmd
-bath = DebyeBosonBath(N)
+bath = BosonBath(density, N)
 nothing # hide
 ```
 
@@ -39,13 +40,13 @@ Since the type of dynamics is determined by the simulation type,
 we must create a modified `RingPolymerSimulation`.
 ```@example nrpmd
 langevin_sim = RingPolymerSimulation{ThermalLangevin}(atoms, bath, n_beads;
-    temperature=T, DoFs=1)
+    temperature=T)
 
 v = RingPolymerArray(zeros(1, N, n_beads))
 r = RingPolymerArray(zeros(1, N, n_beads))
-z = ClassicalDynamicals(v, r)
+z = DynamicsVariables(langevin_sim, v, r)
 
-sol = Dynamics.run_trajectory(z, (0.0, 10.0), langevin_sim;
+sol = run_trajectory(z, (0.0, 10.0), langevin_sim;
     dt=0.01, output=(:position, :velocity))
 ```
 
@@ -60,7 +61,7 @@ plot(v_plot, r_plot, layout=(2,1))
 From our results we can create a distribution that can be sampled for the NRPMD dynamics.
 ```@example nrpmd
 distribution = InitialConditions.DynamicalDistribution(sol.velocity, sol.position,
-    (1, N, n_beads); state=1)
+    (1, N, n_beads); state=1, type=:diabatic)
 nothing # hide
 ```
 
@@ -69,11 +70,10 @@ nothing # hide
 Now that we have a distribution from which we can sample our initial conditions,
 we can run the ensemble of trajectories and calculate the diabatic populations.
 ```@example nrpmd
-selection = Ensembles.RandomSelection(distribution)
 output = Ensembles.OutputDiabaticPopulation(sim)
 reduction = Ensembles.MeanReduction()
-ensemble = Ensembles.run_ensemble(sim, (0.0, 30.0), selection;
-    saveat=0.1, trajectories=10, output=output, reduction=reduction)
+ensemble = Ensembles.run_ensemble(sim, (0.0, 30.0), distribution;
+    saveat=0.1, trajectories=10, output=output, reduction=reduction, dt=1e-3)
 nothing # hide
 ```
 
