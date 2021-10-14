@@ -15,10 +15,15 @@ to evaluate the quantities for each bead.
 """
 module Calculators
 
-using LinearAlgebra
-using NonadiabaticModels
-using ..NonadiabaticMolecularDynamics: get_centroid
-using StaticArrays
+using LinearAlgebra: LinearAlgebra, Hermitian, I
+using StaticArrays: SMatrix, SVector
+
+using NonadiabaticModels: NonadiabaticModels, Model, nstates
+using NonadiabaticModels.AdiabaticModels: AdiabaticModel
+using NonadiabaticModels.DiabaticModels: DiabaticModel, DiabaticFrictionModel
+using NonadiabaticModels.FrictionModels: AdiabaticFrictionModel
+
+using NonadiabaticMolecularDynamics: RingPolymers, ndofs
 
 """
     AbstractCalculator{M<:Model}
@@ -38,8 +43,8 @@ mutable struct AdiabaticCalculator{T,M} <: AbstractAdiabaticCalculator{M}
     model::M
     potential::T
     derivative::Matrix{T}
-    function AdiabaticCalculator{T}(model::M, DoFs::Integer, atoms::Integer) where {T,M<:Model}
-        new{T,M}(model, 0, zeros(DoFs, atoms))
+    function AdiabaticCalculator{T}(model::M, atoms::Integer) where {T,M<:Model}
+        new{T,M}(model, 0, zeros(ndofs(model), atoms))
     end
 end
 
@@ -47,8 +52,8 @@ struct RingPolymerAdiabaticCalculator{T,M} <: AbstractAdiabaticCalculator{M}
     model::M
     potential::Vector{T}
     derivative::Array{T,3}
-    function RingPolymerAdiabaticCalculator{T}(model::M, DoFs::Integer, atoms::Integer, beads::Integer) where {T,M<:Model}
-        new{T,M}(model, zeros(beads), zeros(DoFs, atoms, beads))
+    function RingPolymerAdiabaticCalculator{T}(model::M, atoms::Integer, beads::Integer) where {T,M<:Model}
+        new{T,M}(model, zeros(beads), zeros(ndofs(model), atoms, beads))
     end
 end
 
@@ -63,13 +68,13 @@ mutable struct DiabaticCalculator{T,M,S,L} <: AbstractDiabaticCalculator{M}
     tmp_mat::Matrix{T}
     tmp_mat_complex1::Matrix{Complex{T}}
     tmp_mat_complex2::Matrix{Complex{T}}
-    function DiabaticCalculator{T}(model::M, DoFs::Integer, atoms::Integer) where {T,M<:Model}
-        n = Int(model.n_states)
-        matrix_template = NonadiabaticModels.matrix_template(model, T)
-        vector_template = NonadiabaticModels.vector_template(model, T)
+    function DiabaticCalculator{T}(model::M, atoms::Integer) where {T,M<:Model}
+        n = nstates(model)
+        matrix_template = NonadiabaticModels.DiabaticModels.matrix_template(model, T)
+        vector_template = NonadiabaticModels.DiabaticModels.vector_template(model, T)
 
         potential = Hermitian(matrix_template)
-        derivative = [Hermitian(matrix_template) for _=1:DoFs, _=1:atoms]
+        derivative = [Hermitian(matrix_template) for _=1:ndofs(model), _=1:atoms]
         eigenvalues = vector_template
         eigenvectors = matrix_template + I
         adiabatic_derivative = [matrix_template for _ in CartesianIndices(derivative)]
@@ -104,20 +109,20 @@ mutable struct RingPolymerDiabaticCalculator{T,M,S,L} <: AbstractDiabaticCalcula
     tmp_mat::Matrix{T}
     tmp_mat_complex1::Matrix{Complex{T}}
     tmp_mat_complex2::Matrix{Complex{T}}
-    function RingPolymerDiabaticCalculator{T}(model::M, DoFs::Integer, atoms::Integer, beads::Integer) where {T,M<:Model}
-        n = Int(model.n_states)
-        matrix_template = NonadiabaticModels.matrix_template(model, T)
-        vector_template = NonadiabaticModels.vector_template(model, T)
+    function RingPolymerDiabaticCalculator{T}(model::M, atoms::Integer, beads::Integer) where {T,M<:Model}
+        n = nstates(model)
+        matrix_template = NonadiabaticModels.DiabaticModels.matrix_template(model, T)
+        vector_template = NonadiabaticModels.DiabaticModels.vector_template(model, T)
 
         potential = [Hermitian(matrix_template) for _=1:beads]
-        derivative = [Hermitian(matrix_template) for _=1:DoFs, _=1:atoms, _=1:beads]
+        derivative = [Hermitian(matrix_template) for _=1:ndofs(model), _=1:atoms, _=1:beads]
         eigenvalues = [vector_template for _=1:beads]
         eigenvectors = [matrix_template + I for _=1:beads]
-        adiabatic_derivative = [matrix_template for _=1:DoFs, _=1:atoms, _=1:beads]
-        nonadiabatic_coupling = [matrix_template for _=1:DoFs, _=1:atoms, _=1:beads]
+        adiabatic_derivative = [matrix_template for _=1:ndofs(model), _=1:atoms, _=1:beads]
+        nonadiabatic_coupling = [matrix_template for _=1:ndofs(model), _=1:atoms, _=1:beads]
 
         centroid_potential = Hermitian(matrix_template)
-        centroid_derivative = [Hermitian(matrix_template) for _=1:DoFs, _=1:atoms]
+        centroid_derivative = [Hermitian(matrix_template) for _=1:ndofs(model), _=1:atoms]
         centroid_eigenvalues = vector_template
         centroid_eigenvectors = matrix_template + I
         centroid_adiabatic_derivative = [matrix_template for _ in CartesianIndices(centroid_derivative)]
@@ -133,52 +138,56 @@ mutable struct RingPolymerDiabaticCalculator{T,M,S,L} <: AbstractDiabaticCalcula
     end
 end
 
-function Calculator(model::DiabaticModel, DoFs::Integer, atoms::Integer, T::Type=Float64)
-    DiabaticCalculator{T}(model, DoFs, atoms)
+function Calculator(model::DiabaticModel, atoms::Integer, t::Type{T}) where {T}
+    DiabaticCalculator{t}(model, atoms)
 end
-function Calculator(model::AdiabaticModel, DoFs::Integer, atoms::Integer, T::Type=Float64)
-    AdiabaticCalculator{T}(model, DoFs, atoms)
+function Calculator(model::AdiabaticModel, atoms::Integer, t::Type{T}) where {T}
+    AdiabaticCalculator{t}(model, atoms)
 end
-function Calculator(model::DiabaticModel, DoFs::Integer, atoms::Integer, beads::Integer, T::Type=Float64)
-    RingPolymerDiabaticCalculator{T}(model, DoFs, atoms, beads)
+function Calculator(model::DiabaticModel, atoms::Integer, beads::Integer, t::Type{T}) where {T}
+    RingPolymerDiabaticCalculator{t}(model, atoms, beads)
 end
-function Calculator(model::AdiabaticModel, DoFs::Integer, atoms::Integer, beads::Integer, T::Type=Float64)
-    RingPolymerAdiabaticCalculator{T}(model, DoFs, atoms, beads)
+function Calculator(model::AdiabaticModel, atoms::Integer, beads::Integer, t::Type{T}) where {T}
+    RingPolymerAdiabaticCalculator{t}(model, atoms, beads)
 end
 
-evaluate_potential!(calc::AbstractCalculator, R) = calc.potential = potential(calc.model, R)
+function evaluate_potential!(calc::AbstractCalculator, R)
+    calc.potential = NonadiabaticModels.potential(calc.model, R)
+end
 
 function evaluate_potential!(calc::AbstractCalculator, R::AbstractArray{T,3}) where {T}
     @views for i in axes(R, 3)
-        calc.potential[i] = potential(calc.model, R[:,:,i])
+        calc.potential[i] = NonadiabaticModels.potential(calc.model, R[:,:,i])
     end
 end
 
 function evaluate_centroid_potential!(calc::AbstractCalculator, R::AbstractArray{T,3}) where {T}
-    calc.centroid_potential = potential(calc.model, get_centroid(R))
+    calc.centroid_potential = NonadiabaticModels.potential(calc.model, RingPolymers.get_centroid(R))
 end
 
-evaluate_derivative!(calc::AbstractCalculator, R) = derivative!(calc.model, calc.derivative, R)
+function evaluate_derivative!(calc::AbstractCalculator, R)
+    NonadiabaticModels.derivative!(calc.model, calc.derivative, R)
+end
 
 function evaluate_derivative!(calc::AbstractCalculator, R::AbstractArray{T,3}) where {T}
     @views for i in axes(R, 3)
-        derivative!(calc.model, calc.derivative[:,:,i], R[:,:,i])
+        NonadiabaticModels.derivative!(calc.model, calc.derivative[:,:,i], R[:,:,i])
     end
 end
 
 function evaluate_centroid_derivative!(calc::AbstractCalculator, R::AbstractArray{T,3}) where {T}
-    derivative!(calc.model, calc.centroid_derivative, get_centroid(R))
+    NonadiabaticModels.derivative!(calc.model, calc.centroid_derivative, RingPolymers.get_centroid(R))
 end
 
 function eigen!(calc::DiabaticCalculator)
-    eig = eigen(calc.potential)
+    eig = LinearAlgebra.eigen(calc.potential)
     calc.eigenvalues = eig.values
     calc.eigenvectors = correct_phase(eig.vectors, calc.eigenvectors)
     return nothing
 end
 
 function centroid_eigen!(calc::RingPolymerDiabaticCalculator)
-    eig = eigen(calc.centroid_potential)
+    eig = LinearAlgebra.eigen(calc.centroid_potential)
     calc.centroid_eigenvalues = eig.values
     calc.centroid_eigenvectors = correct_phase(eig.vectors, calc.centroid_eigenvectors)
     return nothing
@@ -186,7 +195,7 @@ end
 
 function eigen!(calc::RingPolymerDiabaticCalculator)
     for i=1:length(calc.potential)
-        eig = eigen(calc.potential[i])
+        eig = LinearAlgebra.eigen(calc.potential[i])
         calc.eigenvalues[i] = eig.values
         calc.eigenvectors[i] = correct_phase(eig.vectors, calc.eigenvectors[i])
     end
@@ -195,7 +204,7 @@ end
 
 function correct_phase(new_vectors::SMatrix, old_vectors::SMatrix)
     n = size(new_vectors, 1)
-    vect = SVector{n}(sign(dot(new_vectors[:,i], old_vectors[:,i])) for i=1:n)
+    vect = SVector{n}(sign(LinearAlgebra.dot(new_vectors[:,i], old_vectors[:,i])) for i=1:n)
     return new_vectors .* vect'
 end
 

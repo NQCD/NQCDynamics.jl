@@ -1,6 +1,0 @@
-# Calculators
-
-
-```@autodocs
-Modules=[Calculators]
-```
