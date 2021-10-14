@@ -37,7 +37,7 @@ oscillator and investigate the energy expectation values.
 
 Firstly we should set up our system parameters. here we have two atoms in a harmonic
 potential at temperature of `1e-3`. We have arbitrarily chosen the dissipation constant
-``\gamma = 1``, this can be tuned for optimal sampling in more complex systems. A large
+``\gamma = 1``, this can be tuned for optimal sampling in more complex systems. 
 ```@example langevin
 using NonadiabaticMolecularDynamics
 using Unitful
@@ -92,7 +92,7 @@ Estimators.@estimate potential_energy(sim, traj.position)
 !!! tip
 
     We can verify this result by comparing to the
-    equipartion theorem which states that each quadratic degree of freedom should contribute
+    equipartition theorem which states that each quadratic degree of freedom should contribute
     ``\frac{1}{2}kT`` to the total energy.
     Since this is a harmonic system, this gives us the exact classical potential energy
     expectation as equal to the temperature, since we have two degrees of freedom and

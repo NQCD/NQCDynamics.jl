@@ -2,17 +2,17 @@
 
 ## Theory
 
-Nonadiabatic ring polymer molecular dynamics is a method that uses the ring polymer
+Nonadiabatic ring polymer molecular dynamics (NRPMD) is a method that uses the ring polymer
 formalism to include quantum effects in the nuclear dynamics and mapping variables
 for the electronic degrees of freedom.
 ([Richardson2013](@cite), [Richardson2017](@cite), [Chowdhury2019](@cite))
 This results in a classical dynamics in an extended phasespace of the ring polymer
 with each bead coupled to a set of classical mapping variables.
-Originallly, this method was proposed as a simple combination of the 
+Originally, this method was proposed as a simple combination of the 
 Meyer-Miller-Stock-Thoss mapping formalism with RPMD but has since been
 rigorously derived from nonadiabatic Matsubara dynamics ([Chowdhury2021](@cite)).
 
-The classical Hamiltonian conserved by the NRPMD dynamics is given by
+The classical Hamiltonian conserved by the NRPMD is given by
 
 ```math
 H_N = \sum_{\alpha=1}^N \left[
@@ -64,7 +64,7 @@ is obtained, but as the number of beads increases this algorithm becomes more ef
 
 ### Generating the initial distribution
 
-Currently we provide only for nonequilibrium simulations where the nuclear part
+Currently we provide this functionality only for nonequilibrium simulations where the nuclear part
 of the distribution is separable from the electronic part.
 Typically the nuclear distribution will be sampled using Langevin dynamics or Monte Carlo
 sampling and the electronic variables are confined to a single electronic state.
@@ -77,9 +77,10 @@ This would require also sampling a thermal distribution for the mapping variable
 Diabatic models defined in `NonadiabaticModels.jl` are of the appropriate form for
 this method though they provide the potential as a single matrix, rather than separating
 the state-dependent and independent parts.
-It has been suggested that defining the Hamiltonian such that the trace of the diabatic
-matrix is minimised leads to more accurate results, but here we have not done this for
-simplicity.
+It has been suggested that defining the Hamiltonian such that the lowest eigenvalue
+of the diabatic matrix is zero everywhere leads to improved convergence in the sampling
+([Richardson2013](@cite)).
+However, here we have not done this for simplicity when defining the models.
 
 ## Example
 

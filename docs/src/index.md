@@ -8,22 +8,19 @@ intricacies of the implementations, hoping to make further contributions as simp
 ### Objectives
 
 - Achieve high performance along with good readability, extensibility, maintainability
-- Provide for both simple models and high-dimensional systems
+- Handle both simple models and high-dimensional systems
 - Highlight the advantages of Julia in the field of nonadiabatic dynamics
 - Encourage code sharing and reuse within the nonadiabatic dynamics community
 
-Often research papers present dynamics methods and apply them
-to small model systems without providing the reader with the code used to obtain the results.
-This can lead to difficulties when attempting to reproduce the results or better understand
-the theory and implementation of the method.
+Reproducibility is a pressing issue in the field of theoretical chemistry and physics as often studies either do not attempt to provide all necessary data or code for full reproducibility of the work. This can lead to difficulties when attempting to better understand the theory and implementation of the method and makes it difficult for students not only to learn existing models and theories, but also to improve and extend these. 
 This project provides implementations for existing dynamics methods along with
 a framework that can be used for future research with the goal of encouraging greater
 code sharing and reuse within the nonadiabatic dynamics community.
 
 ### Features
 
-Here we have a list of the currently implemented features that the code provides.
-If you are interested in contributing further methods, please open up an
+Here we provide a list of currently implemented features of the code.
+We encourage contributions and implementations of methods. To do so, please open up an
 issue/pull request on Github!
 
 #### Dynamics methods
@@ -61,7 +58,7 @@ which significantly simplifies the implementation of new methods.
 
 #### 1. Install Julia
 Download and install the current stable release from the [Julia website](https://julialang.org/downloads/).
-For most platforms `julia` is provided as a precompiled binary.
+For most platforms `julia` is provided as a precompiled binary and do not require any installation procedure. However, you need to specify the path to julia or create a symbolic link to the executable that is in your systempath. 
 
 #### 2. Install the `NQCDRegistry`
 Since the package is not included in the default registry (`General`), we must first
@@ -75,6 +72,14 @@ Install the registry directly from Github with:
 pkg> registry add "https://github.com/NQCD/NQCDRegistry"
 ```
 
+!!! warning
+
+    If this is the first time you're using Julia there's a chance that the
+    [General registry](https://github.com/JuliaRegistries/General) will not have been
+    installed. Run `pkg> registry status` to view the installed registries.
+    If `General` is not present, run `pkg> registry add General` before proceeding
+    to the next step.
+
 #### 3. Install the package
 Now that the registry has been added, the package can be installed in the same way as any other registered Julia package:
 ```julia-repl
@@ -85,18 +90,29 @@ pkg> add NonadiabaticMolecularDynamics
 ```julia-repl
 julia> using NonadiabaticMolecularDynamics
 ```
+You are now free to proceed to the next section and learn how to use the package.
+If you would like you can complete step 5 to double check your installation.
 
-To check the package has been installed correctly and everything is working, you can execute the tests
-with:
+#### 5. Run the tests (optional)
+
+To check the package has been installed correctly and everything is working,
+you can execute the tests with:
 ```julia-repl
 pkg> test NonadiabaticMolecularDynamics
 ```
-Alternatively, you can proceed directly the next section for a walkthrough of some basic functionality.
+
+!!! warning
+
+    The tests use some extra functionality from the
+    [JuliaMolSim registry](https://github.com/JuliaMolSim/MolSim)
+    which can be added directly from Github with
+    `pkg> registry add "https://github.com/JuliaMolSim/MolSim"`.
+    Without this, the tests will not run successfully.
 
 ### How to use this documentation
 
 The first page to read is the [Getting started](@ref) section which walks through all the ingredients
-needed to perform a simple classical dynamics simulation.
+needed to perform a conventional classical molecular dynamics simulation.
 After this, the reader is free to explore at their leisure since everything else builds directly
 upon sections from the [Getting started](@ref) page.
 

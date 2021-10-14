@@ -1,4 +1,4 @@
-# Implementing a new model
+# [Implementing a new model](@id devdocs-model)
 
 [NonadiabaticModels.jl](@ref) aims to provide a unified interface for defining both model
 Hamiltonians for nonadiabatic dynamics simulations.

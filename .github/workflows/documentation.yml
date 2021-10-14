@@ -39,11 +39,11 @@ jobs:
         run: julia -e 'using Pkg; Pkg.Registry.add(RegistrySpec(url="https://github.com/JuliaMolSim/MolSim"))'
       - name: Add General registry
         run: julia -e 'using Pkg; Pkg.Registry.add(RegistrySpec("General"))'
-      - name: Install ase
-        run: pip install ase
+      - name: Install ase+schnetpack
+        run: pip install schnetpack ase
 
       - name: Install dependencies
-        run: julia --project=docs/ -e 'using Pkg; Pkg.develop(PackageSpec(path=pwd())); Pkg.instantiate()'
+        run: julia --project=docs/ -e 'using Pkg; Pkg.develop([(;path=pwd()), (;name="NonadiabaticModels")]); Pkg.instantiate()'
 
       - name: Build and deploy
         env:

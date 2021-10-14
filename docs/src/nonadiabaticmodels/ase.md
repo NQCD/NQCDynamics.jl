@@ -11,7 +11,13 @@ associated calculator to implement the required [`potential`](@ref) and
 
     The interface works by directly calling the relevant Python functions using
     [PyCall](https://github.com/JuliaPy/PyCall.jl).
-
+    To use PyCall, you must make sure that your `python` version contains all the
+    relevant packages, such as ase.
+    [PyCall](https://github.com/JuliaPy/PyCall.jl) can be configured to use a particular
+    pre-installed Python or install its own.
+    Refer to the [PyCall README](https://github.com/JuliaPy/PyCall.jl) for installation
+    and configuration instructions.
+    
 ## Example
 
 First, it is necessary to import `ase` and create the `ase.Atoms` object and attach
@@ -43,4 +49,7 @@ derivative(model, rand(3, 2))
 !!! tip 
 
     In theory, this should work with any of the ASE calculators that correctly implement
-    the `get_potential_energy` and `get_forces` functions.
+    the `get_potential_energy` and `get_forces` functions. For instance, you can use
+    [SchNetPack (SPK)](https://github.com/atomistic-machine-learning/schnetpack) by
+    passing their ASE calculator to the `AdiabaticASEModel`.
+    Take a look at [Neural network models](@ref) to learn more.

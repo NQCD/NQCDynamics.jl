@@ -1,9 +1,11 @@
 
 using UnitfulAtomic: austrip
 using LinearAlgebra: norm
+using ComponentArrays: ComponentVector
 
 using ..InitialConditions: QuantisedDiatomic
 using NonadiabaticMolecularDynamics: Estimators
+using NonadiabaticModels: nstates
 
 abstract type AbstractOutput end
 
@@ -67,21 +69,33 @@ function (output::OutputQuantisedDiatomic)(sol, i)
 end
 
 """
-Output a matrix with `size=(n_states, 2)` with transmission/reflection probabilities for
-each state.
+Output a `ComponentVector` with fields `reflection` and `transmission` containing
+the probability of the outcome.
+Each index in the arrays refers to the adiabatic state.
 """
 struct OutputStateResolvedScattering1D{S} <: AbstractOutput
     sim::S
+    type::Symbol
 end
 function (output::OutputStateResolvedScattering1D)(sol, i)
     final = last(sol.u) # get final configuration from trajectory
-    populations = Estimators.adiabatic_population(output.sim, final)
-    output = zeros(2, 2) # Initialise output, left column reflection on state 1/2, right column transmission
+    if output.type == :adiabatic
+        populations = Estimators.adiabatic_population(output.sim, final)
+    elseif output.type == :diabatic
+        populations = Estimators.diabatic_population(output.sim, final)
+    else
+        throw(ArgumentError("$(output.type) not recognised.
+            Only `:diabatic` or `:adiabatic` accepted."))
+    end
+    output = ComponentVector(
+        reflection=zeros(nstates(output.sim)),
+        transmission=zeros(nstates(output.sim))
+    )
     x = DynamicsUtils.get_positions(final)[1]
     if x > 0 # If final position past 0 then we count as transmission 
-        output[:,2] .= populations
+        output.transmission .= populations
     else # If final position left of 0 then we count as reflection
-        output[:,1] .= populations
+        output.reflection .= populations
     end
     return (output, false)
 end

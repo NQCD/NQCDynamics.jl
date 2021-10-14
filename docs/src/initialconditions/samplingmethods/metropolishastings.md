@@ -7,20 +7,43 @@ from the [Turing](https://turing.ml/stable/) organisation.
 
 For a classical `Simulation`, the algorithm involves proposing new configurations in a
 random walk starting from an initial configuration.
-These are accepted or rejected based upon the Metropolis-Hasting criteria.
+These are accepted or rejected based upon the Metropolis-Hastings criteria.
 The result is a Markov chain that samples the canonical distribution.
 
 ## Example
 
+We can perform the sampling by setting up a classical simulation in the usual way and
+providing an appropriate initial configuration.
+
 ```@example mh
 using NonadiabaticMolecularDynamics
-using NonadiabaticMolecularDynamics.InitialConditions: ThermalMonteCarlo
-
 sim = Simulation(Atoms([:H, :H, :H, :H, :H]), Harmonic(); temperature=15)
 r0 = zeros(size(sim))
-chain = ThermalMonteCarlo.run_advancedmh_sampling(sim, r0, 1e4, Dict(:H=>1); move_ratio=0.5)
 ```
 
+Then we must also specify the total number of steps and the size of each step.
+These can be provided in a dictionary for each species to allow for different step
+sizes depending on the element in the simulation.
+```@example mh
+steps = 1e4
+step_size = Dict(:H=>1)
+```
+
+Now we can run the sampling. The extra keyword argument `move_ratio` is used to specify
+the fraction of the system moved during each Monte Carlo step.
+If we attempt to move the entire system at once, we can expect a very low acceptance ratio,
+whereas is we move only a single atom, the sampling will take much longer.
+You will likely have to experiment with this parameter to achieve optimal sampling.
+```@example mh
+using NonadiabaticMolecularDynamics.InitialConditions: ThermalMonteCarlo
+chain = ThermalMonteCarlo.run_advancedmh_sampling(sim, r0, steps, step_size; move_ratio=0.5)
+```
+
+Now that our sampling is complete we can evaluate the potential energy expectation value.
+Here we use the [`@estimate`](@ref Estimators.@estimate) macro which will evaluate the
+given function for every configuration inside `chain` and return the average.
+Here we can see that the energy we obtain closely matches that predicted by the
+equipartition theorem.
 ```@repl mh
 Estimators.@estimate potential_energy(sim, chain)
 sim.temperature / 2 * 5

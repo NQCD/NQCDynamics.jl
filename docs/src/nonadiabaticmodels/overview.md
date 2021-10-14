@@ -21,7 +21,7 @@ set of popular models often used in the field of nonadiabatic dynamics.
 
 Depending on the quantities provided by the `Model`, we use Julia's abstract type system
 to group models that provide the same quantities.
-Currently there are two top-level abstract types: [`AdiabaticModel`](@ref NonadiabaticModels.AdiabaticModels.AdiabaticModel)
+Currently, there are two top-level abstract types: [`AdiabaticModel`](@ref NonadiabaticModels.AdiabaticModels.AdiabaticModel)
 and [`DiabaticModel`](@ref NonadiabaticModels.DiabaticModels.DiabaticModel).
 The [`AdiabaticModel`](@ref NonadiabaticModels.AdiabaticModels.AdiabaticModel)
 is used for adiabatic dynamics, providing only the potential
@@ -34,6 +34,9 @@ In the [Getting started](@ref) section we briefly touched on how the
 works and introduced one of the included models.
 Here let's take a look at a [`DiabaticModel`](@ref NonadiabaticModels.DiabaticModels.DiabaticModel)
 which is more appropriate for nonadiabatic dynamics.
+
+The [`DoubleWell`](@ref) is a two state, 1 dimensional model where each state is harmonic
+with linear coupling to the single degree of freedom.
 
 ```@example diabaticmodel
 using NonadiabaticModels
@@ -58,11 +61,34 @@ is a real number.
 Instead, for higher dimensional models with multiple atoms the position should be provided as
 an `AbstractMatrix`.
 
-The type tree of the [`Model`](@ref NonadiabaticModels.Model) can be seen below.
-The leaves of the tree are the concrete models, whereas each branch is one of the abstract types.
-Details on each of the abstract types and the quantities that they provide can be found in
-the API section and a more detailed discussion of how
-to implement new models be found in the developer documentation ([Implementing a new model](@ref)).
+To understand how this can extend to another dimension, we can take a quick look at the
+[`GatesHollowayElbow`](@ref) model which is another two state diabatic model, but this
+one uses two dimensions to model a diatomic molecule interacting with a surface.
+The two coordinates are the molecular bond length and the distance from the surface.
+Technically, the model has been defined such that there are two atoms, each with only a
+single degree of freedom.
+This allows us to use different masses for each of the coordinates when performing dynamics.
+
+```@repl diabaticmodel
+model = GatesHollowayElbow()
+potential(model, [1.0 1.0])
+derivative(model, [1.0 1.0])
+nstates(model)
+ndofs(model)
+```
+
+Here we see how the derivative now becomes a `Matrix` with size matching our input,
+but each entry is a `Hermitian` containing the elementwise derivative of the potential
+with respect to each degree of freedom.
+In this case, the `Matrix` has `size = (1, 2)`, but it should be clear how this can extend
+to arbitrary numbers of atoms and degrees of freedom for complex models.
+
+The models currently available can be seen in type tree of the
+[`Model`](@ref NonadiabaticModels.Model) below.
+The leaves of the tree are the concrete models, whereas each branch is one of the abstract
+types.
+Each of these models can be seen in the [Analytic model library](@ref) and
+many shall return later when we investigate the dynamics methods.
 
 ```@example
 import AbstractTrees # hide
@@ -72,7 +98,7 @@ AbstractTrees.children(x::Type) = subtypes(x) # hide
 AbstractTrees.print_tree(Model) # hide
 ```
 
-Each of these included models can be seen in the [Analytic model library](@ref) and
-we will see a few of them again later when investigating the dynamics methods.
-The interface can of course also be used for more complex models and these can be found
-in the Extra models and interfaces section available in the sidebar.
+!!! note "Contributing new models"
+
+    To learn more about NonadiabaticModels.jl and learn how to implement new models,
+    visit the [developer documentation](@ref devdocs-model).
