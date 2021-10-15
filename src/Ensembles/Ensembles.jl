@@ -47,6 +47,10 @@ function select_u0(sim::AbstractSimulation{<:DynamicsMethods.SurfaceHoppingMetho
     DynamicsMethods.DynamicsVariables(sim, v, r)
 end
 
+function select_u0(sim::Simulation{<:DynamicsMethods.MappingVariableMethods.CMM2}, v, r, state, type)
+    DynamicsMethods.DynamicsVariables(sim, v, r, state; type=type)
+end
+
 include("selections.jl")
 include("reductions.jl")
 include("outputs.jl")
