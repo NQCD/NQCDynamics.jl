@@ -8,6 +8,7 @@ using Test
 @time @safetestset "RPMDEF Tests" begin include("rpmdef.jl") end
 @time @safetestset "FSSH Tests" begin include("fssh.jl") end
 @time @safetestset "NRPMD Tests" begin include("nrpmd.jl") end
+@time @safetestset "CMM Tests" begin include("cmm.jl") end
 @time @safetestset "Cell Boundary Callback Tests" begin include("cell_boundary_callback.jl") end
 @time @safetestset "Ehrenfest Tests" begin include("ehrenfest.jl") end
 @time @safetestset "IESH Tests" begin include("iesh.jl") end

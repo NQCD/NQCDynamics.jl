@@ -17,4 +17,7 @@ using NonadiabaticDynamicsBase: Atoms
 include("nrpmd.jl")
 export NRPMD
 
+include("cmm.jl")
+export CMM2
+
 end # module

@@ -5,12 +5,12 @@ using Test, NonadiabaticMolecularDynamics.InitialConditions
 β = 5
 m = 10
 mom = MomentumHarmonicWigner(ω, β)
-pos = PositionHarmonicWigner(ω, β)
+pos = PositionHarmonicWigner(ω, β, m)
 vel = VelocityHarmonicWigner(ω, β, m)
 
 norm = tanh(β*ω/2) / π
-@test norm ≈ 1 / (mom.σ * pos.σ * 2π)
-@test norm ≈ 1 / (vel.σ * pos.σ * 2π) / m
+@test norm ≈ 1 / (mom.σ * pos.σ * 2π) / sqrt(m)
+@test norm ≈ 1 / (vel.σ * pos.σ * 2π) / sqrt(m) / m
 
 vec = MomentumHarmonicWigner.([1, 2, 3, 4, 5], β)
 
