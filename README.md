@@ -10,6 +10,7 @@
 # NonadiabaticMolecularDynamics.jl
 
 [![CI](https://github.com/nqcd/NonadiabaticMolecularDynamics.jl/actions/workflows/CI.yml/badge.svg)](https://github.com/nqcd/NonadiabaticMolecularDynamics.jl/actions/workflows/CI.yml)
+[![codecov](https://codecov.io/gh/NQCD/NonadiabaticMolecularDynamics.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/NQCD/NonadiabaticMolecularDynamics.jl)
 [![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://nqcd.github.io/NonadiabaticMolecularDynamics.jl/dev/)
 [![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://nqcd.github.io/NonadiabaticMolecularDynamics.jl/stable/)
 
