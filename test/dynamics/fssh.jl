@@ -31,7 +31,7 @@ atoms = Atoms(1)
 
     σ = DynamicsUtils.get_quantum_subsystem(u)
     dσ = zero(σ)
-    SurfaceHoppingMethods.set_quantum_derivative!(dσ, v, σ, sim)
+    DynamicsUtils.set_quantum_derivative!(dσ, v, σ, sim)
 
     @testset "get_diabatic_population" begin
         population = Estimators.diabatic_population(sim, u)
