@@ -3,6 +3,8 @@ using ComponentArrays: ComponentArrays
 using LinearAlgebra: diagm, mul!
 using NonadiabaticMolecularDynamics: RingPolymers
 
+function set_quantum_derivative! end
+
 function calculate_density_matrix_propagator!(sim::Simulation, v)
     V = sim.method.density_propagator
 

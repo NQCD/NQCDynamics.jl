@@ -58,10 +58,10 @@ function DynamicsMethods.motion!(du, u, sim::AbstractSimulation{<:SurfaceHopping
     DynamicsUtils.velocity!(dr, v, r, sim, t)
     Calculators.update_electronics!(sim.calculator, r)
     acceleration!(dv, v, r, sim, t, sim.method.state)
-    set_quantum_derivative!(dσ, v, σ, sim)
+    DynamicsUtils.set_quantum_derivative!(dσ, v, σ, sim)
 end
 
-function set_quantum_derivative!(dσ, v, σ, sim::AbstractSimulation{<:SurfaceHopping})
+function DynamicsUtils.set_quantum_derivative!(dσ, v, σ, sim::AbstractSimulation{<:SurfaceHopping})
     V = DynamicsUtils.calculate_density_matrix_propagator!(sim, v)
     DynamicsUtils.commutator!(dσ, V, σ, sim.calculator.tmp_mat_complex1)
     lmul!(-im, dσ)
