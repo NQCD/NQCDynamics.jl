@@ -76,7 +76,7 @@ the diabatic population estimator at each timestep.
 sim = RingPolymerSimulation{FSSH}(atoms, model, 1)
 fssh_result = Ensembles.run_ensemble(sim, (0.0, 3000.0), distribution;
     saveat=10, trajectories=1e3,
-    output=Ensembles.OutputDiabaticPopulation(sim), reduction=Ensembles.MeanReduction())
+    output=Ensembles.OutputDiabaticPopulation(sim), reduction=Ensembles.MeanReduction(), dt=1)
 sim = RingPolymerSimulation{NRPMD}(atoms, model, 1)
 nrpmd_result = Ensembles.run_ensemble(sim, (0.0, 3000.0), distribution;
     saveat=10, trajectories=1e3,
