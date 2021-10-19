@@ -94,7 +94,7 @@ These `Model`s are provided by [NonadiabaticModels.jl](@ref), which
 is a convenient infrastructure for defining different kinds of models
 for adiabatic and nonadiabatic dynamics.
 These models can range from simple analytic potentials all the way up to multi-dimensional
-ab-initio potentials.
+*ab initio* potentials.
 Refer to the [NonadiabaticModels.jl](@ref) page for information on the available models
 and a description of how to implement further models.
  
