@@ -32,10 +32,10 @@ function DynamicsMethods.motion!(du, u, sim::AbstractSimulation{<:AbstractEhrenf
     DynamicsUtils.velocity!(dr, v, r, sim, t)
     Calculators.update_electronics!(sim.calculator, r)
     acceleration!(dv, v, r, sim, t, σ)
-    set_quantum_derivative!(dσ, v, σ, sim)
+    DynamicsUtils.set_quantum_derivative!(dσ, v, σ, sim)
 end
 
-function set_quantum_derivative!(dσ, v, σ, sim::AbstractSimulation{<:AbstractEhrenfest})
+function DynamicsUtils.set_quantum_derivative!(dσ, v, σ, sim::AbstractSimulation{<:AbstractEhrenfest})
     V = DynamicsUtils.calculate_density_matrix_propagator!(sim, v)
     DynamicsUtils.commutator!(dσ, V, σ, sim.calculator.tmp_mat_complex1)
     lmul!(-im, dσ)
