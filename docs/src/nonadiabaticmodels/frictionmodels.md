@@ -11,11 +11,24 @@ The models on this page describe our existing implementations.
 
 ## Analytic models
 
-Since *ab initio* friction calculations are often expensive it is useful to investigate
-have some models which we can use to test friction methods.
+Since *ab initio* friction calculations are often expensive it is useful to
+have some models that we can use to test friction methods.
 The [`DiabaticFrictionModel`](@ref NonadiabaticModels.DiabaticModels.DiabaticFrictionModel)
-is provided such that the electronic friction can be directly evaluated for diabatic models.
-These calculate the friction directly from the nonadiabatic couplings for the model.
+is the abstract type that groups together the diabatic models for which electronic friction can be evaluated.
+These have many electronic states, modelling the electronic structure characteristic of a metal. 
+The friction is calculated for these models directly from the nonadiabatic couplings
+with the equation:
+```math
+γ = 2\pi\hbar \sum_j <1|dH|j><j|dH|1> \delta(\omega_j) / \omega_j
+```
+where the delta function is approximated by a normalised Gaussian function and the sum
+runs over the adiabatic states ([Box2021](@cite)).
+The matrix elements in this equation are the position derivatives of the diabatic hamiltonian
+converted to the adiabatic representation.
+
+!!! warning
+
+    The analytic friction models and the equation above are experimental and subject to change.
 
 ## [CubeLDFAModel.jl](@id models-cubeldfa)
 
