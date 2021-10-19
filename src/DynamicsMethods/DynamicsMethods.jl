@@ -58,8 +58,6 @@ select_algorithm(::AbstractSimulation) = OrdinaryDiffEq.VCABM5()
 "Select the default callbacks for this simulation type."
 get_callbacks(::AbstractSimulation) = nothing
 
-function set_quantum_derivative! end
-
 """
     DynamicsVariables(::AbstractSimulation, args...)
 
