@@ -5,7 +5,7 @@ a specific type of model must be used,
 these provide the friction tensor used to propagate the dynamics.
 
 Since the electronic friction concept relies directly upon an approximate interaction
-of the nuclei with the metal electrons, it is usually necessary to interface with ab-initio
+of the nuclei with the metal electrons, it is usually necessary to interface with *ab initio*
 data.
 As detailed in the [MDEF page](@ref mdef-dynamics), there are two ways to obtain friction
 values, either from the local density friction approximation (LDFA), or from time-dependent
@@ -13,7 +13,7 @@ perturbation theory (TDPT).
 
 ## Analytic models
 
-Since ab-initio friction calculations are often expensive it is useful to investigate
+Since *ab initio* friction calculations are often expensive it is useful to investigate
 have some models which we can use to test friction methods.
 The [`DiabaticFrictionModel`](@ref NonadiabaticModels.DiabaticModels.DiabaticFrictionModel)
 is provided such that the electronic friction can be directly evaluated for diabatic models.
@@ -35,7 +35,7 @@ r_s(\rho) = (\frac{3}{4\pi \rho (\mathbf{r_{i}})})^{1/3}
 we can immediately connect the electron density to the radius, and then to the friction values.
 Now it is a simple matter of evaluating the electron density at a given point and converting
 the density into the friction value.
-Optimally, this would be done via an ab-initio calculation to get the electron density,
+Optimally, this would be done via an *ab initio* calculation to get the electron density,
 but this model instead uses a pre-computed `.cube` file to get the density with minimal cost.
 This makes the assumption that the density does not change throughout the dynamics, or that
 the surface is assumed to be frozen in place.

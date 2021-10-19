@@ -4,7 +4,7 @@ To perform nonadiabatic molecular dynamics simulations, it is necessary to defin
 system Hamiltonian.
 For simple models, this often comes in the form of small matrix in the diabatic
 representation but equally the electronic Hamiltonian could be obtained directly
-from ab-initio electronic structure theory.
+from *ab initio* electronic structure theory.
 
 `NonadiabaticModels.jl` is a package that aims to provide a common interface
 for defining these models that is flexible enough to allow for a wide range

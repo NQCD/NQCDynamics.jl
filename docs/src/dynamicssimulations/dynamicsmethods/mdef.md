@@ -88,7 +88,7 @@ plot(solution, :hamiltonian)
 This time we see a peak in the energy in the middle of the simulation which coincides
 with the peak in temperature at 50 fs.
 Having viewed this simple example, we can now explore the different ways the friction
-coefficient can be obtained from ab-initio simulations. 
+coefficient can be obtained from *ab initio* simulations. 
 
 ## Local density friction approximation (LDFA)
 
