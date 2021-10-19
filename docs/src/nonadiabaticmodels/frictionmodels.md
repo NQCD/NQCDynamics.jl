@@ -39,13 +39,16 @@ upon this local density.
 
 The model works by fitting the LDA data provided by [Gerrits2020](@cite) which provides
 the LDFA friction coefficient as a function of the Wigner-Seitz radius.
-Through the following relation:
+When the model is initialised, the LDA data from [Gerrits2020](@cite) is interpolated
+using [DataInterpolations.jl](https://github.com/PumasAI/DataInterpolations.jl)
+with a cubic spline.
+Then, whenever required, the density at the current position is taken directly from the
+`.cube` file and converted to the Wigner-Seitz radius with the following relation:
 ```math
-r_s(\rho) = (\frac{3}{4\pi \rho (\mathbf{r_{i}})})^{1/3}
+r_s(\rho) = (\frac{3}{4\pi \rho (\mathbf{r_{i}})})^{1/3}.
 ```
-we can immediately connect the electron density to the radius, and then to the friction values.
-Now it is a simple matter of evaluating the electron density at a given point and converting
-the density into the friction value.
+Then, the interpolation function is evaluated with this value for the radius, which gives
+the LDA friction.
 Optimally, this would be done via an *ab initio* calculation to get the electron density,
 but this model instead uses a pre-computed `.cube` file to get the density with minimal cost.
 This makes the assumption that the density does not change throughout the dynamics, or that
