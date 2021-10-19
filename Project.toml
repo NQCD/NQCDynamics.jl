@@ -79,7 +79,6 @@ julia = "1.6"
 [extras]
 DiffEqDevTools = "f3b72e0c-5b89-59e1-b016-84e28bfd966d"
 DiffEqNoiseProcess = "77a26b50-5914-5dd7-bc55-306e6241c503"
-Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
 FiniteDiff = "6a86dc24-6348-571c-b903-95158fe2bd41"
 JuLIP = "945c410c-986d-556a-acb1-167a618e0462"
 Logging = "56ddb016-857b-54e1-b83d-db4d58db5568"
@@ -90,4 +89,4 @@ Symbolics = "0c5d862f-8b57-4792-8d23-62f2024744c7"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]
-test = ["Test", "SafeTestsets", "Documenter", "DiffEqNoiseProcess", "FiniteDiff", "DiffEqDevTools", "Logging", "PyCall", "JuLIP", "Symbolics", "Plots"]
+test = ["Test", "SafeTestsets", "DiffEqNoiseProcess", "FiniteDiff", "DiffEqDevTools", "Logging", "PyCall", "JuLIP", "Symbolics", "Plots"]
