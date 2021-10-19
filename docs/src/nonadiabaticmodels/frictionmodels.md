@@ -4,12 +4,10 @@ To perform [molecular dynamics with electronic friction (MDEF)](@ref mdef-dynami
 a specific type of model must be used,
 these provide the friction tensor used to propagate the dynamics.
 
-Since the electronic friction concept relies directly upon an approximate interaction
-of the nuclei with the metal electrons, it is usually necessary to interface with *ab initio*
-data.
 As detailed in the [MDEF page](@ref mdef-dynamics), there are two ways to obtain friction
 values, either from the local density friction approximation (LDFA), or from time-dependent
 perturbation theory (TDPT).
+The models on this page describe our existing implementations.
 
 ## Analytic models
 
