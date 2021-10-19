@@ -51,7 +51,7 @@ function DynamicsMethods.DynamicsVariables(sim::Simulation{<:SurfaceHopping}, v,
     return SurfaceHoppingVariables(ComponentVector(v=v, r=r, σreal=σ, σimag=zero(σ)), state)
 end
 
-function acceleration!(dv, v, r, sim::Simulation{<:FSSH}, t, state)
+function acceleration!(dv, v, r, sim::AbstractSimulation{<:FSSH}, t, state)
     for I in eachindex(dv)
         dv[I] = -sim.calculator.adiabatic_derivative[I][state, state]
     end
