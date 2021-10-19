@@ -58,6 +58,6 @@ end
     v = fill(100 / 2000, 1, 1, 10)
     r = fill(-10.0, 1, 1, 10)
     u = DynamicsVariables(sim, v, r, 1; type=:adiabatic)
-    solution = run_trajectory(u, (0.0, 500.0), sim, output=(:hamiltonian), reltol=1e-6)
+    solution = run_trajectory(u, (0.0, 500.0), sim, output=(:hamiltonian), dt=1)
     @test solution.hamiltonian[1] ≈ solution.hamiltonian[end] rtol=1e-2
 end

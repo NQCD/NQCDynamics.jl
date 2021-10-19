@@ -58,7 +58,7 @@ For the output we shall receive the diabatic population at intervals of `t=50`
 and it will be averaged over all trajectories by the `MeanReduction`.
 ```@example rpsh
 solution = Ensembles.run_ensemble(sim, (0.0, 3000.0), distribution;
-    saveat=50, trajectories=5e2,
+    saveat=50, trajectories=5e2, dt=1,
     output=Ensembles.OutputDiabaticPopulation(sim), reduction=Ensembles.MeanReduction())
 ```
 
