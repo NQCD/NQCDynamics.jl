@@ -25,7 +25,7 @@
 [ccov-img]: https://codecov.io/gh/NQCD/NonadiabaticMolecularDynamics.jl/branch/master/graph/badge.svg
 [ccov-url]: https://codecov.io/gh/NQCD/NonadiabaticMolecularDynamics.jl
 
-[license-img]: https://img.shields.io/github/license/NQCD/NonadiabaticMolecularDynamics.jl.svg
+[license-img]: https://img.shields.io/github/license/NQCD/NonadiabaticMolecularDynamics.jl
 [license-url]: https://github.com/NQCD/NonadiabaticMolecularDynamics.jl/blob/master/LICENSE
 
 **Fast and flexible nonadiabatic molecular dynamics in Julia!**
