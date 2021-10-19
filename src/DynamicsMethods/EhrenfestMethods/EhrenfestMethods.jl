@@ -20,7 +20,7 @@ Abstract type for Ehrenfest method.
 """
 abstract type AbstractEhrenfest <: DynamicsMethods.Method end
 
-function DynamicsMethods.motion!(du, u, sim::AbstractSimulation{<:AbstractEhrenfest}, t)
+function DynamicsMethods.motion!(du, u, sim::Simulation{<:AbstractEhrenfest}, t)
     dr = DynamicsUtils.get_positions(du)
     dv = DynamicsUtils.get_velocities(du)
     dσ = DynamicsUtils.get_quantum_subsystem(du)

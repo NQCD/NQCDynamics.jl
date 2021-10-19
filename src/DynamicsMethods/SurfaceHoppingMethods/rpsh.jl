@@ -25,13 +25,22 @@ function DynamicsMethods.DynamicsVariables(sim::RingPolymerSimulation{<:SurfaceH
     return SurfaceHoppingVariables(ComponentVector(v=v, r=r, σreal=σ, σimag=zero(σ)), state)
 end
 
-function acceleration!(dv, v, r, sim::RingPolymerSimulation{<:FSSH}, t, state)
-    for I in eachindex(dv)
-        dv[I] = -sim.calculator.adiabatic_derivative[I][state, state]
-    end
-    DynamicsUtils.divide_by_mass!(dv, sim.atoms.masses)
+function DynamicsMethods.motion!(du, u, sim::RingPolymerSimulation{<:SurfaceHopping}, t)
+    dr = DynamicsUtils.get_positions(du)
+    dv = DynamicsUtils.get_velocities(du)
+    dσ = DynamicsUtils.get_quantum_subsystem(du)
+
+    r = DynamicsUtils.get_positions(u)
+    v = DynamicsUtils.get_velocities(u)
+    σ = DynamicsUtils.get_quantum_subsystem(u)
+
+    set_state!(u, sim.method.state) # Make sure the state variables match, 
+
+    DynamicsUtils.velocity!(dr, v, r, sim, t)
+    Calculators.update_electronics!(sim.calculator, r)
+    acceleration!(dv, v, r, sim, t, sim.method.state)
     DynamicsUtils.apply_interbead_coupling!(dv, r, sim)
-    return nothing
+    DynamicsUtils.set_quantum_derivative!(dσ, v, σ, sim)
 end
 
 function evaluate_hopping_probability!(sim::RingPolymerSimulation{<:FSSH}, u, dt)

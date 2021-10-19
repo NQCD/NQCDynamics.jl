@@ -20,16 +20,20 @@ function DynamicsMethods.DynamicsVariables(sim::RingPolymerSimulation{<:Abstract
     return ComponentVector(v=v, r=r, σreal=σ, σimag=zero(σ))
 end
 
-function acceleration!(dv, v, r, sim::RingPolymerSimulation{<:Ehrenfest}, t, σ)
-    dv .= zero(eltype(dv))
-    for I in eachindex(dv)
-        for J in eachindex(σ)
-            dv[I] -= sim.calculator.adiabatic_derivative[I][J] * real(σ[J])
-        end
-    end
-    DynamicsUtils.divide_by_mass!(dv, sim.atoms.masses)
+function DynamicsMethods.motion!(du, u, sim::RingPolymerSimulation{<:Ehrenfest}, t)
+    dr = DynamicsUtils.get_positions(du)
+    dv = DynamicsUtils.get_velocities(du)
+    dσ = DynamicsUtils.get_quantum_subsystem(du)
+
+    r = DynamicsUtils.get_positions(u)
+    v = DynamicsUtils.get_velocities(u)
+    σ = DynamicsUtils.get_quantum_subsystem(u)
+
+    DynamicsUtils.velocity!(dr, v, r, sim, t)
+    Calculators.update_electronics!(sim.calculator, r)
+    acceleration!(dv, v, r, sim, t, σ)
     DynamicsUtils.apply_interbead_coupling!(dv, r, sim)
-    return nothing
+    DynamicsUtils.set_quantum_derivative!(dσ, v, σ, sim)
 end
 
 function Estimators.diabatic_population(sim::RingPolymerSimulation{<:Ehrenfest}, u)
