@@ -2,6 +2,7 @@ using Test
 using NonadiabaticMolecularDynamics
 using OrdinaryDiffEq
 using StaticArrays
+using Random: seed!
 using NonadiabaticMolecularDynamics: DynamicsMethods, DynamicsUtils, Calculators
 using NonadiabaticMolecularDynamics.SurfaceHoppingMethods: SurfaceHoppingMethods
 using NonadiabaticMolecularDynamics.DynamicsUtils: get_positions, get_velocities
@@ -155,11 +156,14 @@ end
 
     @testset "run_trajectory" begin
         atoms = Atoms(2000)
-        sim = RingPolymerSimulation{FSSH}(atoms, NonadiabaticModels.TullyModelTwo(), 5; temperature=0.01)
-        v = RingPolymerArray(fill(100 / 2000, size(sim)))
-        r = RingPolymerArray(fill(-10.0, size(sim))) .+ randn(1,1,5)
+        sim = RingPolymerSimulation{FSSH}(atoms, TullyModelTwo(), 5; temperature=0.01)
+        v = fill(100 / 2000, size(sim))
+        r = fill(-10.0, size(sim)) .+ randn(1,1,5)
         u = DynamicsVariables(sim, v, r, 1; type=:adiabatic)
-        solution = run_trajectory(u, (0.0, 1000.0), sim, output=(:hamiltonian), reltol=1e-10)
+        seed!(1)
+        solution = run_trajectory(u, (0.0, 1000.0), sim, output=(:hamiltonian), dt=0.1)
+        seed!(1)
+        solution2 = run_trajectory(u, (0.0, 1000.0), sim, output=(:hamiltonian), algorithm=Tsit5(), abstol=1e-10, reltol=1e-10, saveat=0:0.1:1000.0)
         # Ring polymer Hamiltonian is not strictly conserved during hoppping
         @test solution.hamiltonian[1] ≈ solution.hamiltonian[end] rtol=1e-2
     end

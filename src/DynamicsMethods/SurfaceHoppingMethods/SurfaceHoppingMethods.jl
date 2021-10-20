@@ -44,7 +44,7 @@ See `fssh.jl` for an example implementation.
 """
 abstract type SurfaceHopping <: DynamicsMethods.Method end
 
-function DynamicsMethods.motion!(du, u, sim::AbstractSimulation{<:SurfaceHopping}, t)
+function DynamicsMethods.motion!(du, u, sim::Simulation{<:SurfaceHopping}, t)
     dr = DynamicsUtils.get_positions(du)
     dv = DynamicsUtils.get_velocities(du)
     dσ = DynamicsUtils.get_quantum_subsystem(du)
