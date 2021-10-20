@@ -2,6 +2,7 @@ using Test
 using NonadiabaticMolecularDynamics
 using OrdinaryDiffEq
 using StaticArrays
+using Random: seed!
 using NonadiabaticMolecularDynamics: DynamicsMethods, DynamicsUtils, Calculators
 using NonadiabaticMolecularDynamics.SurfaceHoppingMethods: SurfaceHoppingMethods
 using NonadiabaticMolecularDynamics.DynamicsUtils: get_positions, get_velocities
