@@ -3,6 +3,11 @@ using Parameters: Parameters
 
 """
     eCMM{T} <: DynamicsMethods.Method
+
+# References
+
+[He2021a](@cite)
+[He2021b](@cite)
 """
 struct eCMM{T} <: DynamicsMethods.Method
     γ::T
