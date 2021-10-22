@@ -18,6 +18,6 @@ include("nrpmd.jl")
 export NRPMD
 
 include("cmm.jl")
-export CMM2
+export eCMM
 
 end # module
