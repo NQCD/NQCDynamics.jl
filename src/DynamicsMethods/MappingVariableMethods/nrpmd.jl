@@ -75,19 +75,21 @@ end
 function acceleration!(dv, u, sim::RingPolymerSimulation{<:NRPMD})
 
     Calculators.evaluate_derivative!(sim.calculator, DynamicsUtils.get_positions(u))
-    for I in CartesianIndices(dv)
-        qmap = get_mapping_positions(u, I[3])
-        pmap = get_mapping_momenta(u, I[3])
-        D = sim.calculator.derivative[I]
-        mul!(sim.method.temp_q, D, qmap)
-        mul!(sim.method.temp_p, D, pmap)
-        dv[I] = dot(qmap, sim.method.temp_q)
-        dv[I] += dot(pmap, sim.method.temp_p)
-        dv[I] -= tr(D)
+    for i in range(sim.beads)
+        qmap = get_mapping_positions(u, i)
+        pmap = get_mapping_momenta(u, i)
+        for j in range(sim.atoms)
+            for k=1:ndofs(sim)
+                D = sim.calculator.derivative[k,j,i]
+                mul!(sim.method.temp_q, D, qmap)
+                mul!(sim.method.temp_p, D, pmap)
+                dv[k,j,i] = dot(qmap, sim.method.temp_q)
+                dv[k,j,i] += dot(pmap, sim.method.temp_p)
+                dv[k,j,i] -= tr(D)
+                dv[k,j,i] /= -2sim.atoms.masses[j]
+            end
+        end
     end
-    lmul!(-1/2, dv)
-    DynamicsUtils.divide_by_mass!(dv, sim.atoms.masses)
-
     DynamicsUtils.apply_interbead_coupling!(dv, DynamicsUtils.get_positions(u), sim)
 end
 
@@ -98,7 +100,7 @@ function set_mapping_force!(du, u, sim::RingPolymerSimulation{<:NRPMD})
         V = sim.calculator.potential[i]
         mul!(get_mapping_positions(du, i), V, get_mapping_momenta(u, i))
         mul!(get_mapping_momenta(du, i), V, get_mapping_positions(u, i))
-        lmul!(-1, get_mapping_momenta(du, i))
+        get_mapping_momenta(du, i) .*= -1
     end
 end
 

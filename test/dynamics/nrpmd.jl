@@ -9,7 +9,7 @@ using NonadiabaticMolecularDynamics.DynamicsMethods.MappingVariableMethods
 Random.seed!(1)
 
 @test MappingVariableMethods.NRPMD{Float64}(10) isa MappingVariableMethods.NRPMD
-atoms = Atoms(2.0)
+atoms = Atoms(1.0)
 sim = RingPolymerSimulation{NRPMD}(atoms, NonadiabaticModels.DoubleWell(), 10; temperature=1e-1)
 
 v = zeros(size(sim))
@@ -40,10 +40,6 @@ test_motion!(sim, u)
 
 sol = run_trajectory(u, (0, 10.0), sim; output=(:hamiltonian, :position), dt=1e-2)
 @test sol.hamiltonian[1] ≈ sol.hamiltonian[end] rtol=1e-2
-
-sol = run_trajectory(u, (0, 10.0), sim; dt=1e-2, algorithm=DynamicsMethods.IntegrationAlgorithms.MInt())
-sol1 = run_trajectory(u, (0, 10.0), sim; algorithm=Tsit5(), saveat=0:1e-2:10, reltol=1e-10, abstol=1e-10)
-@test sol.u ≈ sol1.u rtol=1e-3
 
 @testset "MInt algorithm" begin
     tspan=(0, 20.0)
