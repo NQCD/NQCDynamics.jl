@@ -19,9 +19,9 @@ jobs:
       - uses: julia-actions/setup-julia@v1
 
       - name: Add NonadiabaticRegistry
-        run: julia -e 'using Pkg; Pkg.Registry.add(url="https://github.com/NQCD/NonadiabaticRegistry")'
+        run: julia -e 'using Pkg; Pkg.Registry.add(RegistrySpec(url="https://github.com/NQCD/NonadiabaticRegistry"))'
       - name: Add JuliaMolSim registry
-        run: julia -e 'using Pkg; Pkg.Registry.add(url="https://github.com/JuliaMolSim/MolSim")'
+        run: julia -e 'using Pkg; Pkg.Registry.add(RegistrySpec(url="https://github.com/JuliaMolSim/MolSim"))'
 
       - name: Install ase+schnetpack
         run: python3 -m pip install schnetpack ase
