@@ -18,10 +18,10 @@ jobs:
       - uses: actions/checkout@v2
       - uses: julia-actions/setup-julia@v1
 
-      - uses: julia-actions/add-julia-registry@v1
-        registry: NQCD/NQCDRegistsry
-      - uses: julia-actions/add-julia-registry@v1
-        registry: JuliaMolSim/MolSim
+      - name: Add NonadiabaticRegistry
+        run: julia -e 'using Pkg; Pkg.Registry.add(url="https://github.com/NQCD/NonadiabaticRegistry")'
+      - name: Add JuliaMolSim registry
+        run: julia -e 'using Pkg; Pkg.Registry.add(url="https://github.com/JuliaMolSim/MolSim")'
 
       - name: Install ase+schnetpack
         run: python3 -m pip install schnetpack ase
