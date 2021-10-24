@@ -13,19 +13,22 @@ on:
 jobs:
   Documenter:
     name: Documentation
-    runs-on: macos-latest
+    runs-on: ubuntu-18.04
     steps:
       - uses: actions/checkout@v2
       - uses: julia-actions/setup-julia@v1
 
-      - name: Add NonadiabaticRegistry
-        run: julia -e 'using Pkg; Pkg.Registry.add(RegistrySpec(url="https://github.com/NQCD/NonadiabaticRegistry"))'
-      - name: Add JuliaMolSim registry
-        run: julia -e 'using Pkg; Pkg.Registry.add(RegistrySpec(url="https://github.com/JuliaMolSim/MolSim"))'
+      - uses: julia-actions/add-julia-registry@v1
+        registry: NQCD/NQCDRegistsry
+      - uses: julia-actions/add-julia-registry@v1
+        registry: JuliaMolSim/MolSim
+
       - name: Install ase+schnetpack
         run: python3 -m pip install schnetpack ase
 
       - uses: julia-actions/julia-buildpkg@latest
+      - name: Develop dependencies
+        run: julia --project=docs/ -e 'using Pkg; Pkg.develop(name="NonadiabaticModels")'
       - uses: julia-actions/julia-docdeploy@latest
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
