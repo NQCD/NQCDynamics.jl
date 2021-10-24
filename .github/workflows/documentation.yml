@@ -13,16 +13,15 @@ on:
 jobs:
   Documenter:
     name: Documentation
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v2
+      - uses: julia-actions/setup-julia@v1
 
       - name: Add NonadiabaticRegistry
         run: julia -e 'using Pkg; Pkg.Registry.add(RegistrySpec(url="https://github.com/NQCD/NonadiabaticRegistry"))'
       - name: Add JuliaMolSim registry
         run: julia -e 'using Pkg; Pkg.Registry.add(RegistrySpec(url="https://github.com/JuliaMolSim/MolSim"))'
-      - name: Add General registry
-        run: julia -e 'using Pkg; Pkg.Registry.add(RegistrySpec("General"))'
       - name: Install ase+schnetpack
         run: pip install schnetpack ase
 
