@@ -32,7 +32,7 @@ jobs:
         run: julia -e 'using Pkg; Pkg.Registry.add(RegistrySpec(url="https://github.com/JuliaMolSim/MolSim"))'
         
       - name: Install ase
-        run: python3 -m pip install ase
+        run: python3 -m pip install ase schnetpack==0.3
 
       - uses: julia-actions/julia-buildpkg@latest
       - name: Dev dependencies
