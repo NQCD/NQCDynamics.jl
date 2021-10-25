@@ -10,18 +10,18 @@ sim = Simulation(atoms, model)
 
 positions = [randn(1, length(atoms)) for i=1:10]
 velocities = [randn(1, length(atoms)) for i=1:10]
-distribution = InitialConditions.DynamicalDistribution(positions, velocities, (1, 1))
+distribution = DynamicalDistribution(positions, velocities, (1, 1))
 
 u = rand(distribution)
 prob = DynamicsMethods.create_problem(u, (0.0, 1.0), sim)
 @testset "OrderedSelection" begin 
     selector = Ensembles.OrderedSelection(distribution, 1:10)
     new_prob = selector(prob, 3, false)
-    u = InitialConditions.pick(distribution, 3)
+    u = NonadiabaticDistributions.pick(distribution, 3)
     @test new_prob.u0 == ArrayPartition(u.v, u.r)
     selector = Ensembles.OrderedSelection(distribution, 6:10)
     new_prob = selector(prob, 3, false)
-    u = InitialConditions.pick(distribution, 8)
+    u = NonadiabaticDistributions.pick(distribution, 8)
     @test new_prob.u0 == ArrayPartition(u.v, u.r)
 end
 

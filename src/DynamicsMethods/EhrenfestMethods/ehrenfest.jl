@@ -36,9 +36,10 @@ function Simulation{Ehrenfest}(atoms::Atoms{S,T}, model::Model; kwargs...) where
     Simulation(atoms, model, Ehrenfest{T}(NonadiabaticModels.nstates(model)); kwargs...)
 end
 
-function DynamicsMethods.DynamicsVariables(sim::Simulation{<:AbstractEhrenfest}, v, r, state::Integer; type=:diabatic)
+function DynamicsMethods.DynamicsVariables(sim::Simulation{<:AbstractEhrenfest}, v, r, electronic::NonadiabaticDistributions.SingleState)
     n_states = NonadiabaticModels.nstates(sim.calculator.model)
-    if type == :diabatic
+    state = electronic.state
+    if electronic.statetype === NonadiabaticDistributions.Diabatic()
         Calculators.evaluate_potential!(sim.calculator, r)
         Calculators.eigen!(sim.calculator)
         U = sim.calculator.eigenvectors

@@ -15,6 +15,7 @@ using NonadiabaticMolecularDynamics:
     DynamicsMethods,
     DynamicsUtils,
     Estimators,
+    NonadiabaticDistributions,
     ndofs
 using NonadiabaticModels: NonadiabaticModels, Model
 using NonadiabaticDynamicsBase: Atoms
