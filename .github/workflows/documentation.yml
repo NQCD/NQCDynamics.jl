@@ -14,8 +14,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - uses: julia-actions/setup-julia@latest
-
       - uses: actions/cache@v1
         env:
           cache-name: cache-artifacts
@@ -28,11 +26,10 @@ jobs:
 
       - name: Add registries
         run: |
-          julia -e 'using Pkg; Pkg.Registry.add([
-            RegistrySpec(url=https://github.com/NQCD/NQCDRegistry),
-            RegistrySpec(url="https://github.com/JuliaMolSim/MolSim"),
-            RegistrySpec(name="General")
-          ])'
+          using Pkg
+          Pkg.Registry.add(RegistrySpec(url="https://github.com/NQCD/NQCDRegistry"))
+          Pkg.Registry.add(RegistrySpec(url="https://github.com/JuliaMolSim/MolSim"))
+        shell: julia {0}
         
       - name: Install ase
         run: python3 -m pip install ase
