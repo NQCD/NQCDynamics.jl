@@ -1,22 +1,12 @@
 
-using Random: AbstractRNG, rand!
-using Distributions: Distributions, Continuous, Sampleable, Univariate
+using Random: AbstractRNG
+using Distributions: Univariate, Sampleable
 using HDF5: h5open
 using ComponentArrays: ComponentVector
 using NonadiabaticMolecularDynamics: DynamicsUtils
 
-struct DynamicalVariate <: Distributions.VariateForm end
-
-struct DynamicalDistribution{V,R,S,N} <: Sampleable{DynamicalVariate,Continuous}
-    velocity::V
-    position::R
-    size::NTuple{S,Int}
-    state::N
-    type::Symbol
-end
-
 """
-    DynamicalDistribution(velocity, position, size; state=0, type=:adiabatic)
+    DynamicalDistribution(velocity, position, size)
 
 Sampleable that provides positions and velocities sampled from a variety of distributions.
 
@@ -28,12 +18,6 @@ which `select_item` has been implemented.
 **`size`** denotes to the size of the samples that should be produced.
 
 # Keywords
-
-**`state`** is used for nonequilibrium simulations when the population is restricted
-to a single electronic state.
-
-**`type`** can be either `:adiabatic` or `:diabatic` and chooses whether `state` is an adiabatic
-or diabatic state.
 
 # Example
 
@@ -49,19 +33,18 @@ rand(d)
 ComponentVector{Float64}(v = [5.0], r = [-0.3170409357632898])
 ```
 """
-DynamicalDistribution(velocity, position, size; state=0, type=:adiabatic) =
-    DynamicalDistribution(velocity, position, size, state, type)
+struct DynamicalDistribution{V,R,S} <: NuclearDistribution
+    velocity::V
+    position::R
+    size::NTuple{S,Int}
+end
 
-Base.eltype(s::DynamicalDistribution{<:Sampleable,R}) where {R} = eltype(s.velocity)
-Base.eltype(s::DynamicalDistribution{<:AbstractArray,R} where {R}) = eltype(s.velocity[1])
 Base.size(s::DynamicalDistribution) = s.size
 Base.length(s::DynamicalDistribution) = maxindex(s)
 
-function Distributions.rand(rng::AbstractRNG, s::Sampleable{DynamicalVariate})
-    Distributions._rand!(rng, s, ComponentVector(v=Array{eltype(s)}(undef, size(s)),
-                                                 r=Array{eltype(s)}(undef, size(s))
-                                                )
-                        )
+function Base.rand(rng::AbstractRNG, s::DynamicalDistribution)
+    i = rand(rng, 1:maxindex(s))
+    return pick(s, i)
 end
 
 function maxindex(s::DynamicalDistribution)::Int
@@ -78,15 +61,7 @@ function maxindex(s::DynamicalDistribution)::Int
             return length(fid)
         end
     else
-        return 1
-    end
-end
-
-function Distributions._rand!(rng::AbstractRNG, s::DynamicalDistribution, x::ComponentVector)
-    i = rand(rng, 1:maxindex(s))
-    DynamicsUtils.get_velocities(x) .= select_item(s.velocity, i, s.size)
-    DynamicsUtils.get_positions(x) .= select_item(s.position, i, s.size)
-    x
+        return 1 end
 end
 
 pick(s::DynamicalDistribution, i::Integer) = ComponentVector(v=select_item(s.velocity, i, s.size), r=select_item(s.position, i, s.size))
@@ -128,10 +103,7 @@ function Base.show(io::IO, s::DynamicalDistribution)
 end
 
 function Base.show(io::IO, ::MIME"text/plain", s::DynamicalDistribution)
-    print(io, "DynamicalDistribution:\n  ",
-          "size: ", size(s), "\n  ",
-          "state: ", s.state, "\n  ",
-          "type: ", s.type)
+    print(io, "DynamicalDistribution:\n  ", "size: ", size(s))
 end
 
 function write_hdf5(filename, data)
