@@ -34,7 +34,6 @@ jobs:
       - name: Dev dependencies
         run: julia --project=docs/ -e 'using Pkg; Pkg.develop([(;path=pwd()), (;name="NonadiabaticModels")]); Pkg.instantiate()'
 
-      - name: Build and deploy
       - uses: julia-actions/julia-docdeploy@latest
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
