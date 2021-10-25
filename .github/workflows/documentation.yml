@@ -32,7 +32,7 @@ jobs:
             RegistrySpec(url=https://github.com/NQCD/NQCDRegistry),
             RegistrySpec(url="https://github.com/JuliaMolSim/MolSim"),
             RegistrySpec(name="General")
-          ])
+          ])'
         
       - name: Install ase
         run: python3 -m pip install ase
