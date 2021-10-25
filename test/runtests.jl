@@ -17,6 +17,7 @@ if GROUP == "All" || GROUP == "InitialConditions"
     @time @safetestset "Distribution Tests" begin include("nuclear_distributions.jl") end
     @time @safetestset "Estimator tests" begin include("estimators.jl") end
     @time @safetestset "Harmonic Wigner distribution tests" begin include("harmonic_wigner.jl") end
+    @time @safetestset "NonadiabaticDistributions" begin include("nonadiabaticdistributions/nonadiabatic_distributions.jl") end
 end
 
 if GROUP == "All" || GROUP == "Dynamics"
