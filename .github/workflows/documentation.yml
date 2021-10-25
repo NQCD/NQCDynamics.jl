@@ -23,6 +23,9 @@ jobs:
       - name: Add JuliaMolSim registry
         run: julia -e 'using Pkg; Pkg.Registry.add(RegistrySpec(url="https://github.com/JuliaMolSim/MolSim"))'
 
+      - name: Install ase+schnetpack
+        run: python3 -m pip install schnetpack ase
+
       - uses: julia-actions/julia-buildpkg@latest
       - name: Develop dependencies
         run: julia --project=docs/ -e 'using Pkg; Pkg.develop(name="NonadiabaticModels")'
