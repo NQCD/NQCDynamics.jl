@@ -40,10 +40,11 @@ function NonadiabaticMolecularDynamics.RingPolymerSimulation{NRPMD}(atoms::Atoms
     NonadiabaticMolecularDynamics.RingPolymerSimulation(atoms, model, NRPMD{T}(NonadiabaticModels.nstates(model)), n_beads; kwargs...)
 end
 
-function DynamicsMethods.DynamicsVariables(sim::RingPolymerSimulation{<:NRPMD}, v, r, state::Integer; type=:diabatic)
+function DynamicsMethods.DynamicsVariables(sim::RingPolymerSimulation{<:NRPMD}, v, r, electronic::NonadiabaticDistributions.SingleState)
     n_states = NonadiabaticModels.nstates(sim.calculator.model)
     n_beads = length(sim.beads)
-    if type == :diabatic
+    state = electronic.state
+    if electronic.statetype === NonadiabaticDistributions.Diabatic()
         qmap = zeros(n_states, n_beads)
         pmap = zeros(n_states, n_beads)
 
@@ -52,7 +53,7 @@ function DynamicsMethods.DynamicsVariables(sim::RingPolymerSimulation{<:NRPMD}, 
         qmap[state,:] .*= sqrt(3)
         pmap = qmap .* tan.(-θ)
     else
-        throw("Adiabatic initialisation not implemented, `type` kwarg should be `:diabatic`.")
+        throw("Adiabatic initialisation not implemented.")
     end
     return ComponentVector(v=v, r=r, pmap=pmap, qmap=qmap)
 end

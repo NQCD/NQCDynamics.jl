@@ -22,8 +22,8 @@ sim1 = Simulation{eCMM}(Atoms(1), DoubleWell(); γ=0.5)
 
 v = randn(1,1)
 r = randn(1,1)
-u = DynamicsVariables(sim, v, r, 1)
-u1 = DynamicsVariables(sim1, v, r, 1)
+u = DynamicsVariables(sim, v, r, SingleState(1))
+u1 = DynamicsVariables(sim1, v, r, SingleState(1))
 
 test_motion!(sim, u)
 test_motion!(sim1, u1)

@@ -14,7 +14,7 @@ sim = RingPolymerSimulation{NRPMD}(atoms, NonadiabaticModels.DoubleWell(), 10; t
 
 v = zeros(size(sim))
 r = randn(size(sim))
-u = DynamicsVariables(sim, v, r, 2)
+u = DynamicsVariables(sim, v, r, SingleState(2))
 
 @testset "get_population" begin
     population = Estimators.diabatic_population(sim, u)

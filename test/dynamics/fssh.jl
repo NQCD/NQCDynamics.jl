@@ -16,7 +16,7 @@ atoms = Atoms(1)
 
     r = zeros(size(sim)) 
     v = randn(size(sim)) 
-    u = DynamicsVariables(sim, v, r, 1; type=:adiabatic)
+    u = DynamicsVariables(sim, v, r, SingleState(1, Adiabatic()))
     du = zero(u)
 
     @test DynamicsUtils.get_quantum_subsystem(u) ≈ Complex.([1 0; 0 0])
@@ -95,7 +95,7 @@ atoms = Atoms(1)
         sim = Simulation{FSSH}(atoms, NonadiabaticModels.TullyModelTwo())
         v = hcat(100 / 2000)
         r = hcat(-10.0)
-        u = DynamicsVariables(sim, v, r, 1; type=:adiabatic)
+        u = DynamicsVariables(sim, v, r, SingleState(1, Adiabatic()))
         solution = run_trajectory(u, (0.0, 500.0), sim, output=(:hamiltonian, :state), reltol=1e-6)
         @test solution.hamiltonian[1] ≈ solution.hamiltonian[end] rtol=1e-2
     end
@@ -106,7 +106,7 @@ end
 
     r = RingPolymerArray(zeros(size(sim)))
     v = RingPolymerArray(randn(size(sim)))
-    u = DynamicsVariables(sim, v, r, 1; type=:adiabatic)
+    u = DynamicsVariables(sim, v, r, SingleState(1, Adiabatic()))
     sim.method.state = u.state
 
     problem = ODEProblem(DynamicsMethods.motion!, u, (0.0, 1.0), sim)
@@ -159,7 +159,7 @@ end
         sim = RingPolymerSimulation{FSSH}(atoms, TullyModelTwo(), 5; temperature=0.01)
         v = fill(100 / 2000, size(sim))
         r = fill(-10.0, size(sim)) .+ randn(1,1,5)
-        u = DynamicsVariables(sim, v, r, 1; type=:adiabatic)
+        u = DynamicsVariables(sim, v, r, SingleState(1, Adiabatic()))
         seed!(1)
         solution = run_trajectory(u, (0.0, 1000.0), sim, output=(:hamiltonian), dt=0.1)
         seed!(1)
