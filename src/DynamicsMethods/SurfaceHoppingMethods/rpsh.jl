@@ -8,9 +8,10 @@ function RingPolymerSimulation{FSSH}(atoms::Atoms{S,T}, model::Model, n_beads::I
     RingPolymerSimulation(atoms, model, FSSH{T}(NonadiabaticModels.nstates(model)), n_beads; kwargs...)
 end
 
-function DynamicsMethods.DynamicsVariables(sim::RingPolymerSimulation{<:SurfaceHopping}, v, r, state::Integer; type=:diabatic)
+function DynamicsMethods.DynamicsVariables(sim::RingPolymerSimulation{<:SurfaceHopping}, v, r, electronic::NonadiabaticDistributions.SingleState)
     n_states = NonadiabaticModels.nstates(sim.calculator.model)
-    if type == :diabatic
+    state = electronic.state
+    if electronic.statetype === NonadiabaticDistributions.Diabatic()
         Calculators.evaluate_centroid_potential!(sim.calculator, r)
         U = eigvecs(sim.calculator.centroid_potential)
 

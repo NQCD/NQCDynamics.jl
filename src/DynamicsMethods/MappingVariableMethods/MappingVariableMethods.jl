@@ -10,6 +10,7 @@ using NonadiabaticMolecularDynamics:
     DynamicsUtils,
     Calculators,
     Estimators,
+    NonadiabaticDistributions,
     ndofs
 using NonadiabaticModels: NonadiabaticModels, Model
 using NonadiabaticDynamicsBase: Atoms

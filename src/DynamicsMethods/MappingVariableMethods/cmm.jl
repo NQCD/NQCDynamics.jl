@@ -1,5 +1,6 @@
 using LinearAlgebra: lmul!
 using Parameters: Parameters
+using NonadiabaticMolecularDynamics.NonadiabaticDistributions: SingleState, Diabatic
 
 """
     eCMM{T} <: DynamicsMethods.Method
@@ -22,8 +23,9 @@ function NonadiabaticMolecularDynamics.Simulation{eCMM}(atoms::Atoms{S,T}, model
     NonadiabaticMolecularDynamics.Simulation(atoms, model, eCMM{T}(NonadiabaticModels.nstates(model), γ); kwargs...)
 end
 
-function DynamicsMethods.DynamicsVariables(sim::Simulation{<:eCMM}, v, r, state::Integer; type=:diabatic)
+function DynamicsMethods.DynamicsVariables(sim::Simulation{<:eCMM}, v, r, electronic::SingleState{Diabatic})
 
+    state = electronic.state
     qmap = zeros(NonadiabaticModels.nstates(sim))
     pmap = zeros(NonadiabaticModels.nstates(sim))
 
