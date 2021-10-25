@@ -1,18 +1,18 @@
 using Documenter
 using DocumenterCitations
 using NonadiabaticMolecularDynamics
-using NonadiabaticModels
-using CubeLDFAModel, NNInterfaces
+# using NonadiabaticModels
+# using CubeLDFAModel, NNInterfaces
 
-DocMeta.setdocmeta!(NonadiabaticMolecularDynamics, :DocTestSetup, :(using NonadiabaticMolecularDynamics); recursive=true)
-DocMeta.setdocmeta!(NonadiabaticModels, :DocTestSetup, :(using NonadiabaticModels, Symbolics); recursive=true)
+# DocMeta.setdocmeta!(NonadiabaticMolecularDynamics, :DocTestSetup, :(using NonadiabaticMolecularDynamics); recursive=true)
+# DocMeta.setdocmeta!(NonadiabaticModels, :DocTestSetup, :(using NonadiabaticModels, Symbolics); recursive=true)
 
 bib = CitationBibliography(joinpath(@__DIR__, "references.bib"), sorting=:nyt)
 
 @time makedocs(
     bib,
     sitename = "NonadiabaticMolecularDynamics.jl",
-    modules = [NonadiabaticMolecularDynamics, NonadiabaticModels, CubeLDFAModel],
+    modules = [NonadiabaticMolecularDynamics],
     strict = false,
     format = Documenter.HTML(
         prettyurls = get(ENV, "CI", nothing) == "true",
