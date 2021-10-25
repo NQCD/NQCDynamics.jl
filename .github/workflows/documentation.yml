@@ -31,6 +31,7 @@ jobs:
       - name: Add JuliaMolSim registry
         run: julia -e 'using Pkg; Pkg.Registry.add(RegistrySpec(url="https://github.com/JuliaMolSim/MolSim"))'
 
+      - uses: julia-actions/julia-buildpkg@latest
       - name: Dev dependencies
         run: julia --project=docs/ -e 'using Pkg; Pkg.develop([(;path=pwd()), (;name="NonadiabaticModels")]); Pkg.instantiate()'
 
