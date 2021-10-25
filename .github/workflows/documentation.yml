@@ -28,6 +28,7 @@ jobs:
 
       - uses: julia-actions/add-julia-registry@v1
         with:
+          key: ${{ secrets.DOCUMENTER_KEY }}
           registry: NQCD/NQCDRegistry
       - name: Add JuliaMolSim registry
         run: julia -e 'using Pkg; Pkg.Registry.add(RegistrySpec(url="https://github.com/JuliaMolSim/MolSim"))'
