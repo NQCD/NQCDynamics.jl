@@ -6,8 +6,8 @@ using Unitful
 using UnitfulAtomic
 
 atoms = Atoms([:N, :O])
-model = NonadiabaticModels.DiatomicHarmonic()
-sim = Simulation(atoms, model, Dynamics.Classical())
+model = DiatomicHarmonic()
+sim = Simulation(atoms, model)
 
 @testset "calculate_diatomic_energy" begin
     @test QuantisedDiatomic.calculate_diatomic_energy(sim, 1.0, normal_vector=rand(3)) ≈ 0.0 atol=1e-3
@@ -17,7 +17,7 @@ end
 @testset "calculate_force_constant" begin
     @test QuantisedDiatomic.calculate_force_constant(sim) ≈ 1
     model2 = NonadiabaticModels.DiatomicHarmonic(r₀=6.3)
-    sim2 = Simulation(atoms, model2, Dynamics.Classical())
+    sim2 = Simulation(atoms, model2)
     @test QuantisedDiatomic.calculate_force_constant(sim2, bond_length=4.0) ≈ 1
 end
 
@@ -58,9 +58,8 @@ end
 @testset "position_above_surface!" begin
     r = zeros(3, 2)
     height = 10
-    direction = [0, 1, 0]
-    QuantisedDiatomic.position_above_surface!(r, height.*direction)
-    @test r == [0 0; height height; 0 0]
+    QuantisedDiatomic.position_above_surface!(r, height, InfiniteCell())
+    @test r == [0 0; 0 0; height height]
 end
 
 @testset "velocity_from_energy" begin
@@ -71,6 +70,7 @@ end
 
 @testset "apply_translational_impulse!" begin
     masses = [100, 100]
+    r = rand(3, 2)
     v = rand(3, 2) ./ 100
     v_before = copy(v)
     e = 10u"eV"
