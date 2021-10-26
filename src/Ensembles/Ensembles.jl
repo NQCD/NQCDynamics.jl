@@ -23,7 +23,7 @@ using NonadiabaticMolecularDynamics:
     NonadiabaticDistributions
 using NonadiabaticMolecularDynamics.NonadiabaticDistributions:
     NuclearDistribution,
-    NonadiabaticDistribution
+    CombinedDistribution
 
 function sample_distribution(sim::AbstractSimulation, distribution::NuclearDistribution, i)
     u = NonadiabaticDistributions.pick(distribution, i)
