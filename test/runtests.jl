@@ -22,17 +22,17 @@ if GROUP == "All" || GROUP == "InitialConditions"
 end
 
 if GROUP == "All" || GROUP == "Dynamics"
-    @time @safetestset "Classical Tests" begin include("dynamics/classical.jl") end
-    @time @safetestset "Langevin Tests" begin include("dynamics/langevin.jl") end
-    @time @safetestset "MDEF BAOAB Tests" begin include("dynamics/mdef_baoab.jl") end
-    @time @safetestset "MDEF Tests" begin include("dynamics/mdef.jl") end
-    @time @safetestset "RPMDEF Tests" begin include("dynamics/rpmdef.jl") end
-    @time @safetestset "BCBwithTsit5 Tests" begin include("dynamics/bcbwithtsit5.jl") end
-    @time @safetestset "FSSH Tests" begin include("dynamics/fssh.jl") end
-    @time @safetestset "NRPMD Tests" begin include("dynamics/nrpmd.jl") end
-    @time @safetestset "CMM Tests" begin include("dynamics/cmm.jl") end
-    @time @safetestset "Cell Boundary Callback Tests" begin include("dynamics/cell_boundary_callback.jl") end
-    @time @safetestset "Ehrenfest Tests" begin include("dynamics/ehrenfest.jl") end
-    @time @safetestset "IESH Tests" begin include("dynamics/iesh.jl") end
+    @time @safetestset "Classical Tests" begin include("Dynamics/classical.jl") end
+    @time @safetestset "Langevin Tests" begin include("Dynamics/langevin.jl") end
+    @time @safetestset "MDEF BAOAB Tests" begin include("Dynamics/mdef_baoab.jl") end
+    @time @safetestset "MDEF Tests" begin include("Dynamics/mdef.jl") end
+    @time @safetestset "RPMDEF Tests" begin include("Dynamics/rpmdef.jl") end
+    @time @safetestset "BCBwithTsit5 Tests" begin include("Dynamics/bcbwithtsit5.jl") end
+    @time @safetestset "FSSH Tests" begin include("Dynamics/fssh.jl") end
+    @time @safetestset "NRPMD Tests" begin include("Dynamics/nrpmd.jl") end
+    @time @safetestset "CMM Tests" begin include("Dynamics/cmm.jl") end
+    @time @safetestset "Cell Boundary Callback Tests" begin include("Dynamics/cell_boundary_callback.jl") end
+    @time @safetestset "Ehrenfest Tests" begin include("Dynamics/ehrenfest.jl") end
+    @time @safetestset "IESH Tests" begin include("Dynamics/iesh.jl") end
     @time @safetestset "Ensemble Tests" begin include("Ensembles/ensembles.jl") end
 end
