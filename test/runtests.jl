@@ -14,10 +14,10 @@ end
 if GROUP == "All" || GROUP == "InitialConditions"
     @time @safetestset "Monte Carlo Tests" begin include("monte_carlo.jl") end
     @time @safetestset "AdvancedMH Sampling Tests" begin include("advancedmh_sampling.jl") end
-    @time @safetestset "Distribution Tests" begin include("nuclear_distributions.jl") end
     @time @safetestset "Estimator tests" begin include("estimators.jl") end
-    @time @safetestset "Harmonic Wigner distribution tests" begin include("harmonic_wigner.jl") end
     @time @safetestset "NonadiabaticDistributions" begin include("nonadiabaticdistributions/nonadiabatic_distributions.jl") end
+    @time @safetestset "Distribution Tests" begin include("nonadiabaticdistributions/nuclear_distributions.jl") end
+    @time @safetestset "Harmonic Wigner distribution tests" begin include("nonadiabaticdistributions/harmonic_wigner.jl") end
 end
 
 if GROUP == "All" || GROUP == "Dynamics"
