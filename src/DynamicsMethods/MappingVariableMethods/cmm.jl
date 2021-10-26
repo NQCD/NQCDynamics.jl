@@ -1,6 +1,6 @@
 using LinearAlgebra: lmul!, norm
 using Parameters: Parameters
-using NonadiabaticMolecularDynamics.NonadiabaticDistributions: SingleState, Diabatic
+using NonadiabaticMolecularDynamics.NonadiabaticDistributions: ElectronicDistribution
 
 """
     eCMM{T} <: DynamicsMethods.Method
@@ -23,7 +23,7 @@ function NonadiabaticMolecularDynamics.Simulation{eCMM}(atoms::Atoms{S,T}, model
     NonadiabaticMolecularDynamics.Simulation(atoms, model, eCMM{T}(NonadiabaticModels.nstates(model), γ); kwargs...)
 end
 
-function DynamicsMethods.DynamicsVariables(sim::Simulation{<:eCMM}, v, r, electronic::SingleState{Diabatic})
+function DynamicsMethods.DynamicsVariables(sim::Simulation{<:eCMM}, v, r, ::ElectronicDistribution)
 
     F = NonadiabaticModels.nstates(sim)
     radius = sqrt(2 + 2F*sim.method.γ)
@@ -80,17 +80,7 @@ end
 function Estimators.diabatic_population(sim::Simulation{<:eCMM}, u)
     qmap = get_mapping_positions(u)
     pmap = get_mapping_momenta(u)
-    F = NonadiabaticModels.nstates(sim)
-    γ = sim.method.γ
-
-    prefactor = (1 + F)/(2*(1 + F*γ)^2)
-    subtractor = (1 - γ) / (1 + F*γ)
-    out = zero(qmap)
-    for i=1:F
-        out[i] = prefactor * (qmap[i]^2 + pmap[i]^2) - subtractor
-        # out[i] = 1/2 * (qmap[i]^2 + pmap[i]^2) - γ
-    end
-    out
+    inverse_mapping_kernel(qmap, pmap, sim.method.γ)
 end
 
 function DynamicsUtils.classical_hamiltonian(sim::Simulation{<:eCMM}, u)
@@ -109,13 +99,11 @@ function DynamicsUtils.classical_hamiltonian(sim::Simulation{<:eCMM}, u)
     return H
 end
 
-function mapping_kernel(qmap, pmap, state, γ)
-    (qmap[state]^2 + pmap[state]^2)/2 - γ
-end
+mapping_kernel(qmap, pmap, γ) = (qmap.^2 .+ pmap.^2)./2 .- γ
 
-function inverse_mapping_kernel(qmap, pmap, state, γ)
+function inverse_mapping_kernel(qmap, pmap, γ)
     F = length(qmap)
     prefactor = (1 + F) / (1 + F*γ)^2
     subtractor = (1 - γ) / (1 + F*γ)
-    prefactor * (qmap[state]^2 + pmap[state]^2)/2 - subtractor
+    return prefactor .* (qmap.^2 .+ pmap.^2)./2 .- subtractor
 end
