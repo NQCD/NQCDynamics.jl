@@ -29,14 +29,18 @@ jobs:
           using Pkg
           Pkg.Registry.add(RegistrySpec(url="https://github.com/NQCD/NQCDRegistry"))
           Pkg.Registry.add(RegistrySpec(url="https://github.com/JuliaMolSim/MolSim"))
+          Pkg.Registry.add(RegistrySpec(name="General"))
         shell: julia {0}
         
       - name: Install ase
         run: python3 -m pip install ase
 
-      - uses: julia-actions/julia-buildpkg@latest
       - name: Dev dependencies
-        run: julia --project=docs/ -e 'using Pkg; Pkg.develop([(;path=pwd()), (;name="NonadiabaticModels")]); Pkg.instantiate()'
+        run: |
+          using Pkg
+          Pkg.develop([(;path=pwd()), (;name="NonadiabaticModels")])
+          Pkg.instantiate()
+        shell: julia --project=docs/ {0}
 
       - uses: julia-actions/julia-docdeploy@latest
         env:
