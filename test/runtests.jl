@@ -5,19 +5,20 @@ using NonadiabaticMolecularDynamics
 const GROUP = get(ENV, "GROUP", "All")
 
 if GROUP == "All" || GROUP == "Core"
-    @time @safetestset "Calculator Tests" begin include("calculators.jl") end
-    @time @safetestset "Simulation Tests" begin include("simulations.jl") end
-    @time @safetestset "Ring Polymer Tests" begin include("ring_polymers.jl") end
-    @time @safetestset "RingPolymerArrays Tests" begin include("ring_polymer_array.jl") end
+    @time @safetestset "Calculator Tests" begin include("Core/calculators.jl") end
+    @time @safetestset "Simulation Tests" begin include("Core/simulations.jl") end
+    @time @safetestset "Ring Polymer Tests" begin include("Core/ring_polymers.jl") end
+    @time @safetestset "RingPolymerArrays Tests" begin include("Core/ring_polymer_array.jl") end
+    @time @safetestset "Estimator tests" begin include("Core/estimators.jl") end
 end
 
 if GROUP == "All" || GROUP == "InitialConditions"
-    @time @safetestset "Monte Carlo Tests" begin include("monte_carlo.jl") end
-    @time @safetestset "AdvancedMH Sampling Tests" begin include("advancedmh_sampling.jl") end
-    @time @safetestset "Estimator tests" begin include("estimators.jl") end
-    @time @safetestset "NonadiabaticDistributions" begin include("nonadiabaticdistributions/nonadiabatic_distributions.jl") end
-    @time @safetestset "Distribution Tests" begin include("nonadiabaticdistributions/nuclear_distributions.jl") end
-    @time @safetestset "Harmonic Wigner distribution tests" begin include("nonadiabaticdistributions/harmonic_wigner.jl") end
+    @time @safetestset "Monte Carlo Tests" begin include("InitialConditions/monte_carlo.jl") end
+    @time @safetestset "AdvancedMH Sampling Tests" begin include("InitialConditions/advancedmh_sampling.jl") end
+    @time @safetestset "QuantisedDiatomic Tests" begin include("InitialConditions/quantised_diatomic.jl") end
+    @time @safetestset "NonadiabaticDistributions" begin include("NonadiabaticDistributions/nonadiabatic_distributions.jl") end
+    @time @safetestset "Distribution Tests" begin include("NonadiabaticDistributions/nuclear_distributions.jl") end
+    @time @safetestset "Harmonic Wigner distribution tests" begin include("NonadiabaticDistributions/harmonic_wigner.jl") end
 end
 
 if GROUP == "All" || GROUP == "Dynamics"
@@ -33,5 +34,5 @@ if GROUP == "All" || GROUP == "Dynamics"
     @time @safetestset "Cell Boundary Callback Tests" begin include("dynamics/cell_boundary_callback.jl") end
     @time @safetestset "Ehrenfest Tests" begin include("dynamics/ehrenfest.jl") end
     @time @safetestset "IESH Tests" begin include("dynamics/iesh.jl") end
-    @time @safetestset "Ensemble Tests" begin include("ensembles.jl") end
+    @time @safetestset "Ensemble Tests" begin include("Ensembles/ensembles.jl") end
 end
