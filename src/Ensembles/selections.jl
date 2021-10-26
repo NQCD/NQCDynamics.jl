@@ -23,14 +23,13 @@ end
 
 function (select::OrderedSelection)(prob, i, repeat)
     j = select.indices[i]
-    u = InitialConditions.pick(select.distribution, j)
-    u0 = select_u0(prob.p, u.v, u.r, select.distribution.state, select.distribution.type)
+    u0 = sample_distribution(prob.p, select.distribution, j)
     DynamicsMethods.create_problem(u0, prob.tspan, prob.p)
 end
 
 function (select::RandomSelection)(prob, i, repeat)
-    u = rand(select.distribution)
-    u0 = select_u0(prob.p, u.v, u.r, select.distribution.state, select.distribution.type)
+    j = rand(1:NonadiabaticDistributions.maxindex(select.distribution))
+    u0 = sample_distribution(prob.p, select.distribution, j)
     DynamicsMethods.create_problem(u0, prob.tspan, prob.p)
 end
 

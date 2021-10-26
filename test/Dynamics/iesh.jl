@@ -61,7 +61,7 @@ sample = InitialConditions.MetropolisHastings.run_monte_carlo_sampling(thermal, 
 
 vel = Normal(0, sqrt(temp / atoms.masses[1]))
 
-dist = InitialConditions.DynamicalDistribution(vel, sample.R, (1,1))
+dist = DynamicalDistribution(vel, sample.R, (1,1))
 
 using Plots
 plotly()

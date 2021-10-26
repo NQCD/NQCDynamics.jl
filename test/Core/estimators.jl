@@ -12,7 +12,7 @@ rp_sim = RingPolymerSimulation(Atoms(1), model, 10; temperature=5)
 vector = [ComponentVector(r=fill(1, size(sim)), v=randn(size(sim))) for _=1:100]
 rp_vector = [ComponentVector(r=fill(1, size(rp_sim)), v=randn(size(rp_sim))) for _=1:100]
 
-dist = InitialConditions.DynamicalDistribution(Normal(), [randn(size(sim)) for _=1:100], size(sim))
+dist = DynamicalDistribution(Normal(), [randn(size(sim)) for _=1:100], size(sim))
 
 @testset "@estimate" begin
     avg = mean(Estimators.potential_energy.(sim, vector))

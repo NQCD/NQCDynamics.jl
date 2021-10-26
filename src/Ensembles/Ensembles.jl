@@ -19,36 +19,25 @@ using NonadiabaticMolecularDynamics:
     RingPolymerSimulation,
     DynamicsUtils,
     DynamicsMethods,
-    RingPolymers
+    RingPolymers,
+    NonadiabaticDistributions
+using NonadiabaticMolecularDynamics.NonadiabaticDistributions:
+    NuclearDistribution,
+    CombinedDistribution
 
-using ..InitialConditions: DynamicalDistribution
-
-function select_u0(sim::Simulation{<:Union{DynamicsMethods.ClassicalMethods.Classical, DynamicsMethods.ClassicalMethods.AbstractMDEF}}, v, r, state, type)
-    DynamicsMethods.DynamicsVariables(sim, v, r)
+function sample_distribution(sim::AbstractSimulation, distribution::NuclearDistribution, i)
+    u = NonadiabaticDistributions.pick(distribution, i)
+    DynamicsMethods.DynamicsVariables(sim, u.v, u.r)
 end
 
-function select_u0(sim::RingPolymerSimulation{<:DynamicsMethods.ClassicalMethods.ThermalLangevin}, v, r, state, type)
-    DynamicsMethods.DynamicsVariables(sim, RingPolymers.RingPolymerArray(v), RingPolymers.RingPolymerArray(r))
+function sample_distribution(sim::RingPolymerSimulation{<:DynamicsMethods.ClassicalMethods.ThermalLangevin}, distribution::NuclearDistribution, i)
+    u = NonadiabaticDistributions.pick(distribution, i)
+    DynamicsMethods.DynamicsVariables(sim, RingPolymers.RingPolymerArray(u.v), RingPolymers.RingPolymerArray(u.r))
 end
 
-function select_u0(sim::AbstractSimulation{<:DynamicsMethods.SurfaceHoppingMethods.FSSH}, v, r, state, type)
-    DynamicsMethods.DynamicsVariables(sim, v, r, state; type=type)
-end
-
-function select_u0(sim::AbstractSimulation{<:DynamicsMethods.EhrenfestMethods.Ehrenfest}, v, r, state, type)
-    DynamicsMethods.DynamicsVariables(sim, v, r, state; type=type)
-end
-
-function select_u0(sim::RingPolymerSimulation{<:DynamicsMethods.MappingVariableMethods.NRPMD}, v, r, state, type)
-    DynamicsMethods.DynamicsVariables(sim, v, r, state; type=type)
-end
-
-function select_u0(sim::AbstractSimulation{<:DynamicsMethods.SurfaceHoppingMethods.IESH}, v, r, state, type)
-    DynamicsMethods.DynamicsVariables(sim, v, r)
-end
-
-function select_u0(sim::Simulation{<:DynamicsMethods.MappingVariableMethods.eCMM}, v, r, state, type)
-    DynamicsMethods.DynamicsVariables(sim, v, r, state; type=type)
+function sample_distribution(sim::AbstractSimulation, distribution::CombinedDistribution, i)
+    u = NonadiabaticDistributions.pick(distribution.nuclear, i)
+    DynamicsMethods.DynamicsVariables(sim, u.v, u.r, distribution.electronic)
 end
 
 include("selections.jl")
@@ -94,8 +83,7 @@ function run_ensemble(
 
     stripped_kwargs = NonadiabaticDynamicsBase.austrip_kwargs(;kwargs...)
 
-    u = rand(distribution)
-    u0 = select_u0(sim, u.v, u.r, distribution.state, distribution.type)
+    u0 = sample_distribution(sim, distribution, 1)
     problem = DynamicsMethods.create_problem(u0, austrip.(tspan), sim)
 
     if hasfield(typeof(reduction), :u_init)
@@ -140,10 +128,8 @@ function run_trajectories(sim::AbstractSimulation, tspan, distribution;
     stripped_kwargs = NonadiabaticDynamicsBase.austrip_kwargs(;kwargs...)
     saveat = austrip.(saveat)
 
-    u = rand(distribution)
     problem = DynamicsMethods.create_problem(
-        select_u0(sim, u.v, u.r,
-            distribution.state, distribution.type),
+        sample_distribution(sim, distribution, 1),
         austrip.(tspan),
         sim)
 
