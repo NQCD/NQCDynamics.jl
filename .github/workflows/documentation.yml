@@ -14,8 +14,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - uses: julia-actions/setup-julia@latest
-
       - uses: actions/cache@v1
         env:
           cache-name: cache-artifacts
@@ -26,14 +24,23 @@ jobs:
             ${{ runner.os }}-docs-${{ env.cache-name }}-
             ${{ runner.os }}-docs-
 
-      - name: Add NonadiabaticRegistry
-        run: julia -e 'using Pkg; Pkg.Registry.add(RegistrySpec(url="https://github.com/NQCD/NonadiabaticRegistry"))'
-      - name: Add JuliaMolSim registry
-        run: julia -e 'using Pkg; Pkg.Registry.add(RegistrySpec(url="https://github.com/JuliaMolSim/MolSim"))'
+      - name: Add registries
+        run: |
+          using Pkg
+          Pkg.Registry.add(RegistrySpec(url="https://github.com/NQCD/NQCDRegistry"))
+          Pkg.Registry.add(RegistrySpec(url="https://github.com/JuliaMolSim/MolSim"))
+          Pkg.Registry.add(RegistrySpec(name="General"))
+        shell: julia {0}
+        
+      - name: Install ase
+        run: python3 -m pip install ase
 
-      - uses: julia-actions/julia-buildpkg@latest
       - name: Dev dependencies
-        run: julia --project=docs/ -e 'using Pkg; Pkg.develop([(;path=pwd()), (;name="NonadiabaticModels")]); Pkg.instantiate()'
+        run: |
+          using Pkg
+          Pkg.develop([(;path=pwd()), (;name="NonadiabaticModels")])
+          Pkg.instantiate()
+        shell: julia --project=docs/ {0}
 
       - uses: julia-actions/julia-docdeploy@latest
         env:
