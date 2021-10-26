@@ -25,19 +25,7 @@ using NonadiabaticMolecularDynamics.NonadiabaticDistributions:
     NuclearDistribution,
     NonadiabaticDistribution
 
-const NonadiabaticMethods = Union{
-    DynamicsMethods.SurfaceHoppingMethods.FSSH,
-    DynamicsMethods.EhrenfestMethods.Ehrenfest,
-    DynamicsMethods.MappingVariableMethods.NRPMD,
-    DynamicsMethods.MappingVariableMethods.eCMM
-}
-
-const ClassicalMethods = Union{
-    DynamicsMethods.ClassicalMethods.Classical,
-    DynamicsMethods.ClassicalMethods.AbstractMDEF
-}
-
-function sample_distribution(sim::Simulation{<:ClassicalMethods}, distribution::NuclearDistribution, i)
+function sample_distribution(sim::AbstractSimulation, distribution::NuclearDistribution, i)
     u = NonadiabaticDistributions.pick(distribution, i)
     DynamicsMethods.DynamicsVariables(sim, u.v, u.r)
 end
@@ -47,35 +35,10 @@ function sample_distribution(sim::RingPolymerSimulation{<:DynamicsMethods.Classi
     DynamicsMethods.DynamicsVariables(sim, RingPolymers.RingPolymerArray(u.v), RingPolymers.RingPolymerArray(u.r))
 end
 
-function sample_distribution(sim::AbstractSimulation{<:NonadiabaticMethods}, distribution::NonadiabaticDistribution, i)
+function sample_distribution(sim::AbstractSimulation, distribution::CombinedDistribution, i)
     u = NonadiabaticDistributions.pick(distribution.nuclear, i)
     DynamicsMethods.DynamicsVariables(sim, u.v, u.r, distribution.electronic)
 end
-
-# function sample_distribution(sim::AbstractSimulation{<:DynamicsMethods.SurfaceHoppingMethods.FSSH}, distribution, i)
-#     u = InitialConditions.pick(distribution.nuclear, i)
-#     DynamicsMethods.DynamicsVariables(sim, u.v, u.r, distribution.electronic)
-# end
-
-# function sample_distribution(sim::AbstractSimulation{<:DynamicsMethods.EhrenfestMethods.Ehrenfest}, distribution, i)
-#     u = InitialConditions.pick(distribution.nuclear, i)
-#     DynamicsMethods.DynamicsVariables(sim, u.v, u.r, distribution.electronic)
-# end
-
-# function sample_distribution(sim::RingPolymerSimulation{<:DynamicsMethods.MappingVariableMethods.NRPMD}, distribution, i)
-#     u = InitialConditions.pick(distribution.nuclear, i)
-#     DynamicsMethods.DynamicsVariables(sim, u.v, u.r, distribution.electronic)
-# end
-
-function sample_distribution(sim::AbstractSimulation{<:DynamicsMethods.SurfaceHoppingMethods.IESH}, distribution::NuclearDistribution, i)
-    u = NonadiabaticDistributions.pick(distribution, i)
-    DynamicsMethods.DynamicsVariables(sim, u.v, u.r)
-end
-
-# function sample_distribution(sim::Simulation{<:DynamicsMethods.MappingVariableMethods.eCMM}, distribution, i)
-#     u = InitialConditions.pick(distribution.nuclear, i)
-#     DynamicsMethods.DynamicsVariables(sim, u.v, u.r, distribution.electronic)
-# end
 
 include("selections.jl")
 include("reductions.jl")
