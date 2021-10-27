@@ -45,34 +45,6 @@ end
     @test sol.u / 1000 ≈ 0.5 * exp(1.01) rtol=1e-1
 end
 
-@testset "OutputFinal" begin
-    output = Ensembles.OutputFinal()
-    @test output(1:10, 1) == (10, false)
-end
-
-@testset "OutputDissociation" begin
-    output = Ensembles.OutputDissociation(1.0, (1, 2))
-    r = [1 0; 0 0; 0 0]
-    v = zeros(3, 2)
-    u = ArrayPartition(v, r)
-    sol = [u]
-    @test output(sol, 1) == (0, false)
-    r = [2 0; 0 0; 0 0]
-    u = ArrayPartition(v, r)
-    sol = [u]
-    @test output(sol, 1) == (1, false)
-end
-
-@testset "OutputDiabaticPopulation" begin
-    sim = Simulation{FSSH}(atoms, NonadiabaticModels.TullyModelTwo())
-    output = Ensembles.OutputDiabaticPopulation(sim)
-end
-
-@testset "OutputQuantisedDiatomic" begin
-    output = Ensembles.OutputQuantisedDiatomic(sim; height=1, normal_vector = [1, 1, 1])
-    output = Ensembles.OutputQuantisedDiatomic(sim)
-end
-
 @testset "run_trajectories" begin
     tspan = (0.0, 10.0)
     out = Ensembles.run_trajectories(sim, tspan, distribution;

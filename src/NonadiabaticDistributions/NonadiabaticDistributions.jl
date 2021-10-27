@@ -19,4 +19,6 @@ end
 Base.:*(N::NuclearDistribution, E::ElectronicDistribution) = CombinedDistribution(N, E)
 Base.:*(E::ElectronicDistribution, N::NuclearDistribution) = CombinedDistribution(N, E)
 
+maxindex(dist::CombinedDistribution) = maxindex(dist.nuclear)
+
 end # module

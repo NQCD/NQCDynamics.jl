@@ -77,12 +77,6 @@ function set_mapping_force!(du, u, sim::Simulation{<:eCMM})
     lmul!(-1, get_mapping_momenta(du))
 end
 
-function Estimators.diabatic_population(sim::Simulation{<:eCMM}, u)
-    qmap = get_mapping_positions(u)
-    pmap = get_mapping_momenta(u)
-    inverse_mapping_kernel(qmap, pmap, sim.method.γ)
-end
-
 function DynamicsUtils.classical_hamiltonian(sim::Simulation{<:eCMM}, u)
     r = DynamicsUtils.get_positions(u)
     v = DynamicsUtils.get_velocities(u)
@@ -107,3 +101,16 @@ function inverse_mapping_kernel(qmap, pmap, γ)
     subtractor = (1 - γ) / (1 + F*γ)
     return prefactor .* (qmap.^2 .+ pmap.^2)./2 .- subtractor
 end
+
+function Estimators.diabatic_population(sim::Simulation{<:eCMM}, u)
+    qmap = get_mapping_positions(u)
+    pmap = get_mapping_momenta(u)
+    2inverse_mapping_kernel(qmap, pmap, sim.method.γ)
+end
+
+function Estimators.initial_diabatic_population(sim::Simulation{<:eCMM}, u)
+    qmap = get_mapping_positions(u)
+    pmap = get_mapping_momenta(u)
+    mapping_kernel(qmap, pmap, sim.method.γ)
+end
+
