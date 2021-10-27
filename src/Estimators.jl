@@ -91,4 +91,7 @@ end
 function diabatic_population end
 function adiabatic_population end
 
+initial_diabatic_population(sim, u) = diabatic_population(sim, u)
+initial_adiabatic_population(sim, u) = adiabatic_population(sim, u)
+
 end # module

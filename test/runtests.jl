@@ -35,4 +35,5 @@ if GROUP == "All" || GROUP == "Dynamics"
     @time @safetestset "Ehrenfest Tests" begin include("Dynamics/ehrenfest.jl") end
     @time @safetestset "IESH Tests" begin include("Dynamics/iesh.jl") end
     @time @safetestset "Ensemble Tests" begin include("Ensembles/ensembles.jl") end
+    @time @safetestset "Ensemble Output Tests" begin include("Ensembles/outputs.jl") end
 end

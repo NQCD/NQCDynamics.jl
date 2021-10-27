@@ -1,6 +1,6 @@
-using LinearAlgebra: lmul!
+using LinearAlgebra: lmul!, norm
 using Parameters: Parameters
-using NonadiabaticMolecularDynamics.NonadiabaticDistributions: SingleState, Diabatic
+using NonadiabaticMolecularDynamics.NonadiabaticDistributions: ElectronicDistribution
 
 """
     eCMM{T} <: DynamicsMethods.Method
@@ -23,18 +23,20 @@ function NonadiabaticMolecularDynamics.Simulation{eCMM}(atoms::Atoms{S,T}, model
     NonadiabaticMolecularDynamics.Simulation(atoms, model, eCMM{T}(NonadiabaticModels.nstates(model), γ); kwargs...)
 end
 
-function DynamicsMethods.DynamicsVariables(sim::Simulation{<:eCMM}, v, r, electronic::SingleState{Diabatic})
+function DynamicsMethods.DynamicsVariables(sim::Simulation{<:eCMM}, v, r, ::ElectronicDistribution)
 
-    state = electronic.state
-    qmap = zeros(NonadiabaticModels.nstates(sim))
-    pmap = zeros(NonadiabaticModels.nstates(sim))
-
-    θ = rand() * 2π
-    radius = sqrt(2 + 2NonadiabaticModels.nstates(sim)*sim.method.γ)
-    qmap[state] = cos(θ) * radius
-    pmap[state] = sin(θ) * radius
+    F = NonadiabaticModels.nstates(sim)
+    radius = sqrt(2 + 2F*sim.method.γ)
+    points = generate_random_points_on_nsphere(2F, radius)
+    qmap = points[begin:div(F,2)+1]
+    pmap = points[div(F,2)+2:end]
 
     ComponentVector(v=v, r=r, pmap=pmap, qmap=qmap)
+end
+
+function generate_random_points_on_nsphere(n, radius)
+    randomnormal = randn(n)
+    return randomnormal ./ norm(randomnormal) .* radius
 end
 
 function DynamicsMethods.motion!(du, u, sim::Simulation{<:eCMM}, t)
@@ -75,21 +77,6 @@ function set_mapping_force!(du, u, sim::Simulation{<:eCMM})
     lmul!(-1, get_mapping_momenta(du))
 end
 
-function Estimators.diabatic_population(sim::Simulation{<:eCMM}, u)
-    qmap = get_mapping_positions(u)
-    pmap = get_mapping_momenta(u)
-    F = NonadiabaticModels.nstates(sim)
-    γ = sim.method.γ
-
-    prefactor = (1 + F)/(2*(1 + F*γ)^2)
-    subtractor = (1 - γ) / (1 + F*γ)
-    out = zero(qmap)
-    for i=1:F
-        out[i] = prefactor * (qmap[i]^2 + pmap[i]^2) - subtractor
-    end
-    out
-end
-
 function DynamicsUtils.classical_hamiltonian(sim::Simulation{<:eCMM}, u)
     r = DynamicsUtils.get_positions(u)
     v = DynamicsUtils.get_velocities(u)
@@ -105,3 +92,25 @@ function DynamicsUtils.classical_hamiltonian(sim::Simulation{<:eCMM}, u)
     H = kinetic + potential
     return H
 end
+
+mapping_kernel(qmap, pmap, γ) = (qmap.^2 .+ pmap.^2)./2 .- γ
+
+function inverse_mapping_kernel(qmap, pmap, γ)
+    F = length(qmap)
+    prefactor = (1 + F) / (1 + F*γ)^2
+    subtractor = (1 - γ) / (1 + F*γ)
+    return prefactor .* (qmap.^2 .+ pmap.^2)./2 .- subtractor
+end
+
+function Estimators.diabatic_population(sim::Simulation{<:eCMM}, u)
+    qmap = get_mapping_positions(u)
+    pmap = get_mapping_momenta(u)
+    2inverse_mapping_kernel(qmap, pmap, sim.method.γ)
+end
+
+function Estimators.initial_diabatic_population(sim::Simulation{<:eCMM}, u)
+    qmap = get_mapping_positions(u)
+    pmap = get_mapping_momenta(u)
+    mapping_kernel(qmap, pmap, sim.method.γ)
+end
+
