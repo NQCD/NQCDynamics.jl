@@ -105,7 +105,7 @@ end
 function Estimators.diabatic_population(sim::Simulation{<:eCMM}, u)
     qmap = get_mapping_positions(u)
     pmap = get_mapping_momenta(u)
-    2inverse_mapping_kernel(qmap, pmap, sim.method.γ)
+    inverse_mapping_kernel(qmap, pmap, sim.method.γ)
 end
 
 function Estimators.initial_diabatic_population(sim::Simulation{<:eCMM}, u)
@@ -113,4 +113,7 @@ function Estimators.initial_diabatic_population(sim::Simulation{<:eCMM}, u)
     pmap = get_mapping_momenta(u)
     mapping_kernel(qmap, pmap, sim.method.γ)
 end
+
+TimeCorrelationFunctions.evaluate_normalisation(sim::Simulation{<:eCMM},
+    correlation::TimeCorrelationFunctions.PopulationCorrelationFunction) = 2
 

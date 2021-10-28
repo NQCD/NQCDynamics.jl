@@ -31,33 +31,33 @@ end
     output = Ensembles.OutputQuantisedDiatomic(sim)
 end
 
-@testset "PopulationCorrelation" begin
+@testset "PopulationCorrelationFunction" begin
 
     @testset "Ehrenfest" begin
         sim = Simulation{Ehrenfest}(Atoms(2000), TullyModelTwo())
-        output = Ensembles.PopulationCorrelation(sim, 1, Adiabatic())
+        output = TimeCorrelationFunctions.PopulationCorrelationFunction(sim, Adiabatic())
         u = DynamicsVariables(sim, hcat(20/2000), hcat(-5), SingleState(1, Adiabatic()))
         sol = run_trajectory(u, (0, 1000.0), sim)
         out, cont = output(sol, 1)
         @test out[1][1,1] ≈ 1
         @test out[1][2,2] ≈ 0
-        @test [o[2,1] for o in out] ≈ [1 - o[1,1] for o in out]
+        @test [o[1,2] for o in out] ≈ [1 - o[1,1] for o in out]
     end
 
     @testset "FSSH" begin
         sim = Simulation{FSSH}(Atoms(2000), TullyModelTwo())
-        output = Ensembles.PopulationCorrelation(sim, 1, Adiabatic())
+        output = TimeCorrelationFunctions.PopulationCorrelationFunction(sim, Adiabatic())
         u = DynamicsVariables(sim, hcat(20/2000), hcat(-5), SingleState(1, Adiabatic()))
         sol = run_trajectory(u, (0, 1000.0), sim)
         out, cont = output(sol, 1)
         @test out[1][1,1] ≈ 1
         @test out[1][2,2] ≈ 0
-        @test [o[2,1] for o in out] ≈ [1 - o[1,1] for o in out]
+        @test [o[1,2] for o in out] ≈ [1 - o[1,1] for o in out]
     end
 
     @testset "eCMM" begin
         sim = Simulation{eCMM}(Atoms(2000), TullyModelTwo())
-        output = Ensembles.PopulationCorrelation(sim, 1, Diabatic())
+        output = TimeCorrelationFunctions.PopulationCorrelationFunction(sim, Diabatic())
         u = DynamicsVariables(sim, hcat(20/2000), hcat(-5), SingleState(1, Diabatic()))
         sol = run_trajectory(u, (0, 1000.0), sim)
         out, cont = output(sol, 1)
