@@ -56,11 +56,14 @@ end
             sim = Simulation{eCMM}(Atoms(1), DoubleWell(); γ=γ)
             out = zeros(2, 2)
             n = 1e4
+            correlation = TimeCorrelationFunctions.PopulationCorrelationFunction(sim, Diabatic())
+            normalisation = TimeCorrelationFunctions.evaluate_normalisation(sim, correlation)
+
             for i=1:n
                 u = DynamicsVariables(sim, 0, 0, SingleState(1))
-                K = DynamicsMethods.MappingVariableMethods.mapping_kernel(u.qmap, u.pmap, sim.method.γ)
-                Kinv = DynamicsMethods.MappingVariableMethods.inverse_mapping_kernel(u.qmap, u.pmap, sim.method.γ)
-                out .+= 2K * Kinv'
+                K = Estimators.initial_diabatic_population(sim, u)
+                Kinv = Estimators.diabatic_population(sim, u)
+                out .+= normalisation * K * Kinv'
             end
             @test out ./ n ≈ [1 0; 0 1] atol=0.1
         end
