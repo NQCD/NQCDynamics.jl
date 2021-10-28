@@ -29,6 +29,9 @@ include("DynamicsOutputs.jl")
 include("NonadiabaticDistributions/NonadiabaticDistributions.jl")
 @reexport using .NonadiabaticDistributions
 
+include("TimeCorrelationFunctions.jl")
+export TimeCorrelationFunctions
+
 include("DynamicsMethods/DynamicsMethods.jl")
 @reexport using .DynamicsMethods
 

@@ -100,31 +100,3 @@ function (output::OutputStateResolvedScattering1D)(sol, i)
     end
     return (output, false)
 end
-
-struct PopulationCorrelation{T,S}
-    sim::S
-    state::Int
-    statetype::T
-end
-
-function (output::PopulationCorrelation{Diabatic})(sol, i)
-    initial_populations = Estimators.initial_diabatic_population(output.sim, first(sol.u))
-    populations = Estimators.diabatic_population.(output.sim, sol.u)
-    n = nstates(output.sim)
-    output = [zeros(n, n) for _=1:length(populations)]
-    for i=1:length(output)
-        output[i] .= populations[i] * initial_populations'
-    end
-    return (output, false)
-end
-
-function (output::PopulationCorrelation{Adiabatic})(sol, i)
-    initial_populations = Estimators.initial_adiabatic_population(output.sim, first(sol.u))
-    populations = Estimators.adiabatic_population.(output.sim, sol.u)
-    n = nstates(output.sim)
-    output = [zeros(n, n) for _=1:length(populations)]
-    for i=1:length(output)
-        output[i] .= populations[i] * initial_populations'
-    end
-    return (output, false)
-end

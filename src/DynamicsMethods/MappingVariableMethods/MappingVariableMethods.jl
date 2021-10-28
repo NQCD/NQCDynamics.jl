@@ -11,6 +11,7 @@ using NonadiabaticMolecularDynamics:
     Calculators,
     Estimators,
     NonadiabaticDistributions,
+    TimeCorrelationFunctions,
     ndofs
 using NonadiabaticModels: NonadiabaticModels, Model
 using NonadiabaticDynamicsBase: Atoms
