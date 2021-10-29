@@ -1,5 +1,5 @@
 
-using LinearAlgebra: tr, mul!, dot
+using LinearAlgebra: tr, mul!, dot, Diagonal
 using ComponentArrays: ComponentVector
 using Distributions: Normal
 using NonadiabaticMolecularDynamics: RingPolymers
