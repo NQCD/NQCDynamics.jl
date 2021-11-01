@@ -37,7 +37,7 @@ configurations = QuantisedDiatomic.generate_configurations(sim, ν, J;
 v = first.(configurations)
 r = last.(configurations)
 
-distribution = InitialConditions.DynamicalDistribution(v, r, (3,2))
+distribution = DynamicalDistribution(v, r, (3,2))
 ```
 
 Since we are interested in the dynamics only when the molecule is close to the surface,

@@ -60,8 +60,7 @@ plot(v_plot, r_plot, layout=(2,1))
 
 From our results we can create a distribution that can be sampled for the NRPMD dynamics.
 ```@example nrpmd
-distribution = InitialConditions.DynamicalDistribution(sol.velocity, sol.position,
-    (1, N, n_beads); state=1, type=:diabatic)
+distribution = DynamicalDistribution(sol.velocity, sol.position, size(sim)) * SingleState(1)
 nothing # hide
 ```
 

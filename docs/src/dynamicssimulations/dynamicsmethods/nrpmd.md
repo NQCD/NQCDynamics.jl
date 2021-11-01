@@ -100,10 +100,9 @@ sim = RingPolymerSimulation(atom, Harmonic(dofs=1), 4; temperature=1/16)
 
 r0 = zeros(size(sim))
 output = InitialConditions.ThermalMonteCarlo.run_advancedmh_sampling(sim, r0, 5e3, Dict(:X=>1.0))
-velocities = InitialConditions.BoltzmannVelocityDistribution(1/16, masses(sim))
+velocities = BoltzmannVelocityDistribution(1/16, masses(sim), size(sim))
 
-distribution = InitialConditions.DynamicalDistribution(velocities, output, size(sim);
-                                     state=1, type=:diabatic)
+distribution = DynamicalDistribution(velocities, output, size(sim)) * SingleState(1)
 ```
 
 We can check the distribution by plotting the phasespace diagram for each of the points
@@ -112,8 +111,9 @@ in our distribution:
 ```@example nrpmd
 using CairoMakie
 
-flat_position = vcat([p[:] for p in distribution.position]...)
-flat_velocity = vcat([rand(distribution.velocity)[:] for p in 1:length(flat_position)]...)
+nuclear = distribution.nuclear
+flat_position = vcat([p[:] for p in nuclear.position]...)
+flat_velocity = vcat([rand(nuclear.velocity)[:] for p in 1:length(nuclear.position)]...)
 scatter(flat_position, flat_velocity)
 ```
 
@@ -128,8 +128,10 @@ sim = RingPolymerSimulation{NRPMD}(atom, DoubleWell(γ=0.1), 4; temperature=1/16
 Next, we can use this distribution as a starting point for the dynamics simulations.
 This will result in each trajectory starting from a random configuration in the
 distribution.
-Since the distribution also has `state=1` and `type=:diabatic`, the electronic
-variables will be selected such that each trajectory is initialised in diabatic state 1.
+For NRPMD, the electronic variables are sampled from a gaussian, independent of the
+initial electronic state.
+The electronic state is introduced in the correlation function expression when correlating
+the initial and final populations.
 
 The quantities output by the ensemble simulation are specified by the `Output` and
 the `Reduction`.

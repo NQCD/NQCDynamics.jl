@@ -23,7 +23,7 @@ using Distributions: Normal
 k = 10
 v = k / atoms.masses[1]
 r = Normal(-8)
-distribution = InitialConditions.DynamicalDistribution(v, r, (1,1); state=2)
+distribution = DynamicalDistribution(v, r, (1,1)) * SingleState(2)
 nothing # hide
 ```
 !!! note

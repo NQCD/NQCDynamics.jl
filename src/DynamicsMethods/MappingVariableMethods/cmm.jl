@@ -7,8 +7,8 @@ using NonadiabaticMolecularDynamics.NonadiabaticDistributions: ElectronicDistrib
 
 # References
 
-[He2021a](@cite)
-[He2021b](@cite)
+- [HeGong2021](@cite)
+- [HeWu2021](@cite)
 """
 struct eCMM{T} <: DynamicsMethods.Method
     γ::T

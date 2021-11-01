@@ -82,9 +82,9 @@ sim = Simulation{FSSH}(atoms, TullyModelThree())
 
 The [`DynamicsVariables`](@ref) constructor has some extra arguments for FSSH.
 The first three match the classical case, but we also provide the initial state and
-whether we want this state to be `:adiabatic` or `:diabatic`.
+whether we want this state to be `Adiabatic()` or `Diabatic()`.
 ```@example fssh
-u = DynamicsVariables(sim, hcat(20/2000), hcat(-10), 1; type=:adiabatic)
+u = DynamicsVariables(sim, hcat(20/2000), hcat(-10), SingleState(1, Adiabatic()))
 ```
 
 Finally, the trajectory can be run by passing all the parameters we have set up so far.

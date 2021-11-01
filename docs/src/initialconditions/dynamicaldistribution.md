@@ -4,13 +4,13 @@ In order to perform ensembles of trajectories, it is useful to have a convenient
 to generate distributions of velocities and positions which can be sampled to
 initialise trajectories.
 
-We provide the [`DynamicalDistribution`](@ref InitialConditions.DynamicalDistribution)
+We provide the [`DynamicalDistribution`](@ref)
 type which can be used to store initial velocities and positions:
 ```@setup distribution
 using NonadiabaticMolecularDynamics
 ```
 ```@example distribution
-d = InitialConditions.DynamicalDistribution(10, 5, (3, 2))
+d = DynamicalDistribution(10, 5, (3, 2))
 nothing # hide
 ``` 
 Here we have created a delta distribution with fixed velocities and positions,
@@ -21,7 +21,7 @@ rand(d)
 ```
 
 However, a delta distribution is not particularly useful, fortunately,
-[`DynamicalDistribution`](@ref InitialConditions.DynamicalDistribution)
+[`DynamicalDistribution`](@ref)
 is flexible and each of the first two arguments can be `Real`, `Vector` or `Sampleable`.
 
 !!! note
@@ -38,13 +38,13 @@ using Distributions
 
 velocity = [[1.0 1.0;1.0 1.0], [2.0 2.0; 2.0 2.0], [3.0 3.0; 3.0 3.0]] 
 position = Normal()
-d = InitialConditions.DynamicalDistribution(velocity, position, (2, 2))
+d = DynamicalDistribution(velocity, position, (2, 2))
 rand(d)
 ``` 
 This has generated normally distributed positions along with one of the three velocities
 we provided.
 
-The [`DynamicalDistribution`](@ref InitialConditions.DynamicalDistribution) also accepts
+The [`DynamicalDistribution`](@ref) also accepts
 keyword arguments to provide extra metadata when performing nonequilibrium simulations
 confined to a single electronic state.
 Visit the docstring in API section by clicking the link in the previous sentence to learn
