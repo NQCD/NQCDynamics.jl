@@ -53,9 +53,8 @@ using Distributions: Normal
 using Unitful
 
 position = Normal(2.1, 1 / sqrt(20000 * 0.005))
-velocity = InitialConditions.BoltzmannVelocityDistribution(300u"K", [20000])
-distribution = InitialConditions.DynamicalDistribution(velocity, position, (1,1,1);
-    state=1, type=:diabatic)
+velocity = BoltzmannVelocityDistribution(300u"K", [20000], (1,1,1))
+distribution = DynamicalDistribution(velocity, position, (1,1,1)) * SingleState(1)
 nothing # hide
 ```
 

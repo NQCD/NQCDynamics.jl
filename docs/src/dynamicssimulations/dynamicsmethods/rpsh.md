@@ -48,8 +48,8 @@ with Boltzmann velocities at 300 K.
 using Distributions: Normal
 
 position = Normal(2.1, 1 / sqrt(20000 * 0.005))
-velocity = InitialConditions.BoltzmannVelocityDistribution(300u"K" * nbeads(sim), masses(sim))
-distribution = InitialConditions.DynamicalDistribution(velocity, position, size(sim); state=1)
+velocity = BoltzmannVelocityDistribution(300u"K" * nbeads(sim), masses(sim), size(sim))
+distribution = DynamicalDistribution(velocity, position, size(sim)) * SingleState(1)
 nothing # hide
 ```
 
