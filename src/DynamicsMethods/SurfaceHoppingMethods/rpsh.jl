@@ -99,7 +99,8 @@ end
 
 function Estimators.diabatic_population(sim::RingPolymerSimulation{<:FSSH}, u)
     Calculators.evaluate_centroid_potential!(sim.calculator, DynamicsUtils.get_positions(u))
-    U = eigvecs(sim.calculator.centroid_potential)
+    Calculators.centroid_eigen!(sim.calculator)
+    U = sim.calculator.centroid_eigenvectors
 
     σ = copy(DynamicsUtils.get_quantum_subsystem(u).re)
     σ[diagind(σ)] .= 0

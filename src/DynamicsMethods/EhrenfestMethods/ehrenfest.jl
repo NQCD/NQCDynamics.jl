@@ -72,7 +72,8 @@ end
 
 function Estimators.diabatic_population(sim::Simulation{<:Ehrenfest}, u)
     Calculators.evaluate_potential!(sim.calculator, DynamicsUtils.get_positions(u))
-    U = eigvecs(sim.calculator.potential)
+    Calculators.eigen!(sim.calculator)
+    U = sim.calculator.eigenvectors
 
     σ = DynamicsUtils.get_quantum_subsystem(u)
 
