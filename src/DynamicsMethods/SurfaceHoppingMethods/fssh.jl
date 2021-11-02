@@ -152,7 +152,8 @@ end
 
 function Estimators.diabatic_population(sim::Simulation{<:FSSH}, u)
     Calculators.evaluate_potential!(sim.calculator, DynamicsUtils.get_positions(u))
-    U = eigvecs(sim.calculator.potential)
+    Calculators.eigen!(sim.calculator)
+    U = sim.calculator.eigenvectors
 
     σ = copy(DynamicsUtils.get_quantum_subsystem(u).re)
     σ[diagind(σ)] .= 0
