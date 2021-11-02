@@ -54,6 +54,7 @@ bib = CitationBibliography(joinpath(@__DIR__, "references.bib"), sorting=:nyt)
         "Developer documentation" => [
             "devdocs/new_methods.md"
             "devdocs/models.md"
+            "devdocs/diffeq.md"
         ]
         "API" => Any[
             "NonadiabaticModels" => map(
