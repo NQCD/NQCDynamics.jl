@@ -118,6 +118,7 @@ Run multiple trajectories and output the results in the same way as the
 [`run_trajectory`](@ref DynamicsMethods.run_trajectory) function.
 """
 function run_trajectories(sim::AbstractSimulation, tspan, distribution;
+    algorithm=DynamicsMethods.select_algorithm(sim),
     selection=nothing, output=(:u),
     ensemble_algorithm=EnsembleThreads(), saveat=[], kwargs...)
 
@@ -143,7 +144,7 @@ function run_trajectories(sim::AbstractSimulation, tspan, distribution;
 
     ensemble_problem = EnsembleProblem(problem, prob_func=new_selection)
 
-    solve(ensemble_problem, DynamicsMethods.select_algorithm(sim), ensemble_algorithm; saveat=saveat, stripped_kwargs...)
+    solve(ensemble_problem, algorithm, ensemble_algorithm; saveat=saveat, stripped_kwargs...)
     [TypedTables.Table(t=vals.t, [(;zip(output, val)...) for val in vals.saveval]) for vals in new_selection.values]
 end
 
