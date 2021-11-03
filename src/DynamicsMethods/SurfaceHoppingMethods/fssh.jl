@@ -1,4 +1,5 @@
 using StatsBase: mean
+using .NonadiabaticDistributions: NonadiabaticDistribution
 
 export FSSH
 
@@ -33,23 +34,11 @@ function Simulation{FSSH}(atoms::Atoms{S,T}, model::Model; kwargs...) where {S,T
     Simulation(atoms, model, FSSH{T}(NonadiabaticModels.nstates(model)); kwargs...)
 end
 
-function DynamicsMethods.DynamicsVariables(sim::Simulation{<:SurfaceHopping}, v, r, electronic::NonadiabaticDistributions.SingleState)
-    n_states = NonadiabaticModels.nstates(sim.calculator.model)
-    
-    state = electronic.state
-    if electronic.statetype === NonadiabaticDistributions.Diabatic()
-        Calculators.evaluate_potential!(sim.calculator, r)
-        Calculators.eigen!(sim.calculator)
-        U = sim.calculator.eigenvectors
-
-        diabatic_density = zeros(n_states, n_states)
-        diabatic_density[state, state] = 1
-        σ = U' * diabatic_density * U
-        state = sample(Weights(diag(real.(σ))))
-    else
-        σ = zeros(n_states, n_states)
-        σ[state, state] = 1
-    end
+function DynamicsMethods.DynamicsVariables(
+    sim::AbstractSimulation{<:SurfaceHopping}, v, r, electronic::NonadiabaticDistribution
+)
+    σ = NonadiabaticDistributions.initialise_adiabatic_density_matrix(electronic, sim.calculator, r)
+    state = sample(Weights(diag(real.(σ))))
     return SurfaceHoppingVariables(ComponentVector(v=v, r=r, σreal=σ, σimag=zero(σ)), state)
 end
 
