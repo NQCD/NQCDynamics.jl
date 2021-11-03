@@ -37,7 +37,7 @@ Here we choose to output the populations of each diabatic state and reduce by av
 the results over all trajectories.
 ```@example ensemble
 output = Ensembles.OutputDiabaticPopulation(sim)
-reduction = Ensembles.MeanReduction()
+reduction = Ensembles.MeanReduction([zeros(2) for _ in 0:10:3000])
 nothing # hide
 ```
 

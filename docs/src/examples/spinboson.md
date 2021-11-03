@@ -33,7 +33,7 @@ analytic form and we can use the distributions included in the package.
 ```@example spinboson
 position = PositionHarmonicWigner.(model.ωⱼ, β, 1)
 velocity = VelocityHarmonicWigner.(model.ωⱼ, β, 1)
-distribution = DynamicalDistribution(velocity, position, (1, 100))) * SingleState(1)
+distribution = DynamicalDistribution(velocity, position, (1, 100)) * SingleState(1)
 nothing # hide
 ```
 

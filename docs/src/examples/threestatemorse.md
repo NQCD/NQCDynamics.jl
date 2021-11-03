@@ -66,14 +66,15 @@ The [`OutputDiabaticPopulation`](@ref Ensembles.OutputDiabaticPopulation) will e
 the diabatic population estimator at each timestep.
 
 ```@example threestatemorse
+reduction = Ensembles.MeanReduction([zeros(3) for _=1:10:3000])
 sim = Simulation{FSSH}(atoms, model)
 fssh_result = Ensembles.run_ensemble(sim, (0.0, 3000.0), distribution;
     saveat=10, trajectories=1e3,
-    output=Ensembles.OutputDiabaticPopulation(sim), reduction=Ensembles.MeanReduction(), dt=1)
+    output=Ensembles.OutputDiabaticPopulation(sim), reduction=reduction, dt=1)
 sim = Simulation{Ehrenfest}(atoms, model)
 ehrenfest_result = Ensembles.run_ensemble(sim, (0.0, 3000.0), distribution;
     saveat=10, trajectories=1e3,
-    output=Ensembles.OutputDiabaticPopulation(sim), reduction=Ensembles.MeanReduction(), dt=1)
+    output=Ensembles.OutputDiabaticPopulation(sim), reduction=reduction, dt=1)
 
 fig = Figure()
 ax = Axis(fig[1,1], xlabel="Time /a.u.", ylabel="Population")
