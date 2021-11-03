@@ -33,13 +33,15 @@ Top-level type for all calculators.
 Each concrete calculator contains the `Model` and the fields to store the quantities
 obtained from the model.
 """
-abstract type AbstractCalculator{M<:Model} end
-abstract type AbstractAdiabaticCalculator{M<:AdiabaticModel} <: AbstractCalculator{M} end
-abstract type AbstractDiabaticCalculator{M<:Union{DiabaticFrictionModel,DiabaticModel}} <: AbstractCalculator{M} end
-abstract type AbstractStaticDiabaticCalculator{M} <: AbstractDiabaticCalculator{M} end
-abstract type AbstractFrictionCalculator{M<:AdiabaticFrictionModel} <: AbstractCalculator{M} end
+abstract type AbstractCalculator{T,M<:Model} end
+abstract type AbstractAdiabaticCalculator{T,M<:AdiabaticModel} <: AbstractCalculator{T,M} end
+abstract type AbstractDiabaticCalculator{T,M<:Union{DiabaticFrictionModel,DiabaticModel}} <: AbstractCalculator{T,M} end
+abstract type AbstractStaticDiabaticCalculator{T,M} <: AbstractDiabaticCalculator{T,M} end
+abstract type AbstractFrictionCalculator{T,M<:AdiabaticFrictionModel} <: AbstractCalculator{T,M} end
 
-mutable struct AdiabaticCalculator{T,M} <: AbstractAdiabaticCalculator{M}
+Base.eltype(::AbstractCalculator{T}) where {T} = T
+
+mutable struct AdiabaticCalculator{T,M} <: AbstractAdiabaticCalculator{T,M}
     model::M
     potential::T
     derivative::Matrix{T}
@@ -48,7 +50,7 @@ mutable struct AdiabaticCalculator{T,M} <: AbstractAdiabaticCalculator{M}
     end
 end
 
-struct RingPolymerAdiabaticCalculator{T,M} <: AbstractAdiabaticCalculator{M}
+struct RingPolymerAdiabaticCalculator{T,M} <: AbstractAdiabaticCalculator{T,M}
     model::M
     potential::Vector{T}
     derivative::Array{T,3}
@@ -57,7 +59,7 @@ struct RingPolymerAdiabaticCalculator{T,M} <: AbstractAdiabaticCalculator{M}
     end
 end
 
-mutable struct DiabaticCalculator{T,M,S,L} <: AbstractDiabaticCalculator{M}
+mutable struct DiabaticCalculator{T,M,S,L} <: AbstractDiabaticCalculator{T,M}
     model::M
     potential::Hermitian{T,SMatrix{S,S,T,L}}
     derivative::Matrix{Hermitian{T,SMatrix{S,S,T,L}}}
@@ -90,7 +92,7 @@ mutable struct DiabaticCalculator{T,M,S,L} <: AbstractDiabaticCalculator{M}
     end
 end
 
-mutable struct RingPolymerDiabaticCalculator{T,M,S,L} <: AbstractDiabaticCalculator{M}
+mutable struct RingPolymerDiabaticCalculator{T,M,S,L} <: AbstractDiabaticCalculator{T,M}
     model::M
     potential::Vector{Hermitian{T,SMatrix{S,S,T,L}}}
     derivative::Array{Hermitian{T,SMatrix{S,S,T,L}},3}
