@@ -1,7 +1,7 @@
 
 using NonadiabaticModels.DiabaticModels: LargeDiabaticModel
 
-struct LargeDiabaticCalculator{T,M} <: AbstractDiabaticCalculator{M}
+struct LargeDiabaticCalculator{T,M} <: AbstractDiabaticCalculator{T,M}
     model::M
     potential::Hermitian{T,Matrix{T}}
     derivative::Matrix{Hermitian{T,Matrix{T}}}

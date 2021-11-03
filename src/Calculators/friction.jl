@@ -1,5 +1,5 @@
 
-mutable struct FrictionCalculator{T,M} <: AbstractFrictionCalculator{M}
+mutable struct FrictionCalculator{T,M} <: AbstractFrictionCalculator{T,M}
     model::M
     potential::T
     derivative::Matrix{T}
@@ -9,7 +9,7 @@ mutable struct FrictionCalculator{T,M} <: AbstractFrictionCalculator{M}
     end
 end
 
-struct RingPolymerFrictionCalculator{T,M} <: AbstractFrictionCalculator{M}
+struct RingPolymerFrictionCalculator{T,M} <: AbstractFrictionCalculator{T,M}
     model::M
     potential::Vector{T}
     derivative::Array{T,3}
@@ -19,7 +19,7 @@ struct RingPolymerFrictionCalculator{T,M} <: AbstractFrictionCalculator{M}
     end
 end
 
-struct DiabaticFrictionCalculator{T,M} <: AbstractDiabaticCalculator{M}
+struct DiabaticFrictionCalculator{T,M} <: AbstractDiabaticCalculator{T,M}
     model::M
     potential::Hermitian{T,Matrix{T}}
     derivative::Matrix{Hermitian{T,Matrix{T}}}
