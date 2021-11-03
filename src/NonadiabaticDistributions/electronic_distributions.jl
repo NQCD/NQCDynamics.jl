@@ -1,3 +1,5 @@
+using LinearAlgebra: diagind
+
 using NonadiabaticModels: NonadiabaticModels
 using NonadiabaticMolecularDynamics: Calculators
 using .Calculators:
@@ -30,7 +32,7 @@ function initialise_adiabatic_density_matrix(
 )
 
     diabatic_density = initialise_density_matrix(electronics, calculator)
-    return transform_density_to_adiabatic_basis!(diabatic_density, calculator, r)
+    return transform_density!(diabatic_density, calculator, r, :to_adiabatic)
 end
 
 function initialise_adiabatic_density_matrix(
@@ -65,22 +67,27 @@ function fill_density!(density::AbstractMatrix, electronics::ElectronicPopulatio
     return density
 end
 
-function transform_density_to_adiabatic_basis!(
-    density::AbstractMatrix, calculator::DiabaticCalculator, r
+function transform_density!(
+    density::AbstractMatrix, calculator::AbstractDiabaticCalculator, r, direction
 )
-    Calculators.evaluate_potential!(calculator, r)
-    Calculators.eigen!(calculator)
-    U = calculator.eigenvectors
+    U = evaluate_transformation(calculator, r)
+    if direction === :to_diabatic
+        U = U'
+    elseif !(direction === :to_adiabatic)
+        throw(ArgumentError("`direction` $direction not recognised."))
+    end
     density .= U' * density * U
     return density
 end
 
-function transform_density_to_adiabatic_basis!(
-    density::AbstractMatrix, calculator::RingPolymerDiabaticCalculator, r
-)
+function evaluate_transformation(calculator::DiabaticCalculator, r)
+    Calculators.evaluate_potential!(calculator, r)
+    Calculators.eigen!(calculator)
+    return calculator.eigenvectors
+end
+
+function evaluate_transformation(calculator::RingPolymerDiabaticCalculator, r)
     Calculators.evaluate_centroid_potential!(calculator, r)
     Calculators.centroid_eigen!(calculator)
-    U = calculator.centroid_eigenvectors
-    density .= U' * density * U
-    return density
+    return calculator.centroid_eigenvectors
 end
