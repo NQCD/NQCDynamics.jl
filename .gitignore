@@ -6,3 +6,5 @@ dev/
 !/.gitignore
 !/.github
 !/.codecov.yml
+/.benchmarkci
+/benchmark/*.json

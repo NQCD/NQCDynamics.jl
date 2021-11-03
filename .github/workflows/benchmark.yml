@@ -1,0 +1,32 @@
+
+name: Run benchmarks
+
+on:
+  pull_request:
+
+jobs:
+  Benchmark:
+    name: Benchmark
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Add registries
+        run: |
+          using Pkg
+          Pkg.Registry.add(RegistrySpec(url="https://github.com/NQCD/NQCDRegistry"))
+          Pkg.Registry.add(RegistrySpec(name="General"))
+        shell: julia {0}
+
+      - uses: julia-actions/julia-buildpkg@latest
+
+      - name: Benchmark
+        run: |
+          using Pkg
+          pkg"add PkgBenchmark BenchmarkCI@0.1"
+          using BenchmarkCI
+          BenchmarkCI.judge()
+          BenchmarkCI.displayjudgement()
+        shell: julia {0}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
