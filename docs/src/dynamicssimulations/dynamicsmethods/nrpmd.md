@@ -142,7 +142,7 @@ like to average the results so we use the `MeanReduction`.
 
 ```@example nrpmd
 output = Ensembles.OutputDiabaticPopulation(sim)
-reduction = Ensembles.MeanReduction()
+reduction = Ensembles.MeanReduction([zeros(2) for _ in 1:0.1:30])
 nothing # hide
 ```
 
