@@ -41,8 +41,18 @@ end
     output_func(sol,i) = last(sol), false
     reduction = Ensembles.SumReduction()
     ensemble = EnsembleProblem(prob, prob_func=prob_func, output_func=output_func, reduction=reduction, u_init=reduction.u_init)
-    sol = solve(ensemble, Tsit5(), trajectories=1000, batch_size=20)
-    @test sol.u / 1000 ≈ 0.5 * exp(1.01) rtol=1e-1
+    sol = solve(ensemble, Tsit5(), trajectories=1e3, batch_size=20)
+    @test sol.u / 1e3 ≈ 0.5 * exp(1.01) rtol=1e-1
+end
+
+@testset "MeanReduction" begin
+    prob = ODEProblem((u,p,t) -> 1.01u, 0.5, (0.0,1.0))
+    prob_func(prob, i, repeat) = remake(prob,u0=rand())
+    output_func(sol, i) = last(sol), false
+    reduction = Ensembles.MeanReduction()
+    ensemble = EnsembleProblem(prob, prob_func=prob_func, output_func=output_func, reduction=reduction, u_init=0)
+    sol = solve(ensemble, Tsit5(), trajectories=1e3, batch_size=20)
+    @test sol.u ≈ 0.5 * exp(1.01) rtol=1e-1
 end
 
 @testset "run_trajectories" begin
