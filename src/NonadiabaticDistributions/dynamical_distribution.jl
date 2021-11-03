@@ -3,7 +3,6 @@ using Random: AbstractRNG
 using Distributions: Univariate, Sampleable
 using HDF5: h5open
 using ComponentArrays: ComponentVector
-using NonadiabaticMolecularDynamics: DynamicsUtils
 
 """
     DynamicalDistribution(velocity, position, size)
