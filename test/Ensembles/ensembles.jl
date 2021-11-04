@@ -40,7 +40,8 @@ end
     prob_func(prob, i, repeat) = remake(prob,u0=rand())
     output_func(sol,i) = last(sol), false
     reduction = Ensembles.SumReduction()
-    ensemble = EnsembleProblem(prob, prob_func=prob_func, output_func=output_func, reduction=reduction, u_init=reduction.u_init)
+    # u_init = Ensembles.output_template(output_func)
+    ensemble = EnsembleProblem(prob, prob_func=prob_func, output_func=output_func, reduction=reduction)
     sol = solve(ensemble, Tsit5(), trajectories=1e3, batch_size=20)
     @test sol.u / 1e3 ≈ 0.5 * exp(1.01) rtol=1e-1
 end

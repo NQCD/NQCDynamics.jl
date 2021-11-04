@@ -9,6 +9,7 @@ using NonadiabaticModels: nstates
 using NonadiabaticMolecularDynamics.NonadiabaticDistributions: Diabatic, Adiabatic
 
 abstract type AbstractOutput end
+output_template(output::AbstractOutput, u0) = output_template(output)
 
 """
 Output the end point of each trajectory.
@@ -42,6 +43,7 @@ struct OutputDiabaticPopulation{S} <: AbstractOutput
     sim::S
 end
 (output::OutputDiabaticPopulation)(sol, i) = (Estimators.diabatic_population.(output.sim, sol.u), false)
+output_template(output::OutputDiabaticPopulation) = zeros(nstates(output.sim))
 
 """
 Output the population of each adiabatic state.
@@ -50,6 +52,7 @@ struct OutputAdiabaticPopulation{S} <: AbstractOutput
     sim::S
 end
 (output::OutputAdiabaticPopulation)(sol, i) = (Estimators.get_adiabatic_population.(output.sim, sol.u), false)
+output_template(output::OutputAdiabaticPopulation) = zeros(nstates(output.sim))
 
 """
 Output the vibrational and rotational quantum numbers of the final image.
@@ -68,6 +71,7 @@ function (output::OutputQuantisedDiatomic)(sol, i)
         height=output.height, normal_vector=output.normal_vector)
     return ((ν, J), false)
 end
+output_template(::OutputQuantisedDiatomic) = (0.0, 0.0)
 
 """
 Output a `ComponentVector` with fields `reflection` and `transmission` containing
@@ -99,4 +103,11 @@ function (output::OutputStateResolvedScattering1D)(sol, i)
         output.reflection .= populations
     end
     return (output, false)
+end
+
+function output_template(output::OutputStateResolvedScattering1D, u0)
+    ComponentVector(
+        reflection=zeros(nstates(output.sim)),
+        transmission=zeros(nstates(output.sim))
+    )
 end

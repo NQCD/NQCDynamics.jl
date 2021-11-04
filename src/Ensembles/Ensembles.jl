@@ -75,7 +75,7 @@ function run_ensemble(
     distribution;
     selection=nothing,
     output=(sol,i)->(sol,false),
-    reduction=(u,data,I)->(append!(u,data),false),
+    reduction::Symbol=:append,
     ensemble_algorithm=EnsembleThreads(),
     algorithm=DynamicsMethods.select_algorithm(sim),
     kwargs...
@@ -86,8 +86,17 @@ function run_ensemble(
     u0 = sample_distribution(sim, distribution, 1)
     problem = DynamicsMethods.create_problem(u0, austrip.(tspan), sim)
 
-    if hasfield(typeof(reduction), :u_init)
-        u_init = reduction.u_init
+    reduction = select_reduction(reduction)
+    if reduction isa Union{MeanReduction, SumReduction}
+        if haskey(stripped_kwargs, :saveat)
+            saveat = stripped_kwargs[:saveat]
+            if stripped_kwargs[:saveat] isa Number
+                savepoints = tspan[1]:saveat:tspan[2]
+            else
+                savepoints = saveat
+            end
+        end
+        u_init = [output_template(output, u0) for _ ∈ savepoints]
     else
         u_init = []
     end
@@ -106,7 +115,8 @@ function run_ensemble(
         u_init=u_init
     )
 
-    solve(ensemble_problem, algorithm, ensemble_algorithm; stripped_kwargs...)
+    sol = solve(ensemble_problem, algorithm, ensemble_algorithm; u_init=u_init, stripped_kwargs...)
+    return sol.u
 end
 
 """
