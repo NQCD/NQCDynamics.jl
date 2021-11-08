@@ -12,12 +12,12 @@ abstract type TimeCorrelationFunction end
 function (correlation::TimeCorrelationFunction)(sol, _)
     sim = correlation.sim
     template = correlation_template(correlation)
-    out = [similar(template) for _ in 1:length(sol)]
+    out = [similar(template) for _ in 1:length(sol.u)]
 
     normalisation = evaluate_normalisation(sim, correlation)
     initial_value = evaluate_initial_value(sim, correlation, first(sol.u))
 
-    for i in 1:length(sol)
+    for i in 1:length(sol.u)
         final_value = evaluate_final_value(sim, correlation, sol.u[i])
         correlate!(out[i], normalisation, initial_value, final_value, correlation)
     end

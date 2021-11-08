@@ -41,8 +41,8 @@ function sample_distribution(sim::AbstractSimulation, distribution::CombinedDist
 end
 
 include("selections.jl")
-include("reductions.jl")
 include("outputs.jl")
+include("reductions.jl")
 
 """
     run_ensemble(sim::AbstractSimulation, tspan, distribution;
@@ -75,7 +75,7 @@ function run_ensemble(
     distribution;
     selection=nothing,
     output=(sol,i)->(sol,false),
-    reduction=(u,data,I)->(append!(u,data),false),
+    reduction::Symbol=:append,
     ensemble_algorithm=EnsembleThreads(),
     algorithm=DynamicsMethods.select_algorithm(sim),
     kwargs...
@@ -86,11 +86,8 @@ function run_ensemble(
     u0 = sample_distribution(sim, distribution, 1)
     problem = DynamicsMethods.create_problem(u0, austrip.(tspan), sim)
 
-    if hasfield(typeof(reduction), :u_init)
-        u_init = reduction.u_init
-    else
-        u_init = []
-    end
+    reduction = select_reduction(reduction)
+    u_init = get_u_init(reduction, stripped_kwargs, tspan, u0, output)
 
     if selection isa AbstractVector
         selection = OrderedSelection(distribution, selection)
@@ -106,7 +103,8 @@ function run_ensemble(
         u_init=u_init
     )
 
-    solve(ensemble_problem, algorithm, ensemble_algorithm; stripped_kwargs...)
+    sol = solve(ensemble_problem, algorithm, ensemble_algorithm; u_init=u_init, stripped_kwargs...)
+    return sol.u
 end
 
 """
