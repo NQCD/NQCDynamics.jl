@@ -133,16 +133,15 @@ initial electronic state.
 The electronic state is introduced in the correlation function expression when correlating
 the initial and final populations.
 
-The quantities output by the ensemble simulation are specified by the `Output` and
-the `Reduction`.
-The `Output` tells the simulation the quantities that we want to extract from each
-trajectory, and the `Reduction` reduces the data.
-By default the `Reduction` appends the output from each trajectory but here we would
-like to average the results so we use the `MeanReduction`.
+The quantities output by the ensemble simulation are specified by the `output` and the
+`reduction`.
+The `output` follows the `DifferentialEquations` format where we provide a function
+that determines the output of each trajectory.
+The `reduction` can be one of `:mean`, `:append`, or `:sum`, which will determine
+how the data from each trajectory is combined.
 
 ```@example nrpmd
-output = Ensembles.OutputDiabaticPopulation(sim)
-reduction = Ensembles.MeanReduction([zeros(2) for _ in 1:0.1:30])
+output = TimeCorrelationFunctions.PopulationCorrelationFunction(sim, Diabatic())
 nothing # hide
 ```
 
@@ -152,7 +151,7 @@ the figure from the paper we were attempting to reproduce. Nice!
 
 ```@example nrpmd
 ensemble = Ensembles.run_ensemble(sim, (0.0, 30.0), distribution; trajectories=1000,
-                                  output=output, reduction=reduction, dt=0.1)
+                                  output=output, reduction=:mean, dt=0.1)
 
-lines(0:0.1:30, [p[1]-p[2] for p in ensemble.u])
+lines(0:0.1:30, [p[1,1]-p[2,1] for p in ensemble])
 ```

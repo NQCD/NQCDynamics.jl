@@ -19,11 +19,6 @@ Firstly, we can prepare the parts that will be the same for every ensemble:
 using ComponentArrays: ComponentVector
 
 output = Ensembles.OutputStateResolvedScattering1D(sim, :adiabatic)
-template = ComponentVector(
-    reflection=zeros(2),
-    transmission=zeros(2)
-)
-reduction = Ensembles.MeanReduction(templates)
 ```
 Here we are using the
 [`OutputStateResolvedScattering1D`](@ref Ensembles.OutputStateResolvedScattering1D)
@@ -52,9 +47,9 @@ for k=momenta
     distribution = DynamicalDistribution(v, -5, size(sim)) * SingleState(1, Adiabatic())
 
     out = Ensembles.run_ensemble(sim, tspan, distribution;
-        trajectories=ntraj, output=output, reduction=reduction)
+        trajectories=ntraj, output=output, reduction=:mean)
 
-    push!(result, out.u)
+    push!(result, out)
 end
 
 result
