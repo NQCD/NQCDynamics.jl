@@ -4,7 +4,7 @@ using ComponentArrays: ComponentVector
 
 @testset "OutputFinal" begin
     output = Ensembles.OutputFinal()
-    sol = ComponentVector(u=[1:10])
+    sol = ComponentVector(u=1:10)
     @test output(sol, 1) == (10, false)
 end
 
