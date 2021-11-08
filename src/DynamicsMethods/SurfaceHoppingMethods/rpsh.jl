@@ -79,18 +79,6 @@ function calculate_potential_energy_change(calc::RingPolymerDiabaticCalculator, 
     return calc.centroid_eigenvalues[new_state] - calc.centroid_eigenvalues[current_state]
 end
 
-function Estimators.diabatic_population(sim::RingPolymerSimulation{<:FSSH}, u)
-    Calculators.evaluate_centroid_potential!(sim.calculator, DynamicsUtils.get_positions(u))
-    Calculators.centroid_eigen!(sim.calculator)
-    U = sim.calculator.centroid_eigenvectors
-
-    σ = copy(DynamicsUtils.get_quantum_subsystem(u).re)
-    σ[diagind(σ)] .= 0
-    σ[u.state, u.state] = 1
-
-    return diag(U * σ * U')
-end
-
 function DynamicsUtils.classical_hamiltonian(sim::RingPolymerSimulation{<:FSSH}, u)
     kinetic = DynamicsUtils.classical_kinetic_energy(sim, DynamicsUtils.get_velocities(u))
     spring = RingPolymers.get_spring_energy(sim.beads, sim.atoms.masses, DynamicsUtils.get_positions(u))
