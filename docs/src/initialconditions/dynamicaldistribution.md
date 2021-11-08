@@ -63,7 +63,7 @@ obtain are of the correct shape:
 using NonadiabaticMolecularDynamics
 using Unitful
 
-velocity = BoltzmannVelocityDistribution(300u"K", [2000, 4000, 16000], (3, 10))
+velocity = BoltzmannVelocityDistribution(300u"K", rand(10), (3, 10))
 rand(velocity)
 ```
 This can be handed directly to the [`DynamicalDistribution`](@ref) when Boltzmann

@@ -17,7 +17,8 @@ Here we also set up the model with the ohmic density and an appropriate set of p
 ```@example spinboson
 N = 100
 atoms = Atoms(fill(1, N))
-T = 1 / 5
+β = 5
+T = 1 / β
 density = OhmicSpectralDensity(2.5, 0.09)
 model = SpinBoson(density, N, 0.0, 1.0)
 nothing # hide
@@ -47,10 +48,12 @@ fssh = Simulation{FSSH}(atoms, model)
 ehrenfest = Simulation{Ehrenfest}(atoms, model)
 
 saveat = 0:0.1:20
-output = TimeCorrelationFunctions.PopulationCorrelationFunction(sim, Diabatic())
-reduction = Ensembles.MeanReduction([zeros(2, 2) for _ in saveat])
-ensemble = Ensembles.run_ensemble(sim, (0.0, 20.0), distribution;
-    saveat=saveat, trajectories=100, output=output, reduction=reduction)
+output = TimeCorrelationFunctions.PopulationCorrelationFunction(fssh, Diabatic())
+ensemble_fssh = Ensembles.run_ensemble(fssh, (0.0, 20.0), distribution;
+    saveat=saveat, trajectories=100, output=output, reduction=:mean)
+output = TimeCorrelationFunctions.PopulationCorrelationFunction(ehrenfest, Diabatic())
+ensemble_ehrenfest = Ensembles.run_ensemble(ehrenfest, (0.0, 20.0), distribution;
+    saveat=saveat, trajectories=100, output=output, reduction=:mean)
 nothing # hide
 ```
 
@@ -58,7 +61,8 @@ Here we can see the population difference between the two states.
 For this set of parameters, Ehrenfest outperforms FSSH and comes close to the exact quantum
 result.
 ```@example spinboson
-plot(saveat, [p[1] - p[2] for p in ensemble.u])
+plot(saveat, [p[1,1] - p[2,1] for p in ensemble_fssh])
+plot!(saveat, [p[1,1] - p[2,1] for p in ensemble_ehrenfest])
 xlabel!("Time /a.u.")
 ylabel!("Population difference")
 ```

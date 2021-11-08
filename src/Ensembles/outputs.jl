@@ -10,12 +10,16 @@ using NonadiabaticMolecularDynamics.NonadiabaticDistributions: Diabatic, Adiabat
 
 abstract type AbstractOutput end
 
+function output_template(output, u0)
+    return zero(output(ComponentVector(u=[u0]), 1)[1])
+end
+
 """
 Output the end point of each trajectory.
 """
 struct OutputFinal <: AbstractOutput end
 
-(::OutputFinal)(sol, i) = (last(sol), false)
+(::OutputFinal)(sol, i) = (last(sol.u), false)
 
 """
 Output a 1 if the molecule has dissociated, 0 otherwise.
@@ -29,27 +33,10 @@ struct OutputDissociation{T} <: AbstractOutput
 end
 
 function (output::OutputDissociation)(sol, i)
-    R = DynamicsUtils.get_positions(last(sol))
+    R = DynamicsUtils.get_positions(last(sol.u))
     dissociated = norm(R[:,output.atom_indices[1]] .- R[:,output.atom_indices[2]]) > output.distance
     return dissociated ? (1, false) : (0, false)
 end
-
-
-"""
-Output the population of each diabatic state.
-"""
-struct OutputDiabaticPopulation{S} <: AbstractOutput
-    sim::S
-end
-(output::OutputDiabaticPopulation)(sol, i) = (Estimators.diabatic_population.(output.sim, sol.u), false)
-
-"""
-Output the population of each adiabatic state.
-"""
-struct OutputAdiabaticPopulation{S} <: AbstractOutput
-    sim::S
-end
-(output::OutputAdiabaticPopulation)(sol, i) = (Estimators.get_adiabatic_population.(output.sim, sol.u), false)
 
 """
 Output the vibrational and rotational quantum numbers of the final image.
@@ -68,6 +55,7 @@ function (output::OutputQuantisedDiatomic)(sol, i)
         height=output.height, normal_vector=output.normal_vector)
     return ((ν, J), false)
 end
+output_template(::OutputQuantisedDiatomic, u0) = (0.0, 0.0)
 
 """
 Output a `ComponentVector` with fields `reflection` and `transmission` containing
