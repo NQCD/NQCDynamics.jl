@@ -25,17 +25,16 @@ simulation which can explore further in later sections using realistic systems.
 
 Here we shall model a single hydrogen atom in a harmonic potential,
 where the electronic temperature is 300 K.
-The friction provided by this model is a random positive definite tensor.
-The [`RandomFriction`](@ref RandomFriction) model, similarly to other friction models,
-is defined such that it can wrap any given
-[`AdiabaticModel`](@ref NonadiabaticModels.AdiabaticModels.AdiabaticModel),
-attaching electronic friction to an otherwise adiabatic system.
+The [`CompositeFrictionModel`](@ref CompositeFrictionModel) allows us to combine any
+[`AdiabaticModel`](@ref NonadiabaticModels.AdiabaticModels.AdiabaticModel)
+with an [`ElectronicFrictionProvider`](@ref NonadiabaticModels.FrictionModels.ElectronicFrictionProvider)
+which will add electronic friction to an otherwise adiabatic system.
 ```@example mdef
 using NonadiabaticMolecularDynamics
 using Unitful
 
 atoms = Atoms([:H])
-model = RandomFriction(Harmonic(dofs=3))
+model = CompositeFrictionModel(Harmonic(dofs=3), RandomFriction(3))
 sim = Simulation{MDEF}(atoms, model; temperature=300u"K")
 ```
 

@@ -62,7 +62,8 @@ end
 
 @testset "MDEF" begin
     atoms = Atoms([:H, :C])
-    sim = RingPolymerSimulation{MDEF}(atoms, RandomFriction(Harmonic()), 3; temperature=100u"K")
+    model = CompositeFrictionModel(Harmonic(), RandomFriction(1))
+    sim = RingPolymerSimulation{MDEF}(atoms, model, 3; temperature=100u"K")
 
     v = RingPolymerArray(zeros(size(sim)))
     r = RingPolymerArray(zeros(size(sim)))
