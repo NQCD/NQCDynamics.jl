@@ -41,8 +41,8 @@ function sample_distribution(sim::AbstractSimulation, distribution::CombinedDist
 end
 
 include("selections.jl")
-include("reductions.jl")
 include("outputs.jl")
+include("reductions.jl")
 
 """
     run_ensemble(sim::AbstractSimulation, tspan, distribution;
@@ -87,19 +87,7 @@ function run_ensemble(
     problem = DynamicsMethods.create_problem(u0, austrip.(tspan), sim)
 
     reduction = select_reduction(reduction)
-    if reduction isa Union{MeanReduction, SumReduction}
-        if haskey(stripped_kwargs, :saveat)
-            saveat = stripped_kwargs[:saveat]
-            if stripped_kwargs[:saveat] isa Number
-                savepoints = tspan[1]:saveat:tspan[2]
-            else
-                savepoints = saveat
-            end
-        end
-        u_init = [output_template(output, u0) for _ ∈ savepoints]
-    else
-        u_init = []
-    end
+    u_init = get_u_init(reduction, stripped_kwargs, tspan, u0, output)
 
     if selection isa AbstractVector
         selection = OrderedSelection(distribution, selection)

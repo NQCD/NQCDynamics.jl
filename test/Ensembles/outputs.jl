@@ -12,23 +12,21 @@ end
     r = [1 0; 0 0; 0 0]
     v = zeros(3, 2)
     u = ComponentVector(v=v, r=r)
-    sol = [u]
+    sol = ComponentVector(u=[u])
     @test output(sol, 1) == (0, false)
     r = [2 0; 0 0; 0 0]
     u = ComponentVector(v=v, r=r)
-    sol = [u]
+    sol = ComponentVector(u=[u])
     @test output(sol, 1) == (1, false)
-end
-
-@testset "OutputDiabaticPopulation" begin
-    sim = Simulation{FSSH}(Atoms(1), TullyModelTwo())
-    output = Ensembles.OutputDiabaticPopulation(sim)
+    @test Ensembles.output_template(output, u) == 0
 end
 
 @testset "OutputQuantisedDiatomic" begin
     sim = Simulation(Atoms(1), Harmonic())
     output = Ensembles.OutputQuantisedDiatomic(sim; height=1, normal_vector = [1, 1, 1])
     output = Ensembles.OutputQuantisedDiatomic(sim)
+    u = DynamicsVariables(sim, hcat(1), hcat(1))
+    @test Ensembles.output_template(output, u) == (0, 0)
 end
 
 @testset "PopulationCorrelationFunction" begin
