@@ -23,15 +23,16 @@ mutable struct FSSH{T} <: SurfaceHopping
     hopping_probability::Vector{T}
     state::Int
     new_state::Int
-    function FSSH{T}(states::Integer) where {T}
+    rescaling::Symbol
+    function FSSH{T}(states::Integer, rescaling::Symbol) where {T}
         density_propagator = zeros(states, states)
         hopping_probability = zeros(states)
-        new{T}(density_propagator, hopping_probability, 0, 0)
+        new{T}(density_propagator, hopping_probability, 0, 0, rescaling)
     end
 end
 
-function Simulation{FSSH}(atoms::Atoms{S,T}, model::Model; kwargs...) where {S,T}
-    Simulation(atoms, model, FSSH{T}(NonadiabaticModels.nstates(model)); kwargs...)
+function Simulation{FSSH}(atoms::Atoms{S,T}, model::Model; rescaling=:standard, kwargs...) where {S,T}
+    Simulation(atoms, model, FSSH{T}(NonadiabaticModels.nstates(model), rescaling); kwargs...)
 end
 
 function DynamicsMethods.DynamicsVariables(
@@ -97,6 +98,8 @@ function select_new_state(sim::AbstractSimulation{<:FSSH}, u)
 end
 
 function rescale_velocity!(sim::AbstractSimulation{<:FSSH}, u)::Bool
+    sim.method.rescaling === :off && return true
+
     old_state = sim.method.state
     new_state = sim.method.new_state
     velocity = DynamicsUtils.get_velocities(u)

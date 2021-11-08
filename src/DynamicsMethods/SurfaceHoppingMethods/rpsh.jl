@@ -36,6 +36,8 @@ function evaluate_hopping_probability!(sim::RingPolymerSimulation{<:FSSH}, u, dt
 end
 
 function rescale_velocity!(sim::RingPolymerSimulation{<:FSSH}, u)::Bool
+    sim.method.rescaling === :off && return true
+
     old_state = sim.method.state
     new_state = sim.method.new_state
     velocity = DynamicsUtils.get_velocities(u)
