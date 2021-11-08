@@ -11,7 +11,8 @@ using NonadiabaticMolecularDynamics: DynamicsMethods, DynamicsUtils
 using NonadiabaticMolecularDynamics.DynamicsMethods: ClassicalMethods, IntegrationAlgorithms
 
 atoms = Atoms([:H, :C])
-sim = RingPolymerSimulation{MDEF}(atoms, NonadiabaticModels.ConstantFriction(Free(3), 1), 3; temperature=10u"K")
+model = CompositeFrictionModel(Free(3), ConstantFriction(3, 1))
+sim = RingPolymerSimulation{MDEF}(atoms, model, 3; temperature=10u"K")
 
 v = RingPolymerArray(randn(size(sim)))
 r = RingPolymerArray(randn(size(sim)))
