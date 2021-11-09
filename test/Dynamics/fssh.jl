@@ -7,7 +7,7 @@ using NonadiabaticMolecularDynamics: DynamicsMethods, DynamicsUtils, Calculators
 using NonadiabaticMolecularDynamics.SurfaceHoppingMethods: SurfaceHoppingMethods
 using NonadiabaticMolecularDynamics.DynamicsUtils: get_positions, get_velocities
 
-@test SurfaceHoppingMethods.FSSH{Float64}(2) isa SurfaceHoppingMethods.FSSH
+@test SurfaceHoppingMethods.FSSH{Float64}(2, :standard) isa SurfaceHoppingMethods.FSSH
 atoms = Atoms(1)
 
 @testset "FSSH" begin
