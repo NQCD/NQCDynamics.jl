@@ -11,7 +11,8 @@ using NonadiabaticMolecularDynamics: DynamicsMethods, DynamicsUtils
 using NonadiabaticMolecularDynamics.DynamicsMethods: ClassicalMethods, IntegrationAlgorithms
 
 atoms = Atoms([:H, :C])
-sim = RingPolymerSimulation{MDEF}(atoms, NonadiabaticModels.ConstantFriction(Free(3), 1), 3; temperature=10u"K")
+model = CompositeFrictionModel(Free(3), ConstantFriction(3, 1))
+sim = RingPolymerSimulation{MDEF}(atoms, model, 3; temperature=10u"K")
 
 v = RingPolymerArray(randn(size(sim)))
 r = RingPolymerArray(randn(size(sim)))
@@ -20,8 +21,8 @@ r = RingPolymerArray(randn(size(sim)))
     gtmp = zeros(length(r), length(r))
     gtmp = zeros(ndofs(sim)*natoms(sim),ndofs(sim)*natoms(sim),nbeads(sim))
     F = ClassicalMethods.friction!(gtmp, r, sim, 0.0)
-    hmass = sim.calculator.model.γ/atoms.masses[1]
-    cmass = sim.calculator.model.γ/atoms.masses[2]
+    hmass = sim.calculator.model.friction_model.γ/atoms.masses[1]
+    cmass = sim.calculator.model.friction_model.γ/atoms.masses[2]
     for i=1:length(sim.beads)
         @test diag(F[:,:,i]) ≈ [hmass, hmass, hmass, cmass, cmass, cmass]
     end
@@ -62,7 +63,8 @@ end
 
 @testset "MDEF" begin
     atoms = Atoms([:H, :C])
-    sim = RingPolymerSimulation{MDEF}(atoms, RandomFriction(Harmonic()), 3; temperature=100u"K")
+    model = CompositeFrictionModel(Harmonic(), RandomFriction(1))
+    sim = RingPolymerSimulation{MDEF}(atoms, model, 3; temperature=100u"K")
 
     v = RingPolymerArray(zeros(size(sim)))
     r = RingPolymerArray(zeros(size(sim)))

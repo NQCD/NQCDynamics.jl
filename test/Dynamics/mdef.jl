@@ -7,7 +7,8 @@ using LinearAlgebra: diag
 using ComponentArrays
 
 atoms = Atoms([:H, :H])
-sim = Simulation{MDEF}(atoms, ConstantFriction(Free(),atoms.masses[1]); temperature=10u"K")
+model = CompositeFrictionModel(Free(), ConstantFriction(1, atoms.masses[1]))
+sim = Simulation{MDEF}(atoms, model; temperature=10u"K")
 
 v = zeros(size(sim))
 r = randn(size(sim))
@@ -24,5 +25,7 @@ sol = run_trajectory(u, (0.0, 100.0), sim; dt=1)
 @test sol.u[1] ≈ u
 
 f(t) = 100u"K"*exp(-ustrip(t))
-sim = Simulation{MDEF}(atoms, NonadiabaticModels.RandomFriction(Harmonic()); temperature=f)
+model = CompositeFrictionModel(Harmonic(), RandomFriction(1))
+sim = Simulation{MDEF}(atoms, model; temperature=f)
 sol = run_trajectory(u, (0.0, 100.0), sim; dt=1)
+ 
