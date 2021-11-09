@@ -152,7 +152,7 @@ function perform_rescaling!(sim::AbstractSimulation{<:SurfaceHopping}, velocity,
     return nothing
 end
 
-function calculate_potential_energy_change(sim::AbstractSimulation{<:FSSH}, new_state::Integer, current_state::Integer)
+function calculate_potential_energy_change(sim::AbstractSimulation{<:SurfaceHopping}, new_state::Integer, current_state::Integer)
     eigs = get_hopping_eigenvalues(sim)
     return eigs[new_state] - eigs[current_state]
 end
