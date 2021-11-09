@@ -139,10 +139,9 @@ function calculate_potential_energy_change(calc::Calculators.AbstractDiabaticCal
     return calc.eigenvalues[new_state] - calc.eigenvalues[current_state]
 end
 
-function Estimators.diabatic_population(sim::Simulation{<:FSSH}, u)
-    Calculators.evaluate_potential!(sim.calculator, DynamicsUtils.get_positions(u))
-    Calculators.eigen!(sim.calculator)
-    U = sim.calculator.eigenvectors
+function Estimators.diabatic_population(sim::AbstractSimulation{<:FSSH}, u)
+    r = DynamicsUtils.get_positions(u)
+    U = NonadiabaticDistributions.evaluate_transformation(sim.calculator, r)
 
     σ = copy(DynamicsUtils.get_quantum_subsystem(u).re)
     σ[diagind(σ)] .= 0
