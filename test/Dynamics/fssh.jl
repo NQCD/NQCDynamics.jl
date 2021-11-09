@@ -64,8 +64,9 @@ atoms = Atoms(1)
 
     @testset "calculate_potential_energy_change" begin
         integrator.p.calculator.eigenvalues = SVector{2}([0.9, -0.3])
-        @test 1.2 ≈ SurfaceHoppingMethods.calculate_potential_energy_change(integrator.p, 1, 2)
-        @test -1.2 ≈ SurfaceHoppingMethods.calculate_potential_energy_change(integrator.p, 2, 1)
+        eigs = SurfaceHoppingMethods.get_hopping_eigenvalues(integrator.p)
+        @test 1.2 ≈ SurfaceHoppingMethods.calculate_potential_energy_change(eigs, 1, 2)
+        @test -1.2 ≈ SurfaceHoppingMethods.calculate_potential_energy_change(eigs, 2, 1)
     end
 
     @testset "execute_hop!" begin
@@ -73,7 +74,8 @@ atoms = Atoms(1)
         DynamicsUtils.get_velocities(integrator.u) .= 2 # Set high momentum to ensure successful hop
         integrator.u.state = 1
         integrator.p.method.new_state = 2
-        ΔE = SurfaceHoppingMethods.calculate_potential_energy_change(integrator.p, 2, 1)
+        eigs = SurfaceHoppingMethods.get_hopping_eigenvalues(integrator.p)
+        ΔE = SurfaceHoppingMethods.calculate_potential_energy_change(eigs, 2, 1)
 
         KE_initial = DynamicsUtils.classical_kinetic_energy(integrator.p, get_velocities(integrator.u))
         H_initial = DynamicsUtils.classical_hamiltonian(integrator.p, integrator.u)
@@ -126,8 +128,9 @@ end
 
     @testset "calculate_potential_energy_change" begin
         integrator.p.calculator.centroid_eigenvalues = SVector{2}([0.9, -0.3])
-        @test 1.2 ≈ SurfaceHoppingMethods.calculate_potential_energy_change(integrator.p, 1, 2)
-        @test -1.2 ≈ SurfaceHoppingMethods.calculate_potential_energy_change(integrator.p, 2, 1)
+        eigs = SurfaceHoppingMethods.get_hopping_eigenvalues(integrator.p)
+        @test 1.2 ≈ SurfaceHoppingMethods.calculate_potential_energy_change(eigs, 1, 2)
+        @test -1.2 ≈ SurfaceHoppingMethods.calculate_potential_energy_change(eigs, 2, 1)
     end
 
     @testset "execute_hop!" begin
@@ -135,7 +138,8 @@ end
         get_velocities(integrator.u) .= 5 # Set high momentum to ensure successful hop
         integrator.u.state = 1
         integrator.p.method.new_state = 2
-        ΔE = SurfaceHoppingMethods.calculate_potential_energy_change(integrator.p, 2, 1)
+        eigs = SurfaceHoppingMethods.get_hopping_eigenvalues(integrator.p)
+        ΔE = SurfaceHoppingMethods.calculate_potential_energy_change(eigs, 2, 1)
 
         KE_initial = DynamicsUtils.classical_kinetic_energy(integrator.p, get_velocities(integrator.u))
         H_initial = DynamicsUtils.classical_hamiltonian(integrator.p, integrator.u)

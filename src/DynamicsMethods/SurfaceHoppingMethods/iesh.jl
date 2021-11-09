@@ -196,17 +196,21 @@ function rescale_velocity!(sim::Simulation{<:IESH}, u)::Bool
     new_state, old_state = symdiff(sim.method.new_state, sim.method.state)
     velocity = DynamicsUtils.get_velocities(u)
     
-    c = calculate_potential_energy_change(sim, new_state, old_state)
-    a, b = evaluate_a_and_b(sim, velocity, new_state, old_state)
-    discriminant = b.^2 .- 2a.*c
+    d = extract_nonadiabatic_coupling(get_hopping_nonadiabatic_coupling(sim), new_state, old_state)
+    a = calculate_a(d, masses(sim))
+    b = dot(d, velocity)
+    c = calculate_potential_energy_change(sim.calculator.eigenvalues, new_state, old_state)
 
-    any(discriminant .< 0) && return false
+    discriminant = b^2 - 4a * c
+    discriminant < 0 && return false
 
-    root = sqrt.(discriminant)
-    plus = (b .+ root) ./ a
-    minus = (b .- root) ./ a 
-    velocity_rescale = sum(abs.(plus)) < sum(abs.(minus)) ? plus : minus
-    perform_rescaling!(sim, velocity, velocity_rescale, new_state, old_state)
+    root = sqrt(discriminant)
+    if b < 0
+        γ = (b + root) / 2a
+    else
+        γ = (b - root) / 2a
+    end
+    perform_rescaling!(sim, DynamicsUtils.get_velocities(u), γ, d)
 
     return true
 end
