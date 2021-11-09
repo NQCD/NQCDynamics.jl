@@ -21,8 +21,8 @@ r = RingPolymerArray(randn(size(sim)))
     gtmp = zeros(length(r), length(r))
     gtmp = zeros(ndofs(sim)*natoms(sim),ndofs(sim)*natoms(sim),nbeads(sim))
     F = ClassicalMethods.friction!(gtmp, r, sim, 0.0)
-    hmass = sim.calculator.model.γ/atoms.masses[1]
-    cmass = sim.calculator.model.γ/atoms.masses[2]
+    hmass = sim.calculator.model.friction_model.γ/atoms.masses[1]
+    cmass = sim.calculator.model.friction_model.γ/atoms.masses[2]
     for i=1:length(sim.beads)
         @test diag(F[:,:,i]) ≈ [hmass, hmass, hmass, cmass, cmass, cmass]
     end
