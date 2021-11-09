@@ -4,8 +4,8 @@ using StatsBase: sample, Weights
 using NonadiabaticMolecularDynamics.Calculators: RingPolymerDiabaticCalculator
 using NonadiabaticMolecularDynamics: RingPolymerSimulation, RingPolymers
 
-function RingPolymerSimulation{FSSH}(atoms::Atoms{S,T}, model::Model, n_beads::Integer; kwargs...) where {S,T}
-    RingPolymerSimulation(atoms, model, FSSH{T}(NonadiabaticModels.nstates(model)), n_beads; kwargs...)
+function RingPolymerSimulation{FSSH}(atoms::Atoms{S,T}, model::Model, n_beads::Integer; rescaling=:standard, kwargs...) where {S,T}
+    RingPolymerSimulation(atoms, model, FSSH{T}(NonadiabaticModels.nstates(model), rescaling), n_beads; kwargs...)
 end
 
 function DynamicsMethods.motion!(du, u, sim::RingPolymerSimulation{<:SurfaceHopping}, t)
@@ -36,6 +36,8 @@ function evaluate_hopping_probability!(sim::RingPolymerSimulation{<:FSSH}, u, dt
 end
 
 function rescale_velocity!(sim::RingPolymerSimulation{<:FSSH}, u)::Bool
+    sim.method.rescaling === :off && return true
+
     old_state = sim.method.state
     new_state = sim.method.new_state
     velocity = DynamicsUtils.get_velocities(u)
