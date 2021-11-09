@@ -196,7 +196,7 @@ function rescale_velocity!(sim::Simulation{<:IESH}, u)::Bool
     new_state, old_state = symdiff(sim.method.new_state, sim.method.state)
     velocity = DynamicsUtils.get_velocities(u)
     
-    c = calculate_potential_energy_change(sim.calculator, new_state, old_state)
+    c = calculate_potential_energy_change(sim, new_state, old_state)
     a, b = evaluate_a_and_b(sim, velocity, new_state, old_state)
     discriminant = b.^2 .- 2a.*c
 

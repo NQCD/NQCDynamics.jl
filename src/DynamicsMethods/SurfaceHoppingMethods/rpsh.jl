@@ -38,10 +38,6 @@ function get_hopping_eigenvalues(sim::RingPolymerSimulation{<:FSSH})
     sim.calculator.centroid_eigenvalues
 end
 
-function calculate_potential_energy_change(calc::RingPolymerDiabaticCalculator, new_state::Integer, current_state::Integer)
-    return calc.centroid_eigenvalues[new_state] - calc.centroid_eigenvalues[current_state]
-end
-
 function perform_rescaling!(sim::RingPolymerSimulation{<:FSSH}, velocity, velocity_rescale, new_state, old_state)
     d = get_hopping_nonadiabatic_coupling(sim)
     for i in range(sim.atoms)
