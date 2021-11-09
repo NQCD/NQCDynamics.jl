@@ -26,59 +26,25 @@ function DynamicsMethods.motion!(du, u, sim::RingPolymerSimulation{<:SurfaceHopp
     DynamicsUtils.set_quantum_derivative!(dσ, v, σ, sim)
 end
 
-function evaluate_hopping_probability!(sim::RingPolymerSimulation{<:FSSH}, u, dt)
-    v = RingPolymers.get_centroid(DynamicsUtils.get_velocities(u))
-    σ = DynamicsUtils.get_quantum_subsystem(u)
-    s = sim.method.state
-    d = sim.calculator.centroid_nonadiabatic_coupling
-
-    fewest_switches_probability!(sim.method.hopping_probability, v, σ, s, d, dt)
+function get_hopping_nonadiabatic_coupling(sim::RingPolymerSimulation{<:FSSH})
+    sim.calculator.centroid_nonadiabatic_coupling
 end
 
-function rescale_velocity!(sim::RingPolymerSimulation{<:FSSH}, u)::Bool
-    sim.method.rescaling === :off && return true
-
-    old_state = sim.method.state
-    new_state = sim.method.new_state
-    velocity = DynamicsUtils.get_velocities(u)
-    centroid_velocity = RingPolymers.get_centroid(DynamicsUtils.get_velocities(u))
-
-    c = calculate_potential_energy_change(sim.calculator, new_state, old_state)
-    a, b = evaluate_a_and_b(sim, centroid_velocity, new_state, old_state)
-    discriminant = b.^2 .- 2a.*c
-
-    any(discriminant .< 0) && return false
-
-    root = sqrt.(discriminant)
-    plus = (b .+ root) ./ a
-    minus = (b .- root) ./ a 
-    velocity_rescale = sum(abs.(plus)) < sum(abs.(minus)) ? plus : minus
-    perform_rescaling!(sim, velocity, velocity_rescale, new_state, old_state)
-
-    return true
+function get_hopping_velocity(::RingPolymerSimulation{<:FSSH}, u)
+    RingPolymers.get_centroid(DynamicsUtils.get_velocities(u))
 end
 
-function evaluate_a_and_b(sim::RingPolymerSimulation{<:SurfaceHopping}, velocity, new_state, old_state)
-    a = zeros(length(sim.atoms))
-    b = zero(a)
-    @views for i in range(sim.atoms)
-        coupling = [sim.calculator.centroid_nonadiabatic_coupling[j,i][new_state, old_state] for j=1:ndofs(sim)]
-        a[i] = dot(coupling, coupling) / sim.atoms.masses[i]
-        b[i] = dot(velocity[:,i], coupling)
-    end
-    return (a, b)
+function get_hopping_eigenvalues(sim::RingPolymerSimulation{<:FSSH})
+    sim.calculator.centroid_eigenvalues
 end
 
-function perform_rescaling!(sim::RingPolymerSimulation{<:SurfaceHopping}, velocity, velocity_rescale, new_state, old_state)
+function perform_rescaling!(sim::RingPolymerSimulation{<:FSSH}, velocity, velocity_rescale, new_state, old_state)
+    d = get_hopping_nonadiabatic_coupling(sim)
     for i in range(sim.atoms)
-        coupling = [sim.calculator.centroid_nonadiabatic_coupling[j,i][new_state, old_state] for j=1:ndofs(sim)]
+        coupling = [d[j,i][new_state, old_state] for j=1:ndofs(sim)]
         velocity[:,i,:] .-= velocity_rescale[i] .* coupling ./ sim.atoms.masses[i]
     end
     return nothing
-end
-
-function calculate_potential_energy_change(calc::RingPolymerDiabaticCalculator, new_state::Integer, current_state::Integer)
-    return calc.centroid_eigenvalues[new_state] - calc.centroid_eigenvalues[current_state]
 end
 
 function DynamicsUtils.classical_hamiltonian(sim::RingPolymerSimulation{<:FSSH}, u)
