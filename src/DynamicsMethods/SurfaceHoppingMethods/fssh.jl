@@ -62,12 +62,24 @@ Evaluates the probability of hopping from the current state to all other states
 - 'd' is skew-symmetric so here the indices are important.
 """
 function evaluate_hopping_probability!(sim::Simulation{<:FSSH}, u, dt)
-    v = DynamicsUtils.get_velocities(u)
+    v = get_hopping_velocity(sim, u)
     σ = DynamicsUtils.get_quantum_subsystem(u)
     s = sim.method.state
-    d = sim.calculator.nonadiabatic_coupling
+    d = get_hopping_nonadiabatic_coupling(sim)
 
     fewest_switches_probability!(sim.method.hopping_probability, v, σ, s, d, dt)
+end
+
+function get_hopping_nonadiabatic_coupling(sim::Simulation{<:SurfaceHopping})
+    sim.calculator.nonadiabatic_coupling
+end
+
+function get_hopping_velocity(::Simulation{<:SurfaceHopping}, u)
+    DynamicsUtils.get_velocities(u)
+end
+
+function get_hopping_eigenvalues(sim::Simulation{<:SurfaceHopping})
+    sim.calculator.eigenvalues
 end
 
 function fewest_switches_probability!(probability, v, σ, s, d, dt)
@@ -102,9 +114,9 @@ function rescale_velocity!(sim::AbstractSimulation{<:FSSH}, u)::Bool
 
     old_state = sim.method.state
     new_state = sim.method.new_state
-    velocity = DynamicsUtils.get_velocities(u)
+    velocity = get_hopping_velocity(sim, u)
     
-    c = calculate_potential_energy_change(sim.calculator, new_state, old_state)
+    c = calculate_potential_energy_change(sim, new_state, old_state)
     a, b = evaluate_a_and_b(sim, velocity, new_state, old_state)
     discriminant = b.^2 .- 2a.*c
 
@@ -114,32 +126,35 @@ function rescale_velocity!(sim::AbstractSimulation{<:FSSH}, u)::Bool
     plus = (b .+ root) ./ a
     minus = (b .- root) ./ a 
     velocity_rescale = sum(abs.(plus)) < sum(abs.(minus)) ? plus : minus
-    perform_rescaling!(sim, velocity, velocity_rescale, new_state, old_state)
+    perform_rescaling!(sim, DynamicsUtils.get_velocities(u), velocity_rescale, new_state, old_state)
 
     return true
 end
 
-function evaluate_a_and_b(sim::Simulation{<:SurfaceHopping}, velocity, new_state, old_state)
+function evaluate_a_and_b(sim::AbstractSimulation{<:SurfaceHopping}, velocity, new_state, old_state)
     a = zeros(length(sim.atoms))
     b = zero(a)
+    d = get_hopping_nonadiabatic_coupling(sim)
     @views for i in range(sim.atoms)
-        coupling = [sim.calculator.nonadiabatic_coupling[j,i][new_state, old_state] for j=1:ndofs(sim)]
+        coupling = [d[j,i][new_state, old_state] for j=1:ndofs(sim)]
         a[i] = dot(coupling, coupling) / sim.atoms.masses[i]
         b[i] = dot(velocity[:,i], coupling)
     end
     return (a, b)
 end
 
-function perform_rescaling!(sim::Simulation{<:SurfaceHopping}, velocity, velocity_rescale, new_state, old_state)
+function perform_rescaling!(sim::AbstractSimulation{<:SurfaceHopping}, velocity, velocity_rescale, new_state, old_state)
+    d = get_hopping_nonadiabatic_coupling(sim)
     for i in range(sim.atoms)
-        coupling = [sim.calculator.nonadiabatic_coupling[j,i][new_state, old_state] for j=1:ndofs(sim)]
+        coupling = [d[j,i][new_state, old_state] for j=1:ndofs(sim)]
         velocity[:,i] .-= velocity_rescale[i] .* coupling ./ sim.atoms.masses[i]
     end
     return nothing
 end
 
-function calculate_potential_energy_change(calc::Calculators.AbstractDiabaticCalculator, new_state::Integer, current_state::Integer)
-    return calc.eigenvalues[new_state] - calc.eigenvalues[current_state]
+function calculate_potential_energy_change(sim::AbstractSimulation{<:FSSH}, new_state::Integer, current_state::Integer)
+    eigs = get_hopping_eigenvalues(sim)
+    return eigs[new_state] - eigs[current_state]
 end
 
 function Estimators.diabatic_population(sim::AbstractSimulation{<:FSSH}, u)
