@@ -192,28 +192,7 @@ function Estimators.adiabatic_population(sim::Simulation{<:IESH}, u)
     return population
 end
 
-function rescale_velocity!(sim::Simulation{<:IESH}, u)::Bool
-    new_state, old_state = symdiff(sim.method.new_state, sim.method.state)
-    velocity = DynamicsUtils.get_velocities(u)
-    
-    d = extract_nonadiabatic_coupling(get_hopping_nonadiabatic_coupling(sim), new_state, old_state)
-    a = calculate_a(d, masses(sim))
-    b = dot(d, velocity)
-    c = calculate_potential_energy_change(sim.calculator.eigenvalues, new_state, old_state)
-
-    discriminant = b^2 - 4a * c
-    discriminant < 0 && return false
-
-    root = sqrt(discriminant)
-    if b < 0
-        γ = (b + root) / 2a
-    else
-        γ = (b - root) / 2a
-    end
-    perform_rescaling!(sim, DynamicsUtils.get_velocities(u), γ, d)
-
-    return true
-end
+unpack_states(sim::Simulation{<:IESH}) = symdiff(sim.method.new_state, sim.method.state)
 
 # function impurity_summary(model::DiabaticModel, R::AbstractMatrix, state::AbstractArray, σ::AbstractArray)
 #     """Calculate impurity population according to MiaoSubotnik_JChemPhys_150_041711_2019"""

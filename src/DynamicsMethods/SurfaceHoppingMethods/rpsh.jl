@@ -38,9 +38,11 @@ function get_hopping_eigenvalues(sim::RingPolymerSimulation{<:FSSH})
     sim.calculator.centroid_eigenvalues
 end
 
-function perform_rescaling!(sim::RingPolymerSimulation{<:FSSH}, velocity, velocity_rescale, d)
-    @views for i in range(sim.atoms)
-        velocity[:,i,:] .-= velocity_rescale .* d[:,i] ./ sim.atoms.masses[i]
+function perform_rescaling!(
+    sim::RingPolymerSimulation{<:SurfaceHopping}, velocity, γ, d
+)
+    for I in CartesianIndices(d)
+        velocity[I,:] .-= γ * d[I] / masses(sim, I)
     end
     return nothing
 end
