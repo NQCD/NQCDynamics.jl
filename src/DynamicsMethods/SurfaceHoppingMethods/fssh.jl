@@ -117,7 +117,7 @@ Rescale the velocity in the direction of the nonadiabatic coupling.
 
 # References
 
-[Hammes-Schiffer1994](@cite)
+[HammesSchiffer1994](@cite)
 """
 function rescale_velocity!(sim::AbstractSimulation{<:FSSH}, u)::Bool
     sim.method.rescaling === :off && return true
@@ -166,7 +166,7 @@ end
 """
     calculate_a(sim::AbstractSimulation{<:SurfaceHopping}, coupling::AbstractMatrix)
 
-Equation 40 from [Hammes-Schiffer1994](@cite).
+Equation 40 from [HammesSchiffer1994](@cite).
 """
 function calculate_a(sim::AbstractSimulation{<:SurfaceHopping}, coupling::AbstractMatrix)
     a = zero(eltype(coupling))
@@ -179,7 +179,7 @@ end
 """
     calculate_b(coupling::AbstractMatrix, velocity::AbstractMatrix)
 
-Equation 41 from [Hammes-Schiffer1994](@cite).
+Equation 41 from [HammesSchiffer1994](@cite).
 """
 function calculate_b(coupling::AbstractMatrix, velocity::AbstractMatrix)
     return dot(coupling, velocity)
@@ -190,7 +190,7 @@ end
         sim::AbstractSimulation{<:SurfaceHopping}, velocity, velocity_rescale, d
     )
 
-Equation 33 from [Hammes-Schiffer1994](@cite).
+Equation 33 from [HammesSchiffer1994](@cite).
 """
 function perform_rescaling!(
     sim::AbstractSimulation{<:SurfaceHopping}, velocity, γ, d
