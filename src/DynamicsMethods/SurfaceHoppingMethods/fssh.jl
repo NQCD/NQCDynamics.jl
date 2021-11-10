@@ -1,5 +1,6 @@
 using StatsBase: mean
 using .NonadiabaticDistributions: NonadiabaticDistribution
+using NonadiabaticMolecularDynamics: masses
 
 export FSSH
 
@@ -47,7 +48,7 @@ function acceleration!(dv, v, r, sim::AbstractSimulation{<:FSSH}, t, state)
     for I in eachindex(dv)
         dv[I] = -sim.calculator.adiabatic_derivative[I][state, state]
     end
-    DynamicsUtils.divide_by_mass!(dv, sim.atoms.masses)
+    DynamicsUtils.divide_by_mass!(dv, masses(sim))
     return nothing
 end
 
@@ -109,51 +110,98 @@ function select_new_state(sim::AbstractSimulation{<:FSSH}, u)
     return sim.method.state
 end
 
+"""
+    rescale_velocity!(sim::AbstractSimulation{<:FSSH}, u)::Bool
+
+Rescale the velocity in the direction of the nonadiabatic coupling.
+
+# References
+
+[HammesSchiffer1994](@cite)
+"""
 function rescale_velocity!(sim::AbstractSimulation{<:FSSH}, u)::Bool
     sim.method.rescaling === :off && return true
 
-    old_state = sim.method.state
-    new_state = sim.method.new_state
+    new_state, old_state = unpack_states(sim)
     velocity = get_hopping_velocity(sim, u)
+    eigs = get_hopping_eigenvalues(sim)
     
-    c = calculate_potential_energy_change(sim, new_state, old_state)
-    a, b = evaluate_a_and_b(sim, velocity, new_state, old_state)
-    discriminant = b.^2 .- 2a.*c
+    d = extract_nonadiabatic_coupling(get_hopping_nonadiabatic_coupling(sim), new_state, old_state)
+    a = calculate_a(sim, d)
+    b = calculate_b(d, velocity)
+    c = calculate_potential_energy_change(eigs, new_state, old_state)
 
-    any(discriminant .< 0) && return false
+    discriminant = b^2 - 4a * c
+    discriminant < 0 && return false # Frustrated hop with insufficient kinetic energy
 
-    root = sqrt.(discriminant)
-    plus = (b .+ root) ./ a
-    minus = (b .- root) ./ a 
-    velocity_rescale = sum(abs.(plus)) < sum(abs.(minus)) ? plus : minus
-    perform_rescaling!(sim, DynamicsUtils.get_velocities(u), velocity_rescale, new_state, old_state)
+    root = sqrt(discriminant)
+    if b < 0
+        γ = (b + root) / 2a
+    else
+        γ = (b - root) / 2a
+    end
+    perform_rescaling!(sim, DynamicsUtils.get_velocities(u), γ, d)
 
     return true
 end
 
-function evaluate_a_and_b(sim::AbstractSimulation{<:SurfaceHopping}, velocity, new_state, old_state)
-    a = zeros(length(sim.atoms))
-    b = zero(a)
-    d = get_hopping_nonadiabatic_coupling(sim)
-    @views for i in range(sim.atoms)
-        coupling = [d[j,i][new_state, old_state] for j=1:ndofs(sim)]
-        a[i] = dot(coupling, coupling) / sim.atoms.masses[i]
-        b[i] = dot(velocity[:,i], coupling)
-    end
-    return (a, b)
+"""
+    unpack_states(sim)
+
+Get the two states that we are hopping between.
+"""
+function unpack_states(sim::AbstractSimulation{<:FSSH})
+    return (sim.method.new_state, sim.method.state)
 end
 
-function perform_rescaling!(sim::AbstractSimulation{<:SurfaceHopping}, velocity, velocity_rescale, new_state, old_state)
-    d = get_hopping_nonadiabatic_coupling(sim)
-    for i in range(sim.atoms)
-        coupling = [d[j,i][new_state, old_state] for j=1:ndofs(sim)]
-        velocity[:,i] .-= velocity_rescale[i] .* coupling ./ sim.atoms.masses[i]
+"""
+    extract_nonadiabatic_coupling(coupling, new_state, old_state)
+
+Extract the nonadiabatic coupling vector between states `new_state` and `old_state`
+"""
+function extract_nonadiabatic_coupling(coupling, new_state, old_state)
+    [coupling[I][new_state, old_state] for I ∈ CartesianIndices(coupling)]
+end
+
+"""
+    calculate_a(sim::AbstractSimulation{<:SurfaceHopping}, coupling::AbstractMatrix)
+
+Equation 40 from [HammesSchiffer1994](@cite).
+"""
+function calculate_a(sim::AbstractSimulation{<:SurfaceHopping}, coupling::AbstractMatrix)
+    a = zero(eltype(coupling))
+    for I in CartesianIndices(coupling)
+        a += coupling[I]^2 * masses(sim, I)
+    end
+    return a / 2
+end
+
+"""
+    calculate_b(coupling::AbstractMatrix, velocity::AbstractMatrix)
+
+Equation 41 from [HammesSchiffer1994](@cite).
+"""
+function calculate_b(coupling::AbstractMatrix, velocity::AbstractMatrix)
+    return dot(coupling, velocity)
+end
+
+"""
+    perform_rescaling!(
+        sim::AbstractSimulation{<:SurfaceHopping}, velocity, velocity_rescale, d
+    )
+
+Equation 33 from [HammesSchiffer1994](@cite).
+"""
+function perform_rescaling!(
+    sim::AbstractSimulation{<:SurfaceHopping}, velocity, γ, d
+)
+    for I in CartesianIndices(d)
+        velocity[I] -= γ * d[I] / masses(sim, I)
     end
     return nothing
 end
 
-function calculate_potential_energy_change(sim::AbstractSimulation{<:SurfaceHopping}, new_state::Integer, current_state::Integer)
-    eigs = get_hopping_eigenvalues(sim)
+function calculate_potential_energy_change(eigs::AbstractVector, new_state::Integer, current_state::Integer)
     return eigs[new_state] - eigs[current_state]
 end
 

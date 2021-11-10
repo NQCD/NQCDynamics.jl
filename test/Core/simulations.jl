@@ -44,3 +44,15 @@ end
     @test nbeads(sim) == 10
     @test size(sim) == (1, 2, 10)
 end
+
+@testset "masses" begin
+    sim = Simulation(atoms, model)
+    @test masses(sim) == atoms.masses
+    @test masses(sim, 2) == atoms.masses[2]
+    @test masses(sim, CartesianIndex(1, 2)) == atoms.masses[2]
+
+    sim = RingPolymerSimulation(atoms, model, 5)
+    @test masses(sim) == atoms.masses
+    @test masses(sim, 2) == atoms.masses[2]
+    @test masses(sim, CartesianIndex(1, 2, 3)) == atoms.masses[2]
+end
