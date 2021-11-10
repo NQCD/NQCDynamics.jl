@@ -65,7 +65,11 @@ NonadiabaticModels.ndofs(sim::AbstractSimulation) = NonadiabaticModels.ndofs(sim
 natoms(sim::AbstractSimulation) = length(sim.atoms)
 RingPolymers.nbeads(sim::RingPolymerSimulation) = RingPolymers.nbeads(sim.beads)
 masses(sim::AbstractSimulation) = sim.atoms.masses
-masses(sim::AbstractSimulation, i) = sim.atoms.masses[i]
+masses(sim::AbstractSimulation, i::Int) = sim.atoms.masses[i]
+
+function masses(sim::AbstractSimulation, I::CartesianIndex)
+    masses(sim, I[2])
+end
 
 Base.size(sim::Simulation) = (ndofs(sim), natoms(sim))
 Base.size(sim::RingPolymerSimulation) = (ndofs(sim), natoms(sim), RingPolymers.nbeads(sim))

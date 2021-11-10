@@ -38,11 +38,11 @@ function get_hopping_eigenvalues(sim::RingPolymerSimulation{<:FSSH})
     sim.calculator.centroid_eigenvalues
 end
 
-function perform_rescaling!(sim::RingPolymerSimulation{<:FSSH}, velocity, velocity_rescale, new_state, old_state)
-    d = get_hopping_nonadiabatic_coupling(sim)
-    for i in range(sim.atoms)
-        coupling = [d[j,i][new_state, old_state] for j=1:ndofs(sim)]
-        velocity[:,i,:] .-= velocity_rescale[i] .* coupling ./ sim.atoms.masses[i]
+function perform_rescaling!(
+    sim::RingPolymerSimulation{<:SurfaceHopping}, velocity, γ, d
+)
+    for I in CartesianIndices(d)
+        velocity[I,:] .-= γ * d[I] / masses(sim, I)
     end
     return nothing
 end
