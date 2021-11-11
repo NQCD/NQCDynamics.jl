@@ -62,7 +62,7 @@ Evaluates the probability of hopping from the current state to all other states
 - `σ` is Hermitan so the choice `σ[m,s]` or `σ[s,m]` is irrelevant; we take the real part.
 - 'd' is skew-symmetric so here the indices are important.
 """
-function evaluate_hopping_probability!(sim::Simulation{<:FSSH}, u, dt)
+function evaluate_hopping_probability!(sim::AbstractSimulation{<:FSSH}, u, dt)
     v = get_hopping_velocity(sim, u)
     σ = DynamicsUtils.get_quantum_subsystem(u)
     s = sim.method.state
