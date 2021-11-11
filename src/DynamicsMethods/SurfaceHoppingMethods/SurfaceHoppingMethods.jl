@@ -97,13 +97,17 @@ DynamicsMethods.get_callbacks(::AbstractSimulation{<:SurfaceHopping}) = HoppingC
 """
 This function should set the field `sim.method.hopping_probability`.
 """
-function evaluate_hopping_probability!(::AbstractSimulation{<:SurfaceHopping}, u, dt) end
+function evaluate_hopping_probability!(::AbstractSimulation{<:SurfaceHopping}, u, dt)
+    throw(error("Implement this for your method."))
+end
 
 """
 This function should return the desired state determined by the probability.
 Should return the original state if no hop is desired.
 """
-function select_new_state(::AbstractSimulation{<:SurfaceHopping}, u) end
+function select_new_state(::AbstractSimulation{<:SurfaceHopping}, u)
+    throw(error("Implement this for your method."))
+end
 
 """
 This function should modify the velocity and return a `Bool` that determines
