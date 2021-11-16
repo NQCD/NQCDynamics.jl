@@ -53,11 +53,11 @@ function DynamicsMethods.DynamicsVariables(sim::RingPolymerSimulation{<:NRPMD}, 
     pmap = sin.(θ)
     for i=1:F
         if i == electronic.state
-            qmap[i, :] .*= sqrt(2 + sim.method.γ)
-            pmap[i, :] .*= sqrt(2 + sim.method.γ)
+            qmap[i, :] .*= sqrt(2 + 2sim.method.γ)
+            pmap[i, :] .*= sqrt(2 + 2sim.method.γ)
         else
-            qmap[i, :] .*= sqrt(sim.method.γ)
-            pmap[i, :] .*= sqrt(sim.method.γ)
+            qmap[i, :] .*= sqrt(2sim.method.γ)
+            pmap[i, :] .*= sqrt(2sim.method.γ)
         end
     end
 
@@ -115,7 +115,7 @@ function Estimators.diabatic_population(sim::RingPolymerSimulation{<:NRPMD}, u)
         qmap = get_mapping_positions(u, i)
         pmap = get_mapping_momenta(u, i)
         for j in axes(qmap, 1)
-            population[j] += (qmap[j]^2 + pmap[j]^2 - sim.method.γ) / 2
+            population[j] += (qmap[j]^2 + pmap[j]^2) / 2 - sim.method.γ
         end
     end
     return population / RingPolymers.nbeads(sim)
