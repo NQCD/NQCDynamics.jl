@@ -8,7 +8,7 @@ using NonadiabaticMolecularDynamics: DynamicsMethods, DynamicsUtils
 using NonadiabaticMolecularDynamics.DynamicsMethods.MappingVariableMethods
 Random.seed!(1)
 
-@test MappingVariableMethods.NRPMD{Float64}(10) isa MappingVariableMethods.NRPMD
+@test MappingVariableMethods.NRPMD{Float64}(10, 0.0) isa MappingVariableMethods.NRPMD
 atoms = Atoms(1)
 sim = RingPolymerSimulation{NRPMD}(atoms, DoubleWell(), 10; temperature=1e-3)
 
@@ -29,7 +29,7 @@ u = DynamicsVariables(sim, v, r, SingleState(2))
         Kinv = Estimators.diabatic_population(sim, u)
         out += normalisation * K * Kinv'
     end
-   @test out ./ n ≈ [1 0; 0 1] atol=0.1
+   @test out ./ n ≈ [1 0; 0 0] atol=0.1
 end
 
 @testset "motion! obeys Hamilton's equations" begin
