@@ -65,7 +65,7 @@ end
 @testset "MInt algorithm convergence" begin
     tspan=(0, 10.0)
     prob = DynamicsMethods.create_problem(u, tspan, sim)
-    dts = 1 .// 2 .^(8:-1:3)
+    dts = 1 .// 2 .^(8:-1:4)
 
     alg = DynamicsMethods.IntegrationAlgorithms.MInt()
     test_alg = Vern9()
