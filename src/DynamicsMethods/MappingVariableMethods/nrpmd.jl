@@ -53,11 +53,6 @@ function DynamicsMethods.DynamicsVariables(sim::RingPolymerSimulation{<:NRPMD}, 
     return ComponentVector(v=v, r=r, pmap=pmap, qmap=qmap)
 end
 
-get_mapping_positions(u::ComponentVector) = u.qmap
-get_mapping_momenta(u::ComponentVector) = u.pmap
-get_mapping_positions(u::ComponentVector, i) = @view get_mapping_positions(u)[:,i]
-get_mapping_momenta(u::ComponentVector, i) = @view get_mapping_momenta(u)[:,i]
-
 function DynamicsMethods.motion!(du, u, sim::RingPolymerSimulation{<:NRPMD}, t)
     dr = DynamicsUtils.get_positions(du)
     dv = DynamicsUtils.get_velocities(du)
