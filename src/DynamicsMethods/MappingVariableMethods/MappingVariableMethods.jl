@@ -22,5 +22,6 @@ export NRPMD
 
 include("cmm.jl")
 export eCMM
+include("rpecmm.jl")
 
 end # module
