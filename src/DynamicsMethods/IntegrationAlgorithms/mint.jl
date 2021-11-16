@@ -144,3 +144,4 @@ function get_mapping_nuclear_force(q::AbstractVector, p::AbstractVector,
 end
 
 DynamicsMethods.select_algorithm(::RingPolymerSimulation{<:MappingVariableMethods.NRPMD}) = MInt()
+DynamicsMethods.select_algorithm(::RingPolymerSimulation{<:MappingVariableMethods.eCMM}) = MInt()
