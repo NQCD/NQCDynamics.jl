@@ -3,6 +3,7 @@ using Test
 using NonadiabaticMolecularDynamics
 using FiniteDiff
 using LinearAlgebra: norm
+using OrdinaryDiffEq: Tsit5
 
 function test_motion!(sim::RingPolymerSimulation{<:eCMM}, u)
     f(x) = DynamicsUtils.classical_hamiltonian(sim, x)
@@ -30,14 +31,14 @@ u1 = DynamicsVariables(sim1, v, r, SingleState(1))
 test_motion!(sim, u)
 test_motion!(sim1, u1)
 
-sol = run_trajectory(u, (0, 100.0), sim; output=(:hamiltonian, :position, :u), reltol=1e-10, abstol=1e-10)
+sol = run_trajectory(u, (0, 100.0), sim; output=(:hamiltonian, :position, :u), dt=0.01)
 @test sol.hamiltonian[1] ≈ sol.hamiltonian[end] rtol=1e-3
 qmap = [u.qmap for u in sol.u]
 pmap = [u.pmap for u in sol.u]
 total_population = sum.(DynamicsMethods.MappingVariableMethods.mapping_kernel.(qmap, pmap, sim.method.γ))
 @test all(isapprox.(total_population, 1, rtol=1e-2))
 
-sol = run_trajectory(u1, (0, 100.0), sim1; output=(:hamiltonian, :position, :u), reltol=1e-10, abstol=1e-10)
+sol = run_trajectory(u1, (0, 100.0), sim1; output=(:hamiltonian, :position, :u), dt=0.01)
 @test sol.hamiltonian[1] ≈ sol.hamiltonian[end] rtol=1e-3
 total_population = sum.(DynamicsMethods.MappingVariableMethods.mapping_kernel.(qmap, pmap, sim.method.γ))
 @test all(isapprox.(total_population, 1, rtol=1e-2))
@@ -48,7 +49,7 @@ total_population = sum.(DynamicsMethods.MappingVariableMethods.mapping_kernel.(q
     @testset "Gamma = $γ" for γ in gams[2:end]
         sim = RingPolymerSimulation{eCMM}(Atoms(1), DoubleWell(), 100; γ=γ)
         out = zeros(2, 2)
-        n = 1e4
+        n = 1e5
         correlation = TimeCorrelationFunctions.PopulationCorrelationFunction(sim, Diabatic())
         normalisation = TimeCorrelationFunctions.evaluate_normalisation(sim, correlation)
 
@@ -58,7 +59,7 @@ total_population = sum.(DynamicsMethods.MappingVariableMethods.mapping_kernel.(q
             Kinv = Estimators.diabatic_population(sim, u)
             out .+= normalisation * K * Kinv'
         end
-        @test out ./ n ≈ [1 0; 0 1] atol=0.1
+        @test out ./ n ≈ [1 0; 0 1] atol=0.2
     end
 end
 
