@@ -39,7 +39,7 @@ function generate_random_points_on_nsphere(n, radius)
     return randomnormal ./ norm(randomnormal) .* radius
 end
 
-function DynamicsMethods.motion!(du, u, sim::Simulation{<:eCMM}, t)
+function DynamicsMethods.motion!(du, u, sim::AbstractSimulation{<:eCMM}, t)
     dr = DynamicsUtils.get_positions(du)
     dv = DynamicsUtils.get_velocities(du)
     r = DynamicsUtils.get_positions(u)
@@ -114,6 +114,10 @@ function Estimators.initial_diabatic_population(sim::Simulation{<:eCMM}, u)
     mapping_kernel(qmap, pmap, sim.method.γ)
 end
 
-TimeCorrelationFunctions.evaluate_normalisation(sim::Simulation{<:eCMM},
-    correlation::TimeCorrelationFunctions.PopulationCorrelationFunction) = 2
+function TimeCorrelationFunctions.evaluate_normalisation(
+    sim::AbstractSimulation{<:eCMM},
+    ::TimeCorrelationFunctions.PopulationCorrelationFunction
+)
+    NonadiabaticModels.nstates(sim)
+end
 
