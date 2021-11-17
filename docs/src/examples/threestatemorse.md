@@ -81,12 +81,12 @@ ax = Axis(fig[1,1], xlabel="Time /a.u.", ylabel="Population")
 
 x = 0:10:3000
 lines!(ax, x, [p[1,1] for p in fssh_result], label="State 1", color=:red)
-lines!(ax, x, [p[2,1] for p in fssh_result], label="State 2", color=:green)
-lines!(ax, x, [p[3,1] for p in fssh_result], label="State 3", color=:blue)
+lines!(ax, x, [p[1,2] for p in fssh_result], label="State 2", color=:green)
+lines!(ax, x, [p[1,3] for p in fssh_result], label="State 3", color=:blue)
 
 lines!(ax, x, [p[1,1] for p in ehrenfest_result], label="State 1", color=:red, linestyle=:dash)
-lines!(ax, x, [p[2,1] for p in ehrenfest_result], label="State 2", color=:green, linestyle=:dash)
-lines!(ax, x, [p[3,1] for p in ehrenfest_result], label="State 3", color=:blue, linestyle=:dash)
+lines!(ax, x, [p[1,2] for p in ehrenfest_result], label="State 2", color=:green, linestyle=:dash)
+lines!(ax, x, [p[1,3] for p in ehrenfest_result], label="State 3", color=:blue, linestyle=:dash)
 
 fig
 ```

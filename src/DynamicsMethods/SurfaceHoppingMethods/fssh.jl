@@ -171,7 +171,7 @@ Equation 40 from [HammesSchiffer1994](@cite).
 function calculate_a(sim::AbstractSimulation{<:SurfaceHopping}, coupling::AbstractMatrix)
     a = zero(eltype(coupling))
     for I in CartesianIndices(coupling)
-        a += coupling[I]^2 * masses(sim, I)
+        a += coupling[I]^2 / masses(sim, I)
     end
     return a / 2
 end
