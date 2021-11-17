@@ -76,8 +76,8 @@ obtained if using the correct ring polymer distribution.
 using Plots
 
 plot(0:50:3000, [p[1,1] for p in solution], label="State 1")
-plot!(0:50:3000, [p[2,1] for p in solution], label="State 2")
-plot!(0:50:3000, [p[3,1] for p in solution], label="State 3")
+plot!(0:50:3000, [p[1,2] for p in solution], label="State 2")
+plot!(0:50:3000, [p[1,3] for p in solution], label="State 3")
 xlabel!("Time /a.u.")
 ylabel!("Population")
 ```
