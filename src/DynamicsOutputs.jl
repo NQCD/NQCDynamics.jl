@@ -114,6 +114,9 @@ Requires that `DynamicsUtils.get_quantum_subsystem` is implemented for your chos
 """
 quantum_subsystem(u, t, integrator) = copy(get_quantum_subsystem(u))
 
+mapping_position(u, t, integrator) = copy(DynamicsUtils.get_mapping_positions(u))
+mapping_momentum(u, t, integrator) = copy(DynamicsUtils.get_mapping_momenta(u))
+
 """
 Get the currently occupied state from the dynamics variables.
 Requires that the dynamics variable has a field `state`.
