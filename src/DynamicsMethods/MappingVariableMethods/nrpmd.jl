@@ -4,7 +4,7 @@ using ComponentArrays: ComponentVector
 using Distributions: Normal
 using NonadiabaticMolecularDynamics: RingPolymers
 using NonadiabaticModels: nstates
-using NonadiabaticMolecularDynamics.NonadiabaticDistributions: ElectronicDistribution
+using NonadiabaticMolecularDynamics.NonadiabaticDistributions: SingleState, Diabatic
 
 """
     NRPMD{T} <: DynamicsMethods.Method
@@ -32,31 +32,37 @@ RingPolymerSimulation{NRPMD{Float64}}:
 ```
 """
 struct NRPMD{T} <: DynamicsMethods.Method
+    γ::T
     temp_q::Vector{T}
     temp_p::Vector{T}
-    function NRPMD{T}(n_states::Integer) where {T}
-        new{T}(zeros(n_states), zeros(n_states))
+    function NRPMD{T}(n_states::Integer, γ) where {T}
+        new{T}(γ, zeros(n_states), zeros(n_states))
     end
 end
 
-function NonadiabaticMolecularDynamics.RingPolymerSimulation{NRPMD}(atoms::Atoms{S,T}, model::Model, n_beads::Integer; kwargs...) where {S,T}
-    NonadiabaticMolecularDynamics.RingPolymerSimulation(atoms, model, NRPMD{T}(NonadiabaticModels.nstates(model)), n_beads; kwargs...)
+function NonadiabaticMolecularDynamics.RingPolymerSimulation{NRPMD}(atoms::Atoms{S,T}, model::Model, n_beads::Integer; γ=0.5, kwargs...) where {S,T}
+    NonadiabaticMolecularDynamics.RingPolymerSimulation(atoms, model, NRPMD{T}(NonadiabaticModels.nstates(model), γ), n_beads; kwargs...)
 end
 
-function DynamicsMethods.DynamicsVariables(sim::RingPolymerSimulation{<:NRPMD}, v, r, electronic::ElectronicDistribution)
-    K = NonadiabaticModels.nstates(sim)
+function DynamicsMethods.DynamicsVariables(sim::RingPolymerSimulation{<:NRPMD}, v, r, electronic::SingleState{Diabatic})
+    F = NonadiabaticModels.nstates(sim)
     n_beads = length(sim.beads)
-    σ = sqrt(1/2)
-    distribution = Normal(0, σ)
-    qmap = rand(distribution, K, n_beads)
-    pmap = rand(distribution, K, n_beads)
+
+    θ = rand(F, n_beads) .* 2π
+    qmap = cos.(θ)
+    pmap = sin.(θ)
+    for i=1:F
+        if i == electronic.state
+            qmap[i, :] .*= sqrt(2 + 2sim.method.γ)
+            pmap[i, :] .*= sqrt(2 + 2sim.method.γ)
+        else
+            qmap[i, :] .*= sqrt(2sim.method.γ)
+            pmap[i, :] .*= sqrt(2sim.method.γ)
+        end
+    end
+
     return ComponentVector(v=v, r=r, pmap=pmap, qmap=qmap)
 end
-
-get_mapping_positions(u::ComponentVector) = u.qmap
-get_mapping_momenta(u::ComponentVector) = u.pmap
-get_mapping_positions(u::ComponentVector, i) = @view get_mapping_positions(u)[:,i]
-get_mapping_momenta(u::ComponentVector, i) = @view get_mapping_momenta(u)[:,i]
 
 function DynamicsMethods.motion!(du, u, sim::RingPolymerSimulation{<:NRPMD}, t)
     dr = DynamicsUtils.get_positions(du)
@@ -108,31 +114,11 @@ function Estimators.diabatic_population(sim::RingPolymerSimulation{<:NRPMD}, u)
     for i in 1:RingPolymers.nbeads(sim)
         qmap = get_mapping_positions(u, i)
         pmap = get_mapping_momenta(u, i)
-        G = exp(-(dot(qmap, qmap) + dot(pmap, pmap)))
         for j in axes(qmap, 1)
-            population[j] += (qmap[j]^2 + pmap[j]^2 - 1/2) * G * 2^(K+1)
+            population[j] += (qmap[j]^2 + pmap[j]^2) / 2 - sim.method.γ
         end
     end
     return population / RingPolymers.nbeads(sim)
-end
-
-function Estimators.initial_diabatic_population(sim::RingPolymerSimulation{<:NRPMD}, u)
-    K = NonadiabaticModels.nstates(sim)
-    population = zeros(K)
-    for i in 1:RingPolymers.nbeads(sim)
-        qmap = get_mapping_positions(u, i)
-        pmap = get_mapping_momenta(u, i)
-        for j in axes(qmap, 1)
-            population[j] += (qmap[j]^2 + pmap[j]^2 - 1/2) * 2^(K+1)
-        end
-    end
-    return population / RingPolymers.nbeads(sim)
-end
-
-function TimeCorrelationFunctions.evaluate_normalisation(sim::RingPolymerSimulation{<:NRPMD},
-    ::TimeCorrelationFunctions.PopulationCorrelationFunction)
-    K = NonadiabaticModels.nstates(sim)
-    return RingPolymers.nbeads(sim)/2^K
 end
 
 function DynamicsUtils.classical_hamiltonian(sim::RingPolymerSimulation{<:NRPMD}, u)

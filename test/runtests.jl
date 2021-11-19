@@ -32,6 +32,7 @@ if GROUP == "All" || GROUP == "Dynamics"
     @time @safetestset "FSSH Tests" begin include("Dynamics/fssh.jl") end
     @time @safetestset "NRPMD Tests" begin include("Dynamics/nrpmd.jl") end
     @time @safetestset "CMM Tests" begin include("Dynamics/cmm.jl") end
+    @time @safetestset "RPeCMM Tests" begin include("Dynamics/rpecmm.jl") end
     @time @safetestset "Cell Boundary Callback Tests" begin include("Dynamics/cell_boundary_callback.jl") end
     @time @safetestset "Ehrenfest Tests" begin include("Dynamics/ehrenfest.jl") end
     @time @safetestset "IESH Tests" begin include("Dynamics/iesh.jl") end
