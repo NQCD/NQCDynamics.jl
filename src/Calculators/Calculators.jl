@@ -107,6 +107,7 @@ mutable struct RingPolymerDiabaticCalculator{T,M,S,L} <: AbstractDiabaticCalcula
     centroid_eigenvectors::SMatrix{S,S,T,L}
     centroid_adiabatic_derivative::Matrix{SMatrix{S,S,T,L}}
     centroid_nonadiabatic_coupling::Matrix{SMatrix{S,S,T,L}}
+    tmp_centroid::Matrix{T}
 
     tmp_mat::Matrix{T}
     tmp_mat_complex1::Matrix{Complex{T}}
@@ -129,13 +130,14 @@ mutable struct RingPolymerDiabaticCalculator{T,M,S,L} <: AbstractDiabaticCalcula
         centroid_eigenvectors = matrix_template + I
         centroid_adiabatic_derivative = [matrix_template for _ in CartesianIndices(centroid_derivative)]
         centroid_nonadiabatic_coupling = [matrix_template for _ in CartesianIndices(centroid_derivative)]
+        tmp_centroid = zeros(T, ndofs(model), atoms)
 
         tmp_mat = zeros(T, n, n)
         tmp_mat_complex1 = zeros(Complex{T}, n, n)
         tmp_mat_complex2 = zeros(Complex{T}, n, n)
         new{T,M,n,n^2}(model, potential, derivative, eigenvalues, eigenvectors, adiabatic_derivative, nonadiabatic_coupling,
             centroid_potential, centroid_derivative, centroid_eigenvalues, centroid_eigenvectors, 
-            centroid_adiabatic_derivative, centroid_nonadiabatic_coupling,
+            centroid_adiabatic_derivative, centroid_nonadiabatic_coupling, tmp_centroid,
             tmp_mat, tmp_mat_complex1, tmp_mat_complex2)
     end
 end
@@ -164,7 +166,7 @@ function evaluate_potential!(calc::AbstractCalculator, R::AbstractArray{T,3}) wh
 end
 
 function evaluate_centroid_potential!(calc::AbstractCalculator, R::AbstractArray{T,3}) where {T}
-    calc.centroid_potential = NonadiabaticModels.potential(calc.model, RingPolymers.get_centroid(R))
+    calc.centroid_potential = NonadiabaticModels.potential(calc.model, RingPolymers.get_centroid!(calc.tmp_centroid, R))
 end
 
 function evaluate_derivative!(calc::AbstractCalculator, R)
@@ -178,7 +180,7 @@ function evaluate_derivative!(calc::AbstractCalculator, R::AbstractArray{T,3}) w
 end
 
 function evaluate_centroid_derivative!(calc::AbstractCalculator, R::AbstractArray{T,3}) where {T}
-    NonadiabaticModels.derivative!(calc.model, calc.centroid_derivative, RingPolymers.get_centroid(R))
+    NonadiabaticModels.derivative!(calc.model, calc.centroid_derivative, RingPolymers.get_centroid!(calc.tmp_centroid, R))
 end
 
 function eigen!(calc::DiabaticCalculator)
