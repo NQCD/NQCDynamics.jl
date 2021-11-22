@@ -2,6 +2,7 @@ using Test
 using NonadiabaticMolecularDynamics
 using OrdinaryDiffEq
 using StaticArrays
+using LinearAlgebra: Eigen
 using Random: seed!
 using NonadiabaticMolecularDynamics: DynamicsMethods, DynamicsUtils, Calculators
 using NonadiabaticMolecularDynamics.SurfaceHoppingMethods: SurfaceHoppingMethods
@@ -63,7 +64,7 @@ atoms = Atoms(2)
     end
 
     @testset "calculate_potential_energy_change" begin
-        integrator.p.calculator.eigenvalues = SVector{2}([0.9, -0.3])
+        integrator.p.calculator.eigen = Eigen(SVector{2}([0.9, -0.3]), SMatrix{2,2}(1, 0, 0.0, 1))
         eigs = SurfaceHoppingMethods.get_hopping_eigenvalues(integrator.p)
         @test 1.2 ≈ SurfaceHoppingMethods.calculate_potential_energy_change(eigs, 1, 2)
         @test -1.2 ≈ SurfaceHoppingMethods.calculate_potential_energy_change(eigs, 2, 1)
@@ -127,7 +128,7 @@ end
     end
 
     @testset "calculate_potential_energy_change" begin
-        integrator.p.calculator.centroid_eigenvalues = SVector{2}([0.9, -0.3])
+        integrator.p.calculator.centroid_eigen = Eigen(SVector{2}([0.9, -0.3]), SMatrix{2,2}(1, 0, 0.0, 1))
         eigs = SurfaceHoppingMethods.get_hopping_eigenvalues(integrator.p)
         @test 1.2 ≈ SurfaceHoppingMethods.calculate_potential_energy_change(eigs, 1, 2)
         @test -1.2 ≈ SurfaceHoppingMethods.calculate_potential_energy_change(eigs, 2, 1)

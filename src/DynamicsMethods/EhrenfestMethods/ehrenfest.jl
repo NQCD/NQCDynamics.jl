@@ -61,9 +61,8 @@ function Estimators.adiabatic_population(::AbstractSimulation{<:Ehrenfest}, u)
 end
 
 function Estimators.diabatic_population(sim::Simulation{<:Ehrenfest}, u)
-    Calculators.evaluate_potential!(sim.calculator, DynamicsUtils.get_positions(u))
-    Calculators.eigen!(sim.calculator)
-    U = sim.calculator.eigenvectors
+    r = DynamicsUtils.get_positions(u)
+    U = NonadiabaticDistributions.evaluate_transformation(sim.calculator, r)
 
     σ = DynamicsUtils.get_quantum_subsystem(u)
 
@@ -75,7 +74,7 @@ function DynamicsUtils.classical_hamiltonian(sim::Simulation{<:Ehrenfest}, u)
 
     Calculators.evaluate_potential!(sim.calculator, DynamicsUtils.get_positions(u))
     Calculators.eigen!(sim.calculator)
-    potential = sum(diag(DynamicsUtils.get_quantum_subsystem(u)) .* sim.calculator.eigenvalues)
+    potential = sum(diag(DynamicsUtils.get_quantum_subsystem(u)) .* sim.calculator.eigen.values)
 
     return kinetic + potential
 end
