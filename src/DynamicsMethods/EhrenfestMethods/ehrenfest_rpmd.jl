@@ -20,14 +20,6 @@ function DynamicsMethods.motion!(du, u, sim::RingPolymerSimulation{<:Ehrenfest},
     DynamicsUtils.set_quantum_derivative!(dσ, v, σ, sim)
 end
 
-function Estimators.diabatic_population(sim::RingPolymerSimulation{<:Ehrenfest}, u)
-    Calculators.evaluate_centroid_potential!(sim.calculator, DynamicsUtils.get_positions(u))
-    Calculators.centroid_eigen!(sim.calculator)
-    U = sim.calculator.centroid_eigenvectors
-    σ = DynamicsUtils.get_quantum_subsystem(u)
-    return real.(diag(U * σ * U'))
-end
-
 function DynamicsUtils.classical_hamiltonian(sim::RingPolymerSimulation{<:Ehrenfest}, u)
     v = DynamicsUtils.get_velocities(u)
     r = DynamicsUtils.get_positions(u)
@@ -37,7 +29,7 @@ function DynamicsUtils.classical_hamiltonian(sim::RingPolymerSimulation{<:Ehrenf
     Calculators.evaluate_potential!(sim.calculator, r)
     Calculators.eigen!(sim.calculator)
     population = Estimators.adiabatic_population(sim, u)
-    potential = sum([dot(population, eigs) for eigs in sim.calculator.eigenvalues])
+    potential = sum([dot(population, eigs.values) for eigs in sim.calculator.eigen])
 
     return kinetic + potential + spring
 end

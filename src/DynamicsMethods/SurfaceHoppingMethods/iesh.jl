@@ -72,7 +72,7 @@ In IESH each electron is independent so we can loop through electrons and set th
 derivative one at a time, in the standard way for FSSH.
 """
 function DynamicsUtils.set_quantum_derivative!(dσ, v, σ, sim::Simulation{<:IESH})
-    V = sim.calculator.eigenvalues
+    V = sim.calculator.eigen.values
     d = sim.calculator.nonadiabatic_coupling
     @views for i in axes(dσ, 2)       
         set_single_electron_derivative!(dσ[:,i], σ[:,i], V, v, d, sim.method.tmp)
@@ -174,7 +174,7 @@ end
 function Estimators.diabatic_population(sim::Simulation{<:IESH}, u)
     Calculators.evaluate_potential!(sim.calculator, DynamicsUtils.get_positions(u))
     Calculators.eigen!(sim.calculator)
-    U = sim.calculator.eigenvectors
+    U = sim.calculator.eigen.vectors
 
     ψ = DynamicsUtils.get_quantum_subsystem(u)
     diabatic_ψ = zero(ψ)

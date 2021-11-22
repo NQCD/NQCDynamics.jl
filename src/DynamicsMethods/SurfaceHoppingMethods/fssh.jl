@@ -80,7 +80,7 @@ function get_hopping_velocity(::Simulation{<:SurfaceHopping}, u)
 end
 
 function get_hopping_eigenvalues(sim::Simulation{<:SurfaceHopping})
-    sim.calculator.eigenvalues
+    sim.calculator.eigen.values
 end
 
 function fewest_switches_probability!(probability, v, σ, s, d, dt)
@@ -226,6 +226,6 @@ function DynamicsUtils.classical_hamiltonian(sim::Simulation{<:FSSH}, u)
     kinetic = DynamicsUtils.classical_kinetic_energy(sim, DynamicsUtils.get_velocities(u))
     Calculators.evaluate_potential!(sim.calculator, DynamicsUtils.get_positions(u))
     Calculators.eigen!(sim.calculator)
-    potential = sim.calculator.eigenvalues[sim.method.state]
+    potential = sim.calculator.eigen.values[sim.method.state]
     return kinetic + potential
 end

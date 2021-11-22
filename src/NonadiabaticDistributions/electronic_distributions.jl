@@ -83,11 +83,11 @@ end
 function evaluate_transformation(calculator::DiabaticCalculator, r)
     Calculators.evaluate_potential!(calculator, r)
     Calculators.eigen!(calculator)
-    return calculator.eigenvectors
+    return calculator.eigen.vectors
 end
 
 function evaluate_transformation(calculator::RingPolymerDiabaticCalculator, r)
     Calculators.evaluate_centroid_potential!(calculator, r)
     Calculators.centroid_eigen!(calculator)
-    return calculator.centroid_eigenvectors
+    return calculator.centroid_eigen.vectors
 end

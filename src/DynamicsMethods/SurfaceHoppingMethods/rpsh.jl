@@ -35,7 +35,7 @@ function get_hopping_velocity(::RingPolymerSimulation{<:FSSH}, u)
 end
 
 function get_hopping_eigenvalues(sim::RingPolymerSimulation{<:FSSH})
-    sim.calculator.centroid_eigenvalues
+    sim.calculator.centroid_eigen.values
 end
 
 function perform_rescaling!(
@@ -53,6 +53,6 @@ function DynamicsUtils.classical_hamiltonian(sim::RingPolymerSimulation{<:FSSH},
 
     Calculators.evaluate_potential!(sim.calculator, DynamicsUtils.get_positions(u))
     Calculators.eigen!(sim.calculator)
-    potential = sum(bead[u.state] for bead in sim.calculator.eigenvalues)
+    potential = sum(eigs.values[u.state] for eigs in sim.calculator.eigen)
     return kinetic + spring + potential
 end

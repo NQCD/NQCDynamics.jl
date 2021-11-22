@@ -5,8 +5,7 @@ struct LargeDiabaticCalculator{T,M} <: AbstractDiabaticCalculator{T,M}
     model::M
     potential::Hermitian{T,Matrix{T}}
     derivative::Matrix{Hermitian{T,Matrix{T}}}
-    eigenvalues::Vector{T}
-    eigenvectors::Matrix{T}
+    eigen::LinearAlgebra.Eigen{T,T,Matrix{T},Vector{T}}
     adiabatic_derivative::Matrix{Matrix{T}}
     nonadiabatic_coupling::Matrix{Matrix{T}}
     tmp_mat::Matrix{T}
@@ -16,14 +15,13 @@ struct LargeDiabaticCalculator{T,M} <: AbstractDiabaticCalculator{T,M}
         n = nstates(model)
         potential = Hermitian(zeros(n, n))
         derivative = [Hermitian(zeros(n, n)) for i=1:ndofs(model), j=1:atoms]
-        eigenvalues = zeros(n)
-        eigenvectors = zeros(n, n)
+        eigen = Eigen(zeros(n), zeros(n,n)+I)
         adiabatic_derivative = [zeros(n, n) for i=1:ndofs(model), j=1:atoms]
         nonadiabatic_coupling = [zeros(n, n) for i=1:ndofs(model), j=1:atoms]
         tmp_mat = zeros(T, n, n)
         tmp_mat_complex1 = zeros(Complex{T}, n, n)
         tmp_mat_complex2 = zeros(Complex{T}, n, n)
-        new{T,M}(model, potential, derivative, eigenvalues, eigenvectors, adiabatic_derivative, nonadiabatic_coupling,
+        new{T,M}(model, potential, derivative, eigen, adiabatic_derivative, nonadiabatic_coupling,
             tmp_mat, tmp_mat_complex1, tmp_mat_complex2)
     end
 end
@@ -44,16 +42,16 @@ end
 
 function transform_derivative!(calc::LargeDiabaticCalculator)
     for I in eachindex(calc.derivative)
-        LinearAlgebra.mul!(calc.tmp_mat, calc.derivative[I], calc.eigenvectors)
-        LinearAlgebra.mul!(calc.adiabatic_derivative[I], calc.eigenvectors', calc.tmp_mat)
+        LinearAlgebra.mul!(calc.tmp_mat, calc.derivative[I], calc.eigen.vectors)
+        LinearAlgebra.mul!(calc.adiabatic_derivative[I], calc.eigen.vectors', calc.tmp_mat)
     end
 end
 
 function eigen!(calc::LargeDiabaticCalculator)
     eig = LinearAlgebra.eigen(calc.potential)
-    correct_phase!(eig, calc.eigenvectors)
-    copyto!(calc.eigenvectors, eig.vectors)
-    copyto!(calc.eigenvalues, eig.values)
+    correct_phase!(eig, calc.eigen.vectors)
+    copyto!(calc.eigen.vectors, eig.vectors)
+    copyto!(calc.eigen.values, eig.values)
 end
 
 function correct_phase!(eig::LinearAlgebra.Eigen, old_eigenvectors::AbstractMatrix)
@@ -66,7 +64,7 @@ end
 
 function evaluate_nonadiabatic_coupling!(calc::LargeDiabaticCalculator)
     for I in eachindex(calc.adiabatic_derivative)
-        evaluate_nonadiabatic_coupling!(calc.nonadiabatic_coupling[I], calc.adiabatic_derivative[I], calc.eigenvalues)
+        evaluate_nonadiabatic_coupling!(calc.nonadiabatic_coupling[I], calc.adiabatic_derivative[I], calc.eigen.values)
     end
 end
 
