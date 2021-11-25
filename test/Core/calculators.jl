@@ -32,7 +32,7 @@ end
     
     calc = Calculators.RingPolymerDiabaticCalculator{Float64}(model, 1, 10)
     Calculators.evaluate_potential!(calc, rand(1, 1, 10))
-    Calculators.evaluate_centroid_potential!(calc, rand(1, 1, 10))
+    Calculators.evaluate_centroid_potential!(calc, rand(1, 1))
 
     Calculators.evaluate_V̄!(calc)
     @test calc.V̄[1] ≈ tr(calc.potential[1]) / nstates(model)
@@ -44,7 +44,7 @@ end
     @test (@allocated Calculators.evaluate_traceless_potential!(calc)) == 0
 
     Calculators.evaluate_derivative!(calc, rand(1, 1, 10))
-    Calculators.evaluate_centroid_derivative!(calc, rand(1, 1, 10))
+    Calculators.evaluate_centroid_derivative!(calc, rand(1, 1))
 
     Calculators.evaluate_D̄!(calc)
     @test calc.D̄[1] ≈ tr(calc.derivative[1]) / nstates(model)
