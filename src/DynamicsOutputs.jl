@@ -89,6 +89,9 @@ force(u, t, integrator) = -copy(integrator.p.calculator.derivative)
 "Get the velocity"
 velocity(u, t, integrator) = copy(get_velocities(u))
 
+"Get the velocity of the ring polymer centroid"
+centroid_velocity(u, t, integrator) = get_centroid(get_velocities(u))
+
 "Get the position"
 position(u, t, integrator) = copy(get_positions(u))
 

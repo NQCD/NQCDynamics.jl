@@ -98,6 +98,7 @@ function get_centroid!(out::Matrix{T}, A::RingPolymerArray{T}) where {T}
 end
 
 function get_centroid!(out::Matrix{T}, A::AbstractArray{T,3}) where {T}
+    fill!(out, zero(eltype(A)))
     for i in axes(A,3)
         for j in axes(A,2)
             for k in axes(A,1)

@@ -8,7 +8,7 @@ function set_quantum_derivative! end
 function calculate_density_matrix_propagator!(sim::Simulation, v)
     V = sim.method.density_propagator
 
-    V .= diagm(sim.calculator.eigenvalues)
+    V .= diagm(sim.calculator.eigen.values)
     for I in eachindex(v)
         @. V -= im * v[I] * sim.calculator.nonadiabatic_coupling[I]
     end
@@ -19,7 +19,7 @@ function calculate_density_matrix_propagator!(sim::RingPolymerSimulation, v)
     V = sim.method.density_propagator
     centroid_v = RingPolymers.get_centroid(v)
 
-    V .= diagm(sim.calculator.centroid_eigenvalues)
+    V .= diagm(sim.calculator.centroid_eigen.values)
     for I in eachindex(centroid_v)
         @. V -= im * centroid_v[I] * sim.calculator.centroid_nonadiabatic_coupling[I]
     end
