@@ -1,5 +1,6 @@
 using NonadiabaticMolecularDynamics
 using Test
+using StatsBase: mean
 
 b = RingPolymerArray(rand(2,3,4), quantum=[2])
 beads = RingPolymers.RingPolymerParameters{Float64}(4, 1.0, [2])
