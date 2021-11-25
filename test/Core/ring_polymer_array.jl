@@ -1,5 +1,6 @@
 using NonadiabaticMolecularDynamics
 using Test
+using StatsBase: mean
 
 b = RingPolymerArray(rand(2,3,4), quantum=[2])
 beads = RingPolymers.RingPolymerParameters{Float64}(4, 1.0, [2])
@@ -37,6 +38,13 @@ end
     centroid_final = RingPolymers.get_centroid(b)
 
     @test centroid_original ≈ centroid_middle ≈ centroid_final
+
+    R = rand(size(b)...)
+    centroid = dropdims(mean(R; dims=3); dims=3)
+    @test centroid ≈ RingPolymers.get_centroid(R)
+    out = similar(centroid) .+ 10
+    RingPolymers.get_centroid!(out, R)
+    @test centroid ≈ out
 end
 
 @testset "broadcasting" begin

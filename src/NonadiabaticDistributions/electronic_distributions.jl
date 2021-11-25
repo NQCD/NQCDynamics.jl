@@ -1,7 +1,7 @@
 using LinearAlgebra: diagind
 
 using NonadiabaticModels: NonadiabaticModels
-using NonadiabaticMolecularDynamics: Calculators
+using NonadiabaticMolecularDynamics: Calculators, RingPolymers
 using .Calculators:
     AbstractDiabaticCalculator,
     DiabaticCalculator,
@@ -83,11 +83,12 @@ end
 function evaluate_transformation(calculator::DiabaticCalculator, r)
     Calculators.evaluate_potential!(calculator, r)
     Calculators.eigen!(calculator)
-    return calculator.eigenvectors
+    return calculator.eigen.vectors
 end
 
 function evaluate_transformation(calculator::RingPolymerDiabaticCalculator, r)
-    Calculators.evaluate_centroid_potential!(calculator, r)
+    RingPolymers.get_centroid!(calculator.tmp_centroid, r)
+    Calculators.evaluate_centroid_potential!(calculator, calculator.tmp_centroid)
     Calculators.centroid_eigen!(calculator)
-    return calculator.centroid_eigenvectors
+    return calculator.centroid_eigen.vectors
 end
