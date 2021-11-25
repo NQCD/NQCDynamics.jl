@@ -192,8 +192,8 @@ function evaluate_traceless_potential!(calc::RingPolymerDiabaticCalculator)
     end
 end
 
-function evaluate_centroid_potential!(calc::AbstractCalculator, R::AbstractArray{T,3}) where {T}
-    calc.centroid_potential = NonadiabaticModels.potential(calc.model, RingPolymers.get_centroid!(calc.tmp_centroid, R))
+function evaluate_centroid_potential!(calc::AbstractCalculator, R::AbstractMatrix)
+    calc.centroid_potential = NonadiabaticModels.potential(calc.model, R)
 end
 
 function evaluate_derivative!(calc::AbstractCalculator, R)
@@ -230,8 +230,8 @@ function evaluate_traceless_adiabatic_derivative!(calc::RingPolymerDiabaticCalcu
     end
 end
 
-function evaluate_centroid_derivative!(calc::AbstractCalculator, R::AbstractArray{T,3}) where {T}
-    NonadiabaticModels.derivative!(calc.model, calc.centroid_derivative, RingPolymers.get_centroid!(calc.tmp_centroid, R))
+function evaluate_centroid_derivative!(calc::AbstractCalculator, R::AbstractMatrix)
+    NonadiabaticModels.derivative!(calc.model, calc.centroid_derivative, R)
 end
 
 function eigen!(calc::DiabaticCalculator)
@@ -347,8 +347,9 @@ function update_electronics!(calculator::RingPolymerDiabaticCalculator, r::Abstr
 end
 
 function update_centroid_electronics!(calculator::RingPolymerDiabaticCalculator, r::AbstractArray{T,3}) where {T}
-    evaluate_centroid_potential!(calculator, r)
-    evaluate_centroid_derivative!(calculator, r)
+    RingPolymers.get_centroid!(calculator.tmp_centroid, r)
+    evaluate_centroid_potential!(calculator, calculator.tmp_centroid)
+    evaluate_centroid_derivative!(calculator, calculator.tmp_centroid)
     centroid_eigen!(calculator)
     transform_centroid_derivative!(calculator)
     evaluate_centroid_nonadiabatic_coupling!(calculator)
