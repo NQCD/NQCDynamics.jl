@@ -1,5 +1,4 @@
 using StatsBase: mean
-using .Calculators: DiabaticCalculator
 using .NonadiabaticDistributions: NonadiabaticDistribution
 using ComponentArrays: ComponentVector
 
@@ -60,7 +59,7 @@ function Estimators.adiabatic_population(::AbstractSimulation{<:Ehrenfest}, u)
     return real.(diag(σ))
 end
 
-function Estimators.diabatic_population(sim::Simulation{<:Ehrenfest}, u)
+function Estimators.diabatic_population(sim::AbstractSimulation{<:AbstractEhrenfest}, u)
     r = DynamicsUtils.get_positions(u)
     U = NonadiabaticDistributions.evaluate_transformation(sim.calculator, r)
 
