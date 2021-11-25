@@ -6,6 +6,7 @@ using ComponentArrays: ComponentVector
 using DiffEqBase: DiffEqBase
 using LinearAlgebra: lmul!
 using OrdinaryDiffEq: OrdinaryDiffEq
+using Revise
 
 using NonadiabaticMolecularDynamics:
     NonadiabaticMolecularDynamics,
@@ -55,9 +56,13 @@ function DynamicsMethods.motion!(du, u, sim::AbstractSimulation{<:SurfaceHopping
 
     set_state!(u, sim.method.state) # Make sure the state variables match, 
 
+    # Get velocities, I expect
     DynamicsUtils.velocity!(dr, v, r, sim, t)
+    # Get nonadiabatic couplings and eigenvectors etc that correspond to present positions
     Calculators.update_electronics!(sim.calculator, r)
+    # This only gets the new forces. It does not update the nuclear positions
     acceleration!(dv, v, r, sim, t, sim.method.state)
+    # Go to propagate the Schroedinger Equation.
     set_quantum_derivative!(dσ, v, σ, sim)
 end
 
@@ -68,6 +73,7 @@ function set_quantum_derivative!(dσ, v, σ, sim::AbstractSimulation{<:SurfaceHo
 end
 
 function check_hop!(u, t, integrator)::Bool
+    println("Ping-wrong-ping")
     sim = integrator.p
     evaluate_hopping_probability!(sim, u, OrdinaryDiffEq.get_proposed_dt(integrator))
     set_new_state!(sim.method, select_new_state(sim, u))
@@ -120,6 +126,7 @@ end
 
 include("fssh.jl")
 include("iesh.jl")
+include("iesh_Tully.jl")
 include("rpsh.jl")
 
 end # module

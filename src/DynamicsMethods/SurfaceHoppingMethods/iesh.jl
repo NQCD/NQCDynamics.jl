@@ -39,10 +39,16 @@ end
 
 function DynamicsMethods.DynamicsVariables(sim::Simulation{<:IESH}, v, r)
     ψ = zeros(NonadiabaticModels.nstates(sim.calculator.model), sim.method.n_electrons)
-
+    occnum = zeros(NonadiabaticModels.nstates(sim.calculator.model), sim.method.n_electrons)
+    phi = zeros(NonadiabaticModels.nstates(sim.calculator.model), sim.method.n_electrons)
+    
+    # Old way to set initial values equal to zero
+    # I now also define occnum, the occupation number. NOt sure if it will be necessary
     for i=1:sim.method.n_electrons
-        ψ[i,i] = 1
+        Ψ[i,i-1] = 1
+        occnum[i,i] = 1
     end
+
     state = collect(1:sim.method.n_electrons)
 
     SurfaceHoppingVariables(ComponentVector(v=v, r=r, σreal=ψ, σimag=zero(ψ)), state)
@@ -109,6 +115,7 @@ function evaluate_hopping_probability!(sim::Simulation{<:IESH}, u, dt)
     d = sim.calculator.nonadiabatic_coupling
 
     compute_overlap!(S, ψ, sim.method.state)
+
     det_current = det(S)
     Akk = abs2(det_current)
 
@@ -193,30 +200,30 @@ function Estimators.adiabatic_population(sim::Simulation{<:IESH}, u)
     return population
 end
 
-# function rescale_velocity!(sim::Simulation{<:IESH}, u)::Bool
-#     # ShakibHuo_JPhysChemLett_8_3073_2017_rescale
-#     new_state, old_state = symdiff(sim.method.new_state, sim.method.state)
-#     velocity = DynamicsUtils.get_velocities(u)
+function rescale_velocity!(sim::Simulation{<:IESH}, u)::Bool
+    # ShakibHuo_JPhysChemLett_8_3073_2017_rescale
+    new_state, old_state = symdiff(sim.method.new_state, sim.method.state)
+    velocity = DynamicsUtils.get_velocities(u)
     
-#     # Calculate difference in eigenvalues between old and new state, weighed by mass:
-#     # c = (E_{new} - E_{old})/mass
-#     c = calculate_potential_energy_change(sim.calculator, new_state, old_state)
-#     # a = d^2_{new,old}/mass (where d is the nonadiabatic coupling)
-#     # b = v*d_{new,old}
-#     a, b = evaluate_a_and_b(sim, velocity, new_state, old_state)
-#     discriminant = b.^2 .- 2a.*c
+    # Calculate difference in eigenvalues between old and new state, weighed by mass:
+    # c = (E_{new} - E_{old})/mass
+    c = calculate_potential_energy_change(sim.calculator, new_state, old_state)
+    # a = d^2_{new,old}/mass (where d is the nonadiabatic coupling)
+    # b = v*d_{new,old}
+    a, b = evaluate_a_and_b(sim, velocity, new_state, old_state)
+    discriminant = b.^2 .- 2a.*c
 
-#     # If smaller zero, hop is frustrated
-#     any(discriminant .< 0) && return false
+    # If smaller zero, hop is frustrated
+    any(discriminant .< 0) && return false
 
-#     root = sqrt.(discriminant)
-#     plus = (b .+ root) ./ a
-#     minus = (b .- root) ./ a 
-#     velocity_rescale = sum(abs.(plus)) < sum(abs.(minus)) ? plus : minus
-#     perform_rescaling!(sim, velocity, velocity_rescale, new_state, old_state)
+    root = sqrt.(discriminant)
+    plus = (b .+ root) ./ a
+    minus = (b .- root) ./ a 
+    velocity_rescale = sum(abs.(plus)) < sum(abs.(minus)) ? plus : minus
+    perform_rescaling!(sim, velocity, velocity_rescale, new_state, old_state)
 
-#     return true
-# end
+    return true
+end
 
 # function calculate_potential_energy_change(calc::AbstractDiabaticCalculator, new_state::Integer, current_state::Integer)
 #     return calc.eigenvalues[new_state] - calc.eigenvalues[current_state]
