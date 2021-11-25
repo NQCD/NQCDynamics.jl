@@ -87,4 +87,14 @@ end
         @test exact ≈ estimate rtol=1e-1
     end
 
+    @testset "Free ring polymer radius_of_gyration" begin
+        T = 3.0
+        analytic_Rg = sqrt(1/12T)
+        sim = RingPolymerSimulation(Atoms(1), Free(), 10; temperature=T)
+        r = zeros(size(sim))
+        chain = ThermalMonteCarlo.run_advancedmh_sampling(sim, r, 4e4, Dict(:X=>1); move_ratio=0.0, internal_ratio=0.5)
+        estimate = Estimators.@estimate radius_of_gyration(sim, chain)
+        @test analytic_Rg ≈ estimate[1] atol=1e-1
+    end
+
 end
