@@ -36,8 +36,8 @@ macro estimate(expr)
     result, config = gensym(), gensym()
 
     return esc(quote
-        local $result = 0
-        for $config in $configurations
+        local $result = Estimators.$func($sim, $configurations[1])
+        for $config in $configurations[2:end]
             $result += Estimators.$func($sim, $config)
         end
         $result / length($configurations)
@@ -86,6 +86,13 @@ function kinetic_energy(sim::RingPolymerSimulation, r::AbstractArray{T,3}) where
     end
 
     return kinetic / 2nbeads(sim)
+end
+    
+function radius_of_gyration(::RingPolymerSimulation, r::AbstractArray{T,3}) where {T}
+    centroid = RingPolymers.get_centroid(r)
+    deviation = (r .- centroid) .^ 2
+    mean_deviation = dropdims(mean(deviation; dims=3); dims=3)
+    return sqrt.(mean_deviation)
 end
 
 function diabatic_population end
