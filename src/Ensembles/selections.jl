@@ -28,7 +28,7 @@ function (select::OrderedSelection)(prob, i, repeat)
 end
 
 function (select::RandomSelection)(prob, i, repeat)
-    j = rand(1:NonadiabaticDistributions.maxindex(select.distribution))
+    j = rand(1:lastindex(select.distribution))
     u0 = sample_distribution(prob.p, select.distribution, j)
     DynamicsMethods.create_problem(u0, prob.tspan, prob.p)
 end

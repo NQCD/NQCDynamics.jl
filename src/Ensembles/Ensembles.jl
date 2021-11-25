@@ -26,17 +26,17 @@ using NonadiabaticMolecularDynamics.NonadiabaticDistributions:
     CombinedDistribution
 
 function sample_distribution(sim::AbstractSimulation, distribution::NuclearDistribution, i)
-    u = NonadiabaticDistributions.pick(distribution, i)
+    u = getindex(distribution, i)
     DynamicsMethods.DynamicsVariables(sim, u.v, u.r)
 end
 
 function sample_distribution(sim::RingPolymerSimulation{<:DynamicsMethods.ClassicalMethods.ThermalLangevin}, distribution::NuclearDistribution, i)
-    u = NonadiabaticDistributions.pick(distribution, i)
+    u = getindex(distribution, i)
     DynamicsMethods.DynamicsVariables(sim, RingPolymers.RingPolymerArray(u.v), RingPolymers.RingPolymerArray(u.r))
 end
 
 function sample_distribution(sim::AbstractSimulation, distribution::CombinedDistribution, i)
-    u = NonadiabaticDistributions.pick(distribution.nuclear, i)
+    u = getindex(distribution.nuclear, i)
     DynamicsMethods.DynamicsVariables(sim, u.v, u.r, distribution.electronic)
 end
 
