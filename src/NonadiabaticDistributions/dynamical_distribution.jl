@@ -39,14 +39,15 @@ struct DynamicalDistribution{V,R,S} <: NuclearDistribution
 end
 
 Base.size(s::DynamicalDistribution) = s.size
-Base.length(s::DynamicalDistribution) = maxindex(s)
+Base.length(s::DynamicalDistribution) = lastindex(s)
 
 function Base.rand(rng::AbstractRNG, s::DynamicalDistribution)
-    i = rand(rng, 1:maxindex(s))
-    return pick(s, i)
+    i = rand(rng, 1:lastindex(s))
+    return getindex(s, i)
 end
 
-function maxindex(s::DynamicalDistribution)::Int
+Base.firstindex(s::DynamicalDistribution) = 1
+function Base.lastindex(s::DynamicalDistribution)::Int
     if s.velocity isa Vector
         return length(s.velocity)
     elseif s.position isa Vector
@@ -63,7 +64,13 @@ function maxindex(s::DynamicalDistribution)::Int
         return 1 end
 end
 
-pick(s::DynamicalDistribution, i::Integer) = ComponentVector(v=select_item(s.velocity, i, s.size), r=select_item(s.position, i, s.size))
+function Base.getindex(s::DynamicalDistribution, i::Integer)
+    return ComponentVector(
+        v=select_item(s.velocity, i, s.size),
+        r=select_item(s.position, i, s.size)
+    )
+end
+Base.getindex(s::DynamicalDistribution, I) = [s[i] for i in I]
 
 # Indexed selections
 select_item(x::Vector{<:AbstractArray}, i::Integer, ::NTuple) = x[i]
@@ -111,8 +118,4 @@ function write_hdf5(filename, data)
             fid[string(i)] = d
         end
     end
-end
-
-function Base.iterate(s::DynamicalDistribution, state=1)
-    state > maxindex(s) ? nothing : (pick(s, state), state+1)
 end
