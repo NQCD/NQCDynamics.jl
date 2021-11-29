@@ -73,7 +73,6 @@ function set_quantum_derivative!(dσ, v, σ, sim::AbstractSimulation{<:SurfaceHo
 end
 
 function check_hop!(u, t, integrator)::Bool
-    println("Ping-wrong-ping")
     sim = integrator.p
     evaluate_hopping_probability!(sim, u, OrdinaryDiffEq.get_proposed_dt(integrator))
     set_new_state!(sim.method, select_new_state(sim, u))

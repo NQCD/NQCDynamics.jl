@@ -41,6 +41,7 @@ nstates = M
 # Set up geometries for calculation
 Å = 1.0e-10 # 1 Angström in meter
 timestep = 0.1e-15 #fs
+bohr = 0.529177210903
 #println(auconvert(timestep*u"s"))
 
 filename = "/home/sjanke/Documents/Uni/Warwick/Documents/Projects/Anderson_Holstein_H/IESH_Tully/My_IESH/data/surface_Au111_4.dat"
@@ -61,8 +62,10 @@ no_pos = zeros(2,3)
 no_pos[1,3] = 10.118647440105047#*Å
 no_pos[2,3] = 10.881352559894953#*Å
 
-no_pos[1,3] = 1.5*Å
-no_pos[2,3] = 2.65*Å
+#no_pos[1,3] = 1.5*Å
+#no_pos[2,3] = 2.65*Å
+no_pos[1,3] = 1.5*bohr
+no_pos[2,3] = 2.65*bohr
 
 for i in 5:length(data)
     au_atoms[i-4,:] = parse.(Float64,split(strip(data[i])))#*Å
@@ -73,7 +76,8 @@ atoms=Atoms(vcat([:N, :O], fill(:Au, Int(length(au_atoms)/3))))
 # Get new model.
 p = zeros(n_au+2,3)
 p[1:2,:] = no_pos
-p[3:n_au+2,:] = au_atoms*Å
+#p[3:n_au+2,:] = au_atoms*Å
+p[3:n_au+2,:] = au_atoms*bohr
 
 model = Tully_NOAu111(M = M+1, n_au=n_au, au_pos=au_atoms, no_pos = no_pos,
                       x_pos = p, cell_mat = cell_mat, a_lat = a0, W=7.0)
@@ -84,9 +88,10 @@ model = Tully_NOAu111(M = M+1, n_au=n_au, au_pos=au_atoms, no_pos = no_pos,
 # p are the positions, I believe
 pto = potential(model, p)
 dto = derivative(model, p)
+
 #println(size(dto))
 #println(size(dto[1]))
-#println(dto)
+#println(dto[1])
 #println(pto)
 #@test Dynamics.IESH{Float64}(42,40) isa Dynamics.IESH
 # # #Initialize the simulation problem; Simulation is defined in src/simulation_constructors.jl 
@@ -99,6 +104,12 @@ sim = Simulation{IESH_Tully}(atoms, model, n_electrons=Int(M/2))
 r1 = p'
 v = zero(r1)
 v[3,1:2] .= 0.1
+v = ustrip.(map( x -> auconvert(x*u"Å/fs"), v))
+
+# Check forces
+#for I in eachindex(v)
+#    println(dto[I][1,1:2])
+#end
 #r = fill(-5.0, sim.DoFs, length(sim.atoms))
 
 z = DynamicsVariables(sim,v, r1)

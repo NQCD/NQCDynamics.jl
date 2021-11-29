@@ -1,5 +1,6 @@
 using LinearAlgebra: mul!, det
 using Unitful, UnitfulAtomic
+using NonadiabaticModels
 export IESH_Tully
 
     """
@@ -42,7 +43,7 @@ end
 
 function DynamicsMethods.DynamicsVariables(sim::Simulation{<:IESH_Tully}, v, r)
     ψ = zeros(NonadiabaticModels.nstates(sim.calculator.model), sim.method.n_electrons)
-    occnum = zeros(NonadiabaticModels.nstates(sim.calculator.model), sim.method.n_electrons)
+    #occnum = zeros(NonadiabaticModels.nstates(sim.calculator.model), sim.method.n_electrons)
     phi = zeros(NonadiabaticModels.nstates(sim.calculator.model), sim.method.n_electrons)
 
     # Include Hamiltonian ground state into IESH propagation
@@ -58,10 +59,10 @@ function DynamicsMethods.DynamicsVariables(sim::Simulation{<:IESH_Tully}, v, r)
     sim.method.psi .= vecH[:,state]
     
     # I now also define occnum, the occupation number. NOt sure if it will be necessary
-    for i=1:sim.method.n_electrons
-    #    Ψ[i,i-1] = 1
-        occnum[i,i] = 1
-    end
+    # for i=1:sim.method.n_electrons
+    # #    Ψ[i,i-1] = 1
+    #     occnum[i,i] = 1
+    # end
 
     # This is in principle all right, but one needs to be careful with 
     # how the array is accessed.
@@ -90,8 +91,12 @@ function DynamicsMethods.motion!(du, u, sim::AbstractSimulation{<:SurfaceHopping
     #set_quantum_derivative!(sim.method.psi, v, σ, sim)
     # This is apparently needed, otherwise the program doesn't find it.
     propagate_wavefunction!(sim)
-    #dσ now holds the correct ψ But that doesn't really help, because it's not self-consistent.
+    #Internal way of propagation, needs correct wavefunction or density matrix
+    println("psi")
+    println(sim.method.psi)
     #set_quantum_derivative!(dσ, v, σ, sim)
+    #println("sigma")
+    #println(σ)
 end
 
 """
@@ -118,6 +123,13 @@ in the Shenvi, Tully paper (JCP 2009)
 In IESH each electron is independent so we can loop through electrons and set the
 derivative one at a time, in the standard way for FSSH.
 """
+function set_quantum_derivative!(dσ, v, σ, sim::Simulation{<:IESH_Tully})
+    V = sim.calculator.eigenvalues
+    d = sim.calculator.nonadiabatic_coupling
+    @views for i in axes(dσ, 2)       
+        set_single_electron_derivative!(dσ[:,i], σ[:,i], V, v, d, sim.method.tmp)
+    end
+end
 # Go to propagate the Schroedinger Equation.
 # Needs to be the derivative, but I'm sabotaging the entire thing and just
 # propagating the full favefunction
@@ -129,23 +141,24 @@ function propagate_wavefunction!(sim::Simulation{<:IESH_Tully})
     Hvec = sim.calculator.eigenvectors
     # Differences to Fortran code within numerical accuracy.
     ps = transpose(Hvec)*sim.method.psi
-    # Reminder: dt needs to be a variable passed in via sim.method.
-    # Also, I need to check against the currently implemented prop. method.
 
-    # Probably best to set ps to Fortran values for checking.
+    # Set ps to value in Tully-IESH code to allow 1:1 comparison.
     # It checks out until here, though
-    ps = [0.99999999999999978+0.0im        1.00855884164624542E-016+0.0im; 1.00855884164624542E-016+0.0im       1.0000000000000000+0.0im;  -5.44007002986078857E-017+0.0im 2.23803759817048583E-016+0.0im;  1.85941304325904460E-016+0.0im      4.45375054458271422E-017+0.0im; 6.12028795037231673E-017+0.0im  8.48420904660896971E-017+0.0im]
+    #ps = [0.99999999999999978+0.0im        1.00855884164624542E-016+0.0im; 1.00855884164624542E-016+0.0im       1.0000000000000000+0.0im;  -5.44007002986078857E-017+0.0im 2.23803759817048583E-016+0.0im;  1.85941304325904460E-016+0.0im      4.45375054458271422E-017+0.0im; 6.12028795037231673E-017+0.0im  8.48420904660896971E-017+0.0im]
     
-    #dt = auconvert(1e-16*u"s")
-    # This needs to be either completely in other units or follow
-    # the programme conventions
-    hbar = 1.05457148e-34
-    dt = 1e-16 # timestep: 0.1 fs.
-    ac = exp.(-im*V*dt/hbar)
-    # This would need to be done to do everything in the units of 
-    # the Julia code. I checked and both ways give the same result
+    # The PES is originally in SI units with J, fs and Angstrom. 
+    # In case the propagation is to be done in that unit system,
+    # the following lines are needed. They give the same result.
+    #hbar = 1.05457148e-34
+    #dt = 1e-16 # timestep: 0.1 fs.
+    #ac = exp.(-im*V*dt/hbar)
     #V1 = ustrip.(map( x -> auconvert(x*u"J"), V))
-    #dt1 = ustrip(auconvert(1e-16*u"s"))
+
+    # Timestep as 0.1 fs Hard-coded for now, since I have no idea how
+    # to get it here.
+    dt1 = ustrip(auconvert(1e-16*u"s"))
+    ac = exp.(-im*V*dt1)
+    
     for i in 1:sim.method.n_electrons
         for j in 1:(sim.method.n_electrons*2+1)
             ab[j,i] = ac[j]*ps[j,i]
@@ -156,27 +169,21 @@ function propagate_wavefunction!(sim::Simulation{<:IESH_Tully})
 end
 
 
-# function set_quantum_derivative!(dσ, v, σ, sim::Simulation{<:IESH})
-#     V = sim.calculator.eigenvalues
-#     d = sim.calculator.nonadiabatic_coupling
-#     @views for i in axes(dσ, 2)       
-#         set_single_electron_derivative!(dσ[:,i], σ[:,i], V, v, d, sim.method.tmp)
-#     end
-# end
-# """
-# ```math
-# \\frac{d c_k}{dt} = -iV_{kk}c_k/\\hbar - \\sum_j v d_{kj} c_j
-# ```
-# """
-# function set_single_electron_derivative!(dc, c, V, v, d, tmp)
-#     @. dc = -im*V * c
-#     for I in eachindex(v)
-#         mul!(tmp, d[I], c)
-#         lmul!(v[I], tmp)
-#         @. dc -= tmp
-#     end
-#     return nothing
-# end
+
+"""
+```math
+\\frac{d c_k}{dt} = -iV_{kk}c_k/\\hbar - \\sum_j v d_{kj} c_j
+```
+"""
+function set_single_electron_derivative!(dc, c, V, v, d, tmp)
+    @. dc = -im*V * c
+    for I in eachindex(v)
+        mul!(tmp, d[I], c)
+        lmul!(v[I], tmp)
+        @. dc -= tmp
+    end
+    return nothing
+end
 
 function check_hop!(u, t, integrator)::Bool
     sim = integrator.p
@@ -222,6 +229,9 @@ function evaluate_hopping_probability!(sim::Simulation{<:IESH_Tully}, u, dt)
 
     #w det_current = det(S)
     #w Akk = abs2(det_current)
+    pk= derivative(sim.calculator.model,DynamicsUtils.get_positions(u))
+    #println(size(pk))
+    #println(pk[:][1,1:2])
     
     fill!(prob, zero(eltype(prob)))
     for i in axes(prob, 2) # each electron
@@ -239,8 +249,10 @@ function evaluate_hopping_probability!(sim::Simulation{<:IESH_Tully}, u, dt)
                 # The values for prob are quite small compared to the Fortran code.
                 # This may either be numerical precision or a result of how the forces are treated
                 # The formulae are correct.
+                # For some reason, however, the forces have not changed, yet.
                 for I in eachindex(v)
-                    prob[j,i] += 2 * v[I] * real(Akj/Akk) * d[I][sim.method.state[i], j] * dt
+                    #prob[j,i] += 2 * v[I] * real(Akj/Akk) * d[I][sim.method.state[i], j] * dt
+                    prob[j,i] += v[I] * d[I][sim.method.state[i], j]
                 end
             end
         end
