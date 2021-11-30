@@ -6,6 +6,7 @@ using OrdinaryDiffEq: OrdinaryDiffEq
 using LinearAlgebra: Hermitian, tr
 
 using NonadiabaticMolecularDynamics.DynamicsMethods: MappingVariableMethods
+using NonadiabaticModels: nstates
 
 """
     MInt <: OrdinaryDiffEq.OrdinaryDiffEqAlgorithm
@@ -48,27 +49,31 @@ function OrdinaryDiffEq.initialize!(_, ::MIntCache) end
     RingPolymers.transform_from_normal_modes!(p.beads, u)
 
     Calculators.update_electronics!(calc, DynamicsUtils.get_positions(u))
+    Calculators.evaluate_V̄!(calc)
+    Calculators.evaluate_D̄!(calc)
+    Calculators.evaluate_traceless_adiabatic_derivative!(calc)
 
     propagate_mapping_variables!(calc, u, dt)
 
     for i=1:nbeads(p)
+        traceless_eigs = calc.eigen[i].values .- calc.V̄[i]
         for j=1:natoms(p)
             for k=1:ndofs(p)
-                Γ = get_gamma(calc.adiabatic_derivative[k,j,i], calc.eigenvalues[i], dt)
-                E = transform_matrix(calc.eigenvectors[i], Γ)
 
-                Ξ = get_xi(calc.adiabatic_derivative[k,j,i], calc.eigenvalues[i], dt)
-                F = transform_matrix(calc.eigenvectors[i], Ξ)
+                Γ = get_gamma(calc.traceless_adiabatic_derivative[k,j,i], traceless_eigs, dt)
+                E = transform_matrix(calc.eigen[i].vectors, Γ)
+
+                Ξ = get_xi(calc.traceless_adiabatic_derivative[k,j,i], traceless_eigs, dt)
+                F = transform_matrix(calc.eigen[i].vectors, Ξ)
 
                 qmap = MappingVariableMethods.get_mapping_positions(u, i)
                 pmap = MappingVariableMethods.get_mapping_momenta(u, i)
-                V = calc.derivative[k,j,i]
-                force = get_mapping_nuclear_force(qmap, pmap, E, F, V, dt)
+                force = get_mapping_nuclear_force(qmap, pmap, E, F)
                 DynamicsUtils.get_velocities(u)[k,j,i] -= force / p.atoms.masses[j]
+                DynamicsUtils.get_velocities(u)[k,j,i] -= calc.D̄[k,j,i] / p.atoms.masses[j] * dt
             end
         end
     end
-
 
     RingPolymers.transform_to_normal_modes!(p.beads, u)
     step_C!(DynamicsUtils.get_velocities(u), DynamicsUtils.get_positions(u), cayley)
@@ -86,9 +91,11 @@ function step_C!(v::AbstractArray{T,3}, r::AbstractArray{T,3}, cayley::Vector{<:
 end
 
 function propagate_mapping_variables!(calc, u, dt)
-    for i=1:length(calc.eigenvalues)
-        C = get_C_propagator(calc.eigenvalues[i], calc.eigenvectors[i], dt)
-        D = get_D_propagator(calc.eigenvalues[i], calc.eigenvectors[i], dt)
+    for i=1:length(calc.eigen)
+        V̄ = tr(calc.potential[i]) / nstates(calc.model)
+        traceless_eigs = calc.eigen[i].values .- V̄
+        C = get_C_propagator(traceless_eigs, calc.eigen[i].vectors, dt)
+        D = get_D_propagator(traceless_eigs, calc.eigen[i].vectors, dt)
         qmap = MappingVariableMethods.get_mapping_positions(u, i)
         pmap = MappingVariableMethods.get_mapping_momenta(u, i)
         q = C * qmap - D * pmap
@@ -132,10 +139,9 @@ end
 
 "Get the force due to the mapping variables."
 function get_mapping_nuclear_force(q::AbstractVector, p::AbstractVector,
-                           E::AbstractMatrix, F::AbstractMatrix,
-                           diabatic_derivative::Hermitian, dt::Real)
-    trVdt = tr(diabatic_derivative) * dt
-    return 0.5 * (q'*E*q + p'*E*p - trVdt) - q'*F*p
+                           E::AbstractMatrix, F::AbstractMatrix)
+    return 0.5 * (q'*E*q + p'*E*p) - q'*F*p
 end
 
 DynamicsMethods.select_algorithm(::RingPolymerSimulation{<:MappingVariableMethods.NRPMD}) = MInt()
+DynamicsMethods.select_algorithm(::RingPolymerSimulation{<:MappingVariableMethods.eCMM}) = MInt()

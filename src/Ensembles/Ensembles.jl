@@ -19,37 +19,30 @@ using NonadiabaticMolecularDynamics:
     RingPolymerSimulation,
     DynamicsUtils,
     DynamicsMethods,
-    RingPolymers
+    RingPolymers,
+    NonadiabaticDistributions
+using NonadiabaticMolecularDynamics.NonadiabaticDistributions:
+    NuclearDistribution,
+    CombinedDistribution
 
-using ..InitialConditions: DynamicalDistribution
-
-function select_u0(sim::Simulation{<:Union{DynamicsMethods.ClassicalMethods.Classical, DynamicsMethods.ClassicalMethods.AbstractMDEF}}, v, r, state, type)
-    DynamicsMethods.DynamicsVariables(sim, v, r)
+function sample_distribution(sim::AbstractSimulation, distribution::NuclearDistribution, i)
+    u = getindex(distribution, i)
+    DynamicsMethods.DynamicsVariables(sim, u.v, u.r)
 end
 
-function select_u0(sim::RingPolymerSimulation{<:DynamicsMethods.ClassicalMethods.ThermalLangevin}, v, r, state, type)
-    DynamicsMethods.DynamicsVariables(sim, RingPolymers.RingPolymerArray(v), RingPolymers.RingPolymerArray(r))
+function sample_distribution(sim::RingPolymerSimulation{<:DynamicsMethods.ClassicalMethods.ThermalLangevin}, distribution::NuclearDistribution, i)
+    u = getindex(distribution, i)
+    DynamicsMethods.DynamicsVariables(sim, RingPolymers.RingPolymerArray(u.v), RingPolymers.RingPolymerArray(u.r))
 end
 
-function select_u0(sim::AbstractSimulation{<:DynamicsMethods.SurfaceHoppingMethods.FSSH}, v, r, state, type)
-    DynamicsMethods.DynamicsVariables(sim, v, r, state; type=type)
-end
-
-function select_u0(sim::AbstractSimulation{<:DynamicsMethods.EhrenfestMethods.Ehrenfest}, v, r, state, type)
-    DynamicsMethods.DynamicsVariables(sim, v, r, state; type=type)
-end
-
-function select_u0(sim::RingPolymerSimulation{<:DynamicsMethods.MappingVariableMethods.NRPMD}, v, r, state, type)
-    DynamicsMethods.DynamicsVariables(sim, v, r, state; type=type)
-end
-
-function select_u0(sim::AbstractSimulation{<:DynamicsMethods.SurfaceHoppingMethods.IESH}, v, r, state, type)
-    DynamicsMethods.DynamicsVariables(sim, v, r)
+function sample_distribution(sim::AbstractSimulation, distribution::CombinedDistribution, i)
+    u = getindex(distribution.nuclear, i)
+    DynamicsMethods.DynamicsVariables(sim, u.v, u.r, distribution.electronic)
 end
 
 include("selections.jl")
-include("reductions.jl")
 include("outputs.jl")
+include("reductions.jl")
 
 """
     run_ensemble(sim::AbstractSimulation, tspan, distribution;
@@ -82,7 +75,7 @@ function run_ensemble(
     distribution;
     selection=nothing,
     output=(sol,i)->(sol,false),
-    reduction=(u,data,I)->(append!(u,data),false),
+    reduction::Symbol=:append,
     ensemble_algorithm=EnsembleThreads(),
     algorithm=DynamicsMethods.select_algorithm(sim),
     kwargs...
@@ -90,15 +83,11 @@ function run_ensemble(
 
     stripped_kwargs = NonadiabaticDynamicsBase.austrip_kwargs(;kwargs...)
 
-    u = rand(distribution)
-    u0 = select_u0(sim, u.v, u.r, distribution.state, distribution.type)
+    u0 = sample_distribution(sim, distribution, 1)
     problem = DynamicsMethods.create_problem(u0, austrip.(tspan), sim)
 
-    if hasfield(typeof(reduction), :u_init)
-        u_init = reduction.u_init
-    else
-        u_init = []
-    end
+    reduction = select_reduction(reduction)
+    u_init = get_u_init(reduction, stripped_kwargs, tspan, u0, output)
 
     if selection isa AbstractVector
         selection = OrderedSelection(distribution, selection)
@@ -114,7 +103,8 @@ function run_ensemble(
         u_init=u_init
     )
 
-    solve(ensemble_problem, algorithm, ensemble_algorithm; stripped_kwargs...)
+    sol = solve(ensemble_problem, algorithm, ensemble_algorithm; u_init=u_init, stripped_kwargs...)
+    return sol.u
 end
 
 """
@@ -126,6 +116,7 @@ Run multiple trajectories and output the results in the same way as the
 [`run_trajectory`](@ref DynamicsMethods.run_trajectory) function.
 """
 function run_trajectories(sim::AbstractSimulation, tspan, distribution;
+    algorithm=DynamicsMethods.select_algorithm(sim),
     selection=nothing, output=(:u),
     ensemble_algorithm=EnsembleThreads(), saveat=[], kwargs...)
 
@@ -136,10 +127,8 @@ function run_trajectories(sim::AbstractSimulation, tspan, distribution;
     stripped_kwargs = NonadiabaticDynamicsBase.austrip_kwargs(;kwargs...)
     saveat = austrip.(saveat)
 
-    u = rand(distribution)
     problem = DynamicsMethods.create_problem(
-        select_u0(sim, u.v, u.r,
-            distribution.state, distribution.type),
+        sample_distribution(sim, distribution, 1),
         austrip.(tspan),
         sim)
 
@@ -153,7 +142,7 @@ function run_trajectories(sim::AbstractSimulation, tspan, distribution;
 
     ensemble_problem = EnsembleProblem(problem, prob_func=new_selection)
 
-    solve(ensemble_problem, DynamicsMethods.select_algorithm(sim), ensemble_algorithm; saveat=saveat, stripped_kwargs...)
+    solve(ensemble_problem, algorithm, ensemble_algorithm; saveat=saveat, stripped_kwargs...)
     [TypedTables.Table(t=vals.t, [(;zip(output, val)...) for val in vals.saveval]) for vals in new_selection.values]
 end
 

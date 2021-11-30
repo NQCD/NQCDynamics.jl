@@ -17,6 +17,9 @@ export Simulation,
        natoms,
        masses
 
+include("NonadiabaticDistributions/NonadiabaticDistributions.jl")
+@reexport using .NonadiabaticDistributions
+
 include("DynamicsUtils/DynamicsUtils.jl")
 @reexport using .DynamicsUtils: get_positions, get_velocities
 export DynamicsUtils
@@ -25,6 +28,9 @@ include("Estimators.jl")
 export Estimators
 
 include("DynamicsOutputs.jl")
+
+include("TimeCorrelationFunctions.jl")
+export TimeCorrelationFunctions
 
 include("DynamicsMethods/DynamicsMethods.jl")
 @reexport using .DynamicsMethods

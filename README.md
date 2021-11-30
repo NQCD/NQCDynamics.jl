@@ -9,9 +9,24 @@
 
 # NonadiabaticMolecularDynamics.jl
 
-[![CI](https://github.com/nqcd/NonadiabaticMolecularDynamics.jl/actions/workflows/CI.yml/badge.svg)](https://github.com/nqcd/NonadiabaticMolecularDynamics.jl/actions/workflows/CI.yml)
-[![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://nqcd.github.io/NonadiabaticMolecularDynamics.jl/dev/)
-[![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://nqcd.github.io/NonadiabaticMolecularDynamics.jl/stable/)
+| **Documentation**                                     | **Build Status**                                |  **License**                     |
+|:------------------------------------------------------|:----------------------------------------------- |:-------------------------------- |
+| [![][docs-img]][docs-url] [![][ddocs-img]][ddocs-url] | [![][ci-img]][ci-url] [![][ccov-img]][ccov-url] | [![][license-img]][license-url]  |
+
+[ddocs-img]: https://img.shields.io/badge/docs-dev-blue.svg
+[ddocs-url]: https://nqcd.github.io/NonadiabaticMolecularDynamics.jl/dev/
+
+[docs-img]: https://img.shields.io/badge/docs-stable-blue.svg
+[docs-url]: https://nqcd.github.io/NonadiabaticMolecularDynamics.jl/stable/
+
+[ci-img]: https://github.com/nqcd/NonadiabaticMolecularDynamics.jl/actions/workflows/CI.yml/badge.svg
+[ci-url]: https://github.com/nqcd/NonadiabaticMolecularDynamics.jl/actions/workflows/CI.yml
+
+[ccov-img]: https://codecov.io/gh/NQCD/NonadiabaticMolecularDynamics.jl/branch/master/graph/badge.svg
+[ccov-url]: https://codecov.io/gh/NQCD/NonadiabaticMolecularDynamics.jl
+
+[license-img]: https://img.shields.io/github/license/NQCD/NonadiabaticMolecularDynamics.jl
+[license-url]: https://github.com/NQCD/NonadiabaticMolecularDynamics.jl/blob/master/LICENSE
 
 **Fast and flexible nonadiabatic molecular dynamics in Julia!**
 

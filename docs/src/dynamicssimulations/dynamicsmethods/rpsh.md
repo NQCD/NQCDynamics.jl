@@ -48,18 +48,19 @@ with Boltzmann velocities at 300 K.
 using Distributions: Normal
 
 position = Normal(2.1, 1 / sqrt(20000 * 0.005))
-velocity = InitialConditions.BoltzmannVelocityDistribution(300u"K" * nbeads(sim), masses(sim))
-distribution = InitialConditions.DynamicalDistribution(velocity, position, size(sim); state=1)
+velocity = BoltzmannVelocityDistribution(300u"K" * nbeads(sim), masses(sim), size(sim))
+distribution = DynamicalDistribution(velocity, position, size(sim)) * SingleState(1)
 nothing # hide
 ```
 
 Now let's run an ensemble of trajectories that sample from this distribution.
 For the output we shall receive the diabatic population at intervals of `t=50`
-and it will be averaged over all trajectories by the `MeanReduction`.
+and it will be averaged over all trajectories by the `:mean` keyword.
 ```@example rpsh
 solution = Ensembles.run_ensemble(sim, (0.0, 3000.0), distribution;
-    saveat=50, trajectories=5e2,
-    output=Ensembles.OutputDiabaticPopulation(sim), reduction=Ensembles.MeanReduction())
+    saveat=50, trajectories=5e2, dt=1,
+    output=TimeCorrelationFunctions.PopulationCorrelationFunction(sim, Diabatic()),
+    reduction=:mean)
 ```
 
 !!! note
@@ -74,9 +75,9 @@ obtained if using the correct ring polymer distribution.
 ```@example rpsh
 using Plots
 
-plot(0:50:3000, [p[1] for p in solution.u], label="State 1")
-plot!(0:50:3000, [p[2] for p in solution.u], label="State 2")
-plot!(0:50:3000, [p[3] for p in solution.u], label="State 3")
+plot(0:50:3000, [p[1,1] for p in solution], label="State 1")
+plot!(0:50:3000, [p[1,2] for p in solution], label="State 2")
+plot!(0:50:3000, [p[1,3] for p in solution], label="State 3")
 xlabel!("Time /a.u.")
 ylabel!("Population")
 ```

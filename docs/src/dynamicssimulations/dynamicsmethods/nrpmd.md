@@ -100,10 +100,9 @@ sim = RingPolymerSimulation(atom, Harmonic(dofs=1), 4; temperature=1/16)
 
 r0 = zeros(size(sim))
 output = InitialConditions.ThermalMonteCarlo.run_advancedmh_sampling(sim, r0, 5e3, Dict(:X=>1.0))
-velocities = InitialConditions.BoltzmannVelocityDistribution(1/16, masses(sim))
+velocities = BoltzmannVelocityDistribution(1/16, masses(sim), size(sim))
 
-distribution = InitialConditions.DynamicalDistribution(velocities, output, size(sim);
-                                     state=1, type=:diabatic)
+distribution = DynamicalDistribution(velocities, output, size(sim)) * SingleState(1)
 ```
 
 We can check the distribution by plotting the phasespace diagram for each of the points
@@ -112,8 +111,9 @@ in our distribution:
 ```@example nrpmd
 using CairoMakie
 
-flat_position = vcat([p[:] for p in distribution.position]...)
-flat_velocity = vcat([rand(distribution.velocity)[:] for p in 1:length(flat_position)]...)
+nuclear = distribution.nuclear
+flat_position = vcat([p[:] for p in nuclear.position]...)
+flat_velocity = vcat([rand(nuclear.velocity)[:] for p in 1:length(nuclear.position)]...)
 scatter(flat_position, flat_velocity)
 ```
 
@@ -128,19 +128,20 @@ sim = RingPolymerSimulation{NRPMD}(atom, DoubleWell(γ=0.1), 4; temperature=1/16
 Next, we can use this distribution as a starting point for the dynamics simulations.
 This will result in each trajectory starting from a random configuration in the
 distribution.
-Since the distribution also has `state=1` and `type=:diabatic`, the electronic
-variables will be selected such that each trajectory is initialised in diabatic state 1.
+For NRPMD, the electronic variables are sampled from a gaussian, independent of the
+initial electronic state.
+The electronic state is introduced in the correlation function expression when correlating
+the initial and final populations.
 
-The quantities output by the ensemble simulation are specified by the `Output` and
-the `Reduction`.
-The `Output` tells the simulation the quantities that we want to extract from each
-trajectory, and the `Reduction` reduces the data.
-By default the `Reduction` appends the output from each trajectory but here we would
-like to average the results so we use the `MeanReduction`.
+The quantities output by the ensemble simulation are specified by the `output` and the
+`reduction`.
+The `output` follows the `DifferentialEquations` format where we provide a function
+that determines the output of each trajectory.
+The `reduction` can be one of `:mean`, `:append`, or `:sum`, which will determine
+how the data from each trajectory is combined.
 
 ```@example nrpmd
-output = Ensembles.OutputDiabaticPopulation(sim)
-reduction = Ensembles.MeanReduction()
+output = TimeCorrelationFunctions.PopulationCorrelationFunction(sim, Diabatic())
 nothing # hide
 ```
 
@@ -150,7 +151,7 @@ the figure from the paper we were attempting to reproduce. Nice!
 
 ```@example nrpmd
 ensemble = Ensembles.run_ensemble(sim, (0.0, 30.0), distribution; trajectories=1000,
-                                  output=output, reduction=reduction, dt=0.1)
+                                  output=output, reduction=:mean, dt=0.1)
 
-lines(0:0.1:30, [p[1]-p[2] for p in ensemble.u])
+lines(0:0.1:30, [p[1,1]-p[2,1] for p in ensemble])
 ```

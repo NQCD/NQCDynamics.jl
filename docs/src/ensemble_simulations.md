@@ -23,7 +23,7 @@ using Distributions: Normal
 k = 10
 v = k / atoms.masses[1]
 r = Normal(-8)
-distribution = InitialConditions.DynamicalDistribution(v, r, (1,1); state=2)
+distribution = DynamicalDistribution(v, r, (1,1)) * SingleState(2)
 nothing # hide
 ```
 !!! note
@@ -36,8 +36,7 @@ that apply to these outputs.
 Here we choose to output the populations of each diabatic state and reduce by averaging
 the results over all trajectories.
 ```@example ensemble
-output = Ensembles.OutputDiabaticPopulation(sim)
-reduction = Ensembles.MeanReduction()
+output = TimeCorrelationFunctions.PopulationCorrelationFunction(sim, Diabatic())
 nothing # hide
 ```
 
@@ -46,10 +45,10 @@ Now we can run the ensemble of trajectories and visualise the surface hopping po
 using Plots
 
 solution = Ensembles.run_ensemble(sim, (0.0, 3000.0), distribution; trajectories=1e3,
-    output=output, reduction=reduction, saveat=10.0)
+    output=output, reduction=:mean, saveat=10.0)
 
-plot(0:10:3000, [p[1] for p in solution.u], legend=false)
-plot!(0:10:3000, [p[2] for p in solution.u])
+plot(0:10:3000, [p[1,1] for p in solution], legend=false)
+plot!(0:10:3000, [p[2,1] for p in solution])
 ylabel!("Population difference")
 xlabel!("Time")
 ```

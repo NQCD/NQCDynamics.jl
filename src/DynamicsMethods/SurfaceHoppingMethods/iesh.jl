@@ -78,8 +78,8 @@ in the Shenvi, Tully paper (JCP 2009)
 In IESH each electron is independent so we can loop through electrons and set the
 derivative one at a time, in the standard way for FSSH.
 """
-function set_quantum_derivative!(dσ, v, σ, sim::Simulation{<:IESH})
-    V = sim.calculator.eigenvalues
+function DynamicsUtils.set_quantum_derivative!(dσ, v, σ, sim::Simulation{<:IESH})
+    V = sim.calculator.eigen.values
     d = sim.calculator.nonadiabatic_coupling
     @views for i in axes(dσ, 2)       
         set_single_electron_derivative!(dσ[:,i], σ[:,i], V, v, d, sim.method.tmp)
@@ -182,7 +182,7 @@ end
 function Estimators.diabatic_population(sim::Simulation{<:IESH}, u)
     Calculators.evaluate_potential!(sim.calculator, DynamicsUtils.get_positions(u))
     Calculators.eigen!(sim.calculator)
-    U = sim.calculator.eigenvectors
+    U = sim.calculator.eigen.vectors
 
     ψ = DynamicsUtils.get_quantum_subsystem(u)
     diabatic_ψ = zero(ψ)
@@ -200,30 +200,7 @@ function Estimators.adiabatic_population(sim::Simulation{<:IESH}, u)
     return population
 end
 
-function rescale_velocity!(sim::Simulation{<:IESH}, u)::Bool
-    # ShakibHuo_JPhysChemLett_8_3073_2017_rescale
-    new_state, old_state = symdiff(sim.method.new_state, sim.method.state)
-    velocity = DynamicsUtils.get_velocities(u)
-    
-    # Calculate difference in eigenvalues between old and new state, weighed by mass:
-    # c = (E_{new} - E_{old})/mass
-    c = calculate_potential_energy_change(sim.calculator, new_state, old_state)
-    # a = d^2_{new,old}/mass (where d is the nonadiabatic coupling)
-    # b = v*d_{new,old}
-    a, b = evaluate_a_and_b(sim, velocity, new_state, old_state)
-    discriminant = b.^2 .- 2a.*c
-
-    # If smaller zero, hop is frustrated
-    any(discriminant .< 0) && return false
-
-    root = sqrt.(discriminant)
-    plus = (b .+ root) ./ a
-    minus = (b .- root) ./ a 
-    velocity_rescale = sum(abs.(plus)) < sum(abs.(minus)) ? plus : minus
-    perform_rescaling!(sim, velocity, velocity_rescale, new_state, old_state)
-
-    return true
-end
+unpack_states(sim::Simulation{<:IESH}) = symdiff(sim.method.new_state, sim.method.state)
 
 # function calculate_potential_energy_change(calc::AbstractDiabaticCalculator, new_state::Integer, current_state::Integer)
 #     return calc.eigenvalues[new_state] - calc.eigenvalues[current_state]

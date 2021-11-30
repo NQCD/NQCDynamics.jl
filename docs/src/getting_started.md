@@ -25,8 +25,12 @@ with their masses in atomic units.
 
 !!! note "Atomic units"
 
-    Internally atomic units are used for all quantities. This makes things
-    simple when performing nonadiabatic dynamics.
+    Internally [atomic units](https://en.wikipedia.org/wiki/Hartree_atomic_units) are used
+    for all quantities. This makes things simple when performing nonadiabatic dynamics.
+    [Unitful.jl](https://github.com/PainterQubits/Unitful.jl) and
+    [UnitfulAtomic.jl](https://github.com/sostock/UnitfulAtomic.jl) can be used to help
+    with unit transformations, and many functions will directly accept
+    Unitful quantities and handle the conversions for you.
 
 Alternatively, if not using real atoms, [`Atoms`](@ref NonadiabaticDynamicsBase.Atoms)
 can be created using a `Vector{<:Real}` where the provided numbers are the masses of the
@@ -94,7 +98,7 @@ These `Model`s are provided by [NonadiabaticModels.jl](@ref), which
 is a convenient infrastructure for defining different kinds of models
 for adiabatic and nonadiabatic dynamics.
 These models can range from simple analytic potentials all the way up to multi-dimensional
-ab-initio potentials.
+*ab initio* potentials.
 Refer to the [NonadiabaticModels.jl](@ref) page for information on the available models
 and a description of how to implement further models.
  

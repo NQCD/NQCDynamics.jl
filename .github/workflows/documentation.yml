@@ -2,27 +2,18 @@
 
 name: Documentation
 
-# Controls when the action will run. 
 on:
-  # Triggers the workflow on push or pull request events but only for the master branch
   push:
-    branches: 
-    - master
+    branches: [master]
     tags: '*'
   pull_request:
 
-# A workflow run is made up of one or more jobs
 jobs:
-  # This workflow contains a single job called "build"
-  build:
-    # The type of runner that the job will run on
+  Documenter:
+    name: Documentation
     runs-on: ubuntu-latest
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
-      - uses: julia-actions/setup-julia@latest
-
       - uses: actions/cache@v1
         env:
           cache-name: cache-artifacts
@@ -33,22 +24,27 @@ jobs:
             ${{ runner.os }}-docs-${{ env.cache-name }}-
             ${{ runner.os }}-docs-
 
-      - name: Add NonadiabaticRegistry
-        run: julia -e 'using Pkg; Pkg.Registry.add(RegistrySpec(url="https://github.com/NQCD/NonadiabaticRegistry"))'
-      - name: Add JuliaMolSim registry
-        run: julia -e 'using Pkg; Pkg.Registry.add(RegistrySpec(url="https://github.com/JuliaMolSim/MolSim"))'
-      - name: Add General registry
-        run: julia -e 'using Pkg; Pkg.Registry.add(RegistrySpec("General"))'
-      - name: Install ase+schnetpack
-        run: pip install schnetpack ase
+      - name: Add registries
+        run: |
+          using Pkg
+          Pkg.Registry.add(RegistrySpec(url="https://github.com/NQCD/NQCDRegistry"))
+          Pkg.Registry.add(RegistrySpec(url="https://github.com/JuliaMolSim/MolSim"))
+          Pkg.Registry.add(RegistrySpec(name="General"))
+        shell: julia {0}
+        
+      - name: Install ase
+        run: python3 -m pip install ase
 
-      - name: Install dependencies
-        run: julia --project=docs/ -e 'using Pkg; Pkg.develop([(;path=pwd()), (;name="NonadiabaticModels")]); Pkg.instantiate()'
+      - name: Dev dependencies
+        run: |
+          using Pkg
+          Pkg.develop([(;path=pwd()), (;name="NonadiabaticModels")])
+          Pkg.instantiate()
+        shell: julia --project=docs/ {0}
 
-      - name: Build and deploy
+      - uses: julia-actions/julia-docdeploy@latest
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DOCUMENTER_KEY: ${{ secrets.DOCUMENTER_KEY }}
           GKSwstype: "100" # https://discourse.julialang.org/t/generation-of-documentation-fails-qt-qpa-xcb-could-not-connect-to-display/60988
-        run: julia --project=docs/ docs/make.jl
 

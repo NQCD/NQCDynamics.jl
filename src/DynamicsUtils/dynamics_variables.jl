@@ -26,3 +26,8 @@ end
 
 
 function get_quantum_subsystem end
+
+get_mapping_positions(u::ComponentVector) = u.qmap
+get_mapping_momenta(u::ComponentVector) = u.pmap
+get_mapping_positions(u::ComponentVector, i) = @view get_mapping_positions(u)[:,i]
+get_mapping_momenta(u::ComponentVector, i) = @view get_mapping_momenta(u)[:,i]

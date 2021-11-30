@@ -34,14 +34,14 @@ bib = CitationBibliography(joinpath(@__DIR__, "references.bib"), sorting=:nyt)
         ]
         "Initial conditions" => Any[
             "initialconditions/dynamicaldistribution.md"
-            "Sampling methods" => map(
+            map(
                 s -> "initialconditions/samplingmethods/$(s)",
                 sort(readdir(joinpath(@__DIR__, "src/initialconditions/samplingmethods")))
             )
         ]
         "Dynamics simulations" => Any[
             "dynamicssimulations/dynamicssimulations.md"
-            "Dynamics methods" => map(
+            map(
                 s -> "dynamicssimulations/dynamicsmethods/$(s)",
                 sort(readdir(joinpath(@__DIR__, "src/dynamicssimulations/dynamicsmethods")))
             )
@@ -54,6 +54,7 @@ bib = CitationBibliography(joinpath(@__DIR__, "references.bib"), sorting=:nyt)
         "Developer documentation" => [
             "devdocs/new_methods.md"
             "devdocs/models.md"
+            "devdocs/diffeq.md"
         ]
         "API" => Any[
             "NonadiabaticModels" => map(

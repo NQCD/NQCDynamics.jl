@@ -16,8 +16,9 @@ We can use our [`Ensembles`](@ref) setup to run a set of trajectories for every 
 momentum value.
 Firstly, we can prepare the parts that will be the same for every ensemble:
 ```@example tullymodeltwo
+using ComponentArrays: ComponentVector
+
 output = Ensembles.OutputStateResolvedScattering1D(sim, :adiabatic)
-reduction = Ensembles.MeanReduction()
 ```
 Here we are using the
 [`OutputStateResolvedScattering1D`](@ref Ensembles.OutputStateResolvedScattering1D)
@@ -43,13 +44,12 @@ for k=momenta
     v = k / 2000
     r = -5
     tspan = (0, 2abs(r)/v)
-    distribution = InitialConditions.DynamicalDistribution(v, -5, size(sim);
-        state=1, type=:adiabatic)
+    distribution = DynamicalDistribution(v, -5, size(sim)) * SingleState(1, Adiabatic())
 
     out = Ensembles.run_ensemble(sim, tspan, distribution;
-        trajectories=ntraj, output=output, reduction=reduction)
+        trajectories=ntraj, output=output, reduction=:mean)
 
-    push!(result, out.u)
+    push!(result, out)
 end
 
 result
