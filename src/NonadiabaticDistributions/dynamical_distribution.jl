@@ -119,3 +119,7 @@ function write_hdf5(filename, data)
         end
     end
 end
+
+function Base.iterate(s::DynamicalDistribution, state=1)
+    state > lastindex(s) ? nothing : (s[state], state+1)
+end
