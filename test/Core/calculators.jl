@@ -40,7 +40,7 @@ end
 
     Calculators.evaluate_traceless_potential!(calc)
     @test calc.traceless_potential[1] ≈ calc.potential[1] .- Diagonal(fill(calc.V̄[1], nstates(model)))
-    @test tr(calc.traceless_potential[1]) ≈ 0
+    @test tr(calc.traceless_potential[1]) ≈ 0 atol=eps(Float64)
     @test (@allocated Calculators.evaluate_traceless_potential!(calc)) == 0
 
     Calculators.evaluate_derivative!(calc, rand(1, 1, 10))
@@ -52,7 +52,7 @@ end
 
     Calculators.evaluate_traceless_derivative!(calc)
     @test calc.traceless_derivative[1] ≈ calc.derivative[1] .- Diagonal(fill(calc.D̄[1], nstates(model)))
-    @test tr(calc.traceless_derivative[1]) ≈ 0
+    @test tr(calc.traceless_derivative[1]) ≈ 0 atol=eps(Float64)
     @test (@allocated Calculators.evaluate_traceless_derivative!(calc)) == 0
 
     Calculators.evaluate_traceless_adiabatic_derivative!(calc)
