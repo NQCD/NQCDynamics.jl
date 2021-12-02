@@ -33,11 +33,12 @@ macro estimate(expr)
     func = expr.args[1]
     sim = expr.args[2]
     configurations = expr.args[3]
-    result, config = gensym(), gensym()
+    first_config, rest, result, config = gensym(), gensym(), gensym(), gensym()
 
     return esc(quote
-        local $result = Estimators.$func($sim, $configurations[1])
-        for $config in $configurations[2:end]
+        local ($first_config, $rest) = Iterators.peel($configurations)
+        local $result = Estimators.$func($sim, $first_config)
+        for $config in $rest
             $result += Estimators.$func($sim, $config)
         end
         $result / length($configurations)

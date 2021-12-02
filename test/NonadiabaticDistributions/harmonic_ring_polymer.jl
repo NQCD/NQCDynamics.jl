@@ -6,7 +6,7 @@ using NonadiabaticMolecularDynamics
 m = 1
 n_beads = 400
 s = HarmonicRingPolymer(ω, β, m, n_beads)
-configs = [reshape(rand(s), (1,1,n_beads)) for _ in 1:5000]
+configs = (reshape(rand(s), (1,1,n_beads)) for _ in 1:5000)
 
 sim = RingPolymerSimulation(Atoms(1), Harmonic(m=m, ω=ω), n_beads, temperature=1/β)
 
