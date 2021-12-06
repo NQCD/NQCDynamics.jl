@@ -111,98 +111,12 @@ function select_new_state(sim::AbstractSimulation{<:FSSH}, u)
 end
 
 """
-    rescale_velocity!(sim::AbstractSimulation{<:FSSH}, u)::Bool
-
-Rescale the velocity in the direction of the nonadiabatic coupling.
-
-# References
-
-[HammesSchiffer1994](@cite)
-"""
-function rescale_velocity!(sim::AbstractSimulation{<:SurfaceHopping}, u)::Bool
-    sim.method.rescaling === :off && return true
-
-    new_state, old_state = unpack_states(sim)
-    velocity = get_hopping_velocity(sim, u)
-    eigs = get_hopping_eigenvalues(sim)
-    
-    d = extract_nonadiabatic_coupling(get_hopping_nonadiabatic_coupling(sim), new_state, old_state)
-    a = calculate_a(sim, d)
-    b = calculate_b(d, velocity)
-    c = calculate_potential_energy_change(eigs, new_state, old_state)
-
-    discriminant = b^2 - 4a * c
-    discriminant < 0 && return false # Frustrated hop with insufficient kinetic energy
-
-    root = sqrt(discriminant)
-    if b < 0
-        γ = (b + root) / 2a
-    else
-        γ = (b - root) / 2a
-    end
-    perform_rescaling!(sim, DynamicsUtils.get_velocities(u), γ, d)
-
-    return true
-end
-
-"""
     unpack_states(sim)
 
 Get the two states that we are hopping between.
 """
 function unpack_states(sim::AbstractSimulation{<:FSSH})
     return (sim.method.new_state, sim.method.state)
-end
-
-"""
-    extract_nonadiabatic_coupling(coupling, new_state, old_state)
-
-Extract the nonadiabatic coupling vector between states `new_state` and `old_state`
-"""
-function extract_nonadiabatic_coupling(coupling, new_state, old_state)
-    [coupling[I][new_state, old_state] for I ∈ CartesianIndices(coupling)]
-end
-
-"""
-    calculate_a(sim::AbstractSimulation{<:SurfaceHopping}, coupling::AbstractMatrix)
-
-Equation 40 from [HammesSchiffer1994](@cite).
-"""
-function calculate_a(sim::AbstractSimulation{<:SurfaceHopping}, coupling::AbstractMatrix)
-    a = zero(eltype(coupling))
-    for I in CartesianIndices(coupling)
-        a += coupling[I]^2 / masses(sim, I)
-    end
-    return a / 2
-end
-
-"""
-    calculate_b(coupling::AbstractMatrix, velocity::AbstractMatrix)
-
-Equation 41 from [HammesSchiffer1994](@cite).
-"""
-function calculate_b(coupling::AbstractMatrix, velocity::AbstractMatrix)
-    return dot(coupling, velocity)
-end
-
-"""
-    perform_rescaling!(
-        sim::AbstractSimulation{<:SurfaceHopping}, velocity, velocity_rescale, d
-    )
-
-Equation 33 from [HammesSchiffer1994](@cite).
-"""
-function perform_rescaling!(
-    sim::AbstractSimulation{<:SurfaceHopping}, velocity, γ, d
-)
-    for I in CartesianIndices(d)
-        velocity[I] -= γ * d[I] / masses(sim, I)
-    end
-    return nothing
-end
-
-function calculate_potential_energy_change(eigs::AbstractVector, new_state::Integer, current_state::Integer)
-    return eigs[new_state] - eigs[current_state]
 end
 
 function Estimators.diabatic_population(sim::AbstractSimulation{<:FSSH}, u)
