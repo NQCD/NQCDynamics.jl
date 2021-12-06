@@ -15,5 +15,6 @@ include("mdef_baoab.jl")
 include("bcocb.jl")
 include("mint.jl")
 include("bcb_electronics.jl")
+include("verlet_with_electronics.jl")
 
 end # module
