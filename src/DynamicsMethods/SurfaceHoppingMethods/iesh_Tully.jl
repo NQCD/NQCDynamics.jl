@@ -51,8 +51,8 @@ function DynamicsMethods.DynamicsVariables(sim::Simulation{<:IESH_Tully}, v, r)
     # the lowest states n_electrons states
     # get eigenvectors
     Calculators.update_electronics!(sim.calculator, r)
-    vecH = sim.calculator.eigenvectors
-    valH = sim.calculator.eigenvalues
+    vecH = sim.calculator.eigen.vectors
+    valH = sim.calculator.eigen.values
     state = collect(1:sim.method.n_electrons)
     ψ = vecH[:,state]
     phi = vecH[:,state]
@@ -71,7 +71,7 @@ function DynamicsMethods.DynamicsVariables(sim::Simulation{<:IESH_Tully}, v, r)
     SurfaceHoppingVariables(ComponentVector(v=v, r=r, σreal=ψ, σimag=zero(ψ)), state)
 end
 
-function DynamicsMethods.motion!(du, u, sim::AbstractSimulation{<:SurfaceHopping}, t)
+function DynamicsMethods.motion!(du, u, sim::Simulation{<:IESH_Tully}, t)
     dr = DynamicsUtils.get_positions(du)
     dv = DynamicsUtils.get_velocities(du)
     dσ = DynamicsUtils.get_quantum_subsystem(du)
@@ -124,7 +124,7 @@ In IESH each electron is independent so we can loop through electrons and set th
 derivative one at a time, in the standard way for FSSH.
 """
 function set_quantum_derivative!(dσ, v, σ, sim::Simulation{<:IESH_Tully})
-    V = sim.calculator.eigenvalues
+    V = sim.calculator.eigen.values
     d = sim.calculator.nonadiabatic_coupling
     @views for i in axes(dσ, 2)       
         set_single_electron_derivative!(dσ[:,i], σ[:,i], V, v, d, sim.method.tmp)
@@ -135,10 +135,10 @@ end
 # propagating the full favefunction
 function propagate_wavefunction!(sim::Simulation{<:IESH_Tully})
     # Update the eigenvectors to the new positions before you propagate the Hamiltonian
-    V = sim.calculator.eigenvalues
+    V = sim.calculator.eigen.values
     ab = zeros(Complex,size(sim.method.psi))
     
-    Hvec = sim.calculator.eigenvectors
+    Hvec = sim.calculator.eigen.vectors
     # Differences to Fortran code within numerical accuracy.
     ps = transpose(Hvec)*sim.method.psi
 
@@ -169,38 +169,6 @@ function propagate_wavefunction!(sim::Simulation{<:IESH_Tully})
 end
 
 
-
-"""
-```math
-\\frac{d c_k}{dt} = -iV_{kk}c_k/\\hbar - \\sum_j v d_{kj} c_j
-```
-"""
-function set_single_electron_derivative!(dc, c, V, v, d, tmp)
-    @. dc = -im*V * c
-    for I in eachindex(v)
-        mul!(tmp, d[I], c)
-        lmul!(v[I], tmp)
-        @. dc -= tmp
-    end
-    return nothing
-end
-
-function check_hop!(u, t, integrator)::Bool
-    sim = integrator.p
-    evaluate_hopping_probability!(sim, u, OrdinaryDiffEq.get_proposed_dt(integrator))
-    set_new_state!(sim.method, select_new_state(sim, u))
-    return sim.method.new_state != sim.method.state
-end
-
-function execute_hop!(integrator)
-    sim = integrator.p
-    if rescale_velocity!(sim, integrator.u)
-        set_state!(integrator.u, sim.method.new_state)
-        set_state!(sim.method, sim.method.new_state)
-    end
-    return nothing
-end
-
 """
 Hopping probability according to equation 21 in Shenvi, Roy, Tully 2009.
 """
@@ -210,7 +178,7 @@ function evaluate_hopping_probability!(sim::Simulation{<:IESH_Tully}, u, dt)
     v = DynamicsUtils.get_velocities(u)
 
     # get phi_k (ϕk), the occupied orbitals
-    vecH = sim.calculator.eigenvectors
+    vecH = sim.calculator.eigen.vectors
     phi = vecH[:,sim.method.state]
     psi = sim.method.psi
     #Get psi, the propagated Wavefunction of the entire system
@@ -243,7 +211,7 @@ function evaluate_hopping_probability!(sim::Simulation{<:IESH_Tully}, u, dt)
                 # Akj (i.e. Aij) checks out mathematically against the fortran code
                 # The numbers are quite different, but that seems to be a rounding
                 # Problem again.
-                Akj = calculate_Akj(sim.method.psi, phipsi, phij,sim)
+                Akj = calculate_Akj(sim.method.psi, phipsi, phij)
                 # This looks correct. It adds for every atom.
                 #Akj/Akk looks also reasonable and putting both into Real is, too, bcs AKK is a
                 # The values for prob are quite small compared to the Fortran code.
@@ -264,7 +232,7 @@ function evaluate_hopping_probability!(sim::Simulation{<:IESH_Tully}, u, dt)
 end
 
 "Equation 17 in Shenvi, Roy, Tully 2009. Uses equations 19 and 20."
-function calculate_Akj(psi, phipsi, phij, sim)
+function calculate_Akj(psi, phipsi, phij)
     
     ctemp = det(transpose(phij)*psi)
     # # Check Matrix-matrix multiplications
@@ -315,7 +283,7 @@ end
 function Estimators.diabatic_population(sim::Simulation{<:IESH_Tully}, u)
     Calculators.evaluate_potential!(sim.calculator, DynamicsUtils.get_positions(u))
     Calculators.eigen!(sim.calculator)
-    U = sim.calculator.eigenvectors
+    U = sim.calculator.eigen.vectors
 
     ψ = DynamicsUtils.get_quantum_subsystem(u)
     diabatic_ψ = zero(ψ)
