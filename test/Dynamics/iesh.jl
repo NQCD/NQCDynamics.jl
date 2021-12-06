@@ -11,11 +11,11 @@ n_states = 20
 temperature = 9.5e-4
 model = MiaoSubotnik(M=n_states-1)
 atoms = Atoms(2000)
-r = zeros(1, 1)
+r = randn(1, 1)
 v = randn(1,1) * sqrt(5*temperature / atoms.masses[1])
-n_electrons = nstates(model) ÷ 2
+n_electrons = NonadiabaticModels.nstates(model) ÷ 2
 
-sim = Simulation{IESH}(atoms, model; n_electrons=n_electrons)
+sim = Simulation{AdiabaticIESH}(atoms, model; n_electrons=n_electrons)
 u = DynamicsVariables(sim, v, r)
 sim.method.state .= u.state
 
@@ -23,22 +23,39 @@ sim.method.state .= u.state
     S = zeros(n_electrons, n_electrons)
     state = collect(1:n_electrons)
     ψ = DynamicsUtils.get_quantum_subsystem(u)
-    SurfaceHoppingMethods.compute_overlap!(S, ψ, state)
+    SurfaceHoppingMethods.compute_overlap!(sim, S, ψ, state)
     @test S == I # Check overlap is identity
 
     # All electrons in state 1, so they all have unity overlap
     # with first electron wavefunction, which is in state 1.
     state = ones(Int, n_electrons)
-    SurfaceHoppingMethods.compute_overlap!(S, ψ, state)
+    SurfaceHoppingMethods.compute_overlap!(sim, S, ψ, state)
     @test all(S[:,1] .== 1) # Check only first column ones
     @test all(S[:,2:end] .== 0)
+
+    @testset "adiabatic vs diabatic" begin
+        sim = Simulation{DiabaticIESH}(atoms, model; n_electrons=n_electrons)
+        u = DynamicsVariables(sim, v, r)
+        Sdiabatic = zeros(n_electrons, n_electrons)
+        ψ = DynamicsUtils.get_quantum_subsystem(u)
+        SurfaceHoppingMethods.compute_overlap!(sim, Sdiabatic, ψ, u.state)
+
+        sim = Simulation{AdiabaticIESH}(atoms, model; n_electrons=n_electrons)
+        u = DynamicsVariables(sim, v, r)
+        Sadiabatic = zeros(n_electrons, n_electrons)
+        ψ = DynamicsUtils.get_quantum_subsystem(u)
+        SurfaceHoppingMethods.compute_overlap!(sim, Sadiabatic, ψ, u.state)
+
+        @test Sdiabatic ≈ Sadiabatic
+    end
 end
+
 
 @testset "calculate_Akj" begin
     S = zeros(n_electrons, n_electrons)
     state = collect(1:n_electrons)
     ψ = DynamicsUtils.get_quantum_subsystem(u)
-    Akj = SurfaceHoppingMethods.calculate_Akj(S, ψ, 1.0, state)
+    Akj = SurfaceHoppingMethods.calculate_Akj(sim, S, ψ, 1.0, state)
     @test Akj ≈ 1.0
 end
 
@@ -48,7 +65,6 @@ end
     rand!(DynamicsUtils.get_quantum_subsystem(z))
     SurfaceHoppingMethods.evaluate_hopping_probability!(sim, z, 1.0)
 end
-
 
 BLAS.set_num_threads(1)
 
@@ -80,5 +96,3 @@ end
 
 avg = mean(impurity_population, dims=2)
 plot(res[1].t.*model.ω, avg)
-
-    
