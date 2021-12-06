@@ -119,7 +119,7 @@ whether the state change should take place.
 
 This only needs to be implemented if the velocity should be modified during a hop.
 """
-rescale_velocity!(::AbstractSimulation{<:SurfaceHopping}, u) = true
+rescale_velocity!(::AbstractSimulation, u) = true
 
 function DynamicsMethods.create_problem(u0, tspan, sim::AbstractSimulation{<:SurfaceHopping})
     set_state!(sim.method, u0.state)
@@ -130,6 +130,7 @@ end
 include("fssh.jl")
 include("iesh.jl")
 include("iesh_Tully.jl")
+include("iesh_diabatic.jl")
 include("rpsh.jl")
 
 end # module

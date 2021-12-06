@@ -119,7 +119,7 @@ Rescale the velocity in the direction of the nonadiabatic coupling.
 
 [HammesSchiffer1994](@cite)
 """
-function rescale_velocity!(sim::AbstractSimulation{<:FSSH}, u)::Bool
+function rescale_velocity!(sim::AbstractSimulation{<:SurfaceHopping}, u)::Bool
     sim.method.rescaling === :off && return true
 
     new_state, old_state = unpack_states(sim)
