@@ -97,6 +97,23 @@ function set_single_electron_derivative!(dc, c, V, v, d, tmp)
     return nothing
 end
 
+function propagate_wavefunction!(σfinal, σ, v, sim::Simulation{<:AdiabaticIESH}, dt)
+    propagator = get_quantum_propagator(sim, v, dt)
+    mul!(σfinal, propagator, σ)
+end
+
+function get_quantum_propagator(sim::Simulation{<:AdiabaticIESH}, v, dt)
+    hamiltonian = LinearAlgebra.diagm(sim.calculator.eigen.values)
+    hamiltonian = complex(hamiltonian)
+    for I in eachindex(v)
+        hamiltonian .-= 1im .* sim.calculator.nonadiabatic_coupling[I] .* v[I]
+    end
+    vals, vecs = LinearAlgebra.eigen(hamiltonian)
+    propagator = LinearAlgebra.diagm(exp.(-im .* vals .* dt))
+    propagator = vecs * propagator * vecs'
+    return propagator
+end
+
 """
 Hopping probability according to equation 21 in Shenvi, Roy, Tully 2009.
 """
