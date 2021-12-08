@@ -199,3 +199,19 @@ function Estimators.adiabatic_population(sim::Simulation{<:AdiabaticIESH}, u)
 end
 
 unpack_states(sim::Simulation{<:AbstractIESH}) = symdiff(sim.method.new_state, sim.method.state)
+
+function DynamicsUtils.classical_potential_energy(sim::Simulation{<:AbstractIESH}, u)
+    Calculators.evaluate_potential!(sim.calculator, DynamicsUtils.get_positions(u))
+    Calculators.eigen!(sim.calculator)
+    potential = NonadiabaticModels.state_independent_potential(sim.calculator.model, DynamicsUtils.get_positions(u))
+    for i in u.state
+        potential += sim.calculator.eigen.values[i]
+    end
+    return potential
+end
+
+function DynamicsUtils.classical_hamiltonian(sim::Simulation{<:AbstractIESH}, u)
+    kinetic = DynamicsUtils.classical_kinetic_energy(sim, DynamicsUtils.get_velocities(u))
+    potential = DynamicsUtils.classical_potential_energy(sim, u)
+    return kinetic + potential
+end
