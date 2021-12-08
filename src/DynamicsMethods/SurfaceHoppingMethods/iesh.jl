@@ -202,7 +202,7 @@ function Estimators.diabatic_population(sim::Simulation{<:AdiabaticIESH}, u)
     @views for i in axes(ψ, 2) # each electron
         diabatic_ψ[:,i] .= U*ψ[:,i]
     end
-    diabatic_population = sum(abs2.(diabatic_ψ), dims=2)
+    diabatic_population = sum(abs2, diabatic_ψ, dims=2)
 
     return diabatic_population
 end
