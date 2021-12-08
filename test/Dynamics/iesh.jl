@@ -1,19 +1,19 @@
 using Test
 using NonadiabaticMolecularDynamics
 using LinearAlgebra
-using Random
-using Distributions
 using NonadiabaticMolecularDynamics: DynamicsMethods, DynamicsUtils, Calculators
 using NonadiabaticMolecularDynamics.DynamicsMethods: SurfaceHoppingMethods
-using ComponentArrays
+using OrdinaryDiffEq: ODEProblem, Tsit5, init
 
-n_states = 20
-temperature = 9.5e-4
-model = MiaoSubotnik(M=n_states-1)
+kT = 9.5e-4
+M = 30 # number of bath states
+Γ = 6.4e-3
+W = 6Γ / 2 # bandwidth  parameter
+model = MiaoSubotnik(M=M, W=W, Γ=Γ)
 atoms = Atoms(2000)
-r = randn(1, 1)
-v = randn(1,1) * sqrt(5*temperature / atoms.masses[1])
-n_electrons = NonadiabaticModels.nstates(model) ÷ 2
+r = randn(1,1)
+v = randn(1,1)
+n_electrons = M ÷ 2
 
 sim = Simulation{AdiabaticIESH}(atoms, model; n_electrons=n_electrons)
 u = DynamicsVariables(sim, v, r)
@@ -50,7 +50,6 @@ sim.method.state .= u.state
     end
 end
 
-
 @testset "calculate_Akj" begin
     S = zeros(n_electrons, n_electrons)
     state = collect(1:n_electrons)
@@ -66,33 +65,43 @@ end
     SurfaceHoppingMethods.evaluate_hopping_probability!(sim, z, 1.0)
 end
 
-BLAS.set_num_threads(1)
+@testset "execute_hop!" begin
+    problem = ODEProblem(DynamicsMethods.motion!, u, (0.0, 1.0), sim)
+    integrator = init(problem, Tsit5(), callback=SurfaceHoppingMethods.HoppingCallback)
 
-temp = 5*temperature
-harm = Harmonic(m=model.m, ω=model.ω)
-z = ComponentVector(v=zeros(1,1), r=hcat(10.0))
-thermal = Simulation{Langevin}(atoms, harm; temperature=temp, γ=0.1)
-Δ = Dict(:X => 1.0)
-sample = InitialConditions.MetropolisHastings.run_monte_carlo_sampling(thermal, hcat(0.0), Δ, 1e6)
+    initial_state = collect(1:n_electrons)
+    final_state = collect(1:n_electrons)
+    final_state[end] = final_state[end] + 1
 
-vel = Normal(0, sqrt(temp / atoms.masses[1]))
+    Calculators.update_electronics!(integrator.p.calculator, get_positions(integrator.u))
+    DynamicsUtils.get_velocities(integrator.u) .= 2 # Set high momentum to ensure successful hop
+    integrator.u.state .= initial_state
+    integrator.p.method.new_state .= final_state
+    eigs = SurfaceHoppingMethods.get_hopping_eigenvalues(integrator.p)
+    new_state, old_state = SurfaceHoppingMethods.unpack_states(sim)
+    ΔE = SurfaceHoppingMethods.calculate_potential_energy_change(eigs, new_state, old_state)
 
-dist = DynamicalDistribution(vel, sample.R, (1,1))
+    KE_initial = DynamicsUtils.classical_kinetic_energy(integrator.p, get_velocities(integrator.u))
+    H_initial = DynamicsUtils.classical_hamiltonian(integrator.p, integrator.u)
+    @test integrator.u.state == initial_state
 
-using Plots
-plotly()
+    SurfaceHoppingMethods.execute_hop!(integrator)
 
-@time res = Ensembles.run_trajectories(sim, (0.0, 5e4), dist;
-    output=(:position, :population, :adiabatic_population), trajectories=2, abstol=1e-7, reltol=1e-4, saveat=0.0:50:5e4)
+    KE_final = DynamicsUtils.classical_kinetic_energy(integrator.p, get_velocities(integrator.u))
+    H_final = DynamicsUtils.classical_hamiltonian(integrator.p, integrator.u)
+    ΔKE = KE_final - KE_initial
 
-# This should plot the impurity population for each of the trajectories.
-# It should look like the inset of fig 5.c in Miao Subotnik.
-# Unfortunately it does not :(
-impurity_population = zeros(length(0:50:5e4), length(res))
-for (i, traj) in enumerate(res)
-    # plot!(traj.t.*model.ω, 1 .- [p[1] for p in traj.population])
-    impurity_population[:,i] .= 1 .- [p[1] for p in traj.population]
+    @test integrator.u.state == final_state # Check state has changed
+    @test H_final ≈ H_initial
+    @test ΔKE ≈ -ΔE rtol=1e-3 # Test for energy conservation
 end
 
-avg = mean(impurity_population, dims=2)
-plot(res[1].t.*model.ω, avg)
+@testset "algorithm comparison" begin
+    sim = Simulation{AdiabaticIESH}(atoms, model; n_electrons=n_electrons)
+    u = DynamicsVariables(sim, zeros(1,1), randn(1,1))
+    tspan = (0.0, 100.0)
+    dt = 1.0
+    traj1 = run_trajectory(u, tspan, sim; dt, algorithm=DynamicsMethods.IntegrationAlgorithms.VerletwithElectronics(), output=:u)
+    traj2 = run_trajectory(u, tspan, sim; algorithm=Tsit5(), output=:u, saveat=tspan[1]:dt:tspan[2])
+    @test traj1.u ≈ traj2.u atol=1e-2
+end
