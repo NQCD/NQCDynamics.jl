@@ -70,3 +70,7 @@ function Estimators.adiabatic_population(sim::Simulation{<:DiabaticIESH}, u)
     end
     return population
 end
+
+function Estimators.diabatic_population(::Simulation{<:DiabaticIESH}, u)
+    return sum(abs2, DynamicsUtils.get_quantum_subsystem(u); dims=2)
+end
