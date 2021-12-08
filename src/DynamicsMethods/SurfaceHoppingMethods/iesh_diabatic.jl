@@ -1,6 +1,4 @@
 
-using LinearAlgebra: mul!, det
-
 export DiabaticIESH
 
 struct DiabaticIESH{T} <: AbstractIESH
@@ -58,7 +56,7 @@ end
 "Equation 20 in Shenvi, Roy, Tully 2009."
 function compute_overlap!(sim::Simulation{<:DiabaticIESH}, S::Matrix, ψ, state)
     ϕ = @view sim.calculator.eigen.vectors[:,state]
-    mul!(S, ϕ', ψ)
+    LinearAlgebra.mul!(S, ϕ', ψ)
     return nothing
 end
 

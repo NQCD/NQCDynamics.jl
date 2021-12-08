@@ -4,7 +4,7 @@ module SurfaceHoppingMethods
 using DEDataArrays: DEDataArrays
 using ComponentArrays: ComponentVector
 using DiffEqBase: DiffEqBase
-using LinearAlgebra: lmul!
+using LinearAlgebra: LinearAlgebra, lmul!
 using OrdinaryDiffEq: OrdinaryDiffEq
 using Revise
 
