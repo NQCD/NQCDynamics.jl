@@ -57,6 +57,8 @@ See Eq. 12 of Shenvi, Tully JCP 2009 paper.
 """
 function acceleration!(dv, v, r, sim::Simulation{<:AbstractIESH}, t, state)
     dv .= zero(eltype(dv))
+    NonadiabaticModels.state_independent_derivative!(sim.calculator.model, dv, r)
+    LinearAlgebra.lmul!(-1, dv)
     for I in eachindex(dv)
         for k in state
             # Contribution to the force from each occupied state `k`
