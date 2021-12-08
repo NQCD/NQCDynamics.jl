@@ -99,7 +99,7 @@ position(u, t, integrator) = copy(get_positions(u))
 centroid_position(u, t, integrator) = get_centroid(get_positions(u))
 
 "Evaluate the potential from the model"
-potential(u, t, integrator) = NonadiabaticModels.potential(integrator.p.calculator.model, get_positions(u))[1]
+potential(u, t, integrator) = DynamicsUtils.classical_potential_energy(integrator.p, u)
 
 "Evaluate the classical Hamiltonian"
 hamiltonian(u, t, integrator) = DynamicsUtils.classical_hamiltonian(integrator.p, u)
