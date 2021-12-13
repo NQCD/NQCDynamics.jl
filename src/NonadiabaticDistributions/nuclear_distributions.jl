@@ -14,3 +14,6 @@ include("harmonic_wigner.jl")
 export MomentumHarmonicWigner
 export PositionHarmonicWigner
 export VelocityHarmonicWigner
+
+include("harmonic_ring_polymer.jl")
+export HarmonicRingPolymer
