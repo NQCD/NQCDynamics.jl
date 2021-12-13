@@ -39,9 +39,9 @@ end
 end
 
 @testset "calculate_force_constant" begin
-    @test QuantisedDiatomic.calculate_force_constant(model, surface) ≈ 1
+    @test QuantisedDiatomic.calculate_force_constant(model, surface)[1] ≈ 1 atol=0.1
     model2 = NonadiabaticModels.DiatomicHarmonic(r₀=6.3)
-    @test QuantisedDiatomic.calculate_force_constant(model2, surface) ≈ 1
+    @test QuantisedDiatomic.calculate_force_constant(model2, surface)[1] ≈ 1 atol=0.1
 end
 
 @testset "subtract_centre_of_mass!" begin

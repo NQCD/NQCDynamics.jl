@@ -25,7 +25,6 @@ using LsqFit: LsqFit
 using LinearAlgebra: norm, normalize!, nullspace, cross, I
 using UnitfulAtomic: austrip
 using Distributions: Uniform
-using UnPack: @unpack
 
 using NonadiabaticMolecularDynamics: Simulation, Calculators, DynamicsUtils
 using NonadiabaticDynamicsBase: Atoms, PeriodicCell, InfiniteCell
@@ -92,15 +91,13 @@ function generate_configurations(sim, ν, J;
     surface = SurfaceParameters(sim.atoms.masses, atom_indices, slab, height, surface_normal)
     generation = GenerationParameters(direction, austrip(translational_energy), samples)
 
-    E, bounds = extract_energy_and_bounds(sim.calculator.model, ν, J, surface)
+    total_energy = find_total_energy(sim.calculator.model, ν, J, surface)
+    bounds = find_integral_bounds(sim.calculator.model, total_energy, J, surface)
 
-    μ = surface.reduced_mass
-    rotational(r) = J*(J+1) / (2μ*r^2)
-    Vᵣ(r) = rotational(r) + calculate_diatomic_energy(sim.calculator.model, r, surface)
-    radial_momentum(r) = sqrt(2μ * (E - Vᵣ(r)))
+    radial_momentum = get_radial_momentum_function(total_energy, surface, J, sim.calculator.model)
+    bonds, momenta = select_random_bond_lengths(bounds, radial_momentum, samples)
 
-    bonds, momenta = select_random_bond_lengths(E, bounds, radial_momentum, surface.reduced_mass, samples)
-
+    @info "Generating the requested configurations..."
     configure_diatomic.(sim, bonds, momenta, J, surface, generation)
 end
 
@@ -134,27 +131,26 @@ function combine_slab_and_molecule(surface::SurfaceParameters, molecule)
 end
 
 """
-    extract_energy_and_bounds(sim, ν, J; height=10, normal_vector=[0, 0, 1])
+    find_total_energy(sim, ν, J, surface)
 
-Returns the energy and turning points associated with the specified quantum numbers
+Returns the energy associated with the specified quantum numbers
 """
-function extract_energy_and_bounds(model::AdiabaticModel, ν, J, surface::SurfaceParameters)
+function find_total_energy(model::AdiabaticModel, ν, J, surface::SurfaceParameters)
 
-    k = calculate_force_constant(model, surface)
-    μ = surface.reduced_mass
-    ω = sqrt(k / μ)
-    E_guess = (ν + 1/2) * ω
+    @info "Guessing a reasonable starting energy..."
+    E_guess = guess_initial_energy(model, surface, ν)
 
     "Target function to optimise. Find energy `E` where vibrational numbers `ν` match."
     function target(E)
-        ν_tmp, _, _ = extract_quantum_numbers(model, E, J, surface)
+        ν_tmp = determine_quantum_numbers(model, E, J, surface)
         ν_tmp - ν
     end
 
-    E = Roots.find_zero(target, E_guess)
-    _, _, bounds = extract_quantum_numbers(model, E, J, surface)
+    @info "Converging energy and finding the desired vibrational number..."
+    E = Roots.find_zero(target, E_guess; atol=5e-4)
 
-    E, bounds 
+    @info "Energy found: $E"
+    E
 end
 
 """
@@ -186,72 +182,80 @@ function quantise_diatomic(sim::Simulation, v::Matrix, r::Matrix;
     L = total_angular_momentum(r_com, p_com)
     J = (sqrt(1+4*L^2) - 1) / 2 # L^2 = J(J+1)ħ^2
 
-    ν, J, bounds = extract_quantum_numbers(sim.calculator.model, E, J, surface)
+    ν = determine_quantum_numbers(sim.calculator.model, E, J, surface)
     ν, J
+end
+
+
+rotational_energy(r, μ, J) = J*(J+1) / (2μ*r^2)
+
+function effective_potential(r, J, model, surface)
+    rotational = rotational_energy(r, surface.reduced_mass, J)
+    potential = calculate_diatomic_energy(model, r, surface)
+    return rotational + potential
+end
+
+function get_radial_momentum_function(total_energy, surface, J, model)
+    radial_momentum(r) = sqrt(2surface.reduced_mass * (total_energy - effective_potential(r, J, model, surface)))
 end
 
 """
 Calculate the vibrational and rotational quantum numbers using EBK
 """
-function extract_quantum_numbers(model::AdiabaticModel, total_energy::Real, J::Real, surface::SurfaceParameters)
+function determine_quantum_numbers(model::AdiabaticModel, total_energy::Real, J::Real, surface::SurfaceParameters)
+    bounds = find_integral_bounds(model, total_energy, J, surface)
+    ν = calculate_vibrational_quantum_number(model, total_energy, J, surface, bounds)
+    ν
+end
 
-    μ = surface.reduced_mass
-    rotational(r) = J*(J+1) / (2μ*r^2)
-    Vᵣ(r) = rotational(r) + calculate_diatomic_energy(model, r, surface)
-    radial_momentum(r) = sqrt(2μ * (total_energy - Vᵣ(r)))
-
-    bounds = Roots.find_zeros(r -> total_energy - Vᵣ(r), 0.0, 10.0)
+function find_integral_bounds(model, total_energy, J, surface)
+    @info "Determining integration bounds..."
+    bounds = Roots.find_zeros(r -> total_energy - effective_potential(r, J, model, surface), 0.0, 10.0)
     if length(bounds) != 2
         throw(ArgumentError("Unable to determine bounds for EBK quantisation."
         * " Perhaps the chosen quantum numbers are unreasonable?
         Bounds obtained = $bounds"))
     end
-    integral, err = QuadGK.quadgk(radial_momentum, bounds...)
-    ν = integral / π - 1/2
+    @info "Bounds obtained: $bounds"
+    return bounds
+end
 
-    ν, J, bounds
+function calculate_vibrational_quantum_number(model, total_energy, J, surface, bounds)
+    @info "Numerically integrating the EBK quantisation integral..."
+    radial_momentum = get_radial_momentum_function(total_energy, surface, J, model)
+    integral, err = QuadGK.quadgk(radial_momentum, bounds...; maxevals=100)
+    ν = integral / π - 1/2
+    νerr = err / integral * ν
+    @info "Vibrational number obtained: $ν ± $νerr"
+    return ν
 end
 
 """
 Pick a random bond length and corresponding radial momentum that matches the
 radial probability distribution.
+
+Uses rejection sampling: https://en.wikipedia.org/wiki/Rejection_sampling
 """
-function select_random_bond_lengths(E, bounds, probability_function, μ, samples)
-    P0 = sqrt(1e-4 * 2μ*E)
-    distribution = Uniform(bounds...)
+function select_random_bond_lengths(bounds, momentum_function, samples)
+    @info "Generating distribution of bond lengths and radial momenta..."
+    M = 1 / momentum_function(bounds[1]+1e-3)
+    radius_proposal = Uniform(bounds...)
     bonds = zeros(samples)
     momenta = zeros(samples)
     for i=1:samples
         keep_going = true
         while keep_going
-            r, P = pick_radius(distribution, probability_function, 1)
-            if rand() < P0 / P
+            r = rand(radius_proposal) # Generate radius
+            p = momentum_function(r) # Evaluate probability
+            probability = 1 / p # Probability inversely proportional to momentum
+            if rand() < probability / M
                 bonds[i] = r
-                momenta[i] = rand([-1, 1]) * P
+                momenta[i] = rand([-1, 1]) * p
                 keep_going = false
             end
         end
     end
     bonds, momenta
-end
-
-function pick_radius(distribution, func, count)
-    r = rand(distribution)
-    try
-        P = func(r)
-        return r, P
-    catch e
-        if e isa DomainError
-            if count > 100
-                throw(ArgumentError("Something is seriously wrong, a rejected bond length was generated 100 times in a row?
-                    Check the model."))
-            else
-                return pick_radius(distribution, func, count+1)
-            end
-        else
-            throw(e)
-        end
-    end
 end
 
 """
@@ -329,7 +333,7 @@ function calculate_diatomic_energy(
     model::AdiabaticModel, bond_length::Real, surface::SurfaceParameters
 )
 
-    @unpack surface_normal, orthogonal_vectors, height = surface
+    (;surface_normal, orthogonal_vectors, height) = surface
     molecule = surface_normal .* height .+ orthogonal_vectors .* bond_length ./ sqrt(2)
     R = combine_slab_and_molecule(surface, molecule)
 
@@ -337,26 +341,39 @@ function calculate_diatomic_energy(
 end
 
 """
-    calculate_force_constant(sim::Simulation;
-        height=10.0, bond_length=2.5, normal_vector=[0.0, 0.0, 1.0])
+    calculate_force_constant(sim::Simulation, surface::SurfaceParameters)
 
 Evaluate energy for different bond lengths and identify force constant. 
 
-This uses LsqFit.jl to fit a harmonic potential with optimised minimum.
+This uses LsqFit.jl to fit a morse potential with optimised minimum.
 """
 function calculate_force_constant(model::AdiabaticModel, surface::SurfaceParameters)
 
-    harmonic(f, x, p) = (@. f = p[1]*(x - p[2])^2/2)
+    morse(f, x, p) = (@. f = p[1]*(1 - exp(-p[2]*(x-p[3])))^2)
     function jacobian(J, x, p)
-        @. J[:,1] = (x - p[2])^2/2
-        @. J[:,2] = -p[1] * (x - p[2])
+        @. J[:,1] = (1 - exp(-p[2]*(x-p[3])))^2
+        @. J[:,2] = 2p[1]*(1 - exp(-p[2]*(x-p[3]))) * exp(-p[2]*(x-p[3])) * (x - p[3])
+        @. J[:,3] = -2p[1]*(1 - exp(-p[2]*(x-p[3]))) * exp(-p[2]*(x-p[3])) * p[2]
     end
 
-    bond_lengths = 0.5:0.1:10.0
-    V = calculate_diatomic_energy.(model, bond_lengths, surface)
+    bond_lengths = 0.5:0.1:10.0 # Possible bond lengths, assumes 10 bohr == separated.
+    V = calculate_diatomic_energy.(model, bond_lengths, surface) # Calculate binding curve
+    potential_minimum = minimum(V)
+    V .-= potential_minimum # Shift minimum to zero.
 
-    fit = LsqFit.curve_fit(harmonic, bond_lengths, V, [1.0, 1.0]; lower=[0.0, 0.0], inplace=true)
-    fit.param[1]
+    fit = LsqFit.curve_fit(morse, bond_lengths, V, [1.0, 1.0, 1.0];
+        lower=[0.0, 0.0, 0.0], inplace=true)
+
+    force_constant = fit.param[2]^2 * 2 * fit.param[1]
+    return force_constant, potential_minimum
+end
+
+function guess_initial_energy(model::AdiabaticModel, surface::SurfaceParameters, ν)
+    k, potential_minimum = calculate_force_constant(model, surface)
+    μ = surface.reduced_mass
+    ω = sqrt(k / μ)
+    E_guess = (ν + 1/2) * ω
+    return E_guess + potential_minimum
 end
 
 subtract_centre_of_mass(x, m) = x .- centre_of_mass(x, m)
