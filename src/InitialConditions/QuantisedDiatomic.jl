@@ -223,7 +223,7 @@ end
 function calculate_vibrational_quantum_number(model, total_energy, J, surface, bounds)
     @info "Numerically integrating the EBK quantisation integral..."
     radial_momentum = get_radial_momentum_function(total_energy, surface, J, model)
-    integral, err = QuadGK.quadgk(radial_momentum, bounds...; maxevals=100)
+    integral, err = QuadGK.quadgk(radial_momentum, bounds...; maxevals=5e2)
     ν = integral / π - 1/2
     νerr = err / integral * ν
     @info "Vibrational number obtained: $ν ± $νerr"
