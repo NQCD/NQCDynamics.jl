@@ -24,6 +24,8 @@ using NonadiabaticMolecularDynamics.NonadiabaticDistributions:
     NuclearDistribution,
     CombinedDistribution
 
+export run_ensemble
+
 function sample_distribution(sim::AbstractSimulation, distribution::NuclearDistribution, i)
     u = getindex(distribution, i)
     DynamicsMethods.DynamicsVariables(sim, u.v, u.r)
