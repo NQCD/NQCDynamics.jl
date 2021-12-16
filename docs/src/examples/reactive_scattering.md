@@ -86,10 +86,10 @@ model = LDFAModel(model, "../assets/friction/test.cube", atoms, friction_atoms=[
 ```
 
 Now we can pass all the variables defined so far to the `Simulation` and run multiple
-trajectories using [`Ensembles.run_trajectories`](@ref).
+trajectories using [`run_ensemble`](@ref).
 ```@example h2scatter
 sim = Simulation{MDEF}(atoms, model, cell=cell, temperature=300u"K")
-ensemble = Ensembles.run_trajectories(sim, tspan, distribution;
+ensemble = run_ensemble(sim, tspan, distribution;
     dt=0.1u"fs", output=:position, trajectories=20, callback=terminate)
 ```
 
@@ -119,7 +119,7 @@ This can be used by simply using the model directly, without wrapping it with th
 ```@example h2scatter
 model = H2AgModel()
 sim = Simulation{MDEF}(atoms, model, cell=cell, temperature=300u"K")
-ensemble = Ensembles.run_trajectories(sim, tspan, distribution;
+ensemble = run_ensemble(sim, tspan, distribution;
     dt=0.1u"fs", output=:position, trajectories=20, callback=terminate)
 
 f = Figure()
