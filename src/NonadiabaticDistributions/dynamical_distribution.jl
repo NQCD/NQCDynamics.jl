@@ -29,7 +29,7 @@ rand(d)
 
 # output
 
-ComponentVector{Float64}(v = [5.0], r = [-0.3170409357632898])
+ComponentVector{Float64}(v = [5.0;;], r = [0.5314767537831963;;])
 ```
 """
 struct DynamicalDistribution{V,R,S} <: NuclearDistribution

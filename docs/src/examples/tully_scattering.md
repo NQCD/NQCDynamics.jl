@@ -46,7 +46,7 @@ for k=momenta
     tspan = (0, 2abs(r)/v)
     distribution = DynamicalDistribution(v, -5, size(sim)) * SingleState(1, Adiabatic())
 
-    out = Ensembles.run_ensemble(sim, tspan, distribution;
+    out = run_ensemble(sim, tspan, distribution;
         trajectories=ntraj, output=output, reduction=:mean)
 
     push!(result, out)

@@ -44,7 +44,7 @@ Now we can run the ensemble of trajectories and visualise the surface hopping po
 ```@example ensemble
 using Plots
 
-solution = Ensembles.run_ensemble(sim, (0.0, 3000.0), distribution; trajectories=1e3,
+solution = run_ensemble(sim, (0.0, 3000.0), distribution; trajectories=1e3,
     output=output, reduction=:mean, saveat=10.0)
 
 plot(0:10:3000, [p[1,1] for p in solution], legend=false)
@@ -57,7 +57,7 @@ If instead it is preferred to output many quantities for each trajectory, this i
 also possible.
 Here the output is specified in the same way as for single trajectories.
 ```@example ensemble
-ensemble = Ensembles.run_trajectories(sim, (0.0, 3000.0), distribution;
+ensemble = run_ensemble(sim, (0.0, 3000.0), distribution;
     output=(:population), trajectories=50)
 
 p = plot(legend=(false))
