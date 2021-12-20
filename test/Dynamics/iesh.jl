@@ -66,7 +66,7 @@ dist = DynamicalDistribution(vel, sample.R, (1,1))
 using Plots
 plotly()
 
-@time res = Ensembles.run_trajectories(sim, (0.0, 5e4), dist;
+@time res = run_ensemble(sim, (0.0, 5e4), dist;
     output=(:position, :population, :adiabatic_population), trajectories=2, abstol=1e-7, reltol=1e-4, saveat=0.0:50:5e4)
 
 # This should plot the impurity population for each of the trajectories.

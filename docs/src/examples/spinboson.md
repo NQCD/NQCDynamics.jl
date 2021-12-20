@@ -49,10 +49,10 @@ ehrenfest = Simulation{Ehrenfest}(atoms, model)
 
 saveat = 0:0.1:20
 output = TimeCorrelationFunctions.PopulationCorrelationFunction(fssh, Diabatic())
-ensemble_fssh = Ensembles.run_ensemble(fssh, (0.0, 20.0), distribution;
+ensemble_fssh = run_ensemble(fssh, (0.0, 20.0), distribution;
     saveat=saveat, trajectories=100, output=output, reduction=:mean)
 output = TimeCorrelationFunctions.PopulationCorrelationFunction(ehrenfest, Diabatic())
-ensemble_ehrenfest = Ensembles.run_ensemble(ehrenfest, (0.0, 20.0), distribution;
+ensemble_ehrenfest = run_ensemble(ehrenfest, (0.0, 20.0), distribution;
     saveat=saveat, trajectories=100, output=output, reduction=:mean)
 nothing # hide
 ```

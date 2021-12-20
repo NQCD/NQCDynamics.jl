@@ -66,12 +66,12 @@ the intial population with the final population at each timestep.
 
 ```@example threestatemorse
 sim = Simulation{FSSH}(atoms, model)
-fssh_result = Ensembles.run_ensemble(sim, (0.0, 3000.0), distribution;
+fssh_result = run_ensemble(sim, (0.0, 3000.0), distribution;
     saveat=10, trajectories=1e3,
     output=TimeCorrelationFunctions.PopulationCorrelationFunction(sim, Diabatic()),
     reduction=:mean, dt=1.0)
 sim = Simulation{Ehrenfest}(atoms, model)
-ehrenfest_result = Ensembles.run_ensemble(sim, (0.0, 3000.0), distribution;
+ehrenfest_result = run_ensemble(sim, (0.0, 3000.0), distribution;
     saveat=10, trajectories=1e3,
     output=TimeCorrelationFunctions.PopulationCorrelationFunction(sim, Diabatic()),
     reduction=:mean, dt=1.0)

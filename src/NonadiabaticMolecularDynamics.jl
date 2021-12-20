@@ -40,5 +40,6 @@ export InitialConditions
 
 include("Ensembles/Ensembles.jl")
 export Ensembles
+@reexport using .Ensembles
 
 end # module

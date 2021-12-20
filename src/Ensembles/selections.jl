@@ -21,6 +21,14 @@ struct RandomSelection{D} <: AbstractSelection
     distribution::D
 end
 
+function Selection(distribution, selection::AbstractVector)
+    OrderedSelection(distribution, selection)
+end
+
+function Selection(distribution, ::Any)
+    RandomSelection(distribution)
+end
+
 function (select::OrderedSelection)(prob, i, repeat)
     j = select.indices[i]
     u0 = sample_distribution(prob.p, select.distribution, j)
