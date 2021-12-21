@@ -211,13 +211,22 @@ end
 function find_integral_bounds(model, total_energy, J, surface)
     @info "Determining integration bounds..."
     bounds = Roots.find_zeros(r -> total_energy - effective_potential(r, J, model, surface), 0.0, 10.0)
-    if length(bounds) != 2
-        throw(ArgumentError("Unable to determine bounds for EBK quantisation."
-        * " Perhaps the chosen quantum numbers are unreasonable?
-        Bounds obtained = $bounds"))
-    end
     @info "Bounds obtained: $bounds"
-    return bounds
+
+    number_of_bounds = length(bounds)
+    if number_of_bounds == 2
+        return bounds
+    elseif number_of_bounds > 2
+        @warn "Too many bounds obtained, taking the first two values. \
+            Check the values are reasonable minimum/maximum bond lengths."
+        return bounds[1:2]
+    elseif number_of_bounds < 2
+        throw(ArgumentError(
+            "Too few bounds obtained. \
+            This suggests the requested quantum numbers are too large for the binding potential."
+            )
+        )
+    end
 end
 
 function calculate_vibrational_quantum_number(model, total_energy, J, surface, bounds)
