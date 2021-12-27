@@ -6,7 +6,7 @@ using Unitful
 using UnitfulAtomic
 
 atoms = Atoms([:N, :O])
-model = DiatomicHarmonic()
+model = DiatomicHarmonic(r₀=2)
 sim = Simulation(atoms, model)
 surface = QuantisedDiatomic.SurfaceParameters(sim.atoms.masses, [1, 2], Matrix{Float64}(undef, 3, 0), 10.0, [0, 0, 1.0])
 
@@ -34,14 +34,19 @@ surface = QuantisedDiatomic.SurfaceParameters(sim.atoms.masses, [1, 2], Matrix{F
 end
 
 @testset "calculate_diatomic_energy" begin
-    @test QuantisedDiatomic.calculate_diatomic_energy(model, 1.0, surface) ≈ 0.0 atol=1e-3
-    @test QuantisedDiatomic.calculate_diatomic_energy(model, 2.0, surface) ≈ 0.5
+    @test QuantisedDiatomic.calculate_diatomic_energy(model, 2.0, surface) ≈ 0.0 atol=1e-3
+    @test QuantisedDiatomic.calculate_diatomic_energy(model, 3.0, surface) ≈ 0.5
 end
 
 @testset "calculate_force_constant" begin
-    @test QuantisedDiatomic.calculate_force_constant(model, surface)[1] ≈ 1 atol=0.1
-    model2 = NonadiabaticModels.DiatomicHarmonic(r₀=6.3)
-    @test QuantisedDiatomic.calculate_force_constant(model2, surface)[1] ≈ 1 atol=0.1
+    bond_lengths = 0.5:0.01:5.0
+    potential = QuantisedDiatomic.calculate_diatomic_energy.(model, bond_lengths, surface) # Calculate binding curve
+
+    @test QuantisedDiatomic.calculate_force_constant(bond_lengths, potential)[1] ≈ 1 atol=0.1
+
+    model2 = NonadiabaticModels.DiatomicHarmonic(r₀=3.0)
+    potential = QuantisedDiatomic.calculate_diatomic_energy.(model2, bond_lengths, surface) # Calculate binding curve
+    @test QuantisedDiatomic.calculate_force_constant(bond_lengths, potential)[1] ≈ 1 atol=0.1
 end
 
 @testset "subtract_centre_of_mass!" begin
@@ -92,7 +97,7 @@ end
 
 @testset "apply_translational_impulse!" begin
     masses = [100, 100]
-    r = rand(3, 2)
+    r = rand(3, 2) .+ [0 2; 0 2; 0 2]
     v = rand(3, 2) ./ 100
     v_before = copy(v)
     e = 10u"eV"
