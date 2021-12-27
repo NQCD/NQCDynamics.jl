@@ -19,12 +19,13 @@ Inspired by VENUS96: [Hase1996](@cite)
 module QuantisedDiatomic
 
 using QuadGK: QuadGK
-using Roots: Roots
 using Rotations: Rotations
 using LsqFit: LsqFit
 using LinearAlgebra: norm, normalize!, nullspace, cross, I
 using UnitfulAtomic: austrip
 using Distributions: Uniform
+using UnicodePlots: lineplot, lineplot!, DotCanvas
+using Optim: Optim
 
 using NonadiabaticMolecularDynamics: Simulation, Calculators, DynamicsUtils
 using NonadiabaticDynamicsBase: Atoms, PeriodicCell, InfiniteCell
@@ -91,8 +92,7 @@ function generate_configurations(sim, ν, J;
     surface = SurfaceParameters(sim.atoms.masses, atom_indices, slab, height, surface_normal)
     generation = GenerationParameters(direction, austrip(translational_energy), samples)
 
-    total_energy = find_total_energy(sim.calculator.model, ν, J, surface)
-    bounds = find_integral_bounds(sim.calculator.model, total_energy, J, surface)
+    total_energy, bounds = find_total_energy(sim.calculator.model, ν, J, surface)
 
     radial_momentum = get_radial_momentum_function(total_energy, surface, J, sim.calculator.model)
     bonds, momenta = select_random_bond_lengths(bounds, radial_momentum, samples)
@@ -137,20 +137,69 @@ Returns the energy associated with the specified quantum numbers
 """
 function find_total_energy(model::AdiabaticModel, ν, J, surface::SurfaceParameters)
 
-    @info "Guessing a reasonable starting energy..."
-    E_guess = guess_initial_energy(model, surface, ν)
+    μ = surface.reduced_mass
 
-    "Target function to optimise. Find energy `E` where vibrational numbers `ν` match."
-    function target(E)
-        ν_tmp = determine_quantum_numbers(model, E, J, surface)
-        ν_tmp - ν
+    bond_lengths = 0.5:0.01:5.0
+    potential = calculate_diatomic_energy.(model, bond_lengths, surface) # Calculate binding curve
+    potential_minimum, index = findmin(potential)
+    r₀ = bond_lengths[index]
+    potential .-= potential_minimum # Shift minimum to zero.
+
+    k = calculate_force_constant(bond_lengths, potential)
+    E = guess_initial_energy(k, μ, ν, potential_minimum)
+
+    V(r) = effective_potential(r, J, model, surface)
+
+    "Evaluate vibrational quantum number."
+    function nᵣ(E, r₁, r₂)
+        kernel(r) = sqrt(E - V(r))
+        integral, _ = QuadGK.quadgk(kernel, r₁, r₂; maxevals=100)
+        return sqrt(2μ)/π * integral - 1/2
     end
 
-    @info "Converging energy and finding the desired vibrational number..."
-    E = Roots.find_zero(target, E_guess; atol=5e-4)
+    "Derivative of the above"
+    function ∂nᵣ∂E(E, r₁, r₂)
+        kernel(r) = 1 / sqrt(E - V(r))
+        integral, _ = QuadGK.quadgk(kernel, r₁, r₂; maxevals=100)
+        return sqrt(2μ)/2π * integral
+    end
 
-    @info "Energy found: $E"
-    E
+    "Second derivative of the above"
+    function ∂²nᵣ∂E²(E, r₁, r₂)
+        kernel(r) = 1 / sqrt(E - V(r))^3
+        integral, _ = QuadGK.quadgk(kernel, r₁, r₂; maxevals=100)
+        return -sqrt(2μ)/4π * integral
+    end
+
+    """
+    Evaluates the function, gradient and hessian as described in the Optim documentation.
+    """
+    function fgh!(F,G,H,x)
+        E = x[1]
+        r₁, r₂ = find_integral_bounds(model, E, J, surface, r₀)
+
+        νtmp = nᵣ(E, r₁, r₂)
+        difference = νtmp - ν
+
+        if G !== nothing
+            G[1] = ∂nᵣ∂E(E, r₁, r₂) * sign(difference)
+        end
+        if H !== nothing
+            H[1] = ∂²nᵣ∂E²(E, r₁, r₂) * sign(difference)
+        end
+        if F !== nothing
+            return abs(difference)
+        end
+    end
+
+    @info "Converging the total energy to match the chosen quantum numbers..."
+    optim = Optim.optimize(Optim.only_fgh!(fgh!), [E], Optim.Newton(),
+        Optim.Options(show_trace=true, x_tol=1e-3)
+    )
+    E = Optim.minimizer(optim)[1]
+    bounds = find_integral_bounds(model, E, J, surface, r₀)
+
+    E, bounds
 end
 
 """
@@ -182,10 +231,21 @@ function quantise_diatomic(sim::Simulation, v::Matrix, r::Matrix;
     L = total_angular_momentum(r_com, p_com)
     J = (sqrt(1+4*L^2) - 1) / 2 # L^2 = J(J+1)ħ^2
 
-    ν = determine_quantum_numbers(sim.calculator.model, E, J, surface)
+    r₁, r₂ = find_integral_bounds(sim.calculator.model, E, J, surface, bond_length(r_com))
+
+    μ = surface.reduced_mass
+    V(r) = effective_potential(r, J, sim.calculator.model, surface)
+
+    function nᵣ(E, r₁, r₂)
+        kernel(r) = sqrt(E - V(r))
+        integral, _ = QuadGK.quadgk(kernel, r₁, r₂; maxevals=100)
+        return sqrt(2μ)/π * integral - 1/2
+    end
+
+    ν = nᵣ(E, r₁, r₂)
+
     ν, J
 end
-
 
 rotational_energy(r, μ, J) = J*(J+1) / (2μ*r^2)
 
@@ -199,44 +259,13 @@ function get_radial_momentum_function(total_energy, surface, J, model)
     radial_momentum(r) = sqrt(2surface.reduced_mass * (total_energy - effective_potential(r, J, model, surface)))
 end
 
-"""
-Calculate the vibrational and rotational quantum numbers using EBK
-"""
-function determine_quantum_numbers(model::AdiabaticModel, total_energy::Real, J::Real, surface::SurfaceParameters)
-    bounds = find_integral_bounds(model, total_energy, J, surface)
-    ν = calculate_vibrational_quantum_number(model, total_energy, J, surface, bounds)
-    ν
-end
-
-function find_integral_bounds(model, total_energy, J, surface)
-    @info "Determining integration bounds..."
-    bounds = Roots.find_zeros(r -> total_energy - effective_potential(r, J, model, surface), 0.0, 10.0)
-    @info "Bounds obtained: $bounds"
-
-    number_of_bounds = length(bounds)
-    if number_of_bounds == 2
-        return bounds
-    elseif number_of_bounds > 2
-        @warn "Too many bounds obtained, taking the first two values. \
-            Check the values are reasonable minimum/maximum bond lengths."
-        return bounds[1:2]
-    elseif number_of_bounds < 2
-        throw(ArgumentError(
-            "Too few bounds obtained. \
-            This suggests the requested quantum numbers are too large for the binding potential."
-            )
-        )
-    end
-end
-
-function calculate_vibrational_quantum_number(model, total_energy, J, surface, bounds)
-    @info "Numerically integrating the EBK quantisation integral..."
-    radial_momentum = get_radial_momentum_function(total_energy, surface, J, model)
-    integral, err = QuadGK.quadgk(radial_momentum, bounds...; maxevals=5e2)
-    ν = integral / π - 1/2
-    νerr = err / integral * ν
-    @info "Vibrational number obtained: $ν ± $νerr"
-    return ν
+function find_integral_bounds(model, total_energy, J, surface, r₀, bond_limits=(0.5, 5.0))
+    optim_func(r) = abs(total_energy - effective_potential(r, J, model, surface))
+    optim = Optim.optimize(optim_func, first(bond_limits), r₀)
+    r₁ = Optim.minimizer(optim)
+    optim = Optim.optimize(optim_func, r₀, last(bond_limits))
+    r₂ = Optim.minimizer(optim)
+    return r₁, r₂
 end
 
 """
@@ -339,11 +368,11 @@ to intersect the origin.
 This requires that the model implicitly provides the surface, or works fine without one.
 """
 function calculate_diatomic_energy(
-    model::AdiabaticModel, bond_length::Real, surface::SurfaceParameters
+    model::AdiabaticModel, r₀::Real, surface::SurfaceParameters
 )
 
     (;surface_normal, orthogonal_vectors, height) = surface
-    molecule = surface_normal .* height .+ orthogonal_vectors .* bond_length ./ sqrt(2)
+    molecule = surface_normal .* height .+ orthogonal_vectors .* r₀ ./ sqrt(2)
     R = combine_slab_and_molecule(surface, molecule)
 
     return NonadiabaticModels.potential(model, R)
@@ -356,30 +385,42 @@ Evaluate energy for different bond lengths and identify force constant.
 
 This uses LsqFit.jl to fit a morse potential with optimised minimum.
 """
-function calculate_force_constant(model::AdiabaticModel, surface::SurfaceParameters)
+function calculate_force_constant(bond_lengths, potential)
 
-    morse(f, x, p) = (@. f = p[1]*(1 - exp(-p[2]*(x-p[3])))^2)
-    function jacobian(J, x, p)
+    morse!(f, x, p) = (@. f = p[1]*(1 - exp(-p[2]*(x-p[3])))^2)
+    function jacobian!(J, x, p)
         @. J[:,1] = (1 - exp(-p[2]*(x-p[3])))^2
         @. J[:,2] = 2p[1]*(1 - exp(-p[2]*(x-p[3]))) * exp(-p[2]*(x-p[3])) * (x - p[3])
         @. J[:,3] = -2p[1]*(1 - exp(-p[2]*(x-p[3]))) * exp(-p[2]*(x-p[3])) * p[2]
     end
 
-    bond_lengths = 0.5:0.1:10.0 # Possible bond lengths, assumes 10 bohr == separated.
-    V = calculate_diatomic_energy.(model, bond_lengths, surface) # Calculate binding curve
-    potential_minimum = minimum(V)
-    V .-= potential_minimum # Shift minimum to zero.
+    σ = potential[end]
+    weights = exp.(-potential.^2 ./ σ^2) # Weight the area around the minimum most heavily
 
-    fit = LsqFit.curve_fit(morse, bond_lengths, V, [1.0, 1.0, 1.0];
+    fit = LsqFit.curve_fit(morse!, jacobian!, bond_lengths, potential, weights, [1.0, 1.0, 1.0];
         lower=[0.0, 0.0, 0.0], inplace=true)
 
+    plot_binding_curve(morse!, bond_lengths, potential, fit.param)
+
     force_constant = fit.param[2]^2 * 2 * fit.param[1]
-    return force_constant, potential_minimum
+    return force_constant
 end
 
-function guess_initial_energy(model::AdiabaticModel, surface::SurfaceParameters, ν)
-    k, potential_minimum = calculate_force_constant(model, surface)
-    μ = surface.reduced_mass
+function plot_binding_curve(morse!, bond_lengths, V, parameters)
+    fitted_points = zero(bond_lengths)
+    morse!(fitted_points, bond_lengths, parameters)
+    plt = lineplot(bond_lengths, V;
+        title="Binding curve", xlabel="Bond length / bohr", ylabel="Energy / Hartree",
+        name="Actual values", canvas=DotCanvas, border=:ascii
+    )
+    lineplot!(plt, bond_lengths, fitted_points; name="Fitted curve")
+    show(plt)
+    println()
+    @info "The two lines shown above should closely match. \
+        This indicates the evaluation of the potential is working correctly."
+end
+
+function guess_initial_energy(k, μ, ν, potential_minimum)
     ω = sqrt(k / μ)
     E_guess = (ν + 1/2) * ω
     return E_guess + potential_minimum
