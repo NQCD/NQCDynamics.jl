@@ -347,14 +347,14 @@ function position_above_surface!(r, height, ::InfiniteCell)
     return nothing
 end
 
-function velocity_from_energy(masses, energy)
-    m = sum(masses)
-    sqrt(2austrip(energy) / m)
-end
-
 function apply_translational_impulse!(v, masses, translational_energy, direction)
     velocity_impulse = velocity_from_energy(masses, translational_energy)
     v .+= velocity_impulse .* normalize!(direction)
+end
+
+function velocity_from_energy(masses, energy)
+    m = sum(masses)
+    sqrt(2austrip(energy) / m)
 end
 
 """
@@ -432,20 +432,5 @@ reduced_mass(atoms::Atoms) = reduced_mass(atoms.masses)
 reduced_mass(m::AbstractVector) = m[1]*m[2]/(m[1]+m[2])
 @views bond_length(r) = norm(r[:,1] .- r[:,2])
 @views total_angular_momentum(r, p) = norm(cross(r[:,1], p[:,1]) + cross(r[:,2], p[:,2]))
-@views total_moment_of_inertia(r, m) = norm(r[:,1])*m[1] + norm(r[:,2])*m[2]
-
-function moment_of_inertia_tensor(r, m)
-    tensor = zeros(3,3)
-    for atom in axes(r, 2)
-        absr = norm(r[:,atom])^2
-        tensor += m[atom] * absr * I
-        for i in axes(r, 1)
-            for j in axes(r, 1)
-                tensor[i,j] -= m[atom] * r[i,atom]*r[j,atom]
-            end
-        end
-    end
-    tensor
-end
 
 end # module
