@@ -2,12 +2,11 @@
 
 Our implementation of Hamiltonian Monte Carlo (HMC) is a light wrapper around the
 [AdvancedHMC.jl](https://github.com/TuringLang/AdvancedHMC.jl) package.
-If you want to learn about the HMC theory, refer to the references and docummention
-provided with [AdvancedHMC.jl](https://github.com/TuringLang/AdvancedHMC.jl.
+If you want to learn about the HMC theory, refer to the references and documentation
+provided with [AdvancedHMC.jl](https://github.com/TuringLang/AdvancedHMC.jl).
 
-Currently, our implementation works for systems with classical nuclei
-(i.e. `Simulation` but not `RingPolymerSimulation`). We plan to extend in it in 
-future.
+Currently, our implementation works for systems with classical nuclei only
+(i.e. `Simulation` but not `RingPolymerSimulation`).
 
 ## Example
 

@@ -57,7 +57,7 @@ ndofs(model)
 ```
 
 Since this is a 1D model, the position argument that appears in the derivative and the potential
-as 0.2 is a real number.
+is a real number.
 For higher dimensional models with multiple atoms, the position will need to be provided as
 an `AbstractMatrix`.
 
