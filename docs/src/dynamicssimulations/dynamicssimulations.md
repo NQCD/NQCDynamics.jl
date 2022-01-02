@@ -5,7 +5,7 @@ Performing dynamics simulations is at the core of this package's functionality
 This section of the documentation will describe how to perform dynamics simulations,
 building on the introduction from [Getting started](@ref).
 
-Since we use [DifferentialEquations](https://diffeq.sciml.ai/stable/) Julia suite
+Since we use [DifferentialEquations](https://diffeq.sciml.ai/stable/)
 to perform the dynamics, it is most natural
 to split up the system parameters from the dynamics variables.
 This manifests itself as two separate data types: the [`Simulation`](@ref), and the
@@ -28,9 +28,8 @@ sim = Simulation{Ehrenfest}(atoms, TullyModelOne(); temperature=0, cell=Infinite
 ```
 Here we have initialised the simulation parameters, including the default temperature and cell explicitly.
 
-For [DifferentialEquations](https://diffeq.sciml.ai/stable/) and to allow for a wide variety of solvers, 
-the input array  [`DynamicsVariables`](@ref)  must be [`AbstractArray`](https://docs.julialang.org/en/v1/manual/interfaces/#man-interface-array)s,
-which means behave similarly to a standard array of numbers.
+For [DifferentialEquations](https://diffeq.sciml.ai/stable/) to allow for a wide variety of solvers, 
+the input arrays [`DynamicsVariables`](@ref) must be [`AbstractArray`](https://docs.julialang.org/en/v1/manual/interfaces/#man-interface-array)s.
 In nonadiabatic dynamics simulations, we usually have different groups of variables that behave in particular ways.
 For example: for mapping variable methods we have positions, velocities, and two sets of mapping variables representing
 the electronic degrees of freedom.
