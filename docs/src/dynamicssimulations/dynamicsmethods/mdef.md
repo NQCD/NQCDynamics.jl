@@ -25,17 +25,16 @@ simulation which can explore further in later sections using realistic systems.
 
 Here we shall model a single hydrogen atom in a harmonic potential,
 where the electronic temperature is 300 K.
-The friction provided by this model is a random positive definite tensor.
-The [`RandomFriction`](@ref RandomFriction) model, similarly to other friction models,
-is defined such that it can wrap any given
-[`AdiabaticModel`](@ref NonadiabaticModels.AdiabaticModels.AdiabaticModel),
-attaching electronic friction to an otherwise adiabatic system.
+The [`CompositeFrictionModel`](@ref CompositeFrictionModel) allows us to combine any
+[`AdiabaticModel`](@ref NonadiabaticModels.AdiabaticModels.AdiabaticModel)
+with an [`ElectronicFrictionProvider`](@ref NonadiabaticModels.FrictionModels.ElectronicFrictionProvider)
+which will add electronic friction to an otherwise adiabatic system.
 ```@example mdef
 using NonadiabaticMolecularDynamics
 using Unitful
 
 atoms = Atoms([:H])
-model = RandomFriction(Harmonic(dofs=3))
+model = CompositeFrictionModel(Harmonic(dofs=3), RandomFriction(3))
 sim = Simulation{MDEF}(atoms, model; temperature=300u"K")
 ```
 
@@ -88,7 +87,7 @@ plot(solution, :hamiltonian)
 This time we see a peak in the energy in the middle of the simulation which coincides
 with the peak in temperature at 50 fs.
 Having viewed this simple example, we can now explore the different ways the friction
-coefficient can be obtained from ab-initio simulations. 
+coefficient can be obtained from *ab initio* simulations. 
 
 ## Local density friction approximation (LDFA)
 
@@ -126,4 +125,4 @@ View the [friction models page](@ref models-friction) to learn about how this ca
 !!! tip "TDPT friction and LDFA in action?"
 
     If you would like to see an example using both LDFA and TDPT during full dimensional
-    dynamics, refer to the [reactive scattering example](@ref ).
+    dynamics, refer to the [reactive scattering example](@ref examples-tully-model-two).

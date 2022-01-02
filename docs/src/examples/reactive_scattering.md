@@ -37,7 +37,7 @@ configurations = QuantisedDiatomic.generate_configurations(sim, ν, J;
 v = first.(configurations)
 r = last.(configurations)
 
-distribution = InitialConditions.DynamicalDistribution(v, r, (3,2))
+distribution = DynamicalDistribution(v, r, (3,2))
 ```
 
 Since we are interested in the dynamics only when the molecule is close to the surface,
@@ -86,10 +86,10 @@ model = LDFAModel(model, "../assets/friction/test.cube", atoms, friction_atoms=[
 ```
 
 Now we can pass all the variables defined so far to the `Simulation` and run multiple
-trajectories using [`Ensembles.run_trajectories`](@ref).
+trajectories using [`run_ensemble`](@ref).
 ```@example h2scatter
 sim = Simulation{MDEF}(atoms, model, cell=cell, temperature=300u"K")
-ensemble = Ensembles.run_trajectories(sim, tspan, distribution;
+ensemble = run_ensemble(sim, tspan, distribution;
     dt=0.1u"fs", output=:position, trajectories=20, callback=terminate)
 ```
 
@@ -112,14 +112,14 @@ f
 
 Above, we used the LDFA interpretation of MDEF to perform the simulation.
 However, the [`H2AgModel`](@ref NNInterfaces.H2AgModel) actually provides it's own
-friction tensor trained on ab-initio data.
+friction tensor trained on *ab initio* data.
 This can be used by simply using the model directly, without wrapping it with the
 [`LDFAModel`](@ref CubeLDFAModel.LDFAModel).
 
 ```@example h2scatter
 model = H2AgModel()
 sim = Simulation{MDEF}(atoms, model, cell=cell, temperature=300u"K")
-ensemble = Ensembles.run_trajectories(sim, tspan, distribution;
+ensemble = run_ensemble(sim, tspan, distribution;
     dt=0.1u"fs", output=:position, trajectories=20, callback=terminate)
 
 f = Figure()

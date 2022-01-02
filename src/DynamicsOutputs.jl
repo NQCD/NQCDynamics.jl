@@ -89,6 +89,9 @@ force(u, t, integrator) = -copy(integrator.p.calculator.derivative)
 "Get the velocity"
 velocity(u, t, integrator) = copy(get_velocities(u))
 
+"Get the velocity of the ring polymer centroid"
+centroid_velocity(u, t, integrator) = get_centroid(get_velocities(u))
+
 "Get the position"
 position(u, t, integrator) = copy(get_positions(u))
 
@@ -113,6 +116,9 @@ Get the quantum subsystem of the dynamics variables.
 Requires that `DynamicsUtils.get_quantum_subsystem` is implemented for your chosen method.
 """
 quantum_subsystem(u, t, integrator) = copy(get_quantum_subsystem(u))
+
+mapping_position(u, t, integrator) = copy(DynamicsUtils.get_mapping_positions(u))
+mapping_momentum(u, t, integrator) = copy(DynamicsUtils.get_mapping_momenta(u))
 
 """
 Get the currently occupied state from the dynamics variables.

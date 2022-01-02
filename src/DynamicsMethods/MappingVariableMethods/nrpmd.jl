@@ -1,7 +1,10 @@
 
-using LinearAlgebra: tr, mul!, dot
+using LinearAlgebra: tr, mul!, dot, Diagonal
 using ComponentArrays: ComponentVector
+using Distributions: Normal
 using NonadiabaticMolecularDynamics: RingPolymers
+using NonadiabaticModels: nstates
+using NonadiabaticMolecularDynamics.NonadiabaticDistributions: SingleState, Diabatic
 
 """
     NRPMD{T} <: DynamicsMethods.Method
@@ -29,38 +32,37 @@ RingPolymerSimulation{NRPMD{Float64}}:
 ```
 """
 struct NRPMD{T} <: DynamicsMethods.Method
+    γ::T
     temp_q::Vector{T}
     temp_p::Vector{T}
-    function NRPMD{T}(n_states::Integer) where {T}
-        new{T}(zeros(n_states), zeros(n_states))
+    function NRPMD{T}(n_states::Integer, γ) where {T}
+        new{T}(γ, zeros(n_states), zeros(n_states))
     end
 end
 
-function NonadiabaticMolecularDynamics.RingPolymerSimulation{NRPMD}(atoms::Atoms{S,T}, model::Model, n_beads::Integer; kwargs...) where {S,T}
-    NonadiabaticMolecularDynamics.RingPolymerSimulation(atoms, model, NRPMD{T}(NonadiabaticModels.nstates(model)), n_beads; kwargs...)
+function NonadiabaticMolecularDynamics.RingPolymerSimulation{NRPMD}(atoms::Atoms{S,T}, model::Model, n_beads::Integer; γ=0.5, kwargs...) where {S,T}
+    NonadiabaticMolecularDynamics.RingPolymerSimulation(atoms, model, NRPMD{T}(NonadiabaticModels.nstates(model), γ), n_beads; kwargs...)
 end
 
-function DynamicsMethods.DynamicsVariables(sim::RingPolymerSimulation{<:NRPMD}, v, r, state::Integer; type=:diabatic)
-    n_states = NonadiabaticModels.nstates(sim.calculator.model)
+function DynamicsMethods.DynamicsVariables(sim::RingPolymerSimulation{<:NRPMD}, v, r, electronic::SingleState{Diabatic})
+    F = NonadiabaticModels.nstates(sim)
     n_beads = length(sim.beads)
-    if type == :diabatic
-        qmap = zeros(n_states, n_beads)
-        pmap = zeros(n_states, n_beads)
 
-        θ = rand(n_states, n_beads) .* 2π
-        qmap .= 1 ./ sqrt.(tan.(-θ) .^ 2 .+ 1)
-        qmap[state,:] .*= sqrt(3)
-        pmap = qmap .* tan.(-θ)
-    else
-        throw("Adiabatic initialisation not implemented, `type` kwarg should be `:diabatic`.")
+    θ = rand(F, n_beads) .* 2π
+    qmap = cos.(θ)
+    pmap = sin.(θ)
+    for i=1:F
+        if i == electronic.state
+            qmap[i, :] .*= sqrt(2 + 2sim.method.γ)
+            pmap[i, :] .*= sqrt(2 + 2sim.method.γ)
+        else
+            qmap[i, :] .*= sqrt(2sim.method.γ)
+            pmap[i, :] .*= sqrt(2sim.method.γ)
+        end
     end
+
     return ComponentVector(v=v, r=r, pmap=pmap, qmap=qmap)
 end
-
-get_mapping_positions(u::ComponentVector) = u.qmap
-get_mapping_momenta(u::ComponentVector) = u.pmap
-get_mapping_positions(u::ComponentVector, i) = @view get_mapping_positions(u)[:,i]
-get_mapping_momenta(u::ComponentVector, i) = @view get_mapping_momenta(u)[:,i]
 
 function DynamicsMethods.motion!(du, u, sim::RingPolymerSimulation{<:NRPMD}, t)
     dr = DynamicsUtils.get_positions(du)
@@ -75,21 +77,21 @@ end
 function acceleration!(dv, u, sim::RingPolymerSimulation{<:NRPMD})
 
     Calculators.evaluate_derivative!(sim.calculator, DynamicsUtils.get_positions(u))
-    for i in range(sim.beads)
-        qmap = get_mapping_positions(u, i)
-        pmap = get_mapping_momenta(u, i)
-        for j in range(sim.atoms)
-            for k=1:ndofs(sim)
-                D = sim.calculator.derivative[k,j,i]
-                mul!(sim.method.temp_q, D, qmap)
-                mul!(sim.method.temp_p, D, pmap)
-                dv[k,j,i] = dot(qmap, sim.method.temp_q)
-                dv[k,j,i] += dot(pmap, sim.method.temp_p)
-                dv[k,j,i] -= tr(D)
-                dv[k,j,i] /= -2sim.atoms.masses[j]
-            end
-        end
+    for I in CartesianIndices(dv)
+        qmap = get_mapping_positions(u, I[3])
+        pmap = get_mapping_momenta(u, I[3])
+        D = sim.calculator.derivative[I]
+        D̄ = tr(D) / nstates(sim)
+        Dtraceless = D - Diagonal(fill(D̄, nstates(sim)))
+        mul!(sim.method.temp_q, Dtraceless, qmap)
+        mul!(sim.method.temp_p, Dtraceless, pmap)
+        dv[I] = dot(qmap, sim.method.temp_q)
+        dv[I] += dot(pmap, sim.method.temp_p)
+        dv[I] += 2D̄
     end
+    lmul!(-1/2, dv)
+    DynamicsUtils.divide_by_mass!(dv, sim.atoms.masses)
+
     DynamicsUtils.apply_interbead_coupling!(dv, DynamicsUtils.get_positions(u), sim)
 end
 
@@ -98,16 +100,25 @@ function set_mapping_force!(du, u, sim::RingPolymerSimulation{<:NRPMD})
     Calculators.evaluate_potential!(sim.calculator, DynamicsUtils.get_positions(u))
     for i in range(sim.beads)
         V = sim.calculator.potential[i]
-        mul!(get_mapping_positions(du, i), V, get_mapping_momenta(u, i))
-        mul!(get_mapping_momenta(du, i), V, get_mapping_positions(u, i))
-        get_mapping_momenta(du, i) .*= -1
+        V̄ = tr(V) / nstates(sim)
+        Vtraceless = V - Diagonal(fill(V̄, nstates(sim)))
+        mul!(get_mapping_positions(du, i), Vtraceless, get_mapping_momenta(u, i))
+        mul!(get_mapping_momenta(du, i), Vtraceless, get_mapping_positions(u, i))
+        lmul!(-1, get_mapping_momenta(du, i))
     end
 end
 
-function Estimators.diabatic_population(::RingPolymerSimulation{<:NRPMD}, u)
-    qmap = get_mapping_positions(u)
-    pmap = get_mapping_momenta(u)
-    sum(qmap.^2 + pmap.^2 .- 1; dims=2) / 2size(qmap, 2)
+function Estimators.diabatic_population(sim::RingPolymerSimulation{<:NRPMD}, u)
+    K = NonadiabaticModels.nstates(sim)
+    population = zeros(K)
+    for i in 1:RingPolymers.nbeads(sim)
+        qmap = get_mapping_positions(u, i)
+        pmap = get_mapping_momenta(u, i)
+        for j in axes(qmap, 1)
+            population[j] += (qmap[j]^2 + pmap[j]^2) / 2 - sim.method.γ
+        end
+    end
+    return population / RingPolymers.nbeads(sim)
 end
 
 function DynamicsUtils.classical_hamiltonian(sim::RingPolymerSimulation{<:NRPMD}, u)
@@ -119,11 +130,13 @@ function DynamicsUtils.classical_hamiltonian(sim::RingPolymerSimulation{<:NRPMD}
 
     potential = zero(eltype(u))
     Calculators.evaluate_potential!(sim.calculator, r)
-    V = sim.calculator.potential
     for i in range(sim.beads)
+        V = sim.calculator.potential[i]
+        V̄ = tr(V) / nstates(sim)
+        Vtraceless = V - Diagonal(fill(V̄, nstates(sim)))
         qmap = get_mapping_positions(u, i)
         pmap = get_mapping_momenta(u, i)
-        potential += 0.5 * (pmap'V[i]*pmap + qmap'V[i]*qmap - tr(V[i]))
+        potential += 0.5 * (pmap'Vtraceless*pmap + qmap'Vtraceless*qmap) + V̄
     end
 
     return kinetic + spring + potential

@@ -71,8 +71,8 @@ in the Shenvi, Tully paper (JCP 2009)
 In IESH each electron is independent so we can loop through electrons and set the
 derivative one at a time, in the standard way for FSSH.
 """
-function set_quantum_derivative!(dσ, v, σ, sim::Simulation{<:IESH})
-    V = sim.calculator.eigenvalues
+function DynamicsUtils.set_quantum_derivative!(dσ, v, σ, sim::Simulation{<:IESH})
+    V = sim.calculator.eigen.values
     d = sim.calculator.nonadiabatic_coupling
     @views for i in axes(dσ, 2)       
         set_single_electron_derivative!(dσ[:,i], σ[:,i], V, v, d, sim.method.tmp)
@@ -174,7 +174,7 @@ end
 function Estimators.diabatic_population(sim::Simulation{<:IESH}, u)
     Calculators.evaluate_potential!(sim.calculator, DynamicsUtils.get_positions(u))
     Calculators.eigen!(sim.calculator)
-    U = sim.calculator.eigenvectors
+    U = sim.calculator.eigen.vectors
 
     ψ = DynamicsUtils.get_quantum_subsystem(u)
     diabatic_ψ = zero(ψ)
@@ -192,24 +192,7 @@ function Estimators.adiabatic_population(sim::Simulation{<:IESH}, u)
     return population
 end
 
-function rescale_velocity!(sim::Simulation{<:IESH}, u)::Bool
-    new_state, old_state = symdiff(sim.method.new_state, sim.method.state)
-    velocity = DynamicsUtils.get_velocities(u)
-    
-    c = calculate_potential_energy_change(sim.calculator, new_state, old_state)
-    a, b = evaluate_a_and_b(sim, velocity, new_state, old_state)
-    discriminant = b.^2 .- 2a.*c
-
-    any(discriminant .< 0) && return false
-
-    root = sqrt.(discriminant)
-    plus = (b .+ root) ./ a
-    minus = (b .- root) ./ a 
-    velocity_rescale = sum(abs.(plus)) < sum(abs.(minus)) ? plus : minus
-    perform_rescaling!(sim, velocity, velocity_rescale, new_state, old_state)
-
-    return true
-end
+unpack_states(sim::Simulation{<:IESH}) = symdiff(sim.method.new_state, sim.method.state)
 
 # function impurity_summary(model::DiabaticModel, R::AbstractMatrix, state::AbstractArray, σ::AbstractArray)
 #     """Calculate impurity population according to MiaoSubotnik_JChemPhys_150_041711_2019"""

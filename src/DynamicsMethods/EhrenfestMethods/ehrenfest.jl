@@ -1,5 +1,5 @@
 using StatsBase: mean
-using .Calculators: DiabaticCalculator, RingPolymerDiabaticCalculator
+using .NonadiabaticDistributions: NonadiabaticDistribution
 using ComponentArrays: ComponentVector
 
 export Ehrenfest
@@ -36,20 +36,10 @@ function Simulation{Ehrenfest}(atoms::Atoms{S,T}, model::Model; kwargs...) where
     Simulation(atoms, model, Ehrenfest{T}(NonadiabaticModels.nstates(model)); kwargs...)
 end
 
-function DynamicsMethods.DynamicsVariables(sim::Simulation{<:AbstractEhrenfest}, v, r, state::Integer; type=:diabatic)
-    n_states = NonadiabaticModels.nstates(sim.calculator.model)
-    if type == :diabatic
-        Calculators.evaluate_potential!(sim.calculator, r)
-        Calculators.eigen!(sim.calculator)
-        U = sim.calculator.eigenvectors
-
-        diabatic_density = zeros(n_states, n_states)
-        diabatic_density[state, state] = 1
-        σ = U' * diabatic_density * U
-    else
-        σ = zeros(n_states, n_states)
-        σ[state, state] = 1
-    end
+function DynamicsMethods.DynamicsVariables(
+    sim::AbstractSimulation{<:AbstractEhrenfest}, v, r, electronic::NonadiabaticDistribution
+)
+    σ = NonadiabaticDistributions.initialise_adiabatic_density_matrix(electronic, sim.calculator, r)
     return ComponentVector(v=v, r=r, σreal=σ, σimag=zero(σ))
 end
 
@@ -69,9 +59,9 @@ function Estimators.adiabatic_population(::AbstractSimulation{<:Ehrenfest}, u)
     return real.(diag(σ))
 end
 
-function Estimators.diabatic_population(sim::Simulation{<:Ehrenfest}, u)
-    Calculators.evaluate_potential!(sim.calculator, DynamicsUtils.get_positions(u))
-    U = eigvecs(sim.calculator.potential)
+function Estimators.diabatic_population(sim::AbstractSimulation{<:AbstractEhrenfest}, u)
+    r = DynamicsUtils.get_positions(u)
+    U = NonadiabaticDistributions.evaluate_transformation(sim.calculator, r)
 
     σ = DynamicsUtils.get_quantum_subsystem(u)
 
@@ -83,7 +73,7 @@ function DynamicsUtils.classical_hamiltonian(sim::Simulation{<:Ehrenfest}, u)
 
     Calculators.evaluate_potential!(sim.calculator, DynamicsUtils.get_positions(u))
     Calculators.eigen!(sim.calculator)
-    potential = sum(diag(DynamicsUtils.get_quantum_subsystem(u)) .* sim.calculator.eigenvalues)
+    potential = sum(diag(DynamicsUtils.get_quantum_subsystem(u)) .* sim.calculator.eigen.values)
 
     return kinetic + potential
 end

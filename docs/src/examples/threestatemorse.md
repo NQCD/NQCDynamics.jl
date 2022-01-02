@@ -36,7 +36,7 @@ fig
 
 To this model we can apply any of the methods capable of starting the population on a single
 diabatic state and returning the population as a function of time.
-Here let's use `FSSH` and `NRPMD` with a single bead.
+Here let's use `FSSH` and `Ehrenfest`.
 We can expect the nuclear quantum effects here to be minimal since the nuclear mass is
 chosen to be 20000. 
 ```@example threestatemorse
@@ -53,46 +53,40 @@ using Distributions: Normal
 using Unitful
 
 position = Normal(2.1, 1 / sqrt(20000 * 0.005))
-velocity = InitialConditions.BoltzmannVelocityDistribution(300u"K", [20000])
-distribution = InitialConditions.DynamicalDistribution(velocity, position, (1,1,1);
-    state=1, type=:diabatic)
+velocity = BoltzmannVelocityDistribution(300u"K", [20000], (1,1))
+distribution = DynamicalDistribution(velocity, position, (1,1)) * SingleState(1)
 nothing # hide
 ```
 
-Now let's run the two simulations using NRPMD and FSSH.
-For both simulations we use the same initial distribution and use the
-[`MeanReduction`](@ref Ensembles.MeanReduction) which will average the results from all
-the trajectories.
-The [`OutputDiabaticPopulation`](@ref Ensembles.OutputDiabaticPopulation) will evaluate
-the diabatic population estimator at each timestep.
-
-!!! note
-
-    We have used a 1 bead `RingPolymerSimulation` here to allow us to sample from the
-    same distribution as NRPMD. Since the 1 bead version is equivalent to the classical
-    case, this will not make a difference.
+Now let's run the two simulations using Ehrenfest and FSSH.
+For both simulations we use the same initial distribution and average the results
+using `reduction=:mean`.
+[`TimeCorrelationsFunctions.PopulationCorrelationFunction`](@ref) will correlate
+the intial population with the final population at each timestep.
 
 ```@example threestatemorse
-sim = RingPolymerSimulation{FSSH}(atoms, model, 1)
-fssh_result = Ensembles.run_ensemble(sim, (0.0, 3000.0), distribution;
+sim = Simulation{FSSH}(atoms, model)
+fssh_result = run_ensemble(sim, (0.0, 3000.0), distribution;
     saveat=10, trajectories=1e3,
-    output=Ensembles.OutputDiabaticPopulation(sim), reduction=Ensembles.MeanReduction())
-sim = RingPolymerSimulation{NRPMD}(atoms, model, 1)
-nrpmd_result = Ensembles.run_ensemble(sim, (0.0, 3000.0), distribution;
+    output=TimeCorrelationFunctions.PopulationCorrelationFunction(sim, Diabatic()),
+    reduction=:mean, dt=1.0)
+sim = Simulation{Ehrenfest}(atoms, model)
+ehrenfest_result = run_ensemble(sim, (0.0, 3000.0), distribution;
     saveat=10, trajectories=1e3,
-    output=Ensembles.OutputDiabaticPopulation(sim), reduction=Ensembles.MeanReduction(), dt=1)
+    output=TimeCorrelationFunctions.PopulationCorrelationFunction(sim, Diabatic()),
+    reduction=:mean, dt=1.0)
 
 fig = Figure()
 ax = Axis(fig[1,1], xlabel="Time /a.u.", ylabel="Population")
 
 x = 0:10:3000
-lines!(ax, x, [p[1] for p in fssh_result.u], label="State 1", color=:red)
-lines!(ax, x, [p[2] for p in fssh_result.u], label="State 2", color=:green)
-lines!(ax, x, [p[3] for p in fssh_result.u], label="State 3", color=:blue)
+lines!(ax, x, [p[1,1] for p in fssh_result], label="State 1", color=:red)
+lines!(ax, x, [p[1,2] for p in fssh_result], label="State 2", color=:green)
+lines!(ax, x, [p[1,3] for p in fssh_result], label="State 3", color=:blue)
 
-lines!(ax, x, [p[1] for p in nrpmd_result.u], label="State 1", color=:red, linestyle=:dash)
-lines!(ax, x, [p[2] for p in nrpmd_result.u], label="State 2", color=:green, linestyle=:dash)
-lines!(ax, x, [p[3] for p in nrpmd_result.u], label="State 3", color=:blue, linestyle=:dash)
+lines!(ax, x, [p[1,1] for p in ehrenfest_result], label="State 1", color=:red, linestyle=:dash)
+lines!(ax, x, [p[1,2] for p in ehrenfest_result], label="State 2", color=:green, linestyle=:dash)
+lines!(ax, x, [p[1,3] for p in ehrenfest_result], label="State 3", color=:blue, linestyle=:dash)
 
 fig
 ```

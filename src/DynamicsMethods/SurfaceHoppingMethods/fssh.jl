@@ -1,4 +1,6 @@
 using StatsBase: mean
+using .NonadiabaticDistributions: NonadiabaticDistribution
+using NonadiabaticMolecularDynamics: masses
 
 export FSSH
 
@@ -22,40 +24,31 @@ mutable struct FSSH{T} <: SurfaceHopping
     hopping_probability::Vector{T}
     state::Int
     new_state::Int
-    function FSSH{T}(states::Integer) where {T}
+    rescaling::Symbol
+    function FSSH{T}(states::Integer, rescaling::Symbol) where {T}
         density_propagator = zeros(states, states)
         hopping_probability = zeros(states)
-        new{T}(density_propagator, hopping_probability, 0, 0)
+        new{T}(density_propagator, hopping_probability, 0, 0, rescaling)
     end
 end
 
-function Simulation{FSSH}(atoms::Atoms{S,T}, model::Model; kwargs...) where {S,T}
-    Simulation(atoms, model, FSSH{T}(NonadiabaticModels.nstates(model)); kwargs...)
+function Simulation{FSSH}(atoms::Atoms{S,T}, model::Model; rescaling=:standard, kwargs...) where {S,T}
+    Simulation(atoms, model, FSSH{T}(NonadiabaticModels.nstates(model), rescaling); kwargs...)
 end
 
-function DynamicsMethods.DynamicsVariables(sim::Simulation{<:SurfaceHopping}, v, r, state::Integer; type=:diabatic)
-    n_states = NonadiabaticModels.nstates(sim.calculator.model)
-    if type == :diabatic
-        Calculators.evaluate_potential!(sim.calculator, r)
-        Calculators.eigen!(sim.calculator)
-        U = sim.calculator.eigenvectors
-
-        diabatic_density = zeros(n_states, n_states)
-        diabatic_density[state, state] = 1
-        σ = U' * diabatic_density * U
-        state = sample(Weights(diag(real.(σ))))
-    else
-        σ = zeros(n_states, n_states)
-        σ[state, state] = 1
-    end
+function DynamicsMethods.DynamicsVariables(
+    sim::AbstractSimulation{<:SurfaceHopping}, v, r, electronic::NonadiabaticDistribution
+)
+    σ = NonadiabaticDistributions.initialise_adiabatic_density_matrix(electronic, sim.calculator, r)
+    state = sample(Weights(diag(real.(σ))))
     return SurfaceHoppingVariables(ComponentVector(v=v, r=r, σreal=σ, σimag=zero(σ)), state)
 end
 
-function acceleration!(dv, v, r, sim::Simulation{<:FSSH}, t, state)
+function acceleration!(dv, v, r, sim::AbstractSimulation{<:FSSH}, t, state)
     for I in eachindex(dv)
         dv[I] = -sim.calculator.adiabatic_derivative[I][state, state]
     end
-    DynamicsUtils.divide_by_mass!(dv, sim.atoms.masses)
+    DynamicsUtils.divide_by_mass!(dv, masses(sim))
     return nothing
 end
 
@@ -69,13 +62,25 @@ Evaluates the probability of hopping from the current state to all other states
 - `σ` is Hermitan so the choice `σ[m,s]` or `σ[s,m]` is irrelevant; we take the real part.
 - 'd' is skew-symmetric so here the indices are important.
 """
-function evaluate_hopping_probability!(sim::Simulation{<:FSSH}, u, dt)
-    v = DynamicsUtils.get_velocities(u)
+function evaluate_hopping_probability!(sim::AbstractSimulation{<:FSSH}, u, dt)
+    v = get_hopping_velocity(sim, u)
     σ = DynamicsUtils.get_quantum_subsystem(u)
     s = sim.method.state
-    d = sim.calculator.nonadiabatic_coupling
+    d = get_hopping_nonadiabatic_coupling(sim)
 
     fewest_switches_probability!(sim.method.hopping_probability, v, σ, s, d, dt)
+end
+
+function get_hopping_nonadiabatic_coupling(sim::Simulation{<:SurfaceHopping})
+    sim.calculator.nonadiabatic_coupling
+end
+
+function get_hopping_velocity(::Simulation{<:SurfaceHopping}, u)
+    DynamicsUtils.get_velocities(u)
+end
+
+function get_hopping_eigenvalues(sim::Simulation{<:SurfaceHopping})
+    sim.calculator.eigen.values
 end
 
 function fewest_switches_probability!(probability, v, σ, s, d, dt)
@@ -105,52 +110,104 @@ function select_new_state(sim::AbstractSimulation{<:FSSH}, u)
     return sim.method.state
 end
 
+"""
+    rescale_velocity!(sim::AbstractSimulation{<:FSSH}, u)::Bool
+
+Rescale the velocity in the direction of the nonadiabatic coupling.
+
+# References
+
+[HammesSchiffer1994](@cite)
+"""
 function rescale_velocity!(sim::AbstractSimulation{<:FSSH}, u)::Bool
-    old_state = sim.method.state
-    new_state = sim.method.new_state
-    velocity = DynamicsUtils.get_velocities(u)
+    sim.method.rescaling === :off && return true
+
+    new_state, old_state = unpack_states(sim)
+    velocity = get_hopping_velocity(sim, u)
+    eigs = get_hopping_eigenvalues(sim)
     
-    c = calculate_potential_energy_change(sim.calculator, new_state, old_state)
-    a, b = evaluate_a_and_b(sim, velocity, new_state, old_state)
-    discriminant = b.^2 .- 2a.*c
+    d = extract_nonadiabatic_coupling(get_hopping_nonadiabatic_coupling(sim), new_state, old_state)
+    a = calculate_a(sim, d)
+    b = calculate_b(d, velocity)
+    c = calculate_potential_energy_change(eigs, new_state, old_state)
 
-    any(discriminant .< 0) && return false
+    discriminant = b^2 - 4a * c
+    discriminant < 0 && return false # Frustrated hop with insufficient kinetic energy
 
-    root = sqrt.(discriminant)
-    plus = (b .+ root) ./ a
-    minus = (b .- root) ./ a 
-    velocity_rescale = sum(abs.(plus)) < sum(abs.(minus)) ? plus : minus
-    perform_rescaling!(sim, velocity, velocity_rescale, new_state, old_state)
+    root = sqrt(discriminant)
+    if b < 0
+        γ = (b + root) / 2a
+    else
+        γ = (b - root) / 2a
+    end
+    perform_rescaling!(sim, DynamicsUtils.get_velocities(u), γ, d)
 
     return true
 end
 
-function evaluate_a_and_b(sim::Simulation{<:SurfaceHopping}, velocity, new_state, old_state)
-    a = zeros(length(sim.atoms))
-    b = zero(a)
-    @views for i in range(sim.atoms)
-        coupling = [sim.calculator.nonadiabatic_coupling[j,i][new_state, old_state] for j=1:ndofs(sim)]
-        a[i] = dot(coupling, coupling) / sim.atoms.masses[i]
-        b[i] = dot(velocity[:,i], coupling)
-    end
-    return (a, b)
+"""
+    unpack_states(sim)
+
+Get the two states that we are hopping between.
+"""
+function unpack_states(sim::AbstractSimulation{<:FSSH})
+    return (sim.method.new_state, sim.method.state)
 end
 
-function perform_rescaling!(sim::Simulation{<:SurfaceHopping}, velocity, velocity_rescale, new_state, old_state)
-    for i in range(sim.atoms)
-        coupling = [sim.calculator.nonadiabatic_coupling[j,i][new_state, old_state] for j=1:ndofs(sim)]
-        velocity[:,i] .-= velocity_rescale[i] .* coupling ./ sim.atoms.masses[i]
+"""
+    extract_nonadiabatic_coupling(coupling, new_state, old_state)
+
+Extract the nonadiabatic coupling vector between states `new_state` and `old_state`
+"""
+function extract_nonadiabatic_coupling(coupling, new_state, old_state)
+    [coupling[I][new_state, old_state] for I ∈ CartesianIndices(coupling)]
+end
+
+"""
+    calculate_a(sim::AbstractSimulation{<:SurfaceHopping}, coupling::AbstractMatrix)
+
+Equation 40 from [HammesSchiffer1994](@cite).
+"""
+function calculate_a(sim::AbstractSimulation{<:SurfaceHopping}, coupling::AbstractMatrix)
+    a = zero(eltype(coupling))
+    for I in CartesianIndices(coupling)
+        a += coupling[I]^2 / masses(sim, I)
+    end
+    return a / 2
+end
+
+"""
+    calculate_b(coupling::AbstractMatrix, velocity::AbstractMatrix)
+
+Equation 41 from [HammesSchiffer1994](@cite).
+"""
+function calculate_b(coupling::AbstractMatrix, velocity::AbstractMatrix)
+    return dot(coupling, velocity)
+end
+
+"""
+    perform_rescaling!(
+        sim::AbstractSimulation{<:SurfaceHopping}, velocity, velocity_rescale, d
+    )
+
+Equation 33 from [HammesSchiffer1994](@cite).
+"""
+function perform_rescaling!(
+    sim::AbstractSimulation{<:SurfaceHopping}, velocity, γ, d
+)
+    for I in CartesianIndices(d)
+        velocity[I] -= γ * d[I] / masses(sim, I)
     end
     return nothing
 end
 
-function calculate_potential_energy_change(calc::Calculators.AbstractDiabaticCalculator, new_state::Integer, current_state::Integer)
-    return calc.eigenvalues[new_state] - calc.eigenvalues[current_state]
+function calculate_potential_energy_change(eigs::AbstractVector, new_state::Integer, current_state::Integer)
+    return eigs[new_state] - eigs[current_state]
 end
 
-function Estimators.diabatic_population(sim::Simulation{<:FSSH}, u)
-    Calculators.evaluate_potential!(sim.calculator, DynamicsUtils.get_positions(u))
-    U = eigvecs(sim.calculator.potential)
+function Estimators.diabatic_population(sim::AbstractSimulation{<:FSSH}, u)
+    r = DynamicsUtils.get_positions(u)
+    U = NonadiabaticDistributions.evaluate_transformation(sim.calculator, r)
 
     σ = copy(DynamicsUtils.get_quantum_subsystem(u).re)
     σ[diagind(σ)] .= 0
@@ -169,6 +226,6 @@ function DynamicsUtils.classical_hamiltonian(sim::Simulation{<:FSSH}, u)
     kinetic = DynamicsUtils.classical_kinetic_energy(sim, DynamicsUtils.get_velocities(u))
     Calculators.evaluate_potential!(sim.calculator, DynamicsUtils.get_positions(u))
     Calculators.eigen!(sim.calculator)
-    potential = sim.calculator.eigenvalues[sim.method.state]
+    potential = sim.calculator.eigen.values[sim.method.state]
     return kinetic + potential
 end
