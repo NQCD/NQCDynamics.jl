@@ -3,13 +3,23 @@
 Using the [ASE interface](@ref) we can directly use models trained using
 [SchNetPack](https://github.com/atomistic-machine-learning/schnetpack).
 
-To use a SchNet model, load any pre-trained model into a given path you can access.
-In the example below, our SchNet model is named "best_model" as is common in SchNet and
-uses the the relative path.
+!!! danger
+
+    The examples on this page do not run during the documentation build due to `schnetpack`
+    causing segfaults when installed in the build environment.
+    The causes of this is not currently clear but we have temporarily disabled these examples
+    in the build.
+
+    However, the examples should still be correct and you are welcome to try them with
+    your own schnetpack trained models.
+
+To use a SchNet model, please load any pre-trained model into a given path you can access.
+Here, our SchNet model is named "best_model" as is common in SchNet and
+provide the relative path.
 
 First we load the model into an `ase` calculator and attach it to our diatomic
 hydrogen molecule.
-```@example spk
+```julia
 using PyCall
 
 ase = pyimport("ase")
@@ -26,7 +36,7 @@ h2.set_calculator(calc)
 
 We can obtain the energies and forces from `ase` directly in the usual way, converting
 them to atomic units using [UnifulAtomic](https://github.com/sostock/UnitfulAtomic.jl).
-```@repl spk
+```julia-repl
 using Unitful, UnitfulAtomic;
 austrip(h2.get_total_energy() * u"eV")
 austrip.(h2.get_forces() .* u"eV/Å")
@@ -39,8 +49,8 @@ austrip.(h2.get_forces() .* u"eV/Å")
 
 Then, we can convert the ASE output into the format used in NonadiabaticModels,
 which makes it possible to use the SchNet model e.g. for molecular dynamics calculations
-within NonadiabaticModels:
-```@repl spk
+within NonadiabaticMolecularDynamics.jl:
+```julia-repl
 using NonadiabaticModels;
 model = AdiabaticASEModel(h2);
 

@@ -15,6 +15,7 @@ using NonadiabaticMolecularDynamics:
     DynamicsMethods,
     DynamicsUtils,
     Estimators,
+    NonadiabaticDistributions,
     ndofs
 using NonadiabaticModels: NonadiabaticModels, Model
 using NonadiabaticDynamicsBase: Atoms
@@ -44,7 +45,7 @@ See `fssh.jl` for an example implementation.
 """
 abstract type SurfaceHopping <: DynamicsMethods.Method end
 
-function DynamicsMethods.motion!(du, u, sim::AbstractSimulation{<:SurfaceHopping}, t)
+function DynamicsMethods.motion!(du, u, sim::Simulation{<:SurfaceHopping}, t)
     dr = DynamicsUtils.get_positions(du)
     dv = DynamicsUtils.get_velocities(du)
     dσ = DynamicsUtils.get_quantum_subsystem(du)
@@ -58,10 +59,10 @@ function DynamicsMethods.motion!(du, u, sim::AbstractSimulation{<:SurfaceHopping
     DynamicsUtils.velocity!(dr, v, r, sim, t)
     Calculators.update_electronics!(sim.calculator, r)
     acceleration!(dv, v, r, sim, t, sim.method.state)
-    set_quantum_derivative!(dσ, v, σ, sim)
+    DynamicsUtils.set_quantum_derivative!(dσ, v, σ, sim)
 end
 
-function set_quantum_derivative!(dσ, v, σ, sim::AbstractSimulation{<:SurfaceHopping})
+function DynamicsUtils.set_quantum_derivative!(dσ, v, σ, sim::AbstractSimulation{<:SurfaceHopping})
     V = DynamicsUtils.calculate_density_matrix_propagator!(sim, v)
     DynamicsUtils.commutator!(dσ, V, σ, sim.calculator.tmp_mat_complex1)
     lmul!(-im, dσ)
@@ -96,13 +97,17 @@ DynamicsMethods.get_callbacks(::AbstractSimulation{<:SurfaceHopping}) = HoppingC
 """
 This function should set the field `sim.method.hopping_probability`.
 """
-function evaluate_hopping_probability!(::AbstractSimulation{<:SurfaceHopping}, u, dt) end
+function evaluate_hopping_probability!(::AbstractSimulation{<:SurfaceHopping}, u, dt)
+    throw(error("Implement this for your method."))
+end
 
 """
 This function should return the desired state determined by the probability.
 Should return the original state if no hop is desired.
 """
-function select_new_state(::AbstractSimulation{<:SurfaceHopping}, u) end
+function select_new_state(::AbstractSimulation{<:SurfaceHopping}, u)
+    throw(error("Implement this for your method."))
+end
 
 """
 This function should modify the velocity and return a `Bool` that determines

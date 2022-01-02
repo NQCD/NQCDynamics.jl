@@ -65,7 +65,7 @@ nothing # hide
 Now we can run the simulation:
 ```@example rpmd
 dt = 2.5
-traj = run_trajectory(u, (0.0, 2500.0), sim; output=(:position), dt=dt)
+traj = run_trajectory(u, (0.0, 500.0), sim; output=(:position), dt=dt)
 nothing # hide
 ```
 

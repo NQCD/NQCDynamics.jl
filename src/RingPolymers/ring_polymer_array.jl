@@ -81,20 +81,33 @@ set_classical!(A::RingPolymerArray, i, j) = set_classical!(A.data, i, j)
 """
 Evaluate centroid of ring polymer.
 """
-function get_centroid(A::RingPolymerArray{T})::Matrix{T} where {T}
-    if A.normal
-        centroid = A[:,:,1]
-        centroid[:,A.quantum_atoms] ./= sqrt(size(A,3))
-    else
-        centroid = get_centroid(A.data)
-    end
-    centroid
+function get_centroid(A::AbstractArray{T,3}) where {T}
+    out = zeros(T, size(A)[1:2])
+    get_centroid!(out, A)
+    return out
 end
 
-function get_centroid(A::AbstractArray{T,3})::Matrix{T} where {T}
-    out = zeros(T, size(A)[1:2])
-    @views for i in axes(A,3)
-        out .+= A[:,:,i]
+function get_centroid!(out::Matrix{T}, A::RingPolymerArray{T}) where {T}
+    if A.normal
+        copyto!(out, @view A[:,:,1])
+        out[:,A.quantum_atoms] ./= sqrt(size(A,3))
+    else
+        get_centroid!(out, A.data)
     end
-    return out ./ size(A,3)
+    return out
+end
+
+function get_centroid!(out::Matrix{T}, A::AbstractArray{T,3}) where {T}
+    fill!(out, zero(eltype(A)))
+    for i in axes(A,3)
+        for j in axes(A,2)
+            for k in axes(A,1)
+                @inbounds out[k,j] += A[k,j,i]
+            end
+        end
+    end
+    for I in eachindex(out)
+        @inbounds out[I] /= size(A,3)
+    end
+    return out
 end

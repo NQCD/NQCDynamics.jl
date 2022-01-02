@@ -62,7 +62,7 @@ configurations = QuantisedDiatomic.generate_configurations(sim, ν, J;
 ```
 
 The output contains both the positions and velocities, these can be passed directly
-to the [`InitialConditions.DynamicalDistribution`](@ref) for use with dynamics.
+to the [`DynamicalDistribution`](@ref) for use with dynamics.
 Here however, let's focus on the positions and visualise the distribution.
 
 This collects the x and y coordinate for each atom:
@@ -94,6 +94,6 @@ f
 Here we can see that the molecule is randomly distributed within the unit cell.
 Since we have used a harmonic potential, this could have been produced without using the EBK
 procedure, but this technique can use any arbitrary potential.
-In the [hydrogen scattering example](@id example-h2scattering) we build on this example
+In the [hydrogen scattering example](@ref example-h2scattering) we build on this example
 and use the sample procedure to perform scattering simulations starting from this
 distribution.

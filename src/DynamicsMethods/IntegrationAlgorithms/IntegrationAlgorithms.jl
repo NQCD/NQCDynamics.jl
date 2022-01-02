@@ -14,5 +14,6 @@ using ....NonadiabaticMolecularDynamics:
 include("mdef_baoab.jl")
 include("bcocb.jl")
 include("mint.jl")
+include("bcb_electronics.jl")
 
 end # module

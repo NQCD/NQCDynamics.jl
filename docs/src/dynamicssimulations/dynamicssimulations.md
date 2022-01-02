@@ -44,7 +44,7 @@ whilst still having them partitioned for convenient computation and readable cod
 ```@example dynamics
 v0 = hcat(10) / 2000
 r0 = hcat(-5)
-u0 = DynamicsVariables(sim, v0, r0, 1)
+u0 = DynamicsVariables(sim, v0, r0, SingleState(1))
 ```
 
 Since each dynamics method has a different set of variables, each method implements

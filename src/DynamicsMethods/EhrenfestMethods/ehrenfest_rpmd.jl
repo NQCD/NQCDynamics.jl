@@ -4,39 +4,20 @@ function RingPolymerSimulation{Ehrenfest}(atoms::Atoms{S,T}, model::Model, n_bea
     RingPolymerSimulation(atoms, model, Ehrenfest{T}(NonadiabaticModels.nstates(model)), n_beads; kwargs...)
 end
 
-function DynamicsMethods.DynamicsVariables(sim::RingPolymerSimulation{<:AbstractEhrenfest}, v, r, state::Integer; type=:diabatic)
-    n_states = NonadiabaticModels.nstates(sim.calculator.model)
-    if type == :diabatic
-        Calculators.evaluate_centroid_potential!(sim.calculator, r)
-        U = eigvecs(sim.calculator.centroid_potential)
+function DynamicsMethods.motion!(du, u, sim::RingPolymerSimulation{<:Ehrenfest}, t)
+    dr = DynamicsUtils.get_positions(du)
+    dv = DynamicsUtils.get_velocities(du)
+    dσ = DynamicsUtils.get_quantum_subsystem(du)
 
-        diabatic_density = zeros(n_states, n_states)
-        diabatic_density[state, state] = 1
-        σ = U' * diabatic_density * U
-    else
-        σ = zeros(n_states, n_states)
-        σ[state, state] = 1
-    end
-    return ComponentVector(v=v, r=r, σreal=σ, σimag=zero(σ))
-end
-
-function acceleration!(dv, v, r, sim::RingPolymerSimulation{<:Ehrenfest}, t, σ)
-    dv .= zero(eltype(dv))
-    for I in eachindex(dv)
-        for J in eachindex(σ)
-            dv[I] -= sim.calculator.adiabatic_derivative[I][J] * real(σ[J])
-        end
-    end
-    DynamicsUtils.divide_by_mass!(dv, sim.atoms.masses)
-    DynamicsUtils.apply_interbead_coupling!(dv, r, sim)
-    return nothing
-end
-
-function Estimators.diabatic_population(sim::RingPolymerSimulation{<:Ehrenfest}, u)
-    Calculators.evaluate_centroid_potential!(sim.calculator, DynamicsUtils.get_positions(u))
-    U = eigvecs(sim.calculator.centroid_potential)
+    r = DynamicsUtils.get_positions(u)
+    v = DynamicsUtils.get_velocities(u)
     σ = DynamicsUtils.get_quantum_subsystem(u)
-    return real.(diag(U * σ * U'))
+
+    DynamicsUtils.velocity!(dr, v, r, sim, t)
+    Calculators.update_electronics!(sim.calculator, r)
+    acceleration!(dv, v, r, sim, t, σ)
+    DynamicsUtils.apply_interbead_coupling!(dv, r, sim)
+    DynamicsUtils.set_quantum_derivative!(dσ, v, σ, sim)
 end
 
 function DynamicsUtils.classical_hamiltonian(sim::RingPolymerSimulation{<:Ehrenfest}, u)
@@ -48,7 +29,7 @@ function DynamicsUtils.classical_hamiltonian(sim::RingPolymerSimulation{<:Ehrenf
     Calculators.evaluate_potential!(sim.calculator, r)
     Calculators.eigen!(sim.calculator)
     population = Estimators.adiabatic_population(sim, u)
-    potential = sum([dot(population, eigs) for eigs in sim.calculator.eigenvalues])
+    potential = sum([dot(population, eigs.values) for eigs in sim.calculator.eigen])
 
     return kinetic + potential + spring
 end

@@ -25,8 +25,12 @@ with their masses in atomic units.
 
 !!! note "Atomic units"
 
-    Internally atomic units are used for all quantities. This makes things
-    simple when performing nonadiabatic dynamics.
+    Internally [atomic units](https://en.wikipedia.org/wiki/Hartree_atomic_units) are used
+    for all quantities. This makes things simple when performing nonadiabatic dynamics.
+    [Unitful.jl](https://github.com/PainterQubits/Unitful.jl) and
+    [UnitfulAtomic.jl](https://github.com/sostock/UnitfulAtomic.jl) can be used to help
+    with unit transformations, and many functions will directly accept
+    Unitful quantities and handle the conversions for you.
 
 Alternatively, if not using real atoms, [`Atoms`](@ref NonadiabaticDynamicsBase.Atoms)
 can be created using a `Vector{<:Real}` where the provided numbers are the masses of the
@@ -94,7 +98,7 @@ These `Model`s are provided by [NonadiabaticModels.jl](@ref), which
 is a convenient infrastructure for defining different kinds of models
 for adiabatic and nonadiabatic dynamics.
 These models can range from simple analytic potentials all the way up to multi-dimensional
-ab-initio potentials.
+*ab initio* potentials.
 Refer to the [NonadiabaticModels.jl](@ref) page for information on the available models
 and a description of how to implement further models.
  
@@ -268,15 +272,8 @@ plot!(solution, :velocity)
 So we have solved a single trajectory? That's pretty cool but wouldn't it be great
 if we could do a whole bunch at once? Well, fortunately we can thanks to the
 [`Ensembles`](@ref) module. 
-This provides two useful functions that help to solve this problem:
-[`Ensembles.run_trajectories`](@ref) and [`Ensembles.run_ensemble`](@ref).
-The first of these is named similarly to the familiar [`run_trajectory`](@ref)
-function since it behaves almost identically, but runs multiple trajectories
-sampling from a given distribution.
-The second is a little more complicated but can be used to compute specialised
-outputs and reductions from the trajectories as they are completed.
-
-To learn more about these functions and see some examples, refer to the
+This provides [`run_ensemble`](@ref) which can be used to perform many trajectories in parallel.
+To learn more and see some examples, refer to the
 [Ensemble simulations](@ref ensembles) section.
 
 ### What's next?
