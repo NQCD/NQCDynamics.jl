@@ -19,16 +19,14 @@ using NonadiabaticMolecularDynamics
 d = DynamicalDistribution(10, 5, (3, 2))
 nothing # hide
 ``` 
-Here we have created a delta distribution with fixed velocities and positions,
+Here, we have created a delta distribution with fixed velocities and positions,
 the final argument specifies the size of each sample.
 The `(3, 2)` case shown here would be appropriate when using 2 atoms each with 3 degrees of freedom.
 ```@repl distribution
 rand(d)
 ```
 
-However, a delta distribution is not particularly useful, fortunately,
-[`DynamicalDistribution`](@ref)
-is flexible and each of the first two arguments can be `Real`, `Vector` or `Sampleable`.
+[`DynamicalDistribution`](@ref) is flexible and each of the first two arguments can be `Real`, `Vector` or `Sampleable`.
 
 !!! note
 
