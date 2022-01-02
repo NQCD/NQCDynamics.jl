@@ -2,16 +2,11 @@
 
 Our implementation of Hamiltonian Monte Carlo (HMC) is a light wrapper around the
 [AdvancedHMC.jl](https://github.com/TuringLang/AdvancedHMC.jl) package.
-If you want to learn about the HMC theory, refer to the references that they provide.
+If you want to learn about the HMC theory, refer to the references and documentation
+provided with [AdvancedHMC.jl](https://github.com/TuringLang/AdvancedHMC.jl).
 
-Currently this works only for systems with classical nuclei
-(i.e. `Simulation` not `RingPolymerSimulation`)
-but it should be possible to extend it in the future.
-
-To perform this kind of sampling
-[`run_advancedhmc_sampling`](@ref InitialConditions.ThermalMonteCarlo.run_advancedhmc_sampling)
-is called by providing the simulation parameters, initial coordinates and the number of
-steps to perform.
+Currently, our implementation works for systems with classical nuclei only
+(i.e. `Simulation` but not `RingPolymerSimulation`).
 
 ## Example
 
