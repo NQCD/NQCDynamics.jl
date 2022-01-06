@@ -9,6 +9,13 @@ DocMeta.setdocmeta!(NonadiabaticModels, :DocTestSetup, :(using NonadiabaticModel
 
 bib = CitationBibliography(joinpath(@__DIR__, "references.bib"), sorting=:nyt)
 
+function find_all_files(directory)
+    map(
+        s -> joinpath(directory, s),
+        sort(readdir(joinpath(@__DIR__, "src", directory)))
+    )
+end
+
 @time makedocs(
     bib,
     sitename = "NonadiabaticMolecularDynamics.jl",
@@ -34,37 +41,18 @@ bib = CitationBibliography(joinpath(@__DIR__, "references.bib"), sorting=:nyt)
         ]
         "Initial conditions" => Any[
             "initialconditions/dynamicaldistribution.md"
-            map(
-                s -> "initialconditions/samplingmethods/$(s)",
-                sort(readdir(joinpath(@__DIR__, "src/initialconditions/samplingmethods")))
-            )
+            find_all_files("initialconditions/samplingmethods")
         ]
         "Dynamics simulations" => Any[
             "dynamicssimulations/dynamicssimulations.md"
-            map(
-                s -> "dynamicssimulations/dynamicsmethods/$(s)",
-                sort(readdir(joinpath(@__DIR__, "src/dynamicssimulations/dynamicsmethods")))
-            )
+            find_all_files("dynamicssimulations/dynamicsmethods")
         ]
         "Ensemble simulations" => "ensemble_simulations.md"
-        "Examples" => map(
-            s -> "examples/$(s)",
-            sort(readdir(joinpath(@__DIR__, "src/examples")))
-        )
-        "Developer documentation" => [
-            "devdocs/new_methods.md"
-            "devdocs/models.md"
-            "devdocs/diffeq.md"
-        ]
+        "Examples" => find_all_files("examples")
+        "Developer documentation" => find_all_files("devdocs")
         "API" => Any[
-            "NonadiabaticModels" => map(
-                s -> "api/nonadiabaticmodels/$(s)",
-                sort(readdir(joinpath(@__DIR__, "src/api/nonadiabaticmodels")))
-            ),
-            "NonadiabaticMolecularDynamics" => map(
-                s -> "api/nonadiabaticmoleculardynamics/$(s)",
-                sort(readdir(joinpath(@__DIR__, "src/api/nonadiabaticmoleculardynamics")))
-            ),
+            "NonadiabaticModels" => find_all_files("api/nonadiabaticmodels")
+            "NonadiabaticMolecularDynamics" => find_all_files("api/nonadiabaticmoleculardynamics")
         ]
         "References" => "references.md"
     ])
