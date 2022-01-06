@@ -61,7 +61,7 @@ nothing # hide
 Now let's run the two simulations using Ehrenfest and FSSH.
 For both simulations we use the same initial distribution and average the results
 using `reduction=:mean`.
-[`TimeCorrelationsFunctions.PopulationCorrelationFunction`](@ref) will correlate
+[`TimeCorrelationFunctions.PopulationCorrelationFunction`](@ref) will correlate
 the intial population with the final population at each timestep.
 
 ```@example threestatemorse

@@ -7,6 +7,11 @@ using NonadiabaticMolecularDynamics.NonadiabaticModels: nstates
 
 export PopulationCorrelationFunction
 
+"""
+    TimeCorrelationFunction
+
+Abstract type for defining time correlation functions
+"""
 abstract type TimeCorrelationFunction end
 
 function (correlation::TimeCorrelationFunction)(sol, _)
@@ -37,6 +42,13 @@ function correlation_template(::TimeCorrelationFunction)
     error("Implement this for your correlation function type.")
 end
 
+"""
+    PopulationCorrelationFunction{T,S<:AbstractSimulation} <: TimeCorrelationFunction
+
+Output type for computing the population correlation function.
+The `statetype` determines the population type (diabatic or adiabatic).
+`sim` must also be provided to access the parameters to compute the population.
+"""
 struct PopulationCorrelationFunction{T,S<:AbstractSimulation} <: TimeCorrelationFunction
     sim::S
     statetype::T
