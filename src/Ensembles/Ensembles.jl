@@ -79,12 +79,14 @@ function run_ensemble(
     ensemble_algorithm=EnsembleThreads(),
     algorithm=DynamicsMethods.select_algorithm(sim),
     saveat=[],
+    trajectories=1,
     kwargs...
 )
 
     if output isa Symbol
         output = (output,)
     end
+    trajectories = convert(Int, trajectories)
 
     output_func = get_output_func(output)
 
@@ -95,11 +97,11 @@ function run_ensemble(
     problem = DynamicsMethods.create_problem(u0, austrip.(tspan), sim)
 
     reduction = select_reduction(reduction)
-    u_init = get_u_init(reduction, kwargs, tspan, u0, output_func)
-    prob_func = choose_selection(distribution, selection, sim, output, saveat, kwargs)
+    u_init = get_u_init(reduction, saveat, kwargs, tspan, u0, output_func)
+    prob_func = choose_selection(distribution, selection, sim, output, saveat, trajectories)
 
     ensemble_problem = EnsembleProblem(problem; prob_func, output_func, reduction, u_init)
-    sol = solve(ensemble_problem, algorithm, ensemble_algorithm; u_init, saveat, kwargs...)
+    sol = solve(ensemble_problem, algorithm, ensemble_algorithm; u_init, saveat, trajectories, kwargs...)
 
     if output isa Tuple
         return [TypedTables.Table(
@@ -112,12 +114,12 @@ function run_ensemble(
     end
 end
 
-function choose_selection(distribution, selection, sim, output::Tuple, saveat, kwargs)
+function choose_selection(distribution, selection, sim, output::Tuple, saveat, trajectories)
     selection = Selection(distribution, selection)
-    return SelectWithCallbacks(selection, DynamicsMethods.get_callbacks(sim), output, kwargs[:trajectories], saveat=saveat)
+    return SelectWithCallbacks(selection, DynamicsMethods.get_callbacks(sim), output, trajectories, saveat=saveat)
 end
 
-function choose_selection(distribution, selection, sim, output, saveat, kwargs)
+function choose_selection(distribution, selection, sim, output, saveat, trajectories)
     return Selection(distribution, selection)
 end
 
