@@ -8,17 +8,34 @@ using .Calculators:
     RingPolymerDiabaticCalculator
 
 abstract type StateType end
+"Singleton type for labelling states as diabatic."
 struct Diabatic <: StateType end
+"Singleton type for labelling states as adiabatic."
 struct Adiabatic <: StateType end
 
+"""
+    ElectronicDistribution{S<:StateType} <: NonadiabaticDistribution
+
+Abstract type for distributions of electronic degrees of freedom only.
+"""
 abstract type ElectronicDistribution{S<:StateType} <: NonadiabaticDistribution end
 
+"""
+    SingleState{S} <: ElectronicDistribution{S}
+
+Electronic distribution for representing a system confined to a single state.
+"""
 struct SingleState{S} <: ElectronicDistribution{S}
     state::Int
     statetype::S
 end
 SingleState(state) = SingleState(state, Diabatic())
 
+"""
+    ElectronicPopulation{T,S} <: ElectronicDistribution{S}
+
+Electronic distribution for representing a mixed state with non-zero population in multiple states.
+"""
 struct ElectronicPopulation{T,S} <: ElectronicDistribution{S}
     populations::Vector{T}
     statetype::S

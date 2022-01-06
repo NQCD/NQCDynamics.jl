@@ -91,7 +91,7 @@ univariate normal distributions.
 ## Electronic distributions
 
 For nonadiabatic dynamics, the initial electronic variables must also be sampled.
-For this, we can use an [`ElectronicDistribution`](@ref NonadiabaticDistributions.ElectronicDistributions)
+For this, we can use an [`ElectronicDistribution`](@ref NonadiabaticDistributions.ElectronicDistribution)
 which will tell our simulation how we want to sample the initial variables.
 Currently, two of these are provided, the [`SingleState`](@ref) and the [`ElectronicPopulation`](@ref).
 The [`SingleState`](@ref) is used for nonequilibrium simulations when the population
