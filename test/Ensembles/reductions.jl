@@ -13,11 +13,11 @@ end
 
     @testset "AbstractOutput, reduction=$reduction" for reduction in (:mean, :sum)
         reduction = Ensembles.select_reduction(reduction)
-        stripped_kwargs = Dict()
         tspan = (0.0, 1.0)
         u0 = 1.0
+        saveat = 1
         output = Ensembles.OutputFinal()
-        u_init = Ensembles.get_u_init(reduction, stripped_kwargs, tspan, u0, output)
+        u_init = Ensembles.get_u_init(reduction, saveat, Dict(), tspan, u0, output)
         @test u_init ≈ zero(u0)
     end
 
@@ -25,18 +25,19 @@ end
         reduction = Ensembles.select_reduction(:append)
         output = Ensembles.OutputFinal()
         u0 = 1
-        u_init = Ensembles.get_u_init(reduction, Dict(), (0, 1), u0, output)
+        saveat = 1
+        u_init = Ensembles.get_u_init(reduction, saveat, Dict(), (0, 1), u0, output)
         @test u_init == []
     end
 
     @testset "TimeCorrelationFunction, reduction=$reduction" for reduction in (:mean, :sum)
         reduction = Ensembles.select_reduction(reduction)
         sim = Simulation{FSSH}(Atoms(1), DoubleWell())
-        stripped_kwargs = Dict(:saveat=>0.1)
+        saveat = 0.1
         tspan = (0.0, 1.0)
         u0 = DynamicsVariables(sim, 1, 0, SingleState(1, Adiabatic()))
         output = TimeCorrelationFunctions.PopulationCorrelationFunction(sim, Diabatic())
-        u_init = Ensembles.get_u_init(reduction, stripped_kwargs, tspan, u0, output)
+        u_init = Ensembles.get_u_init(reduction, saveat, Dict(), tspan, u0, output)
         @test u_init ≈ [zeros(2, 2) for _ ∈ tspan[1]:0.1:tspan[2]]
     end
 
