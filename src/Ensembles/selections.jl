@@ -22,10 +22,12 @@ struct RandomSelection{D} <: AbstractSelection
 end
 
 function Selection(distribution, selection::AbstractVector)
+    @info "Sampling the provided distribution in the range $selection." 
     OrderedSelection(distribution, selection)
 end
 
 function Selection(distribution, ::Any)
+    @info "Sampling randomly from provided distribution." 
     RandomSelection(distribution)
 end
 
