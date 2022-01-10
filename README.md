@@ -1,32 +1,32 @@
 
 
 <p align="right">
-  <a href="https://nqcd.github.io/NonadiabaticMolecularDynamics.jl/stable/">
-    <img src="https://github.com/NQCD/NQCDLogo/blob/main/logo.png" alt="NonadiabaticMolecularDynamics.jl logo"
-         title="NonadiabaticMolecularDynamics.jl" align="right" height="60"/>
+  <a href="https://nqcd.github.io/NQCDynamics.jl/stable/">
+    <img src="https://github.com/NQCD/NQCDLogo/blob/main/logo.png" alt="NQCDynamics.jl logo"
+         title="NQCDynamics.jl" align="right" height="60"/>
   </a>
 </p>
 
-# NonadiabaticMolecularDynamics.jl
+# NQCDynamics.jl
 
 | **Documentation**                                     | **Build Status**                                |  **License**                     |
 |:------------------------------------------------------|:----------------------------------------------- |:-------------------------------- |
 | [![][docs-img]][docs-url] [![][ddocs-img]][ddocs-url] | [![][ci-img]][ci-url] [![][ccov-img]][ccov-url] | [![][license-img]][license-url]  |
 
 [ddocs-img]: https://img.shields.io/badge/docs-dev-blue.svg
-[ddocs-url]: https://nqcd.github.io/NonadiabaticMolecularDynamics.jl/dev/
+[ddocs-url]: https://nqcd.github.io/NQCDynamics.jl/dev/
 
 [docs-img]: https://img.shields.io/badge/docs-stable-blue.svg
-[docs-url]: https://nqcd.github.io/NonadiabaticMolecularDynamics.jl/stable/
+[docs-url]: https://nqcd.github.io/NQCDynamics.jl/stable/
 
-[ci-img]: https://github.com/nqcd/NonadiabaticMolecularDynamics.jl/actions/workflows/CI.yml/badge.svg
-[ci-url]: https://github.com/nqcd/NonadiabaticMolecularDynamics.jl/actions/workflows/CI.yml
+[ci-img]: https://github.com/nqcd/NQCDynamics.jl/actions/workflows/CI.yml/badge.svg
+[ci-url]: https://github.com/nqcd/NQCDynamics.jl/actions/workflows/CI.yml
 
-[ccov-img]: https://codecov.io/gh/NQCD/NonadiabaticMolecularDynamics.jl/branch/master/graph/badge.svg
-[ccov-url]: https://codecov.io/gh/NQCD/NonadiabaticMolecularDynamics.jl
+[ccov-img]: https://codecov.io/gh/NQCD/NQCDynamics.jl/branch/master/graph/badge.svg
+[ccov-url]: https://codecov.io/gh/NQCD/NQCDynamics.jl
 
-[license-img]: https://img.shields.io/github/license/NQCD/NonadiabaticMolecularDynamics.jl
-[license-url]: https://github.com/NQCD/NonadiabaticMolecularDynamics.jl/blob/master/LICENSE
+[license-img]: https://img.shields.io/github/license/NQCD/NQCDynamics.jl
+[license-url]: https://github.com/NQCD/NQCDynamics.jl/blob/master/LICENSE
 
 **Fast and flexible nonadiabatic molecular dynamics in Julia!**
 
@@ -36,7 +36,7 @@
 - 👩‍🏫 **Helpful:** extended documentation with plenty of examples.
 
 <p align="center">
-<a href="https://nqcd.github.io/NonadiabaticMolecularDynamics.jl/stable/"><strong>Explore the NonadiabaticMolecularDynamics.jl docs 📚</strong></a>
+<a href="https://nqcd.github.io/NQCDynamics.jl/stable/"><strong>Explore the NQCDynamics.jl docs 📚</strong></a>
 </p>
 
 ---

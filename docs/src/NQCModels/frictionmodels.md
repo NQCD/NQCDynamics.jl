@@ -13,7 +13,7 @@ The models on this page describe our existing implementations.
 
 Since *ab initio* friction calculations are often expensive it is useful to
 have some models that we can use to test different friction methods.
-The [`DiabaticFrictionModel`](@ref NonadiabaticModels.DiabaticModels.DiabaticFrictionModel)
+The [`DiabaticFrictionModel`](@ref NQCModels.DiabaticModels.DiabaticFrictionModel)
 is the abstract type that groups together the diabatic models for which electronic friction can be evaluated.
 These have many electronic states, modelling the electronic structure characteristic of a metal. 
 The friction is calculated for these models directly from the nonadiabatic couplings

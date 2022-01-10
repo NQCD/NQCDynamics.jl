@@ -33,7 +33,7 @@ In this example we can apply RPSH to the [`ThreeStateMorse`](@ref) model as in t
 supporting info of [Shakib2017](@cite).
 
 ```@example rpsh
-using NonadiabaticMolecularDynamics
+using NQCDynamics
 using Unitful
 
 atoms = Atoms(20000)

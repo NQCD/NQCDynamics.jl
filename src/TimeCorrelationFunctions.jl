@@ -1,9 +1,9 @@
 
 module TimeCorrelationFunctions
 
-using NonadiabaticMolecularDynamics: AbstractSimulation, Estimators
-using NonadiabaticMolecularDynamics.NonadiabaticDistributions: Diabatic, Adiabatic
-using NonadiabaticMolecularDynamics.NonadiabaticModels: nstates
+using NQCDynamics: AbstractSimulation, Estimators
+using NQCDynamics.NonadiabaticDistributions: Diabatic, Adiabatic
+using NQCDynamics.NQCModels: nstates
 
 export PopulationCorrelationFunction
 

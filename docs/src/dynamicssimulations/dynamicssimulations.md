@@ -22,7 +22,7 @@ the model, the temperature, the cell and the dynamics method.
 This takes the place of the `p` parameter seen throughout [DifferentialEquations](https://diffeq.sciml.ai/stable/).
 
 ```@example dynamics
-using NonadiabaticMolecularDynamics # hide
+using NQCDynamics # hide
 atoms = Atoms(2000) # Single atom with mass = 2000 a.u.
 sim = Simulation{Ehrenfest}(atoms, TullyModelOne(); temperature=0, cell=InfiniteCell())
 ```

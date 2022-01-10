@@ -1,6 +1,6 @@
 using DiffEqBase: CallbackSet
 
-using NonadiabaticMolecularDynamics: InitialConditions, DynamicsOutputs
+using NQCDynamics: InitialConditions, DynamicsOutputs
 
 abstract type AbstractSelection end
 

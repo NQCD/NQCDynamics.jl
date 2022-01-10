@@ -39,7 +39,7 @@ Firstly we should set up our system parameters. here we have two atoms in a harm
 potential at temperature of `1e-3`. We have arbitrarily chosen the dissipation constant
 ``\gamma = 1``, this can be tuned for optimal sampling in more complex systems. 
 ```@example langevin
-using NonadiabaticMolecularDynamics
+using NQCDynamics
 using Unitful
 
 atoms = Atoms([:H, :C])

@@ -1,6 +1,6 @@
 using Test
-using NonadiabaticMolecularDynamics
-using NonadiabaticMolecularDynamics.InitialConditions.QuantisedDiatomic
+using NQCDynamics
+using NQCDynamics.InitialConditions.QuantisedDiatomic
 using LinearAlgebra: norm
 using Unitful
 using UnitfulAtomic
@@ -44,7 +44,7 @@ end
 
     @test QuantisedDiatomic.calculate_force_constant(bond_lengths, potential)[1] ≈ 1 atol=0.1
 
-    model2 = NonadiabaticModels.DiatomicHarmonic(r₀=3.0)
+    model2 = NQCModels.DiatomicHarmonic(r₀=3.0)
     potential = QuantisedDiatomic.calculate_diatomic_energy.(model2, bond_lengths, surface) # Calculate binding curve
     @test QuantisedDiatomic.calculate_force_constant(bond_lengths, potential)[1] ≈ 1 atol=0.1
 end

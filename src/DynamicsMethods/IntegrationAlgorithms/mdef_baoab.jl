@@ -6,7 +6,7 @@ using StochasticDiffEq: StochasticDiffEq
 using LinearAlgebra: LAPACK, diagm, diag, mul!, diagind
 using RecursiveArrayTools: ArrayPartition
 
-using NonadiabaticMolecularDynamics: get_temperature
+using NQCDynamics: get_temperature
 
 export MDEF_BAOAB
 

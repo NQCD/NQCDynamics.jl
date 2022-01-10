@@ -1,6 +1,6 @@
 using StatsBase: mean
 using .NonadiabaticDistributions: NonadiabaticDistribution
-using NonadiabaticMolecularDynamics: masses
+using NQCDynamics: masses
 
 export FSSH
 
@@ -33,7 +33,7 @@ mutable struct FSSH{T} <: SurfaceHopping
 end
 
 function Simulation{FSSH}(atoms::Atoms{S,T}, model::Model; rescaling=:standard, kwargs...) where {S,T}
-    Simulation(atoms, model, FSSH{T}(NonadiabaticModels.nstates(model), rescaling); kwargs...)
+    Simulation(atoms, model, FSSH{T}(NQCModels.nstates(model), rescaling); kwargs...)
 end
 
 function DynamicsMethods.DynamicsVariables(
@@ -217,7 +217,7 @@ function Estimators.diabatic_population(sim::AbstractSimulation{<:FSSH}, u)
 end
 
 function Estimators.adiabatic_population(sim::AbstractSimulation{<:FSSH}, u)
-    population = zeros(NonadiabaticModels.nstates(sim.calculator.model))
+    population = zeros(NQCModels.nstates(sim.calculator.model))
     population[u.state] = 1
     return population
 end

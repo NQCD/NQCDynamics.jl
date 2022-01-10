@@ -1,5 +1,5 @@
 
-using NonadiabaticMolecularDynamics
+using NQCDynamics
 using Test
 using OrdinaryDiffEq
 

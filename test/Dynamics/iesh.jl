@@ -1,10 +1,10 @@
 using Test
-using NonadiabaticMolecularDynamics
+using NQCDynamics
 using LinearAlgebra
 using Random
 using Distributions
-using NonadiabaticMolecularDynamics: DynamicsMethods, DynamicsUtils, Calculators
-using NonadiabaticMolecularDynamics.DynamicsMethods: SurfaceHoppingMethods
+using NQCDynamics: DynamicsMethods, DynamicsUtils, Calculators
+using NQCDynamics.DynamicsMethods: SurfaceHoppingMethods
 using ComponentArrays
 
 n_states = 20

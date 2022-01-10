@@ -14,7 +14,7 @@ In this example we use Hamiltonian Monte Carlo to sample the canonical distribut
 a 3 dimensional harmonic oscillator potential containing 4 atoms.
 
 ```@example hmc
-using NonadiabaticMolecularDynamics
+using NQCDynamics
 using Unitful
 using UnitfulAtomic
 
