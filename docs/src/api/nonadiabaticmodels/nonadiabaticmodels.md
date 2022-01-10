@@ -1,8 +1,8 @@
 
-# NonadiabaticModels
+# NQCModels
 
 ```@autodocs
-Modules=[NonadiabaticModels]
+Modules=[NQCModels]
 ```
 
 

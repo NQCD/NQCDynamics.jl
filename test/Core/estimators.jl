@@ -1,6 +1,6 @@
 
 using Test
-using NonadiabaticMolecularDynamics
+using NQCDynamics
 using ComponentArrays: ComponentVector
 using StatsBase: mean
 using Distributions: Normal

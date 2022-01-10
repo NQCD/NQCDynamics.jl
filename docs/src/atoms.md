@@ -6,12 +6,12 @@ This contrasts somewhat with most other software packages where these would be u
 by joined together into a single object.
 
 The atomic parameters here are contained within the
-[`Atoms`](@ref NonadiabaticDynamicsBase.Atoms) type introduced earlier
+[`Atoms`](@ref NQCBase.Atoms) type introduced earlier
 in the [Getting started](@ref) section.
 As mentioned previously, there exist some basic constructors which use either elemental
 symbols or numbers to initialise the parameters:
 ```@repl atoms
-using NonadiabaticMolecularDynamics
+using NQCDynamics
 Atoms([:H, :H, :H])
 Atoms([1, 2, 3])
 ```
@@ -48,7 +48,7 @@ slab.center(axis=2, vacuum=4.0)
 slab.write("slab.xyz")
 ```
 
-Now we can read it in with the [`read_extxyz`](@ref NonadiabaticDynamicsBase.read_extxyz)
+Now we can read it in with the [`read_extxyz`](@ref NQCBase.read_extxyz)
 function.
 ```@repl atoms
 atoms, positions, cell = read_extxyz("slab.xyz")
@@ -58,7 +58,7 @@ cell
 ```
 
 Similarly, we can write the file with
-[`write_extxyz`](@ref NonadiabaticDynamicsBase.write_extxyz):
+[`write_extxyz`](@ref NQCBase.write_extxyz):
 ```@repl atoms
 write_extxyz("out.xyz", atoms, positions, cell)
 ```
@@ -70,8 +70,8 @@ the files.
 This can be done by using the conversions between our data types and the `ase.Atoms` object.
 ```@repl atoms
 atoms = Atoms([:H, :H, :C])
-ase_atoms = NonadiabaticDynamicsBase.convert_to_ase_atoms(atoms, rand(3, 3))
-NonadiabaticDynamicsBase.convert_from_ase_atoms(ase_atoms)
+ase_atoms = NQCBase.convert_to_ase_atoms(atoms, rand(3, 3))
+NQCBase.convert_from_ase_atoms(ase_atoms)
 ```
 These conversions work both ways such that you can read any file format using
 ase then convert the `ase.Atoms` object to our types afterwards.

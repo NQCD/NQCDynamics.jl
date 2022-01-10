@@ -13,7 +13,7 @@ to address this requirement as painlessly as possible.
 When handling distributions for the nuclear degrees of freedom,
 the [`DynamicalDistribution`](@ref) type can be used to store initial velocities and positions:
 ```@setup distribution
-using NonadiabaticMolecularDynamics
+using NQCDynamics
 ```
 ```@example distribution
 d = DynamicalDistribution(10, 5, (3, 2))
@@ -58,7 +58,7 @@ the process.
 This takes the temperature, masses and size of the system and ensures the samples you
 obtain are of the correct shape:
 ```@example boltzmannvelocity
-using NonadiabaticMolecularDynamics
+using NQCDynamics
 using Unitful
 
 velocity = BoltzmannVelocityDistribution(300u"K", rand(10), (3, 10))

@@ -2,35 +2,35 @@
 # DynamicsMethods
 
 ```@autodocs
-Modules=[NonadiabaticMolecularDynamics.DynamicsMethods]
+Modules=[NQCDynamics.DynamicsMethods]
 ```
 
 ## ClassicalMethods
 
 ```@autodocs
-Modules=[NonadiabaticMolecularDynamics.DynamicsMethods.ClassicalMethods]
+Modules=[NQCDynamics.DynamicsMethods.ClassicalMethods]
 ```
 
 ## MappingVariableMethods
 
 ```@autodocs
-Modules=[NonadiabaticMolecularDynamics.DynamicsMethods.MappingVariableMethods]
+Modules=[NQCDynamics.DynamicsMethods.MappingVariableMethods]
 ```
 
 ## SurfaceHoppingMethods
 
 ```@autodocs
-Modules=[NonadiabaticMolecularDynamics.DynamicsMethods.SurfaceHoppingMethods]
+Modules=[NQCDynamics.DynamicsMethods.SurfaceHoppingMethods]
 ```
 
 ## EhrenfestMethods
 
 ```@autodocs
-Modules=[NonadiabaticMolecularDynamics.DynamicsMethods.EhrenfestMethods]
+Modules=[NQCDynamics.DynamicsMethods.EhrenfestMethods]
 ```
 
 ## IntegrationAlgorithms
 
 ```@autodocs
-Modules=[NonadiabaticMolecularDynamics.DynamicsMethods.IntegrationAlgorithms]
+Modules=[NQCDynamics.DynamicsMethods.IntegrationAlgorithms]
 ```

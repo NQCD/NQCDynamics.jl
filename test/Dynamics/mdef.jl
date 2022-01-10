@@ -1,5 +1,5 @@
 using Test
-using NonadiabaticMolecularDynamics
+using NQCDynamics
 using Unitful
 using UnitfulAtomic
 using RecursiveArrayTools: ArrayPartition
@@ -17,7 +17,7 @@ du = zero(u)
 
 @testset "friction!" begin
     gtmp = zeros(length(r), length(r))
-    NonadiabaticMolecularDynamics.DynamicsMethods.ClassicalMethods.friction!(gtmp, r, sim, 0.0)
+    NQCDynamics.DynamicsMethods.ClassicalMethods.friction!(gtmp, r, sim, 0.0)
     @test all(diag(gtmp) .≈ 1.0)
 end
 

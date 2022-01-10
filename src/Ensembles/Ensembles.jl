@@ -11,8 +11,8 @@ using SciMLBase: remake, EnsembleThreads, EnsembleProblem, solve
 using RecursiveArrayTools: ArrayPartition
 using TypedTables: TypedTables
 
-using NonadiabaticDynamicsBase: NonadiabaticDynamicsBase
-using NonadiabaticMolecularDynamics:
+using NQCBase: NQCBase
+using NQCDynamics:
     AbstractSimulation,
     Simulation,
     RingPolymerSimulation,
@@ -20,7 +20,7 @@ using NonadiabaticMolecularDynamics:
     DynamicsMethods,
     RingPolymers,
     NonadiabaticDistributions
-using NonadiabaticMolecularDynamics.NonadiabaticDistributions:
+using NQCDynamics.NonadiabaticDistributions:
     NuclearDistribution,
     CombinedDistribution
 
@@ -90,7 +90,7 @@ function run_ensemble(
 
     output_func = get_output_func(output)
 
-    kwargs = NonadiabaticDynamicsBase.austrip_kwargs(;kwargs...)
+    kwargs = NQCBase.austrip_kwargs(;kwargs...)
     saveat = austrip.(saveat)
 
     u0 = sample_distribution(sim, distribution, 1)

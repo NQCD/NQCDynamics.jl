@@ -1,10 +1,10 @@
-using NonadiabaticMolecularDynamics
+using NQCDynamics
 using Test
 using RecursiveArrayTools: ArrayPartition
 using ComponentArrays: ComponentVector
 
 atoms = Atoms([:H])
-model = NonadiabaticModels.Harmonic()
+model = NQCModels.Harmonic()
 sim = Simulation(atoms, model)
 
 positions = [randn(1, length(atoms)) for i=1:10]

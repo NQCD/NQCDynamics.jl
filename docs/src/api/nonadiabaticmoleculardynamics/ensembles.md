@@ -2,5 +2,5 @@
 # Ensembles
 
 ```@autodocs
-Modules=[NonadiabaticMolecularDynamics.Ensembles]
+Modules=[NQCDynamics.Ensembles]
 ```

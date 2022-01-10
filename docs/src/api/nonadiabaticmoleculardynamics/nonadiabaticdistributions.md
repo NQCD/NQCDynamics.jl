@@ -2,5 +2,5 @@
 # NonadiabaticDistributions
 
 ```@autodocs
-Modules=[NonadiabaticMolecularDynamics.NonadiabaticDistributions]
+Modules=[NQCDynamics.NonadiabaticDistributions]
 ```

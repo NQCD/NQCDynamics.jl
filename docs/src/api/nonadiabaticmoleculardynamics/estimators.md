@@ -2,5 +2,5 @@
 # Estimators
 
 ```@autodocs
-Modules=[NonadiabaticMolecularDynamics.Estimators]
+Modules=[NQCDynamics.Estimators]
 ```

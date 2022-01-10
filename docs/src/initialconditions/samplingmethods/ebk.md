@@ -35,7 +35,7 @@ conditions for hydrogen scattering simulations.
 The simulation can be set up in the usual way, by specifying the atoms along with the
 model and the simulation cell.
 ```@example ebk
-using NonadiabaticMolecularDynamics
+using NQCDynamics
 using Unitful, UnitfulAtomic
 
 atoms = Atoms([:H, :H])
@@ -52,7 +52,7 @@ along with the number of samples and some other options as keyword arguments.
 In addition to the rotational and vibrational energy we have applied a translational impulse
 of 1 eV and positioned the molecule at a height of 10 bohr.
 ```@example ebk
-using NonadiabaticMolecularDynamics.InitialConditions: QuantisedDiatomic
+using NQCDynamics.InitialConditions: QuantisedDiatomic
 
 ν, J = 2, 0
 nsamples = 150

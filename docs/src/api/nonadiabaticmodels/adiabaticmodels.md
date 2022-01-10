@@ -2,5 +2,5 @@
 # AdiabaticModels
 
 ```@autodocs
-Modules=[NonadiabaticModels.AdiabaticModels]
+Modules=[NQCModels.AdiabaticModels]
 ```

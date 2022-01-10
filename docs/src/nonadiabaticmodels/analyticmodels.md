@@ -1,6 +1,6 @@
 # Analytic model library
 
-This page plots many of the analytic models included in `NonadiabaticMolecularDynamics`.
+This page plots many of the analytic models included in `NQCDynamics`.
 
 !!! tip 
     To produce the plots we use two of Julia's plotting options [Plots](http://docs.juliaplots.org/latest/)
@@ -10,19 +10,19 @@ This page plots many of the analytic models included in `NonadiabaticMolecularDy
     Each of these has their pros and cons and if you are interested in producing plots
     using Julia you should visit their documentation to decide which is best for you.
 
-## [`AdiabaticModels`](@ref NonadiabaticModels.AdiabaticModels)
+## [`AdiabaticModels`](@ref NQCModels.AdiabaticModels)
 These models are used for classical dynamics and provide a single potential energy surface.
 
 ### [`Harmonic`](@ref)
 ```@example
-using NonadiabaticModels, Plots
+using NQCModels, Plots
 plot(-10:0.1:10, Harmonic())
 ```
 
 ### [`DiatomicHarmonic`](@ref)
 
 ```@example
-using NonadiabaticModels
+using NQCModels
 using Plots
 
 model = DiatomicHarmonic(r₀=10.0)
@@ -35,8 +35,8 @@ ylabel!("y coordinate /a₀")
 ### [`DarlingHollowayElbow`](@ref)
 
 ```@example
-using NonadiabaticModels
-using NonadiabaticDynamicsBase: eV_to_au
+using NQCModels
+using NQCBase: eV_to_au
 using CairoMakie
 
 model = DarlingHollowayElbow()
@@ -57,43 +57,43 @@ ylims!(-0.5, 4.5)
 f
 ```
 
-## [`DiabaticModels`](@ref NonadiabaticModels.DiabaticModels)
+## [`DiabaticModels`](@ref NQCModels.DiabaticModels)
 These models define a Hermitian potential operator in a diabatic basis.
 These can be used for various forms of nonadiabatic dynamics.
 
 ### [`TullyModelOne`](@ref)
 ```@example
-using NonadiabaticModels, Plots
+using NQCModels, Plots
 plot(-10:0.1:10, TullyModelOne(); coupling=true)
 ```
 ### [`TullyModelTwo`](@ref)
 ```@example
-using NonadiabaticModels, Plots
+using NQCModels, Plots
 plot(-10:0.1:10, TullyModelTwo(); coupling=true)
 ```
 ### [`TullyModelThree`](@ref)
 ```@example
-using NonadiabaticModels, Plots
+using NQCModels, Plots
 plot(-10:0.1:10, TullyModelThree(); coupling=true)
 ```
 ### [`ThreeStateMorse`](@ref)
 ```@example
-using NonadiabaticModels, Plots
+using NQCModels, Plots
 plot(2:0.01:12, ThreeStateMorse(), ylims=(0, 0.06), coupling=true)
 ```
 ### [`OuyangModelOne`](@ref)
 ```@example
-using NonadiabaticModels, Plots
+using NQCModels, Plots
 plot(-10:0.1:10, OuyangModelOne())
 ```
 ### [`DoubleWell`](@ref)
 ```@example
-using NonadiabaticModels, Plots
+using NQCModels, Plots
 plot(-5:0.1:5, DoubleWell(); coupling=true)
 ```
 ### [`GatesHollowayElbow`](@ref)
 ```@example
-using NonadiabaticModels
+using NQCModels
 using CairoMakie
 
 model = GatesHollowayElbow()

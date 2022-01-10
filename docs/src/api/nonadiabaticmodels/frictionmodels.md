@@ -2,5 +2,5 @@
 # FrictionModels
 
 ```@autodocs
-Modules=[NonadiabaticModels.FrictionModels]
+Modules=[NQCModels.FrictionModels]
 ```

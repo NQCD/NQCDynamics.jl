@@ -2,5 +2,5 @@
 # DynamicsUtils
 
 ```@autodocs
-Modules=[NonadiabaticMolecularDynamics.DynamicsUtils]
+Modules=[NQCDynamics.DynamicsUtils]
 ```

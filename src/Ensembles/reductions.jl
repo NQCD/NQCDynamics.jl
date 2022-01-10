@@ -1,5 +1,5 @@
 using StatsBase: mean
-using NonadiabaticMolecularDynamics: TimeCorrelationFunctions
+using NQCDynamics: TimeCorrelationFunctions
 using .TimeCorrelationFunctions: TimeCorrelationFunction
 
 abstract type AbstractReduction end

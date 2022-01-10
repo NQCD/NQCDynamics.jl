@@ -2,5 +2,5 @@
 # RingPolymers
 
 ```@autodocs
-Modules=[NonadiabaticMolecularDynamics.RingPolymers]
+Modules=[NQCDynamics.RingPolymers]
 ```

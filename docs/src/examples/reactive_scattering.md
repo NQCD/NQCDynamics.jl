@@ -19,10 +19,10 @@ Here we can follow that example with the [`H2AgModel`](@ref NNInterfaces.H2AgMod
 to prepare our initial distribution.
 
 ```@example h2scatter
-using NonadiabaticMolecularDynamics
+using NQCDynamics
 using NNInterfaces
 using Unitful
-using NonadiabaticMolecularDynamics.InitialConditions: QuantisedDiatomic
+using NQCDynamics.InitialConditions: QuantisedDiatomic
 
 atoms = Atoms([:H, :H])
 model = H2AgModel()

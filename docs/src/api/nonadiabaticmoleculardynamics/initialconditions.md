@@ -2,23 +2,23 @@
 # InitialConditions
 
 ```@autodocs
-Modules=[NonadiabaticMolecularDynamics.InitialConditions]
+Modules=[NQCDynamics.InitialConditions]
 ```
 
 ## ThermalMonteCarlo
 
 ```@autodocs
-Modules=[NonadiabaticMolecularDynamics.InitialConditions.ThermalMonteCarlo]
+Modules=[NQCDynamics.InitialConditions.ThermalMonteCarlo]
 ```
 
 ## QuantisedDiatomic
 
 ```@autodocs
-Modules=[NonadiabaticMolecularDynamics.InitialConditions.QuantisedDiatomic]
+Modules=[NQCDynamics.InitialConditions.QuantisedDiatomic]
 ```
 
 ## MetropolisHastings
 
 ```@autodocs
-Modules=[NonadiabaticMolecularDynamics.InitialConditions.MetropolisHastings]
+Modules=[NQCDynamics.InitialConditions.MetropolisHastings]
 ```

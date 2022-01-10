@@ -1,11 +1,11 @@
 using LinearAlgebra: eigvecs, diag, diagind, dot
 using StatsBase: sample, Weights
 
-using NonadiabaticMolecularDynamics.Calculators: RingPolymerDiabaticCalculator
-using NonadiabaticMolecularDynamics: RingPolymerSimulation, RingPolymers
+using NQCDynamics.Calculators: RingPolymerDiabaticCalculator
+using NQCDynamics: RingPolymerSimulation, RingPolymers
 
 function RingPolymerSimulation{FSSH}(atoms::Atoms{S,T}, model::Model, n_beads::Integer; rescaling=:standard, kwargs...) where {S,T}
-    RingPolymerSimulation(atoms, model, FSSH{T}(NonadiabaticModels.nstates(model), rescaling), n_beads; kwargs...)
+    RingPolymerSimulation(atoms, model, FSSH{T}(NQCModels.nstates(model), rescaling), n_beads; kwargs...)
 end
 
 function DynamicsMethods.motion!(du, u, sim::RingPolymerSimulation{<:SurfaceHopping}, t)

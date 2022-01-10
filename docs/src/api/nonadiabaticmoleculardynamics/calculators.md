@@ -1,5 +1,5 @@
 # Calculators
 
 ```@autodocs
-Modules=[NonadiabaticMolecularDynamics.Calculators]
+Modules=[NQCDynamics.Calculators]
 ```

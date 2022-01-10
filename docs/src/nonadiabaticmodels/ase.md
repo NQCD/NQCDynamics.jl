@@ -36,7 +36,7 @@ nothing # hide
 Next, the [`AdiabaticASEModel`](@ref) is created by passing the `ase.Atoms` object directly
 to the model:
 ```@repl ase
-using NonadiabaticModels
+using NQCModels
 model = AdiabaticASEModel(h2)
 ```
 Now the model can be used in the same way as any of the previously introduced

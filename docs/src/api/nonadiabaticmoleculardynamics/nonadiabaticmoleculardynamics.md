@@ -1,5 +1,5 @@
-# NonadiabaticMolecularDynamics
+# NQCDynamics
 
 ```@autodocs
-Modules=[NonadiabaticMolecularDynamics]
+Modules=[NQCDynamics]
 ```

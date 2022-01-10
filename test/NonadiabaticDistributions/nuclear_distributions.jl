@@ -1,6 +1,6 @@
 using Test
-using NonadiabaticMolecularDynamics
-using NonadiabaticMolecularDynamics.InitialConditions
+using NQCDynamics
+using NQCDynamics.InitialConditions
 using Random
 using Distributions
 using HDF5
