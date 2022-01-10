@@ -26,11 +26,11 @@ simulation which can explore further in later sections using realistic systems.
 Here we shall model a single hydrogen atom in a harmonic potential,
 where the electronic temperature is 300 K.
 The [`CompositeFrictionModel`](@ref CompositeFrictionModel) allows us to combine any
-[`AdiabaticModel`](@ref NonadiabaticModels.AdiabaticModels.AdiabaticModel)
-with an [`ElectronicFrictionProvider`](@ref NonadiabaticModels.FrictionModels.ElectronicFrictionProvider)
+[`AdiabaticModel`](@ref NQCModels.AdiabaticModels.AdiabaticModel)
+with an [`ElectronicFrictionProvider`](@ref NQCModels.FrictionModels.ElectronicFrictionProvider)
 which will add electronic friction to an otherwise adiabatic system.
 ```@example mdef
-using NonadiabaticMolecularDynamics
+using NQCDynamics
 using Unitful
 
 atoms = Atoms([:H])

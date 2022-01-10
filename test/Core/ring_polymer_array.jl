@@ -1,4 +1,4 @@
-using NonadiabaticMolecularDynamics
+using NQCDynamics
 using Test
 using StatsBase: mean
 

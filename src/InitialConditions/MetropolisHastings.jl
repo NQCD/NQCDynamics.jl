@@ -16,9 +16,9 @@ using StatsBase: AnalyticWeights, sample
 using ProgressMeter: @showprogress
 using Distributions: Normal
 
-using NonadiabaticDynamicsBase: NonadiabaticDynamicsBase, Atoms
-using NonadiabaticMolecularDynamics:
-    NonadiabaticMolecularDynamics,
+using NQCBase: NQCBase, Atoms
+using NQCDynamics:
+    NQCDynamics,
     AbstractSimulation,
     Simulation,
     RingPolymerSimulation,
@@ -154,7 +154,7 @@ function run_main_loop!(sim::Simulation, monte::MonteCarlo, Rᵢ::Matrix, Rₚ::
         propose_move!(sim, monte, Rᵢ, Rₚ, atom)
         @views for i in axes(Rₚ, 2) # atoms
             if monte.moveable_atoms[i] > 0
-                NonadiabaticDynamicsBase.apply_cell_boundaries!(sim.cell, Rₚ[:,i])
+                NQCBase.apply_cell_boundaries!(sim.cell, Rₚ[:,i])
             end
         end
         assess_proposal!(sim, monte, Rᵢ, Rₚ, output, atom)
@@ -169,7 +169,7 @@ function run_main_loop!(sim::RingPolymerSimulation, monte::PathIntegralMonteCarl
         if !all(monte.moveable_atoms .== 0.0)
             atom = sample(range(sim.atoms), monte.moveable_atoms)
             propose_centroid_move!(sim, monte, Rᵢ, Rₚ, atom)
-            NonadiabaticDynamicsBase.apply_cell_boundaries!(sim.cell, Rₚ, sim.beads)
+            NQCBase.apply_cell_boundaries!(sim.cell, Rₚ, sim.beads)
             assess_proposal!(sim, monte, Rᵢ, Rₚ, output, atom)
             if length(sim.beads) > 1
                 if atom ∈ sim.beads.quantum_atoms
@@ -272,7 +272,7 @@ end
 Return the Metropolis-Hastings acceptance probability.
 """
 function acceptance_probability(sim::Simulation, monte::MonteCarlo)
-    acceptance_probability(monte.Eₚ, monte.Eᵢ, NonadiabaticMolecularDynamics.get_temperature(sim))
+    acceptance_probability(monte.Eₚ, monte.Eᵢ, NQCDynamics.get_temperature(sim))
 end
 function acceptance_probability(sim::RingPolymerSimulation, monte::PathIntegralMonteCarlo)
     acceptance_probability(monte.Eₚ, monte.Eᵢ, sim.beads.ω_n)

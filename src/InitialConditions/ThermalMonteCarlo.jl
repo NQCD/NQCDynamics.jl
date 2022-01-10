@@ -8,8 +8,8 @@ using AdvancedHMC: AdvancedHMC
 using Random: Random
 using UnPack: @unpack
 
-using NonadiabaticMolecularDynamics:
-    NonadiabaticMolecularDynamics,
+using NQCDynamics:
+    NQCDynamics,
     AbstractSimulation,
     Simulation,
     RingPolymerSimulation,

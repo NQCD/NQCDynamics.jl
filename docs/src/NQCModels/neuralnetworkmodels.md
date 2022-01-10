@@ -47,11 +47,11 @@ austrip.(h2.get_forces() .* u"eV/Å")
     Note that this is an arbitrary model not trained on H2, hence the calculation of the
     potential energy and forces most likely do not make sense.
 
-Then, we can convert the ASE output into the format used in NonadiabaticModels,
+Then, we can convert the ASE output into the format used in NQCModels,
 which makes it possible to use the SchNet model e.g. for molecular dynamics calculations
-within NonadiabaticMolecularDynamics.jl:
+within NQCDynamics.jl:
 ```julia-repl
-using NonadiabaticModels;
+using NQCModels;
 model = AdiabaticASEModel(h2);
 
 r = [0 0; 0 0; 0 ustrip(auconvert(0.74u"Å"))]

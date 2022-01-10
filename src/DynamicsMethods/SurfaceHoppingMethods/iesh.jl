@@ -33,12 +33,12 @@ struct IESH{T} <: SurfaceHopping
     end
 end
 
-function NonadiabaticMolecularDynamics.Simulation{IESH}(atoms::Atoms{S,T}, model::Model; n_electrons, kwargs...) where {S,T}
-    NonadiabaticMolecularDynamics.Simulation(atoms, model, IESH{T}(NonadiabaticModels.nstates(model), n_electrons); kwargs...)
+function NQCDynamics.Simulation{IESH}(atoms::Atoms{S,T}, model::Model; n_electrons, kwargs...) where {S,T}
+    NQCDynamics.Simulation(atoms, model, IESH{T}(NQCModels.nstates(model), n_electrons); kwargs...)
 end
 
 function DynamicsMethods.DynamicsVariables(sim::Simulation{<:IESH}, v, r)
-    ψ = zeros(NonadiabaticModels.nstates(sim.calculator.model), sim.method.n_electrons)
+    ψ = zeros(NQCModels.nstates(sim.calculator.model), sim.method.n_electrons)
 
     for i=1:sim.method.n_electrons
         ψ[i,i] = 1
@@ -187,7 +187,7 @@ function Estimators.diabatic_population(sim::Simulation{<:IESH}, u)
 end
 
 function Estimators.adiabatic_population(sim::Simulation{<:IESH}, u)
-    population = zeros(NonadiabaticModels.nstates(sim.calculator.model))
+    population = zeros(NQCModels.nstates(sim.calculator.model))
     population[u.state] .= 1
     return population
 end

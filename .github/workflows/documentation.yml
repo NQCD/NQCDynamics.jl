@@ -28,7 +28,7 @@ jobs:
       - name: Add registries
         run: |
           using Pkg
-          Pkg.Registry.add(RegistrySpec(url="https://github.com/NQCD/NQCDRegistry"))
+          Pkg.Registry.add(RegistrySpec(url="https://github.com/NQCD/NQCRegistry"))
           Pkg.Registry.add(RegistrySpec(url="https://github.com/JuliaMolSim/MolSim"))
           Pkg.Registry.add(RegistrySpec(name="General"))
         shell: julia {0}
@@ -39,7 +39,7 @@ jobs:
       - name: Dev dependencies
         run: |
           using Pkg
-          Pkg.develop([(;path=pwd()), (;name="NonadiabaticModels")])
+          Pkg.develop([(;path=pwd()), (;name="NQCModels")])
           Pkg.instantiate()
         shell: julia --project=docs/ {0}
 

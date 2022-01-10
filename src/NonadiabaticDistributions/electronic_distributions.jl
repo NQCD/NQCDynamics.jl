@@ -1,7 +1,7 @@
 using LinearAlgebra: diagind
 
-using NonadiabaticModels: NonadiabaticModels
-using NonadiabaticMolecularDynamics: Calculators, RingPolymers
+using NQCModels: NQCModels
+using NQCDynamics: Calculators, RingPolymers
 using .Calculators:
     AbstractDiabaticCalculator,
     DiabaticCalculator,
@@ -66,7 +66,7 @@ function initialise_density_matrix(
     electronics::ElectronicDistribution, calculator::AbstractDiabaticCalculator
 )
 
-    n = NonadiabaticModels.nstates(calculator.model)
+    n = NQCModels.nstates(calculator.model)
     density = Matrix{eltype(calculator)}(undef, n, n)
     fill_density!(density, electronics)
     return density

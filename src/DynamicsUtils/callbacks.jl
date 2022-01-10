@@ -1,5 +1,5 @@
 using DiffEqBase: DiscreteCallback, terminate!
-using NonadiabaticDynamicsBase: apply_cell_boundaries!, check_atoms_in_cell
+using NQCBase: apply_cell_boundaries!, check_atoms_in_cell
 
 outside_cell(u,t,integrator) = !check_atoms_in_cell(integrator.p.cell, get_positions(u))
 function enforce_periodicity!(integrator)

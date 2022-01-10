@@ -6,7 +6,7 @@ with an increasing magnitude of incident kinetic energy.
 
 First, let's set up our system parameters:
 ```@example tullymodeltwo
-using NonadiabaticMolecularDynamics
+using NQCDynamics
 
 sim = Simulation{FSSH}(Atoms(2000), TullyModelTwo())
 ```

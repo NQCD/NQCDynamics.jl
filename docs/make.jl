@@ -1,11 +1,11 @@
 using Documenter
 using DocumenterCitations
-using NonadiabaticMolecularDynamics
-using NonadiabaticModels
+using NQCDynamics
+using NQCModels
 using CubeLDFAModel, NNInterfaces
 
-DocMeta.setdocmeta!(NonadiabaticMolecularDynamics, :DocTestSetup, :(using NonadiabaticMolecularDynamics); recursive=true)
-DocMeta.setdocmeta!(NonadiabaticModels, :DocTestSetup, :(using NonadiabaticModels, Symbolics); recursive=true)
+DocMeta.setdocmeta!(NQCDynamics, :DocTestSetup, :(using NQCDynamics); recursive=true)
+DocMeta.setdocmeta!(NQCModels, :DocTestSetup, :(using NQCModels, Symbolics); recursive=true)
 
 bib = CitationBibliography(joinpath(@__DIR__, "references.bib"), sorting=:nyt)
 
@@ -18,12 +18,12 @@ end
 
 @time makedocs(
     bib,
-    sitename = "NonadiabaticMolecularDynamics.jl",
-    modules = [NonadiabaticMolecularDynamics, NonadiabaticModels, CubeLDFAModel],
+    sitename = "NQCDynamics.jl",
+    modules = [NQCDynamics, NQCModels, CubeLDFAModel],
     strict = false,
     format = Documenter.HTML(
         prettyurls = get(ENV, "CI", nothing) == "true",
-        canonical = "https://nqcd.github.io/NonadiabaticMolecularDynamics.jl/stable/",
+        canonical = "https://nqcd.github.io/NQCDynamics.jl/stable/",
         assets = ["assets/favicon.ico"],
         ansicolor = true,
         ),
@@ -32,12 +32,12 @@ end
         "Introduction" => "index.md"
         "Getting started" => "getting_started.md"
         "Atoms" => "atoms.md"
-        "NonadiabaticModels.jl" => Any[
-            "nonadiabaticmodels/overview.md"
-            "nonadiabaticmodels/analyticmodels.md"
-            "nonadiabaticmodels/ase.md"
-            "nonadiabaticmodels/neuralnetworkmodels.md"
-            "nonadiabaticmodels/frictionmodels.md"
+        "NQCModels.jl" => Any[
+            "NQCModels/overview.md"
+            "NQCModels/analyticmodels.md"
+            "NQCModels/ase.md"
+            "NQCModels/neuralnetworkmodels.md"
+            "NQCModels/frictionmodels.md"
         ]
         "Initial conditions" => Any[
             "initialconditions/dynamicaldistribution.md"
@@ -51,8 +51,8 @@ end
         "Examples" => find_all_files("examples")
         "Developer documentation" => find_all_files("devdocs")
         "API" => Any[
-            "NonadiabaticModels" => find_all_files("api/nonadiabaticmodels")
-            "NonadiabaticMolecularDynamics" => find_all_files("api/nonadiabaticmoleculardynamics")
+            "NQCModels" => find_all_files("api/NQCModels")
+            "NQCDynamics" => find_all_files("api/NQCDynamics")
         ]
         "References" => "references.md"
     ])
@@ -60,7 +60,7 @@ end
 
 if get(ENV, "CI", nothing) == "true"
     deploydocs(
-        repo = "github.com/NQCD/NonadiabaticMolecularDynamics.jl",
+        repo = "github.com/NQCD/NQCDynamics.jl",
         push_preview=true
     )
 end

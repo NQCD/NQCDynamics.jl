@@ -5,9 +5,9 @@ obtained from many trajectories.
 
 As usual we set up our system, this time we'll be doing FSSH dynamics:
 ```@example ensemble
-using NonadiabaticMolecularDynamics # hide
+using NQCDynamics # hide
 
-atoms = NonadiabaticMolecularDynamics.Atoms([:H])
+atoms = NQCDynamics.Atoms([:H])
 model = TullyModelOne()
 sim = Simulation{FSSH}(atoms, model)
 nothing # hide

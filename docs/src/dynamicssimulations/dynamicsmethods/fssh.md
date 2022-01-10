@@ -71,10 +71,10 @@ In this section we can investigate the results obtained for a single trajectory 
 and see the results of the above equations.
 
 First, the simulation parameters are created. Here we have a single atom with a mass of
-`2000` and we are using Tully's third model, provided by [NonadiabaticModels.jl](@ref).
+`2000` and we are using Tully's third model, provided by [NQCModels.jl](@ref).
 ```@example fssh
 using Random; Random.seed!(10) # hide
-using NonadiabaticMolecularDynamics
+using NQCDynamics
 
 atoms = Atoms(2000)
 sim = Simulation{FSSH}(atoms, TullyModelThree())

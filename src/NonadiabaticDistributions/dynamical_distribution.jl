@@ -21,7 +21,7 @@ which `select_item` has been implemented.
 # Example
 
 ```jldoctest; setup = :(using Random; Random.seed!(1))
-using NonadiabaticMolecularDynamics.InitialConditions
+using NQCDynamics.InitialConditions
 using Distributions
 
 d = DynamicalDistribution(5.0, Normal(), (1, 1))

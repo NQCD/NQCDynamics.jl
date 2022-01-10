@@ -43,7 +43,7 @@ Let us perform some simple adiabatic ring polymer dynamics to get a feel
 for what the ring polymer dynamics looks like.
 
 ```@example rpmd
-using NonadiabaticMolecularDynamics
+using NQCDynamics
 using Unitful
 
 atoms = Atoms([:H])

@@ -27,10 +27,10 @@ using Distributions: Uniform
 using UnicodePlots: lineplot, lineplot!, DotCanvas
 using Optim: Optim
 
-using NonadiabaticMolecularDynamics: Simulation, Calculators, DynamicsUtils
-using NonadiabaticDynamicsBase: Atoms, PeriodicCell, InfiniteCell
-using NonadiabaticModels: NonadiabaticModels
-using NonadiabaticModels.AdiabaticModels: AdiabaticModel
+using NQCDynamics: Simulation, Calculators, DynamicsUtils
+using NQCBase: Atoms, PeriodicCell, InfiniteCell
+using NQCModels: NQCModels
+using NQCModels.AdiabaticModels: AdiabaticModel
 
 export generate_configurations
 export quantise_diatomic
@@ -375,7 +375,7 @@ function calculate_diatomic_energy(
     molecule = surface_normal .* height .+ orthogonal_vectors .* r₀ ./ sqrt(2)
     R = combine_slab_and_molecule(surface, molecule)
 
-    return NonadiabaticModels.potential(model, R)
+    return NQCModels.potential(model, R)
 end
 
 """

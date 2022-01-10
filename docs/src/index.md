@@ -1,6 +1,6 @@
 # Introduction
 
-Welcome to the documentation for NonadiabaticMolecularDynamics, 
+Welcome to the documentation for NQCDynamics, 
 a package for performing nonadiabatic molecular dynamics simulations.
 The documentation covers both how to use the existing code and describes the
 intricacies of the implementations, hoping to make further contributions as simple as possible.
@@ -60,16 +60,16 @@ which significantly simplifies the implementation of new methods.
 Download and install the current stable release from the [Julia website](https://julialang.org/downloads/).
 For most platforms `julia` is provided as a precompiled binary and do not require any installation procedure. However, you need to specify the path to julia or create a symbolic link to the executable that is in your systempath. 
 
-#### 2. Install the `NQCDRegistry`
+#### 2. Install the `NQCRegistry`
 Since the package is not included in the default registry (`General`), we must first
-install the `NQCDRegistry`.
-This gives access to the core `NonadiabaticMolecularDynamics` package along with some dependencies
+install the `NQCRegistry`.
+This gives access to the core `NQCDynamics` package along with some dependencies
 and add-ons.
 First, enter the Julia REPL by executing `julia` from the command line.
 Then press `]` to enter `pkg` mode. The prompt should change from `julia>` to `pkg>`.
 Install the registry directly from Github with: 
 ```julia-repl
-pkg> registry add "https://github.com/NQCD/NQCDRegistry"
+pkg> registry add "https://github.com/NQCD/NQCRegistry"
 ```
 
 !!! warning
@@ -83,12 +83,12 @@ pkg> registry add "https://github.com/NQCD/NQCDRegistry"
 #### 3. Install the package
 Now that the registry has been added, the package can be installed in the same way as any other registered Julia package:
 ```julia-repl
-pkg> add NonadiabaticMolecularDynamics
+pkg> add NQCDynamics
 ```
 
 #### 4. Use the package!
 ```julia-repl
-julia> using NonadiabaticMolecularDynamics
+julia> using NQCDynamics
 ```
 You are now free to proceed to the next section and learn how to use the package.
 If you would like you can complete step 5 to double check your installation.
@@ -98,7 +98,7 @@ If you would like you can complete step 5 to double check your installation.
 To check the package has been installed correctly and everything is working,
 you can execute the tests with:
 ```julia-repl
-pkg> test NonadiabaticMolecularDynamics
+pkg> test NQCDynamics
 ```
 
 !!! warning
@@ -118,7 +118,7 @@ upon sections from the [Getting started](@ref) page.
 
 ### Package ecosystem
 
-Included in the `NQCDRegistry` alongside the main package are a few others that provide extra
+Included in the `NQCRegistry` alongside the main package are a few others that provide extra
 models and add-ons. Here is an overview of the currently existing packages included in
 the registry:
 

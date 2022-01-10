@@ -18,12 +18,12 @@ module Calculators
 using LinearAlgebra: LinearAlgebra, Hermitian, I, Eigen, tr
 using StaticArrays: SMatrix, SVector
 
-using NonadiabaticModels: NonadiabaticModels, Model, nstates
-using NonadiabaticModels.AdiabaticModels: AdiabaticModel
-using NonadiabaticModels.DiabaticModels: DiabaticModel, DiabaticFrictionModel
-using NonadiabaticModels.FrictionModels: AdiabaticFrictionModel
+using NQCModels: NQCModels, Model, nstates
+using NQCModels.AdiabaticModels: AdiabaticModel
+using NQCModels.DiabaticModels: DiabaticModel, DiabaticFrictionModel
+using NQCModels.FrictionModels: AdiabaticFrictionModel
 
-using NonadiabaticMolecularDynamics: RingPolymers, ndofs
+using NQCDynamics: RingPolymers, ndofs
 
 """
     AbstractCalculator{M<:Model}
@@ -72,8 +72,8 @@ mutable struct DiabaticCalculator{T,M,S,L} <: AbstractDiabaticCalculator{T,M}
     tmp_mat_complex2::Matrix{Complex{T}}
     function DiabaticCalculator{T}(model::M, atoms::Integer) where {T,M<:Model}
         n = nstates(model)
-        matrix_template = NonadiabaticModels.DiabaticModels.matrix_template(model, T)
-        vector_template = NonadiabaticModels.DiabaticModels.vector_template(model, T)
+        matrix_template = NQCModels.DiabaticModels.matrix_template(model, T)
+        vector_template = NQCModels.DiabaticModels.vector_template(model, T)
 
         potential = Hermitian(matrix_template)
         derivative = [Hermitian(matrix_template) for _=1:ndofs(model), _=1:atoms]
@@ -117,8 +117,8 @@ mutable struct RingPolymerDiabaticCalculator{T,M,S,L} <: AbstractDiabaticCalcula
     tmp_mat_complex2::Matrix{Complex{T}}
     function RingPolymerDiabaticCalculator{T}(model::M, atoms::Integer, beads::Integer) where {T,M<:Model}
         n = nstates(model)
-        matrix_template = NonadiabaticModels.DiabaticModels.matrix_template(model, T)
-        vector_template = NonadiabaticModels.DiabaticModels.vector_template(model, T)
+        matrix_template = NQCModels.DiabaticModels.matrix_template(model, T)
+        vector_template = NQCModels.DiabaticModels.vector_template(model, T)
 
         potential = [Hermitian(matrix_template) for _=1:beads]
         traceless_potential = [Hermitian(matrix_template) for _=1:beads]
@@ -168,12 +168,12 @@ function Calculator(model::AdiabaticModel, atoms::Integer, beads::Integer, t::Ty
 end
 
 function evaluate_potential!(calc::AbstractCalculator, R)
-    calc.potential = NonadiabaticModels.potential(calc.model, R)
+    calc.potential = NQCModels.potential(calc.model, R)
 end
 
 function evaluate_potential!(calc::AbstractCalculator, R::AbstractArray{T,3}) where {T}
     @views for i in axes(R, 3)
-        calc.potential[i] = NonadiabaticModels.potential(calc.model, R[:,:,i])
+        calc.potential[i] = NQCModels.potential(calc.model, R[:,:,i])
     end
 end
 
@@ -193,16 +193,16 @@ function evaluate_traceless_potential!(calc::RingPolymerDiabaticCalculator)
 end
 
 function evaluate_centroid_potential!(calc::AbstractCalculator, R::AbstractMatrix)
-    calc.centroid_potential = NonadiabaticModels.potential(calc.model, R)
+    calc.centroid_potential = NQCModels.potential(calc.model, R)
 end
 
 function evaluate_derivative!(calc::AbstractCalculator, R)
-    NonadiabaticModels.derivative!(calc.model, calc.derivative, R)
+    NQCModels.derivative!(calc.model, calc.derivative, R)
 end
 
 function evaluate_derivative!(calc::AbstractCalculator, R::AbstractArray{T,3}) where {T}
     @views for i in axes(R, 3)
-        NonadiabaticModels.derivative!(calc.model, calc.derivative[:,:,i], R[:,:,i])
+        NQCModels.derivative!(calc.model, calc.derivative[:,:,i], R[:,:,i])
     end
 end
 
@@ -231,7 +231,7 @@ function evaluate_traceless_adiabatic_derivative!(calc::RingPolymerDiabaticCalcu
 end
 
 function evaluate_centroid_derivative!(calc::AbstractCalculator, R::AbstractMatrix)
-    NonadiabaticModels.derivative!(calc.model, calc.centroid_derivative, R)
+    NQCModels.derivative!(calc.model, calc.centroid_derivative, R)
 end
 
 function eigen!(calc::DiabaticCalculator)

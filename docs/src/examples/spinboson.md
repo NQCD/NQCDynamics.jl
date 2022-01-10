@@ -7,7 +7,7 @@ This example shows how to perform nonequilibrium population dynamics with this
 model using a bath characterised by the Ohmic spectral density.
 
 ```@example spinboson
-using NonadiabaticMolecularDynamics
+using NQCDynamics
 using Plots
 nothing # hide
 ```

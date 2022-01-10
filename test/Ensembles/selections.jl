@@ -1,11 +1,11 @@
 
-using NonadiabaticMolecularDynamics
+using NQCDynamics
 using Test
 using RecursiveArrayTools
 using DiffEqBase: CallbackSet
 
 atoms = Atoms([:H])
-model = NonadiabaticModels.Harmonic()
+model = NQCModels.Harmonic()
 sim = Simulation(atoms, model)
 
 positions = [randn(1, length(atoms)) for i=1:10]

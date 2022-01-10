@@ -9,7 +9,7 @@ First let's visualise the diabats and couplings for the model.
 You can see two regions where the diabats cross with non-zero coupling where we can expect
 to see population transfer.
 ```@example threestatemorse
-using NonadiabaticMolecularDynamics
+using NQCDynamics
 using CairoMakie
 
 x = range(2, 12, length=200)
