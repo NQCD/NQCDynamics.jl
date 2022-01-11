@@ -19,7 +19,6 @@ This manifests itself as two separate data types: the [`Simulation`](@ref), and 
 
 The [`Simulation`](@ref) holds all the static information about the system: the atoms,
 the model, the temperature, the cell and the dynamics method.
-This takes the place of the `p` parameter seen throughout [DifferentialEquations](https://diffeq.sciml.ai/stable/).
 
 ```@example dynamics
 using NQCDynamics # hide
@@ -27,6 +26,8 @@ atoms = Atoms(2000) # Single atom with mass = 2000 a.u.
 sim = Simulation{Ehrenfest}(atoms, TullyModelOne(); temperature=0, cell=InfiniteCell())
 ```
 Here we have initialised the simulation parameters, including the default temperature and cell explicitly.
+`sim` takes the place of the `p` parameter seen throughout [DifferentialEquations](https://diffeq.sciml.ai/stable/): 
+[`DynamicsVariables(sim, args...)`](@ref DynamicsVariables)
 
 For [DifferentialEquations](https://diffeq.sciml.ai/stable/) to allow for a wide variety of solvers, 
 the input arrays [`DynamicsVariables`](@ref) must be [`AbstractArray`](https://docs.julialang.org/en/v1/manual/interfaces/#man-interface-array)s.
@@ -49,13 +50,13 @@ u0 = DynamicsVariables(sim, v0, r0, SingleState(1))
 Since each dynamics method has a different set of variables, each method implements
 [`DynamicsVariables(sim, args...)`](@ref DynamicsVariables), which will convert the input into the correct
 structure.
-This helps to ensure each method follows a similar workflow making it easy to switch between different methods.
+This helps to ensure each method follows a similar workflow, making it easy to switch between different methods.
 The output of this function takes the place of the `u` argument seen throughout
 [DifferentialEquations](https://diffeq.sciml.ai/stable/).
 
 With both the [`Simulation`](@ref) and [`DynamicsVariables`](@ref) in hand,
 the central function is [`run_trajectory`](@ref) which allows us to perform a single dynamics trajectory.
-This takes the simulation parameters and the initial conditions, along with a time span `tspan`
+[`run_trajectory`](@ref) takes the simulation parameters `sim` and the initial conditions `u0`, along with a time span `tspan`
 that the trajectory will cover.
 
 ```@example dynamics
@@ -70,6 +71,8 @@ By passing a `Tuple` to the `output` keyword argument we can ask for specific qu
 ```@example dynamics
 out = run_trajectory(u0, tspan, sim; output=(:position, :adiabatic_population))
 ```
+The specific quantities that are available are listed [`here`]. If you need to add the output of another 
+quantity, the process for doing so is described [`here`]
 
 This time we can see that the output contains only the quantities that we asked for.
 
