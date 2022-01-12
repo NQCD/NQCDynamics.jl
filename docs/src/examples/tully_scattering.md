@@ -4,7 +4,7 @@ In this section we can roughly reproduce the results of figure 5 from [Tully1990
 This figure presents the scattering outcomes when a particle interacts with Tully's model 2
 with an increasing magnitude of incident kinetic energy.
 
-First, let's set up our system parameters:
+To reproduce this figure, first, let's set up our system parameters:
 ```@example tullymodeltwo
 using NQCDynamics
 
@@ -20,11 +20,11 @@ using ComponentArrays: ComponentVector
 
 output = Ensembles.OutputStateResolvedScattering1D(sim, :adiabatic)
 ```
-Here we are using the
+Here, we are using the
 [`OutputStateResolvedScattering1D`](@ref Ensembles.OutputStateResolvedScattering1D)
 along with the [`MeanReduction`](@ref Ensembles.MeanReduction) which will give us
 the average scattering outcome from the entire ensemble.
-Each trajectory output the scattering outcome along with its final state, and the reduction
+Each trajectory outputs the scattering outcome along with its final, adiabatic(?) state, and the reduction
 computes the average over all trajectories.
 
 Next, we can choose how many trajectories we want to perform for each ensemble, and
@@ -34,7 +34,7 @@ ntraj = 500
 momenta = 9:2:50
 ```
 
-Since each ensemble requires a different initial condition, we will specific the timespan
+Since each ensemble requires different initial conditions, we will specific the timespan
 and the distribution inside the loop.
 Before the loop begins, we will create an empty list to store the results, and append
 to this list after every iteration.
@@ -56,8 +56,8 @@ result
 ```
 
 Now we can plot our simulation results. We format this plot to match figure 3 from
-[Shakib2017](@cite). We manage to reproduce the FSSH results quite accurately, and with more
-trajectories will converge to the same result.
+[Shakib2017](@cite). We manage to reproduce the FSSH results quite accurately. With more
+trajectories, our approach will converge to the same result.
 
 ```@example tullymodeltwo
 using CairoMakie
