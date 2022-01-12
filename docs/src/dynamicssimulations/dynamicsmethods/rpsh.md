@@ -6,7 +6,7 @@ the realm of nonadiabatic dynamics [Shushkov2012](@cite).
 On the surface, the concept is reasonably simple. Since RPMD proceeds on a single
 adiabatic surface, it should be possible to directly combine the
 [FSSH](@ref fssh-dynamics) scheme with ring
-polymer dynamics to approximately include some nuclear quantum effects in the surface
+polymer dynamics to approximately include nuclear quantum effects in the surface
 hopping dynamics.
 However, there are some ambiguities surrounding the exact implementation when
 considering how to couple the electronic equations to the nuclear equations and how the
@@ -24,13 +24,14 @@ This is the version that is implemented here.
 The bead approximation involves evaluating the nonadiabatic couplings for every bead
 and using these contributions from every bead to propagate the electronics.
 This version acts to conserve the kinetic energy for the entire ring polymer.
-For further information on the specifics of the implementations, refer to
-[Shushkov2012](@cite) and [Shakib2017](@cite).
+
+For further information on the centroid implementation, please refer to
+[Shushkov2012](@cite), and for the bead approximation to [Shakib2017](@cite).
 
 ## Example
 
-In this example we can apply RPSH to the [`ThreeStateMorse`](@ref) model as in the
-supporting info of [Shakib2017](@cite).
+In this example we can apply RPSH to the [`ThreeStateMorse`](@ref) model as shown in the
+supporting info of [Shakib2017](@cite). We use 4 beads.
 
 ```@example rpsh
 using NQCDynamics
@@ -54,7 +55,7 @@ nothing # hide
 ```
 
 Now let's run an ensemble of trajectories that sample from this distribution.
-For the output we shall receive the diabatic population at intervals of `t=50`
+For the output we will receive the diabatic population at intervals of `t=50`
 and it will be averaged over all trajectories by the `:mean` keyword.
 ```@example rpsh
 solution = run_ensemble(sim, (0.0, 3000.0), distribution;
@@ -68,7 +69,7 @@ solution = run_ensemble(sim, (0.0, 3000.0), distribution;
     In the examples section at the end of the documentation we will return to this model
     and compare the performance of multiple methods.
 
-Here we can see a plot that closely resembles the literature reference. The small
+Here we plot .... The result closely resembles the literature reference. The small
 discrepancy that occurs at around `t=2000` is due to our use of a different way
 to calculate the diabatic populations and better results in general would be
 obtained if using the correct ring polymer distribution.
