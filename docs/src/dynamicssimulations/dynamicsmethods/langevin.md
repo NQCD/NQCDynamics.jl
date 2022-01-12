@@ -1,14 +1,18 @@
 # [Classical Langevin dynamics](@id langevin-dynamics)
 
 Langevin dynamics can be used to sample the canonical ensemble for a classical system.
-It involves a classical dynamics that is modified with an additional drag force
-and a random force.
-The equation of motion can be written as
+Furthermore, if the friction coefficient ``\gamma`` is connected to the electron density,
+langevin dynamcis can be used to describe nonadiabatic energy loss to low-lying electron-hole
+pairs when particles interact with metals surfaces.
+Langevin dynamics are based on the classical Newton's equation of motion that is modified by
+an additional drag force and a random force.
+The Langevin equation of motion can be written as
 ```math
 \mathbf{M}\ddot{\mathbf{R}} = - \nabla_R V(\mathbf{R}) + \mathbf{F}(t) - \gamma \dot{\mathbf{R}}
 ```
-where the friction constant ``\gamma`` is related to the vector of white noise processes
-``\mathbf{F}(t)`` by the second fluctuation-dissipation theorem.
+where ``\mathbf{M}`` are the masses, ``\ddot{\mathbf{R}}`` the time-derivative of the positions, 
+i.e., the velocities, ``\nabla_R V(\mathbf{R})`` the forces and \mathbf{F}(t) the random force
+that is related to the friction coefficient by the second fluctuation-dissipation theorem.
 
 Equally the above equation can be written in the form of Ito stochastic differential
 equations [Leimkuhler2012](@cite)
@@ -22,12 +26,12 @@ d\mathbf{P} &= [-\nabla V(\mathbf{R}) - \gamma \mathbf{P}] dt
 where ``\sigma = \sqrt{2\gamma/\beta}`` and ``\mathbf{W}`` is a vector of ``N`` independent
 Wiener processes.
 
-As a stochastic differential equation, this can be integrated immediately using
-`StochasticDiffEq` provided by `DifferentialEquations` using a variety of stochastic
+As a stochastic differential equation, these two can be integrated immediately using
+`StochasticDiffEq` provided by `DifferentialEquations`, which offers a variety of stochastic
 solvers.
-However, it is possible to exploit the dynamical structure of the differential equations
-by splitting the integration steps into parts that can be solved exactly.
-It has been shown previously that the BAOAB method achieves good accuracy compared to other
+It is possible to exploit the dynamical structure of the differential equations
+by splitting the integration steps into parts that can be solved exactly. In this context, 
+it has been shown that the BAOAB method achieves good accuracy compared to other
 similar algorithms and this algorithm is used here as the default. ([Leimkuhler2012](@cite))
 
 ## Example
@@ -35,8 +39,8 @@ similar algorithms and this algorithm is used here as the default. ([Leimkuhler2
 Using Langevin dynamics we can sample the canonical ensemble for a simple harmonic
 oscillator and investigate the energy expectation values.
 
-Firstly we should set up our system parameters. here we have two atoms in a harmonic
-potential at temperature of `1e-3`. We have arbitrarily chosen the dissipation constant
+Firstly we set up our system parameters. Here, we have two atoms in a harmonic
+potential at a temperature of `1e-3` (units?). We have arbitrarily chosen the dissipation constant
 ``\gamma = 1``, this can be tuned for optimal sampling in more complex systems. 
 ```@example langevin
 using NQCDynamics
@@ -51,28 +55,28 @@ Here we can generate a simple starting configuration with zeros for every degree
 u = DynamicsVariables(sim, zeros(size(sim)), zeros(size(sim)))
 ```
 
-Running the dynamics proceeds in the usual way by providing all the parameters along with
+Running the dynamics proceeds by providing all the parameters along with
 any extra keywords. This time we have requested both the positions and velocities to be
-output and have selected a timestep `dt`.
+outputed and have selected a timestep `dt`.
 Since the default algorithm is a fixed timestep algorithm an error will be thrown if a
 timestep is not provided.
 ```@example langevin
 traj = run_trajectory(u, (0.0, 2000.0), sim; output=(:position, :velocity), dt=0.1)
 ```
 
-Here we can see the positions of our two atoms throughout the simulation.
+Here, we plot the positions of our two atoms throughout the simulation.
 ```@example langevin
 using Plots
 plot(traj, :position)
 ```
 
-These are the velocities, notice how the carbon atom with its heavier mass has a smaller
+We next plot the velocities. Notice how the carbon atom (orange) with its heavier mass has a smaller
 magnitude throughout.
 ```@example langevin
 plot(traj, :velocity)
 ```
 
-With these configurations we can calculate expectation values by computing averages along
+From the configurations from the Langevin simulation we can obtain expectation values along
 the trajectories.
 This can be done manually, but we provide the [`Estimators`](@ref) module to make this
 as simple as possible.
@@ -94,7 +98,7 @@ Estimators.@estimate potential_energy(sim, traj.position)
     We can verify this result by comparing to the
     equipartition theorem which states that each quadratic degree of freedom should contribute
     ``\frac{1}{2}kT`` to the total energy.
-    Since this is a harmonic system, this gives us the exact classical potential energy
+    As this is a harmonic system, this gives us the exact classical potential energy
     expectation as equal to the temperature, since we have two degrees of freedom and
     we are in atomic units.
 
