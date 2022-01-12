@@ -5,7 +5,7 @@ to approximate Kubo-transformed real-time correlation functions ([Craig2004](@ci
 
 The idea is to exploit the classical isomorphism that maps a quantum particle onto
 the extended phasespace of a classical ring polymer.
-By this we mean that it can be shown that the quantum partition function
+It can be shown that the quantum partition function
 for a system can be manipulated such that it resembles the classical partition function
 of a system containing many replicas of the original particle joined to together with
 harmonic springs in a ring.
@@ -15,7 +15,7 @@ ensemble averages for the classical ring polymer system.
 This is referred to as the field of imaginary-time path integrals and the techniques used
 are Path Integral Monte Carlo (PIMC) and Path Integral Molecular Dynamics (PIMD)
 depending on whether molecular dynamics or Monte Carlo methods are used to explore the
-phasespace.
+phasespace. (cite!)
 
 RPMD was proposed as a heuristic extension of imaginary-time path integrals to evaluate
 real-time dynamical quantities.
@@ -40,7 +40,9 @@ functions.
 ## Example
 
 Let us perform some simple adiabatic ring polymer dynamics to get a feel
-for what the ring polymer dynamics looks like.
+for what the ring polymer dynamics looks like. 
+We set up a 2D system for one hydrogen atom by giving the [`Free`](@ref) model 2 degrees of freedom and
+specify that the ring polymer should have 50 beads.
 
 ```@example rpmd
 using NQCDynamics
@@ -50,10 +52,7 @@ atoms = Atoms([:H])
 sim = RingPolymerSimulation(atoms, Free(2), 50; temperature=100u"K")
 ```
 
-We have set up a 2D system by giving the [`Free`](@ref) model 2 degrees of freedom and
-have specified that the ring polymer should have 50 beads.
-
-We can initialise the simulation with zero velocity and a random distribution for the
+We initialise the simulation with zero velocity and a random distribution for the
 ring polymer bead positions. For a real RPMD simulation you will use the thermal ring
 polymer distribution obtained from a PIMC or Langevin simulation but here for simplicity
 we use a normally distributed configuration.
@@ -62,7 +61,8 @@ u = DynamicsVariables(sim, zeros(size(sim)), randn(size(sim)))
 nothing # hide
 ```
 
-Now we can run the simulation:
+Now we can run the simulation, for which we use the time interval 0.0 to 500.0 and a time 
+step of `dt = 2.5`:
 ```@example rpmd
 dt = 2.5
 traj = run_trajectory(u, (0.0, 500.0), sim; output=(:position), dt=dt)
@@ -70,7 +70,7 @@ nothing # hide
 ```
 
 We can visualise this ring polymer trajectory with a 2D scatter plot that shows how
-the ring polymer evolves in time. Here we have joined the adjacent beads together with
+the ring polymer evolves in time. Here, we have joined the adjacent beads together with
 lines, with the end and start beads joined with a different color.
 Hopefully you can see that this interaction appears equivalent to all the others.
 
@@ -103,7 +103,7 @@ nothing
 !!! note
 
     We have used Makie's animation features to produce this animation. If you want
-    information how this stuff works, take a look at the
+    information how Makie works, take a look at the
     [Makie documentation](https://makie.juliaplots.org/stable/documentation/animation/).
 
 Since this package is focused on nonadiabatic dynamics, you won't see much adiabatic RPMD
