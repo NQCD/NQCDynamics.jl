@@ -1,6 +1,6 @@
 # [Classical molecular dynamics](@id classical-dynamics)
 
-Classical dynamics is the traditional form of molecular dynamics and proceeds
+Classical (molecular) dynamics proceeds
 by solving the dynamics for a system governed by a classical Hamiltonian containing
 the kinetic energy of the particles and a potential energy function:
 
@@ -9,12 +9,12 @@ H = \frac{P^2}{2M} + V(R)
 ```
 
 To integrate the equations we use the `VelocityVerlet()` algorithm from
-`DifferentialEquations.jl` which is one of the most widely used
+`DifferentialEquations.jl`, which is one of the most widely used
 algorithms for molecular dynamics.
 
 ## Example
 
-As a simple example we can create two particles with `mass = 1` and attach a `DiatomicHarmonic` interaction which provides an interatomic potential.
+We can create two particles with `mass = 1` and attach a `DiatomicHarmonic` interaction which provides a harmonic interatomic potential.
 
 !!! note
 
@@ -22,6 +22,7 @@ As a simple example we can create two particles with `mass = 1` and attach a `Di
     parameter as below defaults to `Simulation{Classical}(...)`.
 
 ```@example
+
 using NQCDynamics
 using Plots
 
