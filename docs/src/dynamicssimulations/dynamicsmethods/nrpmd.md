@@ -55,7 +55,7 @@ The equations of motion obtained from this Hamiltonian are
 ### Solving the differential equations
 
 For mapping variable methods of this type, a symplectic algorithm ([Church2018](@cite))
-exists which has the advantage of long time stability and can be easily combined
+exists. This algorithm has the advantage of long time stability and can be easily combined
 with the standard algorithms for ring polymer time-evolution.
 For NRPMD we have implemented this algorithm using the Cayley modified ring polymer
 propagator ([Korol2019](@cite)) and obtain accurate and efficient dynamics.
@@ -64,17 +64,17 @@ is obtained, but as the number of beads increases this algorithm becomes more ef
 
 ### Generating the initial distribution
 
-Currently we provide this functionality only for nonequilibrium simulations where the nuclear part
+Currently, we provide this functionality only for nonequilibrium simulations where the nuclear part
 of the distribution is separable from the electronic part.
-Typically the nuclear distribution will be sampled using Langevin dynamics or Monte Carlo
+Typically, the nuclear distribution will be sampled using Langevin dynamics or Monte Carlo
 sampling and the electronic variables are confined to a single electronic state.
 This is appropriate for modelling photoexcitation dynamics but is not yet suitable
 for equilibrium simulations.
-This would require also sampling a thermal distribution for the mapping variables.
+Equilibrium dynamicts would require also sampling a thermal distribution for the mapping variables.
 
 ### Form of the Hamiltonian
 
-Diabatic models defined in `NQCModels.jl` are of the appropriate form for
+The diabatic models defined in `NQCModels.jl` are of the appropriate form for
 this method though they provide the potential as a single matrix, rather than separating
 the state-dependent and independent parts.
 It has been suggested that defining the Hamiltonian such that the lowest eigenvalue
@@ -87,7 +87,7 @@ However, here we have not done this for simplicity when defining the models.
 Using NRPMD we can reproduce the figure 3a in the 2019 paper of Chowdhury
 and Huo ([Chowdhury2019](@cite)).
 
-First we must generate a thermal ring polymer distribution in a harmonic potential.
+First we generate a thermal ring polymer distribution in a harmonic potential.
 A simple way to do this is to use Monte Carlo sampling for the positions and
 obtain velocities from a Boltzmann distribution.
 
@@ -117,7 +117,7 @@ flat_velocity = vcat([rand(nuclear.velocity)[:] for p in 1:length(nuclear.positi
 scatter(flat_position, flat_velocity)
 ```
 
-As usual, the simulation method is given as the type parameter `{NRPMD}` and
+The simulation method is given as the type parameter `{NRPMD}` and
 the simulation constructor is given the atoms, model, number of beads,
 temperature and degrees of freedom.
 
@@ -128,7 +128,7 @@ sim = RingPolymerSimulation{NRPMD}(atom, DoubleWell(γ=0.1), 4; temperature=1/16
 Next, we can use this distribution as a starting point for the dynamics simulations.
 This will result in each trajectory starting from a random configuration in the
 distribution.
-For NRPMD, the electronic variables are sampled from a gaussian, independent of the
+For NRPMD, the electronic variables are sampled from a Gaussian, independent of the
 initial electronic state.
 The electronic state is introduced in the correlation function expression when correlating
 the initial and final populations.
