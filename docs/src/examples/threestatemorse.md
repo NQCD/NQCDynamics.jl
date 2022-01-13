@@ -1,6 +1,6 @@
 # Time-dependent populations with the ThreeStateMorse model
 
-In this example we shall investigate the time-dependent populations of the three state
+In this example we investigate the time-dependent populations of the three state
 morse model parametrised to describe photodissociation processes ([Coronado2001](@cite)).
 Technically, three different versions of this model exist and the one used
 here is model c.
@@ -36,7 +36,7 @@ fig
 
 To this model we can apply any of the methods capable of starting the population on a single
 diabatic state and returning the population as a function of time.
-Here let's use `FSSH` and `Ehrenfest`.
+Here, let's use `FSSH` and `Ehrenfest`.
 We can expect the nuclear quantum effects here to be minimal since the nuclear mass is
 chosen to be 20000. 
 ```@example threestatemorse
