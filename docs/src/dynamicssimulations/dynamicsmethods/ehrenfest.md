@@ -11,10 +11,7 @@ i\hbar \dot{c}_i(t) = V_i(\mathbf{R}) c_i (t)
 ## Example
 Below the example of the Ehrenfest implementation is presented, using model from [Ananth2007](@cite).
 
-First, the simulation parameters are created. Here we have a single atom with a mass of
-`2000` and we are using Tully's third model, provided by [NonadiabaticModels.jl](@ref).
-
-At the start, we assign `atoms` variable and initialise simulation using the atoms details and model employed by [NonadiabaticModels.jl](@ref).
+At the start, we assign `atoms` variable () and initialise simulation using the atoms details and model employed by [NonadiabaticModels.jl](@ref).
 ```@example ehrenfest
 using NQCDynamics
 
