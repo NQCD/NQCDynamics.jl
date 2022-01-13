@@ -9,13 +9,12 @@ With a specific ro-vibrational quantum state is possible to compute different pr
 after molecular collision and energy transfer with the metal surface like the vibrational
 de-excitation probabilities.
 A full description of our reactive system also includes other basic variables definition
-like type of atoms, unit cell and electronic temperature which can be properly defined
-before to run any simulation.
+like type of atoms, unit cell and electronic temperature, which can also be defined before running a simulation.
 
-As shown earlier in the [EBK documentation](@ref ebk-sampling) we are able to generate
+The [EBK documentation](@ref ebk-sampling) show how to generate
 a semiclassically quantised distribution for a diatomic molecule on a collision course
 with a metal surface.
-Here we can follow that example with the [`H2AgModel`](@ref NNInterfaces.H2AgModel)
+Here, we follow the same example with the [`H2AgModel`](@ref NNInterfaces.H2AgModel)
 to prepare our initial distribution.
 
 ```@example h2scatter
@@ -29,7 +28,7 @@ model = H2AgModel()
 cell = PeriodicCell([11.1175 -5.5588 0.0; 0.0 9.628 0.0; 0.0 0.0 70.3079])
 sim = Simulation(atoms, model; cell=cell)
 
-ν, J = 2, 0
+ν, J = 2, 0 # vibrational and rotation state
 nsamples = 20
 
 configurations = QuantisedDiatomic.generate_configurations(sim, ν, J;
@@ -41,11 +40,9 @@ distribution = DynamicalDistribution(v, r, (3,2))
 ```
 
 Since we are interested in the dynamics only when the molecule is close to the surface,
-we can use a callback to terminate the simulation early to save us some time.
-This requires defining a function that returns `true` when we want the simulation to
-terminate.
-This means we can set our time span relatively long since we expect most simulations to
-terminate before reaching the time limit.
+we can use a callback to terminate the simulation early when the molecule has moved far away from the
+surface to save simulation time. The termination callback requires defining a function that returns 
+`true` when we want the simulation to end.
 
 ```@example h2scatter
 using Statistics: mean
@@ -73,12 +70,12 @@ nothing # hide
 ## MDEF with the LDFA
 
 Now that we've set up the initial distribution and some of our simulation parameters,
-we can choose which form of friction we would like use.
-First, let's use the LDFA implementation provided by the
+we can choose which form of nonadiabatic we would like to use.
+First, let's use the LDFA implementation (the local density friction approximation) provided by the
 [CubeLDFAModel](@ref models-cubeldfa).
-This takes a `.cube` file containing the electron density and will provide the friction
-during the dynamics.
-Here we have given the new model our model from above, which will provide the forces.
+This takes a `.cube` file containing the electron density of the system and will provide the friction
+during the dynamics based on the local electron density.
+Here, we have given the new model our model from above, which will provide the forces.
 
 ```@example h2scatter
 using CubeLDFAModel
@@ -111,9 +108,9 @@ f
 ## MDEF with neural network friction 
 
 Above, we used the LDFA interpretation of MDEF to perform the simulation.
-However, the [`H2AgModel`](@ref NNInterfaces.H2AgModel) actually provides it's own
+However, the [`H2AgModel`](@ref NNInterfaces.H2AgModel) actually provides its own
 friction tensor trained on *ab initio* data.
-This can be used by simply using the model directly, without wrapping it with the
+We cam use this friction tensor by simply using the model directly, without wrapping it with the
 [`LDFAModel`](@ref CubeLDFAModel.LDFAModel).
 
 ```@example h2scatter
