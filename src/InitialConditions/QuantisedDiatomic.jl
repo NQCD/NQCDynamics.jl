@@ -52,7 +52,7 @@ function SurfaceParameters(masses::AbstractVector, atom_indices::AbstractVector,
     else
         surface_top = maximum(slab[3,:])
     end
-    return SurfaceParameters(μ, atom_indices, slab, height + surface_top,
+    return SurfaceParameters{eltype(masses)}(μ, atom_indices, slab, height + surface_top,
         surface_normal, orthogonal_vectors)
 end
 
