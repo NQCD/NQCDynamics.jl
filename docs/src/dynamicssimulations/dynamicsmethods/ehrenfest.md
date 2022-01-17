@@ -1,7 +1,8 @@
 # [Ehrenfest molecular dynamics](@id ehrenfest-dynamics)
 
-The Ehrenfest method is a mixed quantum-classical dynamics (MQCD) method in which total wavefunction is factorized into slow (nuclear) variables, which are treated classically, and fast ones (electrons) which remain quantum-mechanical. In the Ehrenfest method, nuclei move according to classical mechanics on a potential energy surface given by the expectation value of the electronic Hamiltonian. 
+The Ehrenfest method is a mixed quantum-classical dynamics method in which the total wavefunction is factorized into slow (nuclear) variables, which are treated classically, and fast ones (electrons) which remain quantum-mechanical. In the Ehrenfest method, nuclei move according to classical mechanics on a potential energy surface given by the expectation value of the electronic Hamiltonian. 
 
+The time depedence of the electronic wavefunction is expanded into an adiabatic basis and follows the time-dependent Schr\"odinger equation.
 ```math
 i\hbar \dot{c}_i(t) = V_i(\mathbf{R}) c_i (t)
 - i\hbar \sum_j \dot{\mathbf{R}} \cdot \mathbf{d}_{ij}(\mathbf{R})c_j(t)
@@ -10,14 +11,15 @@ i\hbar \dot{c}_i(t) = V_i(\mathbf{R}) c_i (t)
 ## Example
 Below the example of the Ehrenfest implementation is presented, using model from [Ananth2007](@cite).
 
-At the start, we assign `atoms` variable () and initialise simulation using the atoms details and model employed by [NonadiabaticModels.jl](@ref).
+At the start, we assign `atoms` and initialise the simulation using the mass and model from [NQCModels.jl](@ref).
 ```@example ehrenfest
 using NQCDynamics
 
 atoms = Atoms(1980)
 sim = Simulation{Ehrenfest}(atoms, AnanthModelOne())
 ```
-Next, we set dynamical distribution details:
+
+Next, the initial distribution is created:
 ```@example ehrenfest
 using Distributions
 e = 0.03
@@ -37,7 +39,7 @@ final_velocities = [r.velocity[end] for r in solution]
 momenta = reduce(vcat, final_velocities*atoms.masses[1])
 ```
 
-Resulting momenta can be ploted by using `StatsPlots` package.
+Resulting momenta can be plotted by using `StatsPlots` package.
 ```@example ehrenfest
 using StatsPlots
 plot(density(momenta))
