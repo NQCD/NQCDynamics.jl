@@ -6,7 +6,7 @@ This contrasts somewhat with most other software packages where these would be u
 by joined together into a single object.
 
 The atomic parameters here are contained within the
-[`Atoms`](@ref NQCBase.Atoms) type introduced earlier
+[`Atoms`](@ref) type introduced earlier
 in the [Getting started](@ref) section.
 As mentioned previously, there exist some basic constructors which use either elemental
 symbols or numbers to initialise the parameters:
