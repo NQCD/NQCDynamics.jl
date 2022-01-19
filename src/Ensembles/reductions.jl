@@ -58,8 +58,8 @@ function get_u_init(::Union{MeanReduction, SumReduction}, saveat, stripped_kwarg
     return u_init
 end
 
-function get_u_init(::Union{MeanReduction, SumReduction}, saveat, stripped_kwargs, tspan, u0, output::AbstractOutput)
+function get_u_init(::Union{MeanReduction, SumReduction}, saveat, stripped_kwargs, tspan, u0, output)
     return output_template(output, u0)
 end
 
-get_u_init(reduction, saveat, stripped_kwargs, tspan, u0, output) = []
+get_u_init(reduction, saveat, stripped_kwargs, tspan, u0, output) = Nothing[]
