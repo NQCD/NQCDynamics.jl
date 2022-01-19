@@ -32,6 +32,7 @@ end
         "Introduction" => "index.md"
         "Getting started" => "getting_started.md"
         "Atoms" => "atoms.md"
+        "Ensemble simulations" => "ensemble_simulations.md"
         "NQCModels.jl" => Any[
             "NQCModels/overview.md"
             "NQCModels/analyticmodels.md"
@@ -47,7 +48,6 @@ end
             "dynamicssimulations/dynamicssimulations.md"
             find_all_files("dynamicssimulations/dynamicsmethods")
         ]
-        "Ensemble simulations" => "ensemble_simulations.md"
         "Examples" => find_all_files("examples")
         "Developer documentation" => find_all_files("devdocs")
         "API" => Any[
