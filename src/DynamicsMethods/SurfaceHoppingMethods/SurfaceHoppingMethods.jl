@@ -6,7 +6,6 @@ using ComponentArrays: ComponentVector
 using DiffEqBase: DiffEqBase
 using LinearAlgebra: LinearAlgebra, lmul!
 using OrdinaryDiffEq: OrdinaryDiffEq
-using Revise
 
 using NQCDynamics:
     NQCDynamics,
