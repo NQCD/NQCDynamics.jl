@@ -1,6 +1,6 @@
 push!(LOAD_PATH, pwd())
-using NonadiabaticMolecularDynamics
-using NonadiabaticMolecularDynamics.InitialConditions
+using NQCDynamics
+using NQCDynamics.InitialConditions
 using LinearAlgebra
 using Unitful
 using UnitfulAtomic

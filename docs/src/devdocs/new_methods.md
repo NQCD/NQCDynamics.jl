@@ -13,7 +13,7 @@ fields but this can be a good place to include any temporary arrays and paramete
 for the simulation.
 
 ```@example mymethod
-using NonadiabaticMolecularDynamics
+using NQCDynamics
 
 struct MyMethod <: DynamicsMethods.Method end
 ```

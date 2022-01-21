@@ -1,7 +1,7 @@
 using StructArrays: StructArray
 using ComponentArrays: ComponentArrays
 using LinearAlgebra: diagm, mul!
-using NonadiabaticMolecularDynamics: RingPolymers
+using NQCDynamics: RingPolymers
 
 function set_quantum_derivative! end
 

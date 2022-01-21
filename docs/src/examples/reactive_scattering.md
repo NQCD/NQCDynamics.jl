@@ -19,10 +19,10 @@ Here we can follow that example with the [`H2AgModel`](@ref NNInterfaces.H2AgMod
 to prepare our initial distribution.
 
 ```@example h2scatter
-using NonadiabaticMolecularDynamics
+using NQCDynamics
 using NNInterfaces
 using Unitful
-using NonadiabaticMolecularDynamics.InitialConditions: QuantisedDiatomic
+using NQCDynamics.InitialConditions: QuantisedDiatomic
 
 atoms = Atoms([:H, :H])
 model = H2AgModel()
@@ -86,10 +86,10 @@ model = LDFAModel(model, "../assets/friction/test.cube", atoms, friction_atoms=[
 ```
 
 Now we can pass all the variables defined so far to the `Simulation` and run multiple
-trajectories using [`Ensembles.run_trajectories`](@ref).
+trajectories using [`run_ensemble`](@ref).
 ```@example h2scatter
 sim = Simulation{MDEF}(atoms, model, cell=cell, temperature=300u"K")
-ensemble = Ensembles.run_trajectories(sim, tspan, distribution;
+ensemble = run_ensemble(sim, tspan, distribution;
     dt=0.1u"fs", output=:position, trajectories=20, callback=terminate)
 ```
 
@@ -119,7 +119,7 @@ This can be used by simply using the model directly, without wrapping it with th
 ```@example h2scatter
 model = H2AgModel()
 sim = Simulation{MDEF}(atoms, model, cell=cell, temperature=300u"K")
-ensemble = Ensembles.run_trajectories(sim, tspan, distribution;
+ensemble = run_ensemble(sim, tspan, distribution;
     dt=0.1u"fs", output=:position, trajectories=20, callback=terminate)
 
 f = Figure()

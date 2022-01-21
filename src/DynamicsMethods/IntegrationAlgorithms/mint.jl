@@ -5,8 +5,8 @@ using StaticArrays: SMatrix
 using OrdinaryDiffEq: OrdinaryDiffEq
 using LinearAlgebra: Hermitian, tr
 
-using NonadiabaticMolecularDynamics.DynamicsMethods: MappingVariableMethods
-using NonadiabaticModels: nstates
+using NQCDynamics.DynamicsMethods: MappingVariableMethods
+using NQCModels: nstates
 
 """
     MInt <: OrdinaryDiffEq.OrdinaryDiffEqAlgorithm

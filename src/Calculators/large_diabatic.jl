@@ -1,5 +1,5 @@
 
-using NonadiabaticModels.DiabaticModels: LargeDiabaticModel
+using NQCModels.DiabaticModels: LargeDiabaticModel
 
 struct LargeDiabaticCalculator{T,M} <: AbstractDiabaticCalculator{T,M}
     model::M
@@ -31,12 +31,12 @@ function Calculator(model::LargeDiabaticModel, atoms::Integer, T::Type=Float64)
 end
 
 function evaluate_potential!(calc::LargeDiabaticCalculator, R)
-    NonadiabaticModels.potential!(calc.model, calc.potential, R)
+    NQCModels.potential!(calc.model, calc.potential, R)
 end
 
 function evaluate_potential!(calc::LargeDiabaticCalculator, R::AbstractArray{T,3}) where {T}
     @views for i in axes(R, 3)
-        NonadiabaticModels.potential!(calc.model, calc.potential[i], R[:,:,i])
+        NQCModels.potential!(calc.model, calc.potential[i], R[:,:,i])
     end
 end
 

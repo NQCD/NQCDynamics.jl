@@ -1,8 +1,8 @@
 
 module MappingVariableMethods
 
-using NonadiabaticMolecularDynamics:
-    NonadiabaticMolecularDynamics,
+using NQCDynamics:
+    NQCDynamics,
     AbstractSimulation,
     Simulation,
     RingPolymerSimulation,
@@ -13,8 +13,8 @@ using NonadiabaticMolecularDynamics:
     NonadiabaticDistributions,
     TimeCorrelationFunctions,
     ndofs
-using NonadiabaticModels: NonadiabaticModels, Model
-using NonadiabaticDynamicsBase: Atoms
+using NQCModels: NQCModels, Model
+using NQCBase: Atoms
 using .DynamicsUtils: get_mapping_momenta, get_mapping_positions
 
 include("nrpmd.jl")

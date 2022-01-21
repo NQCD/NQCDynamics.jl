@@ -1,5 +1,5 @@
 using Test
-using NonadiabaticMolecularDynamics
+using NQCDynamics
 using LinearAlgebra
 
 @test_nowarn RingPolymers.RingPolymerParameters{Float64}(10, 1, 1)
@@ -13,7 +13,7 @@ rp = RingPolymers.RingPolymerParameters{Float64}(10, 1.0, 10)
 @test sort(eigvals(rp.springs)) ≈ sort(rp.normal_mode_springs)
 
 atoms = Atoms{Float64}(vcat(fill(:H, 10), :O))
-model = NonadiabaticModels.Free(3)
+model = NQCModels.Free(3)
 sim = RingPolymerSimulation{Classical}(atoms, model, 10)
 @test sim.beads.quantum_atoms == collect(1:11)
 sim = RingPolymerSimulation{Classical}(atoms, model, 10; quantum_nuclei=[:H])

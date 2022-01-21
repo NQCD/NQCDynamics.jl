@@ -13,5 +13,5 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           ssh: ${{ secrets.DOCUMENTER_KEY }}
-          registry: NQCD/NQCDRegistry
+          registry: NQCD/NQCRegistry
 

@@ -1,4 +1,4 @@
-using NonadiabaticMolecularDynamics: RingPolymers
+using NQCDynamics: RingPolymers
 using Distributions: Distributions
 
 struct HarmonicRingPolymer{T,D}

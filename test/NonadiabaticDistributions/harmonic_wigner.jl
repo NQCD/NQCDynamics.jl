@@ -1,5 +1,5 @@
 
-using Test, NonadiabaticMolecularDynamics
+using Test, NQCDynamics
 
 ω = 3
 β = 5

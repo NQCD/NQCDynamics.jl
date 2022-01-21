@@ -1,6 +1,6 @@
 using Test
-using NonadiabaticMolecularDynamics
-using NonadiabaticMolecularDynamics: Calculators
+using NQCDynamics
+using NQCDynamics: Calculators
 
 @testset "fill_density!" begin
     @testset "SingleState" for state ∈ (1, 2)
