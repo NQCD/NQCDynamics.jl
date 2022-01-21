@@ -36,15 +36,6 @@ struct AdiabaticIESH{T} <: AbstractIESH
     end
 end
 
-<<<<<<< HEAD
-function NonadiabaticMolecularDynamics.Simulation{IESH_type}(atoms::Atoms{S,T}, model::Model; n_electrons, rescaling=:standard, kwargs...) where {S,T,IESH_type<:AbstractIESH}
-    NonadiabaticMolecularDynamics.Simulation(atoms, model, IESH_type{T}(NonadiabaticModels.nstates(model), n_electrons, rescaling); kwargs...)
-end
-
-function DynamicsMethods.DynamicsVariables(sim::Simulation{<:AdiabaticIESH}, v, r)
-    ψ = zeros(NonadiabaticModels.nstates(sim.calculator.model), sim.method.n_electrons)
-    
-=======
 function NQCDynamics.Simulation{IESH}(atoms::Atoms{S,T}, model::Model; n_electrons, kwargs...) where {S,T}
     NQCDynamics.Simulation(atoms, model, IESH{T}(NQCModels.nstates(model), n_electrons); kwargs...)
 end
@@ -52,7 +43,6 @@ end
 function DynamicsMethods.DynamicsVariables(sim::Simulation{<:IESH}, v, r)
     ψ = zeros(NQCModels.nstates(sim.calculator.model), sim.method.n_electrons)
 
->>>>>>> master
     for i=1:sim.method.n_electrons
         ψ[i,i] = 1
     end
@@ -219,17 +209,9 @@ function Estimators.diabatic_population(sim::Simulation{<:AdiabaticIESH}, u)
     return diabatic_population
 end
 
-<<<<<<< HEAD
-function Estimators.adiabatic_population(sim::Simulation{<:AdiabaticIESH}, u)
-    population = zeros(NonadiabaticModels.nstates(sim.calculator.model))
-    for i=1:sim.method.n_electrons
-        population .+= abs2.(DynamicsUtils.get_quantum_subsystem(u)[:,i])
-    end
-=======
 function Estimators.adiabatic_population(sim::Simulation{<:IESH}, u)
     population = zeros(NQCModels.nstates(sim.calculator.model))
     population[u.state] .= 1
->>>>>>> master
     return population
 end
 
