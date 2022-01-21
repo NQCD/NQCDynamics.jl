@@ -1,6 +1,6 @@
 using LinearAlgebra: lmul!, norm
 using Parameters: Parameters
-using NonadiabaticMolecularDynamics.NonadiabaticDistributions: ElectronicDistribution
+using NQCDynamics.NonadiabaticDistributions: ElectronicDistribution
 
 """
     eCMM{T} <: DynamicsMethods.Method
@@ -19,13 +19,13 @@ struct eCMM{T} <: DynamicsMethods.Method
     end
 end
 
-function NonadiabaticMolecularDynamics.Simulation{eCMM}(atoms::Atoms{S,T}, model::Model; γ=0, kwargs...) where {S,T}
-    NonadiabaticMolecularDynamics.Simulation(atoms, model, eCMM{T}(NonadiabaticModels.nstates(model), γ); kwargs...)
+function NQCDynamics.Simulation{eCMM}(atoms::Atoms{S,T}, model::Model; γ=0, kwargs...) where {S,T}
+    NQCDynamics.Simulation(atoms, model, eCMM{T}(NQCModels.nstates(model), γ); kwargs...)
 end
 
 function DynamicsMethods.DynamicsVariables(sim::Simulation{<:eCMM}, v, r, ::ElectronicDistribution)
 
-    F = NonadiabaticModels.nstates(sim)
+    F = NQCModels.nstates(sim)
     radius = sqrt(2 + 2F*sim.method.γ)
     points = generate_random_points_on_nsphere(2F, radius)
     qmap = points[begin:div(F,2)+1]
@@ -118,6 +118,6 @@ function TimeCorrelationFunctions.evaluate_normalisation(
     sim::AbstractSimulation{<:eCMM},
     ::TimeCorrelationFunctions.PopulationCorrelationFunction
 )
-    NonadiabaticModels.nstates(sim)
+    NQCModels.nstates(sim)
 end
 

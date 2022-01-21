@@ -23,9 +23,9 @@ using Reexport: @reexport
 using OrdinaryDiffEq: OrdinaryDiffEq
 using ComponentArrays: ComponentVector
 
-using NonadiabaticMolecularDynamics: AbstractSimulation, Simulation, RingPolymerSimulation,
+using NQCDynamics: AbstractSimulation, Simulation, RingPolymerSimulation,
     DynamicsOutputs
-using NonadiabaticDynamicsBase: austrip_kwargs
+using NQCBase: austrip_kwargs
 
 export DynamicsVariables
 export run_trajectory

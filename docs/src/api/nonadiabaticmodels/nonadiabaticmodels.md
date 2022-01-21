@@ -1,9 +1,0 @@
-
-# NonadiabaticModels
-
-```@autodocs
-Modules=[NonadiabaticModels]
-```
-
-
-

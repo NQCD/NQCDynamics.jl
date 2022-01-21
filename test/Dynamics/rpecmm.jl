@@ -1,6 +1,6 @@
 
 using Test
-using NonadiabaticMolecularDynamics
+using NQCDynamics
 using FiniteDiff
 using LinearAlgebra: norm
 using OrdinaryDiffEq: Tsit5

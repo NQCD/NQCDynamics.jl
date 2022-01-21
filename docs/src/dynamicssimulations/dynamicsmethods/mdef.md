@@ -26,11 +26,11 @@ simulation which can explore further in later sections using realistic systems.
 Here we shall model a single hydrogen atom in a harmonic potential,
 where the electronic temperature is 300 K.
 The [`CompositeFrictionModel`](@ref CompositeFrictionModel) allows us to combine any
-[`AdiabaticModel`](@ref NonadiabaticModels.AdiabaticModels.AdiabaticModel)
-with an [`ElectronicFrictionProvider`](@ref NonadiabaticModels.FrictionModels.ElectronicFrictionProvider)
+[`AdiabaticModel`](@ref NQCModels.AdiabaticModels.AdiabaticModel)
+with an [`ElectronicFrictionProvider`](@ref NQCModels.FrictionModels.ElectronicFrictionProvider)
 which will add electronic friction to an otherwise adiabatic system.
 ```@example mdef
-using NonadiabaticMolecularDynamics
+using NQCDynamics
 using Unitful
 
 atoms = Atoms([:H])
@@ -125,4 +125,4 @@ View the [friction models page](@ref models-friction) to learn about how this ca
 !!! tip "TDPT friction and LDFA in action?"
 
     If you would like to see an example using both LDFA and TDPT during full dimensional
-    dynamics, refer to the [reactive scattering example](@ref examples-tully-model-two).
+    dynamics, refer to the [reactive scattering example](@ref example-h2scattering).
