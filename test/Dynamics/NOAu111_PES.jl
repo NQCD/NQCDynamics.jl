@@ -1,9 +1,10 @@
-using NonadiabaticModels
-using NonadiabaticMolecularDynamics
+using NQCModels
+using NQCDynamics
 using Random, Distributions
 
 using PyCall
 using Unitful, UnitfulAtomic
+
 
 """
     Purpose: Integrate Belal's implementation of NO/Au(111) so we
@@ -13,7 +14,7 @@ using Unitful, UnitfulAtomic
 
 Random.seed!(13)
 # Number of electronic states
-M = 4
+M = 8
 nstates = M
 
 
@@ -42,7 +43,7 @@ timestep = 0.1e-15 #fs
 bohr = 0.529177210903
 #println(auconvert(timestep*u"s"))
 
-filename = "surface_Au111_4.dat"
+filename = "/home/sjanke/Documents/Uni/Warwick/Documents/Projects/Anderson_Holstein_H/IESH_Tully/My_IESH/data/surface_Au111_4.dat"
 #filename = "/home/sjanke/Documents/Uni/Warwick/Documents/Projects/Anderson_Holstein_H/IESH_Tully/My_IESH/data/surface_Au111.dat"
 f = open(filename)
 data = readlines(f)
@@ -62,8 +63,8 @@ no_pos[2,3] = 10.881352559894953#*Å
 
 #no_pos[1,3] = 1.5*Å
 #no_pos[2,3] = 2.65*Å
-no_pos[1,3] = 1.5*bohr
-no_pos[2,3] = 2.65*bohr
+no_pos[1,3] = ustrip(auconvert(1.5*u"Å"))
+no_pos[2,3] = ustrip(auconvert(2.65*u"Å"))
 
 for i in 5:length(data)
     au_atoms[i-4,:] = parse.(Float64,split(strip(data[i])))#*Å
@@ -75,7 +76,8 @@ atoms=Atoms(vcat([:N, :O], fill(:Au, Int(length(au_atoms)/3))))
 p = zeros(n_au+2,3)
 p[1:2,:] = no_pos
 #p[3:n_au+2,:] = au_atoms*Å
-p[3:n_au+2,:] = au_atoms*bohr
+#map( x -> auconvert(u"J", x), V)
+p[3:n_au+2,:] = map( x -> ustrip(auconvert(x*u"Å")), au_atoms)
 
 model = Tully_NOAu111(M = M+1, n_au=n_au, au_pos=au_atoms, no_pos = no_pos,
                       x_pos = p, cell_mat = cell_mat, a_lat = a0, W=7.0)
@@ -84,8 +86,9 @@ model = Tully_NOAu111(M = M+1, n_au=n_au, au_pos=au_atoms, no_pos = no_pos,
 
 #Still needs: positions handed into potential and derivative
 # p are the positions, I believe
-pto = potential(model, p)
-dto = derivative(model, p)
+r1 = p'
+pto = potential(model, r1)
+dto = derivative(model, r1)
 
 #println(size(dto))
 #println(size(dto[1]))
@@ -94,12 +97,12 @@ dto = derivative(model, p)
 #@test Dynamics.IESH{Float64}(42,40) isa Dynamics.IESH
 # # #Initialize the simulation problem; Simulation is defined in src/simulation_constructors.jl 
 
-sim = Simulation{IESH_Tully}(atoms, model, n_electrons=Int(M/2))
+#sim = Simulation{IESH_Tully}(atoms, model, n_electrons=Int(M/2))
+sim = Simulation{DiabaticIESH}(atoms, model, n_electrons=Int(M/2))
 
 # From comparison with James's implemementation, r = (x1,x2,...,xn; y1,y2,...,yn; z1,z2,..., zn)
 # v should have the same format
 #v = fill(5/sim.atoms.masses[1], sim.DoFs, length(sim.atoms))
-r1 = p'
 v = zero(r1)
 v[3,1:2] .= 0.1
 v = ustrip.(map( x -> auconvert(x*u"Å/fs"), v))
@@ -112,8 +115,10 @@ v = ustrip.(map( x -> auconvert(x*u"Å/fs"), v))
 
 z = DynamicsVariables(sim,v, r1)
 
-@time solution = run_trajectory(z, (0.0, 30auconvert(timestep*u"s")), sim, dt=auconvert(timestep*u"s"), adaptive=false; 
+@time solution = run_trajectory(z, (0.0, auconvert(timestep*u"s")), sim, dt=auconvert(timestep*u"s"), adaptive=false; 
                                             output=(:position))
+#@time solution = run_trajectory(z, (0.0, 30auconvert(timestep*u"s")), sim, dt=auconvert(timestep*u"s"), adaptive=false; 
+#                                           output=(:position))
 # println("Finished")
 
-plot(solution, :position)
+#plot(solution, :position)
