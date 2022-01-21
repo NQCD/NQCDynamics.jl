@@ -1,8 +1,8 @@
 # [Electronic friction models](@id models-friction)
 
 To perform [molecular dynamics with electronic friction (MDEF)](@ref mdef-dynamics)
-a specific type of model must be used
-that provides the friction tensor used to propagate the dynamics.
+a specific type of model must be used,
+these provide the friction tensor used to propagate the dynamics.
 
 As detailed in the [MDEF page](@ref mdef-dynamics), there are two ways to obtain friction
 values, either from the local density friction approximation (LDFA), or from time-dependent
@@ -12,8 +12,8 @@ The models on this page describe our existing implementations.
 ## Analytic models
 
 Since *ab initio* friction calculations are often expensive it is useful to
-have some models that we can use to test different friction methods.
-The [`DiabaticFrictionModel`](@ref NQCModels.DiabaticModels.DiabaticFrictionModel)
+have some models that we can use to test friction methods.
+The [`DiabaticFrictionModel`](@ref NonadiabaticModels.DiabaticModels.DiabaticFrictionModel)
 is the abstract type that groups together the diabatic models for which electronic friction can be evaluated.
 These have many electronic states, modelling the electronic structure characteristic of a metal. 
 The friction is calculated for these models directly from the nonadiabatic couplings
@@ -37,7 +37,7 @@ Our LDFA implementation is given in
 which takes a `.cube` file containing the electron density and evaluates the friction based
 upon this local density.
 
-The model works by fitting the LDA data provided by [Gerrits2020](@cite) that provides
+The model works by fitting the LDA data provided by [Gerrits2020](@cite) which provides
 the LDFA friction coefficient as a function of the Wigner-Seitz radius.
 When the model is initialised, the LDA data from [Gerrits2020](@cite) is interpolated
 using [DataInterpolations.jl](https://github.com/PumasAI/DataInterpolations.jl)
@@ -64,7 +64,7 @@ the scattering of a diatomic molecule from a metal surface.
 ## NNInterfaces.jl
 
 Another way to perform MDEF simulations is the use one of the models from
-[`NNInterfaces.jl`](https://github.com/NQCD/NNInterfaces.jl/) that uses a neural network
+[`NNInterfaces.jl`](https://github.com/NQCD/NNInterfaces.jl/) which uses a neural network
 to obtain the time-dependent perturbation theory friction from the atomic positions.
 As with LDFA, one of these models is used in the
 [reactive scattering example](@ref example-h2scattering).

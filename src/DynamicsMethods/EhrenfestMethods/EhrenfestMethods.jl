@@ -3,8 +3,8 @@ module EhrenfestMethods
 
 using LinearAlgebra: lmul!, eigvecs, diag, dot
 
-using NQCDynamics:
-    NQCDynamics,
+using NonadiabaticMolecularDynamics:
+    NonadiabaticMolecularDynamics,
     AbstractSimulation,
     Simulation,
     RingPolymerSimulation,
@@ -14,8 +14,8 @@ using NQCDynamics:
     Estimators,
     NonadiabaticDistributions
 
-using NQCModels: NQCModels, Model
-using NQCBase: Atoms
+using NonadiabaticModels: NonadiabaticModels, Model
+using NonadiabaticDynamicsBase: Atoms
 
 """
 Abstract type for Ehrenfest method.

@@ -74,7 +74,7 @@ This would require also sampling a thermal distribution for the mapping variable
 
 ### Form of the Hamiltonian
 
-Diabatic models defined in `NQCModels.jl` are of the appropriate form for
+Diabatic models defined in `NonadiabaticModels.jl` are of the appropriate form for
 this method though they provide the potential as a single matrix, rather than separating
 the state-dependent and independent parts.
 It has been suggested that defining the Hamiltonian such that the lowest eigenvalue
@@ -92,7 +92,7 @@ A simple way to do this is to use Monte Carlo sampling for the positions and
 obtain velocities from a Boltzmann distribution.
 
 ```@example nrpmd
-using NQCDynamics
+using NonadiabaticMolecularDynamics
 
 atom = Atoms(1)
 
@@ -150,7 +150,7 @@ The resulting plot shows the time dependent population difference and closely ma
 the figure from the paper we were attempting to reproduce. Nice!
 
 ```@example nrpmd
-ensemble = run_ensemble(sim, (0.0, 30.0), distribution; trajectories=1000,
+ensemble = Ensembles.run_ensemble(sim, (0.0, 30.0), distribution; trajectories=1000,
                                   output=output, reduction=:mean, dt=0.1)
 
 lines(0:0.1:30, [p[1,1]-p[2,1] for p in ensemble])

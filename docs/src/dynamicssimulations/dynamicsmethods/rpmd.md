@@ -43,7 +43,7 @@ Let us perform some simple adiabatic ring polymer dynamics to get a feel
 for what the ring polymer dynamics looks like.
 
 ```@example rpmd
-using NQCDynamics
+using NonadiabaticMolecularDynamics
 using Unitful
 
 atoms = Atoms([:H])
@@ -79,7 +79,7 @@ using CairoMakie
 
 rs = traj.position
 
-index = Observable(1)
+index = Node(1)
 xs = @lift(rs[$index][1,1,:])
 ys = @lift(rs[$index][2,1,:])
 close_loop_x = @lift([rs[$index][1,1,end], rs[$index][1,1,begin]])
@@ -91,15 +91,14 @@ xlims!(-3, 3)
 ylims!(-3, 3)
 
 timestamps = 1:length(traj.position)
-filepath = "../../assets/figures/rpmd.mp4" # hide
-record(fig, filepath, timestamps;
+record(fig, "../../assets/figures/rpmd.gif", timestamps;
         framerate = 30) do i
     index[] = i
 end
-nothing # hide
+nothing
 ```
 
-![rpmd fig](../../assets/figures/rpmd.mp4)
+![rpmd fig](../../assets/figures/rpmd.gif)
 
 !!! note
 

@@ -19,51 +19,18 @@ Inspired by VENUS96: [Hase1996](@cite)
 module QuantisedDiatomic
 
 using QuadGK: QuadGK
+using Roots: Roots
 using Rotations: Rotations
 using LsqFit: LsqFit
 using LinearAlgebra: norm, normalize!, nullspace, cross, I
 using UnitfulAtomic: austrip
 using Distributions: Uniform
-using UnicodePlots: lineplot, lineplot!, DotCanvas
-using Optim: Optim
 
-using NQCDynamics: Simulation, Calculators, DynamicsUtils
-using NQCBase: Atoms, PeriodicCell, InfiniteCell
-using NQCModels: NQCModels
-using NQCModels.AdiabaticModels: AdiabaticModel
+using NonadiabaticMolecularDynamics: Simulation, Calculators, DynamicsUtils
+using NonadiabaticDynamicsBase: Atoms, PeriodicCell, InfiniteCell
 
 export generate_configurations
 export quantise_diatomic
-
-struct SurfaceParameters{T}
-    reduced_mass::T
-    atom_indices::Vector{Int}
-    slab::Matrix{T}
-    height::T
-    surface_normal::Vector{T}
-    orthogonal_vectors::Matrix{T}
-end
-
-function SurfaceParameters(masses::AbstractVector, atom_indices::AbstractVector, slab::Matrix, height, surface_normal)
-    μ = reduced_mass([masses[i] for i in atom_indices])
-    orthogonal_vectors = nullspace(reshape(surface_normal, 1, :)) # Plane parallel to surface
-    if size(slab, 2) == 0
-        surface_top = 0
-    else
-        surface_top = maximum(slab[3,:])
-    end
-    return SurfaceParameters{eltype(masses)}(μ, atom_indices, slab, height + surface_top,
-        surface_normal, orthogonal_vectors)
-end
-
-struct GenerationParameters{T}
-    direction::Vector{T}
-    translational_energy::T
-    samples::Int
-end
-
-Base.broadcastable(p::SurfaceParameters) = Ref(p)
-Base.broadcastable(p::GenerationParameters) = Ref(p)
 
 """
     generate_configurations(sim, ν, J; samples=1000, height=10, normal_vector=[0, 0, 1],
@@ -79,127 +46,42 @@ requires specific placement of the molecule.
 These allow the molecule to be placed at a distance `height` in the direction
 `normal_vector` when performing potential evaluations.
 """
-function generate_configurations(sim, ν, J;
-    samples=1000,
-    height=10.0,
-    surface_normal=[0, 0, 1.0],
-    translational_energy=0.0,
-    direction=[0, 0, -1.0],
-    atom_indices=[1, 2],
-    r=zeros(size(sim)))
+function generate_configurations(sim, ν, J; samples=1000, height=10, normal_vector=[0, 0, 1],
+    translational_energy=0, direction=[0, 0, -1])
+    E, bounds = extract_energy_and_bounds(sim, ν, J; height=height, normal_vector=normal_vector)
+    μ = reduced_mass(sim.atoms)
 
-    _, slab = separate_slab_and_molecule(atom_indices, r)
-    surface = SurfaceParameters(sim.atoms.masses, atom_indices, slab, height, surface_normal)
-    generation = GenerationParameters(direction, austrip(translational_energy), samples)
+    rotational(r) = J*(J+1) / (2μ*r^2)
+    Vᵣ(r) = rotational(r) + calculate_diatomic_energy(sim, r; height=height, normal_vector=normal_vector)
+    radial_momentum(r) = sqrt(2μ * (E - Vᵣ(r)))
 
-    total_energy, bounds = find_total_energy(sim.calculator.model, ν, J, surface)
+    bonds, momenta = select_random_bond_lengths(E, bounds, radial_momentum, μ, samples)
 
-    radial_momentum = get_radial_momentum_function(total_energy, surface, J, sim.calculator.model)
-    bonds, momenta = select_random_bond_lengths(bounds, radial_momentum, samples)
-
-    @info "Generating the requested configurations..."
-    configure_diatomic.(sim, bonds, momenta, J, surface, generation)
+    configure_diatomic.(sim, bonds, momenta, J, μ, Ref(direction), translational_energy,height)
 end
 
 """
-    separate_slab_and_molecule(atom_indices, r)
+    extract_energy_and_bounds(sim, ν, J; height=10, normal_vector=[0, 0, 1])
 
-Get the coordinates of the molecule and slab separately.
+Returns the energy and turning points associated with the specified quantum numbers
 """
-function separate_slab_and_molecule(atom_indices, r)
-    molecule = r[:,atom_indices]
-    slab_indices = [i for i in axes(r, 2) if i ∉ atom_indices]
-    slab = r[:,slab_indices]
-    return (molecule, slab)
-end
+function extract_energy_and_bounds(sim, ν, J; height=10, normal_vector=[0, 0, 1])
 
-"""
-    combine_slab_and_molecule(atom_indices, molecule, slab)
+    k = calculate_force_constant(sim; height=height, normal_vector=normal_vector)
+    μ = reduced_mass(sim.atoms)
+    ω = sqrt(k / μ)
+    E_guess = (ν + 1/2) * ω
 
-Revert the transformation `separate_slab_and_molecule`
-"""
-function combine_slab_and_molecule(atom_indices, molecule, slab)
-    r = zeros(3, size(molecule, 2) + size(slab, 2))
-    slab_indices = [i for i in axes(r, 2) if i ∉ atom_indices]
-    r[:,atom_indices] .= molecule
-    r[:,slab_indices] .= slab
-    return r
-end
-
-function combine_slab_and_molecule(surface::SurfaceParameters, molecule)
-    combine_slab_and_molecule(surface.atom_indices, molecule, surface.slab)
-end
-
-"""
-    find_total_energy(sim, ν, J, surface)
-
-Returns the energy associated with the specified quantum numbers
-"""
-function find_total_energy(model::AdiabaticModel, ν, J, surface::SurfaceParameters)
-
-    μ = surface.reduced_mass
-
-    bond_lengths = 0.5:0.01:5.0
-    potential = calculate_diatomic_energy.(model, bond_lengths, surface) # Calculate binding curve
-    potential_minimum, index = findmin(potential)
-    r₀ = bond_lengths[index]
-    potential .-= potential_minimum # Shift minimum to zero.
-
-    k = calculate_force_constant(bond_lengths, potential)
-    E = guess_initial_energy(k, μ, ν, potential_minimum)
-
-    V(r) = effective_potential(r, J, model, surface)
-
-    "Evaluate vibrational quantum number."
-    function nᵣ(E, r₁, r₂)
-        kernel(r) = sqrt(E - V(r))
-        integral, _ = QuadGK.quadgk(kernel, r₁, r₂; maxevals=100)
-        return sqrt(2μ)/π * integral - 1/2
+    "Target function to optimise. Find energy `E` where vibrational numbers `ν` match."
+    function target(E)
+        ν_tmp, _, _ = extract_quantum_numbers(sim, μ, E, J; height=height, normal_vector=normal_vector)
+        ν_tmp - ν
     end
 
-    "Derivative of the above"
-    function ∂nᵣ∂E(E, r₁, r₂)
-        kernel(r) = 1 / sqrt(E - V(r))
-        integral, _ = QuadGK.quadgk(kernel, r₁, r₂; maxevals=100)
-        return sqrt(2μ)/2π * integral
-    end
+    E = Roots.find_zero(target, E_guess)
+    _, _, bounds = extract_quantum_numbers(sim, μ, E, J; height=height, normal_vector=normal_vector)
 
-    "Second derivative of the above"
-    function ∂²nᵣ∂E²(E, r₁, r₂)
-        kernel(r) = 1 / sqrt(E - V(r))^3
-        integral, _ = QuadGK.quadgk(kernel, r₁, r₂; maxevals=100)
-        return -sqrt(2μ)/4π * integral
-    end
-
-    """
-    Evaluates the function, gradient and hessian as described in the Optim documentation.
-    """
-    function fgh!(F,G,H,x)
-        E = x[1]
-        r₁, r₂ = find_integral_bounds(model, E, J, surface, r₀)
-
-        νtmp = nᵣ(E, r₁, r₂)
-        difference = νtmp - ν
-
-        if G !== nothing
-            G[1] = ∂nᵣ∂E(E, r₁, r₂) * sign(difference)
-        end
-        if H !== nothing
-            H[1] = ∂²nᵣ∂E²(E, r₁, r₂) * sign(difference)
-        end
-        if F !== nothing
-            return abs(difference)
-        end
-    end
-
-    @info "Converging the total energy to match the chosen quantum numbers..."
-    optim = Optim.optimize(Optim.only_fgh!(fgh!), [E], Optim.Newton(),
-        Optim.Options(show_trace=true, x_tol=1e-3)
-    )
-    E = Optim.minimizer(optim)[1]
-    bounds = find_integral_bounds(model, E, J, surface, r₀)
-
-    E, bounds
+    E, bounds 
 end
 
 """
@@ -214,81 +96,69 @@ If the potential is independent of centre of mass position, this has no effect.
 Otherwise, be sure to modify these parameters to give the intended behaviour.
 """
 function quantise_diatomic(sim::Simulation, v::Matrix, r::Matrix;
-    height=10.0, surface_normal=[0, 0, 1.0], atom_indices=[1, 2])
+    height=10, normal_vector=[0, 0, 1])
+    # Select only the first two atoms
+    if length(sim.atoms) > 2
+        sim = Simulation(sim.atoms[1:2], sim.calculator.model; cell=sim.cell)
+        v = v[:,1:2]
+        r = r[:,1:2]
+    elseif length(sim.atoms) == 1
+        throw(ArgumentError("Only a single atom in the simulation?"))
+    end
 
-
-    r, slab = separate_slab_and_molecule(atom_indices, r)
-    surface = SurfaceParameters(sim.atoms.masses, atom_indices, slab, austrip(height), surface_normal)
-
-    r_com = subtract_centre_of_mass(r, [sim.atoms.masses[i] for i in atom_indices])
-    v_com = subtract_centre_of_mass(v, [sim.atoms.masses[i] for i in atom_indices])
-    p_com = v_com .* [sim.atoms.masses[i] for i in atom_indices]'
+    r_com = subtract_centre_of_mass(r, sim.atoms.masses)
+    v_com = subtract_centre_of_mass(v, sim.atoms.masses)
+    p_com = v_com .* sim.atoms.masses'
 
     k = DynamicsUtils.classical_kinetic_energy(sim, v_com)
-    p = calculate_diatomic_energy(sim.calculator.model, bond_length(r_com), surface)
+    p = calculate_diatomic_energy(sim, bond_length(r_com); height=height, normal_vector=normal_vector)
     E = k + p
 
     L = total_angular_momentum(r_com, p_com)
     J = (sqrt(1+4*L^2) - 1) / 2 # L^2 = J(J+1)ħ^2
 
-    r₁, r₂ = find_integral_bounds(sim.calculator.model, E, J, surface, bond_length(r_com))
-
-    μ = surface.reduced_mass
-    V(r) = effective_potential(r, J, sim.calculator.model, surface)
-
-    function nᵣ(E, r₁, r₂)
-        kernel(r) = sqrt(E - V(r))
-        integral, _ = QuadGK.quadgk(kernel, r₁, r₂; maxevals=100)
-        return sqrt(2μ)/π * integral - 1/2
-    end
-
-    ν = nᵣ(E, r₁, r₂)
-
+    μ = reduced_mass(sim.atoms)
+    ν, J, bounds = extract_quantum_numbers(sim, μ, E, J; height=height, normal_vector=normal_vector)
     ν, J
 end
 
-rotational_energy(r, μ, J) = J*(J+1) / (2μ*r^2)
+"""
+Calculate the vibrational and rotational quantum numbers using EBK
+"""
+function extract_quantum_numbers(sim::Simulation, μ::Real, E::Real, J::Real; height=10, normal_vector=[0, 0, 1])
 
-function effective_potential(r, J, model, surface)
-    rotational = rotational_energy(r, surface.reduced_mass, J)
-    potential = calculate_diatomic_energy(model, r, surface)
-    return rotational + potential
-end
+    rotational(r) = J*(J+1) / (2μ*r^2)
+    Vᵣ(r) = rotational(r) + calculate_diatomic_energy(sim, r)
+    radial_momentum(r) = sqrt(2μ * (E - Vᵣ(r)))
 
-function get_radial_momentum_function(total_energy, surface, J, model)
-    radial_momentum(r) = sqrt(2surface.reduced_mass * (total_energy - effective_potential(r, J, model, surface)))
-end
+    bounds = Roots.find_zeros(r -> E - Vᵣ(r), 0.0, 10.0)
+    if length(bounds) != 2
+        throw(ArgumentError("Unable to determine bounds for EBK quantisation."
+        * " Perhaps the chosen quantum numbers are unreasonable?
+        Bounds obtained = $bounds"))
+    end
+    integral, err = QuadGK.quadgk(radial_momentum, bounds...)
+    ν = integral / π - 1/2
 
-function find_integral_bounds(model, total_energy, J, surface, r₀, bond_limits=(0.5, 5.0))
-    optim_func(r) = abs(total_energy - effective_potential(r, J, model, surface))
-    optim = Optim.optimize(optim_func, first(bond_limits), r₀)
-    r₁ = Optim.minimizer(optim)
-    optim = Optim.optimize(optim_func, r₀, last(bond_limits))
-    r₂ = Optim.minimizer(optim)
-    return r₁, r₂
+    ν, J, bounds
 end
 
 """
 Pick a random bond length and corresponding radial momentum that matches the
 radial probability distribution.
-
-Uses rejection sampling: https://en.wikipedia.org/wiki/Rejection_sampling
 """
-function select_random_bond_lengths(bounds, momentum_function, samples)
-    @info "Generating distribution of bond lengths and radial momenta..."
-    M = 1 / momentum_function(bounds[1]+1e-3)
-    radius_proposal = Uniform(bounds...)
+function select_random_bond_lengths(E, bounds, probability_function, μ, samples)
+    P0 = sqrt(1e-4 * 2μ*E)
+    distribution = Uniform(bounds...)
     bonds = zeros(samples)
     momenta = zeros(samples)
     for i=1:samples
         keep_going = true
         while keep_going
-            r = rand(radius_proposal) # Generate radius
-            p = momentum_function(r) # Evaluate probability
-            probability = 1 / p # Probability inversely proportional to momentum
-            if rand() < probability / M
+            r, P = pick_radius(distribution, probability_function, 1)
+            if rand() < P0 / P
                 bonds[i] = r
-                momenta[i] = rand([-1, 1]) * p
+                momenta[i] = rand([-1, 1]) * P
                 keep_going = false
             end
         end
@@ -296,28 +166,47 @@ function select_random_bond_lengths(bounds, momentum_function, samples)
     bonds, momenta
 end
 
+function pick_radius(distribution, func, count)
+    r = rand(distribution)
+    try
+        P = func(r)
+        return r, P
+    catch e
+        if e isa DomainError
+            if count > 100
+                throw(ArgumentError("Something is seriously wrong, a rejected bond length was generated 100 times in a row?
+                    Check the model."))
+            else
+                return pick_radius(distribution, func, count+1)
+            end
+        else
+            throw(e)
+        end
+    end
+end
+
 """
 Randomly orient molecule in space for a given bond length and radial momentum
 """
-function configure_diatomic(sim, bond, momentum, J, surface::SurfaceParameters, generation::GenerationParameters)
+function configure_diatomic(sim, bond, momentum, J, μ, direction, translational_energy,height)
     r = zeros(3,2)
     v = zeros(3,2)
     r[1,1] = bond
-    v[1,1] = momentum ./ surface.reduced_mass
-    r = subtract_centre_of_mass(r, [sim.atoms.masses[i] for i in surface.atom_indices])
-    v = subtract_centre_of_mass(v, [sim.atoms.masses[i] for i in surface.atom_indices])
+    v[1,1] = momentum ./ μ
+    r = subtract_centre_of_mass(r, sim.atoms.masses)
+    v = subtract_centre_of_mass(v, sim.atoms.masses)
 
     L = sqrt(J * (J + 1))
 
     random = 2π*rand()
-    ω = L .* [0, sin(random), cos(random)] ./ (surface.reduced_mass * bond^2)
+    ω = L .* [0, sin(random), cos(random)] ./ (μ * bond^2)
 
     v[:,1] .+= cross(ω, r[:,1])
     v[:,2] .+= cross(ω, r[:,2])
 
     apply_random_rotation!(v, r)
-    position_above_surface!(r, surface.height, sim.cell)
-    apply_translational_impulse!(v, [sim.atoms.masses[i] for i in surface.atom_indices], generation.translational_energy, generation.direction)
+    position_above_surface!(r, height, sim.cell)
+    apply_translational_impulse!(v, sim.atoms.masses, translational_energy, direction)
 
     v, r
 end
@@ -347,18 +236,18 @@ function position_above_surface!(r, height, ::InfiniteCell)
     return nothing
 end
 
-function apply_translational_impulse!(v, masses, translational_energy, direction)
-    velocity_impulse = velocity_from_energy(masses, translational_energy)
-    v .+= velocity_impulse .* normalize!(direction)
-end
-
 function velocity_from_energy(masses, energy)
     m = sum(masses)
     sqrt(2austrip(energy) / m)
 end
 
+function apply_translational_impulse!(v, masses, translational_energy, direction)
+    velocity_impulse = velocity_from_energy(masses, translational_energy)
+    v .+= velocity_impulse .* normalize!(direction)
+end
+
 """
-    calculate_diatomic_energy(model::AdiabaticModel, bond_length::Real;
+    calculate_diatomic_energy(sim::Simulation, bond_length::Real;
         height=10, normal_vector=[0, 0, 1])
 
 Returns potential energy of diatomic with `bond_length` at `height` from surface.
@@ -367,63 +256,39 @@ Orients molecule parallel to the surface at the specified height, the surface is
 to intersect the origin.
 This requires that the model implicitly provides the surface, or works fine without one.
 """
-function calculate_diatomic_energy(
-    model::AdiabaticModel, r₀::Real, surface::SurfaceParameters
-)
+function calculate_diatomic_energy(sim::Simulation, bond_length::Real;
+    height=10, normal_vector=[0, 0, 1])
 
-    (;surface_normal, orthogonal_vectors, height) = surface
-    molecule = surface_normal .* height .+ orthogonal_vectors .* r₀ ./ sqrt(2)
-    R = combine_slab_and_molecule(surface, molecule)
+    orthogonals = nullspace(reshape(normal_vector, 1, :)) # Plane parallel to surface
+    R = normal_vector .* height .+ orthogonals .* bond_length ./ sqrt(2)
 
-    return NQCModels.potential(model, R)
+    Calculators.evaluate_potential!(sim.calculator, R)
+
+    sim.calculator.potential[1]
 end
 
 """
-    calculate_force_constant(sim::Simulation, surface::SurfaceParameters)
+    calculate_force_constant(sim::Simulation;
+        height=10.0, bond_length=2.5, normal_vector=[0.0, 0.0, 1.0])
 
 Evaluate energy for different bond lengths and identify force constant. 
 
-This uses LsqFit.jl to fit a morse potential with optimised minimum.
+This uses LsqFit.jl to fit a harmonic potential with optimised minimum.
 """
-function calculate_force_constant(bond_lengths, potential)
+function calculate_force_constant(sim::Simulation;
+    height=10.0, bond_length=2.5, normal_vector=[0.0, 0.0, 1.0])
 
-    morse!(f, x, p) = (@. f = p[1]*(1 - exp(-p[2]*(x-p[3])))^2)
-    function jacobian!(J, x, p)
-        @. J[:,1] = (1 - exp(-p[2]*(x-p[3])))^2
-        @. J[:,2] = 2p[1]*(1 - exp(-p[2]*(x-p[3]))) * exp(-p[2]*(x-p[3])) * (x - p[3])
-        @. J[:,3] = -2p[1]*(1 - exp(-p[2]*(x-p[3]))) * exp(-p[2]*(x-p[3])) * p[2]
+    harmonic(f, x, p) = (@. f = p[1]*(x - p[2])^2/2)
+    function jacobian(J, x, p)
+        @. J[:,1] = (x - p[2])^2/2
+        @. J[:,2] = -p[1] * (x - p[2])
     end
 
-    σ = potential[end]
-    weights = exp.(-potential.^2 ./ σ^2) # Weight the area around the minimum most heavily
+    bond_lengths = 0.5:0.01:4.0
+    V = calculate_diatomic_energy.(sim, bond_lengths; height=height, normal_vector=normal_vector)
 
-    fit = LsqFit.curve_fit(morse!, jacobian!, bond_lengths, potential, weights, [1.0, 1.0, 1.0];
-        lower=[0.0, 0.0, 0.0], inplace=true)
-
-    plot_binding_curve(morse!, bond_lengths, potential, fit.param)
-
-    force_constant = fit.param[2]^2 * 2 * fit.param[1]
-    return force_constant
-end
-
-function plot_binding_curve(morse!, bond_lengths, V, parameters)
-    fitted_points = zero(bond_lengths)
-    morse!(fitted_points, bond_lengths, parameters)
-    plt = lineplot(bond_lengths, V;
-        title="Binding curve", xlabel="Bond length / bohr", ylabel="Energy / Hartree",
-        name="Actual values", canvas=DotCanvas, border=:ascii
-    )
-    lineplot!(plt, bond_lengths, fitted_points; name="Fitted curve")
-    show(plt)
-    println()
-    @info "The two lines shown above should closely match. \
-        This indicates the evaluation of the potential is working correctly."
-end
-
-function guess_initial_energy(k, μ, ν, potential_minimum)
-    ω = sqrt(k / μ)
-    E_guess = (ν + 1/2) * ω
-    return E_guess + potential_minimum
+    fit = LsqFit.curve_fit(harmonic, bond_lengths, V, [1.0, bond_length]; lower=[0.0, 0.0], inplace=true)
+    fit.param[1]
 end
 
 subtract_centre_of_mass(x, m) = x .- centre_of_mass(x, m)
@@ -432,5 +297,20 @@ reduced_mass(atoms::Atoms) = reduced_mass(atoms.masses)
 reduced_mass(m::AbstractVector) = m[1]*m[2]/(m[1]+m[2])
 @views bond_length(r) = norm(r[:,1] .- r[:,2])
 @views total_angular_momentum(r, p) = norm(cross(r[:,1], p[:,1]) + cross(r[:,2], p[:,2]))
+@views total_moment_of_inertia(r, m) = norm(r[:,1])*m[1] + norm(r[:,2])*m[2]
+
+function moment_of_inertia_tensor(r, m)
+    tensor = zeros(3,3)
+    for atom in axes(r, 2)
+        absr = norm(r[:,atom])^2
+        tensor += m[atom] * absr * I
+        for i in axes(r, 1)
+            for j in axes(r, 1)
+                tensor[i,j] -= m[atom] * r[i,atom]*r[j,atom]
+            end
+        end
+    end
+    tensor
+end
 
 end # module

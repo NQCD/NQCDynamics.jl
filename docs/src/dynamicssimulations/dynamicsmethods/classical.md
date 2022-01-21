@@ -22,7 +22,7 @@ As a simple example we can create two particles with `mass = 1` and attach a `Di
     parameter as below defaults to `Simulation{Classical}(...)`.
 
 ```@example
-using NQCDynamics
+using NonadiabaticMolecularDynamics
 using Plots
 
 sim = Simulation(Atoms([1, 1]), DiatomicHarmonic())

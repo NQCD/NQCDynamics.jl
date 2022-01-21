@@ -1,6 +1,0 @@
-
-# NQCBase
-
-```@autodocs
-Modules=[NQCBase]
-```

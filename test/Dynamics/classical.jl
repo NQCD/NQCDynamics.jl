@@ -1,4 +1,4 @@
-using NQCDynamics
+using NonadiabaticMolecularDynamics
 using Test
 using Unitful
 using ComponentArrays
@@ -6,7 +6,7 @@ using ComponentArrays
 include("utils.jl")
 
 atoms = Atoms([:H])
-model = NQCModels.Harmonic()
+model = NonadiabaticModels.Harmonic()
 
 @testset "Classical" begin
     sim = Simulation{Classical}(atoms, model)

@@ -1,6 +1,6 @@
 using LinearAlgebra: LinearAlgebra, Symmetric, SymTridiagonal, I
 
-using NQCBase: NQCBase, PeriodicCell, InfiniteCell
+using NonadiabaticDynamicsBase: NonadiabaticDynamicsBase, PeriodicCell, InfiniteCell
 
 struct RingPolymerParameters{T<:AbstractFloat}
     n_beads::Int
@@ -155,11 +155,11 @@ function get_spring_energy(beads::RingPolymerParameters, masses, R)
     E * beads.ω_n^2/2
 end
 
-function NQCBase.apply_cell_boundaries!(cell::PeriodicCell, R::AbstractArray{T,3}, beads::RingPolymerParameters) where {T}
+function NonadiabaticDynamicsBase.apply_cell_boundaries!(cell::PeriodicCell, R::AbstractArray{T,3}, beads::RingPolymerParameters) where {T}
     transform_to_normal_modes!(beads, R)
     R[:,beads.quantum_atoms,1] ./= sqrt(length(beads))
-    @views NQCBase.apply_cell_boundaries!(cell, R[:,:,1])
+    @views NonadiabaticDynamicsBase.apply_cell_boundaries!(cell, R[:,:,1])
     R[:,beads.quantum_atoms,1] .*= sqrt(length(beads))
     transform_from_normal_modes!(beads, R)
 end
-NQCBase.apply_cell_boundaries!(::InfiniteCell, ::AbstractArray{T,3}, ::RingPolymerParameters) where {T} = nothing
+NonadiabaticDynamicsBase.apply_cell_boundaries!(::InfiniteCell, ::AbstractArray{T,3}, ::RingPolymerParameters) where {T} = nothing

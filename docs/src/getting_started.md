@@ -5,13 +5,13 @@ perform a simple classical dynamics simulation and walk through how
 to set up the simulation.
 
 ```@setup started
-using NQCDynamics
+using NonadiabaticMolecularDynamics
 ```
 
 ### Atoms
 
 First, we must define the particles in the simulation.
-For this purpose we provide the [`Atoms`](@ref NQCBase.Atoms) 
+For this purpose we provide the [`Atoms`](@ref NonadiabaticDynamicsBase.Atoms) 
 type which will contain the symbols, atomic numbers and masses for our atoms.
 Technically these need not be actual atoms and be a generic particle.
 
@@ -32,21 +32,21 @@ with their masses in atomic units.
     with unit transformations, and many functions will directly accept
     Unitful quantities and handle the conversions for you.
 
-Alternatively, if not using real atoms, [`Atoms`](@ref NQCBase.Atoms)
+Alternatively, if not using real atoms, [`Atoms`](@ref NonadiabaticDynamicsBase.Atoms)
 can be created using a `Vector{<:Real}` where the provided numbers are the masses of the
 particles.
 ```@repl started
 Atoms([1, 2, 3, 4, 5, 6])
 ```
 
-A more detailed look into the [`Atoms`](@ref NQCBase.Atoms) type along
+A more detailed look into the [`Atoms`](@ref NonadiabaticDynamicsBase.Atoms) type along
 with a description of how to save and load structures can be found
 [here](@ref atoms).
 
 ### Representing atomic positions and velocities 
 
 This package chooses to separate the dynamical variables from the static atomic parameters
-included in the [`Atoms`](@ref NQCBase.Atoms) type.
+included in the [`Atoms`](@ref NonadiabaticDynamicsBase.Atoms) type.
 This allows us to easily interface with other numerical packages like
 [DifferentialEquations.jl](https://diffeq.sciml.ai/stable/) and
 [AdvancedMH.jl](https://github.com/TuringLang/AdvancedMH.jl).
@@ -94,12 +94,12 @@ This is explored in the [`Atoms` documentation](@ref reading-and-writing).
 
 The next ingredient required to set up the simulation is the `Model`, i.e., the potentials in which the system
 evolves.
-These `Model`s are provided by [NQCModels.jl](@ref), which 
+These `Model`s are provided by [NonadiabaticModels.jl](@ref), which 
 is a convenient infrastructure for defining different kinds of models
 for adiabatic and nonadiabatic dynamics.
 These models can range from simple analytic potentials all the way up to multi-dimensional
 *ab initio* potentials.
-Refer to the [NQCModels.jl](@ref) page for information on the available models
+Refer to the [NonadiabaticModels.jl](@ref) page for information on the available models
 and a description of how to implement further models.
  
 For now we can look at an `AdiabaticModel` which provides a simple
@@ -210,7 +210,7 @@ Let's quickly set up our simulation parameters using what we've learned.
 Here we'll have two atoms in a harmonic potential, each with a single degree of freedom.
 
 ```@repl classical
-using NQCDynamics # hide
+using NonadiabaticMolecularDynamics # hide
 
 atoms = Atoms([:H, :C])
 sim = Simulation{Classical}(atoms, Harmonic(ω=50.0))
@@ -272,8 +272,15 @@ plot!(solution, :velocity)
 So we have solved a single trajectory? That's pretty cool but wouldn't it be great
 if we could do a whole bunch at once? Well, fortunately we can thanks to the
 [`Ensembles`](@ref) module. 
-This provides [`run_ensemble`](@ref) which can be used to perform many trajectories in parallel.
-To learn more and see some examples, refer to the
+This provides two useful functions that help to solve this problem:
+[`Ensembles.run_trajectories`](@ref) and [`Ensembles.run_ensemble`](@ref).
+The first of these is named similarly to the familiar [`run_trajectory`](@ref)
+function since it behaves almost identically, but runs multiple trajectories
+sampling from a given distribution.
+The second is a little more complicated but can be used to compute specialised
+outputs and reductions from the trajectories as they are completed.
+
+To learn more about these functions and see some examples, refer to the
 [Ensemble simulations](@ref ensembles) section.
 
 ### What's next?

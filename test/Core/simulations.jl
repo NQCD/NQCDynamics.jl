@@ -1,11 +1,11 @@
 using Test
-using NQCDynamics
+using NonadiabaticMolecularDynamics
 using Unitful
 
 atoms = Atoms([:C, :H])
 cell = InfiniteCell()
 
-model = NQCModels.Free()
+model = NonadiabaticModels.Free()
 
 @test RingPolymerSimulation(100, cell, atoms, model, Classical(), 10, [:H]) isa RingPolymerSimulation
 
@@ -18,17 +18,17 @@ model = NQCModels.Free()
 
 # @test Simulation{MDEF}(atoms, model) isa Simulation{<:MDEF}
 
-@test RingPolymerSimulation{NRPMD}(atoms, NQCModels.DoubleWell(), 10) isa RingPolymerSimulation{<:NRPMD}
+@test RingPolymerSimulation{NRPMD}(atoms, NonadiabaticModels.DoubleWell(), 10) isa RingPolymerSimulation{<:NRPMD}
 @test Simulation{Langevin}(atoms, model) isa Simulation{<:Langevin}
-@test Simulation{FSSH}(atoms, NQCModels.DoubleWell()) isa Simulation{<:FSSH}
+@test Simulation{FSSH}(atoms, NonadiabaticModels.DoubleWell()) isa Simulation{<:FSSH}
 
 @testset "get_temperature" begin
     sim = Simulation(atoms, model; temperature=10u"K")
-    @test NQCDynamics.get_temperature(sim) isa Real
+    @test NonadiabaticMolecularDynamics.get_temperature(sim) isa Real
     sim = Simulation(atoms, model; temperature=x->10u"K")
-    @test NQCDynamics.get_temperature(sim) isa Real
+    @test NonadiabaticMolecularDynamics.get_temperature(sim) isa Real
     sim = Simulation(atoms, model; temperature=10)
-    @test NQCDynamics.get_temperature(sim, 1) isa Real
+    @test NonadiabaticMolecularDynamics.get_temperature(sim, 1) isa Real
 end
 
 @testset "nfunctions and size" begin

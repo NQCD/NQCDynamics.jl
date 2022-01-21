@@ -1,6 +1,6 @@
 using Test
-using NQCDynamics
-using NQCDynamics.InitialConditions
+using NonadiabaticMolecularDynamics
+using NonadiabaticMolecularDynamics.InitialConditions
 using StatsBase: mean
 using ComponentArrays
 using Random

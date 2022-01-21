@@ -1,10 +1,10 @@
 using Test
-using NQCDynamics
-using NQCDynamics.Calculators
+using NonadiabaticMolecularDynamics
+using NonadiabaticMolecularDynamics.Calculators
 using LinearAlgebra: tr, Diagonal
 
 @testset "Adiabatic" begin
-    model = NQCModels.Free(3)
+    model = NonadiabaticModels.Free(3)
     @test Calculators.AdiabaticCalculator{Float64}(model, 5) isa Calculators.AdiabaticCalculator
     @test Calculators.RingPolymerAdiabaticCalculator{Float64}(model, 5, 10) isa Calculators.RingPolymerAdiabaticCalculator
 
@@ -18,7 +18,7 @@ using LinearAlgebra: tr, Diagonal
 end
 
 @testset "Diabatic" begin
-    model = NQCModels.DoubleWell()
+    model = NonadiabaticModels.DoubleWell()
     @test Calculators.DiabaticCalculator{Float64}(model, 5) isa Calculators.DiabaticCalculator
     @test Calculators.RingPolymerDiabaticCalculator{Float64}(model, 5, 10) isa Calculators.RingPolymerDiabaticCalculator
 
@@ -66,7 +66,7 @@ end
 end
 
 @testset "LargeDiabatic" begin
-    model = NQCModels.MiaoSubotnik()
+    model = NonadiabaticModels.MiaoSubotnik()
     @test Calculators.LargeDiabaticCalculator{Float64}(model, 5) isa Calculators.LargeDiabaticCalculator
 
     calc = Calculators.LargeDiabaticCalculator{Float64}(model, 1) 
@@ -79,13 +79,13 @@ end
 end
 
 @testset "General constructors" begin
-    model = NQCModels.DoubleWell()
+    model = NonadiabaticModels.DoubleWell()
     @test Calculators.Calculator(model, 1, Float64) isa Calculators.DiabaticCalculator
     @test Calculators.Calculator(model, 1, 2, Float64) isa Calculators.RingPolymerDiabaticCalculator
-    model = NQCModels.Free()
+    model = NonadiabaticModels.Free()
     @test Calculators.Calculator(model, 1, Float64) isa Calculators.AdiabaticCalculator
     @test Calculators.Calculator(model, 1, 2, Float64) isa Calculators.RingPolymerAdiabaticCalculator
-    model = NQCModels.MiaoSubotnik()
+    model = NonadiabaticModels.MiaoSubotnik()
     @test Calculators.Calculator(model, 1, Float64) isa Calculators.LargeDiabaticCalculator
 end
 
@@ -94,7 +94,7 @@ end
 #         get_field = Symbol(:get, :_, field)
 #         evaluate_field = Symbol(:evaluate, :_, field, :!)
 #         eval(quote
-#             model = NQCModels.DoubleWell()
+#             model = NonadiabaticModels.DoubleWell()
 #             calc = Calculators.DiabaticCalculator{Float64}(model, 1)
 #             r = hcat(1.0)
 #             @test !(Calculators.position(calc) ≈ r)

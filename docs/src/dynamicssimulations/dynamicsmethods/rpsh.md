@@ -33,7 +33,7 @@ In this example we can apply RPSH to the [`ThreeStateMorse`](@ref) model as in t
 supporting info of [Shakib2017](@cite).
 
 ```@example rpsh
-using NQCDynamics
+using NonadiabaticMolecularDynamics
 using Unitful
 
 atoms = Atoms(20000)
@@ -57,7 +57,7 @@ Now let's run an ensemble of trajectories that sample from this distribution.
 For the output we shall receive the diabatic population at intervals of `t=50`
 and it will be averaged over all trajectories by the `:mean` keyword.
 ```@example rpsh
-solution = run_ensemble(sim, (0.0, 3000.0), distribution;
+solution = Ensembles.run_ensemble(sim, (0.0, 3000.0), distribution;
     saveat=50, trajectories=5e2, dt=1,
     output=TimeCorrelationFunctions.PopulationCorrelationFunction(sim, Diabatic()),
     reduction=:mean)

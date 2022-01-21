@@ -1,11 +1,11 @@
 using Test
-using NQCDynamics
+using NonadiabaticMolecularDynamics
 using FiniteDiff
 using Random
 using OrdinaryDiffEq
 using DiffEqDevTools
-using NQCDynamics: DynamicsMethods, DynamicsUtils
-using NQCDynamics.DynamicsMethods.MappingVariableMethods
+using NonadiabaticMolecularDynamics: DynamicsMethods, DynamicsUtils
+using NonadiabaticMolecularDynamics.DynamicsMethods.MappingVariableMethods
 Random.seed!(1)
 
 @test MappingVariableMethods.NRPMD{Float64}(10, 0.0) isa MappingVariableMethods.NRPMD
@@ -17,7 +17,7 @@ r = randn(size(sim))
 u = DynamicsVariables(sim, v, r, SingleState(2))
 
 @testset "Population correlation" begin
-    K = NQCModels.nstates(sim)
+    K = NonadiabaticModels.nstates(sim)
     out = zeros(K, K)
     n = 1e4
     correlation = TimeCorrelationFunctions.PopulationCorrelationFunction(sim, Diabatic())

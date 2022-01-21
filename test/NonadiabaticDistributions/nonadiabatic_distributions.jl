@@ -1,6 +1,6 @@
 
 using Test
-using NQCDynamics
+using NonadiabaticMolecularDynamics
 using Distributions: Normal
 
 @testset "ElectronicDistribution" begin

@@ -8,8 +8,8 @@ using LinearAlgebra: LinearAlgebra, lmul!
 using OrdinaryDiffEq: OrdinaryDiffEq
 using Revise
 
-using NQCDynamics:
-    NQCDynamics,
+using NonadiabaticMolecularDynamics:
+    NonadiabaticMolecularDynamics,
     AbstractSimulation,
     Simulation,
     Calculators,
@@ -18,8 +18,8 @@ using NQCDynamics:
     Estimators,
     NonadiabaticDistributions,
     ndofs
-using NQCModels: NQCModels, Model
-using NQCBase: Atoms
+using NonadiabaticModels: NonadiabaticModels, Model
+using NonadiabaticDynamicsBase: Atoms
 
 mutable struct SurfaceHoppingVariables{T,A,Axes,S} <: DEDataArrays.DEDataVector{T}
     x::ComponentVector{T,A,Axes}

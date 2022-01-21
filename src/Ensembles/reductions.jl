@@ -1,5 +1,5 @@
 using StatsBase: mean
-using NQCDynamics: TimeCorrelationFunctions
+using NonadiabaticMolecularDynamics: TimeCorrelationFunctions
 using .TimeCorrelationFunctions: TimeCorrelationFunction
 
 abstract type AbstractReduction end
@@ -40,9 +40,10 @@ function select_reduction(reduction::Symbol)
     end
 end
 
-function get_u_init(::Union{MeanReduction, SumReduction}, saveat, stripped_kwargs, tspan, u0, output::TimeCorrelationFunction)
-    if saveat != []
-        if saveat isa Number
+function get_u_init(::Union{MeanReduction, SumReduction}, stripped_kwargs, tspan, u0, output::TimeCorrelationFunction)
+    if haskey(stripped_kwargs, :saveat)
+        saveat = stripped_kwargs[:saveat]
+        if stripped_kwargs[:saveat] isa Number
             savepoints = tspan[1]:saveat:tspan[2]
         else
             savepoints = saveat
@@ -58,8 +59,8 @@ function get_u_init(::Union{MeanReduction, SumReduction}, saveat, stripped_kwarg
     return u_init
 end
 
-function get_u_init(::Union{MeanReduction, SumReduction}, saveat, stripped_kwargs, tspan, u0, output::AbstractOutput)
+function get_u_init(::Union{MeanReduction, SumReduction}, stripped_kwargs, tspan, u0, output::AbstractOutput)
     return output_template(output, u0)
 end
 
-get_u_init(reduction, saveat, stripped_kwargs, tspan, u0, output) = []
+get_u_init(reduction, stripped_kwargs, tspan, u0, output) = []

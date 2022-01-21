@@ -1,4 +1,4 @@
-using NQCDynamics
+using NonadiabaticMolecularDynamics
 using Test
 using ComponentArrays: ComponentVector
 

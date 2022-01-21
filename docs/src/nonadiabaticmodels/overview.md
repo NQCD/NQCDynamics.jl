@@ -1,52 +1,52 @@
-# NQCModels.jl
+# NonadiabaticModels.jl
 
 To perform nonadiabatic molecular dynamics simulations, it is necessary to define
-the system Hamiltonian.
+system Hamiltonian.
 For simple models, this often comes in the form of small matrix in the diabatic
 representation but equally the electronic Hamiltonian could be obtained directly
 from *ab initio* electronic structure theory.
 
-`NQCModels.jl` is a package that aims to provide a common interface
+`NonadiabaticModels.jl` is a package that aims to provide a common interface
 for defining these models that is flexible enough to allow for a wide range
 of specifications and requirements.
-`NQCDynamics.jl` uses this interface to obtain the potentials
+`NonadiabaticMolecularDynamics.jl` uses this interface to obtain the potentials
 and couplings necessary to perform the dynamics simulations.
-Along with the minimal interface, `NQCModels.jl` also provides a small
+Along with the minimal interface, `NonadiabaticModels.jl` also provides a small
 set of popular models often used in the field of nonadiabatic dynamics.
 
 !!! note
 
-    Taking advantages of Julia's seamless modularity, `NQCModels.jl` is designed
+    Taking advantages of Julia's seamless modularity, `NonadiabaticModels.jl` is provided
     as a separate package so that it can also be used independently from the main package.
 
 Depending on the quantities provided by the `Model`, we use Julia's abstract type system
 to group models that provide the same quantities.
-Currently, there are two top-level abstract types: [`AdiabaticModel`](@ref NQCModels.AdiabaticModels.AdiabaticModel)
-and [`DiabaticModel`](@ref NQCModels.DiabaticModels.DiabaticModel).
-The [`AdiabaticModel`](@ref NQCModels.AdiabaticModels.AdiabaticModel)
+Currently, there are two top-level abstract types: [`AdiabaticModel`](@ref NonadiabaticModels.AdiabaticModels.AdiabaticModel)
+and [`DiabaticModel`](@ref NonadiabaticModels.DiabaticModels.DiabaticModel).
+The [`AdiabaticModel`](@ref NonadiabaticModels.AdiabaticModels.AdiabaticModel)
 is used for adiabatic dynamics, providing only the potential
 and force used in classical mechanics.
-The [`DiabaticModel`](@ref NQCModels.DiabaticModels.DiabaticModel) is used for nonadiabatic dynamics, 
+The [`DiabaticModel`](@ref NonadiabaticModels.DiabaticModels.DiabaticModel) is used for nonadiabatic dynamics, 
 where the potential is instead a `Hermitian` matrix.
 
 In the [Getting started](@ref) section we briefly touched on how the
-[`AdiabaticModel`](@ref NQCModels.AdiabaticModels.AdiabaticModel)
+[`AdiabaticModel`](@ref NonadiabaticModels.AdiabaticModels.AdiabaticModel)
 works and introduced one of the included models.
-Here let's take a look at a [`DiabaticModel`](@ref NQCModels.DiabaticModels.DiabaticModel),
+Here let's take a look at a [`DiabaticModel`](@ref NonadiabaticModels.DiabaticModels.DiabaticModel)
 which is more appropriate for nonadiabatic dynamics.
 
 The [`DoubleWell`](@ref) is a two state, 1 dimensional model where each state is harmonic
 with linear coupling to the single degree of freedom.
 
 ```@example diabaticmodel
-using NQCModels
+using NonadiabaticModels
 
 model = DoubleWell()
 ```
 
 Our [`DoubleWell`](@ref) implements the functions [`potential`](@ref), [`derivative`](@ref),
 [`nstates`](@ref) and [`ndofs`](@ref)
-that return the potential, the derivative of the potential, the number of states,
+which return the potential, the derivative of the potential, the number of states,
 and the number of degrees of freedom, respectively.
 
 ```@repl diabaticmodel
@@ -58,7 +58,7 @@ ndofs(model)
 
 Since this is a 1D model, the position argument that appears in the derivative and the potential
 is a real number.
-For higher dimensional models with multiple atoms, the position will need to be provided as
+Instead, for higher dimensional models with multiple atoms the position should be provided as
 an `AbstractMatrix`.
 
 To understand how this can extend to another dimension, we can take a quick look at the
@@ -84,7 +84,7 @@ In this case, the `Matrix` has `size = (1, 2)`, but it should be clear how this 
 to arbitrary numbers of atoms and degrees of freedom for complex models.
 
 The models currently available can be seen in type tree of the
-[`Model`](@ref NQCModels.Model) below.
+[`Model`](@ref NonadiabaticModels.Model) below.
 The leaves of the tree are the concrete models, whereas each branch is one of the abstract
 types.
 Each of these models can be seen in the [Analytic model library](@ref) and
@@ -93,12 +93,12 @@ many shall return later when we investigate the dynamics methods.
 ```@example
 import AbstractTrees # hide
 import InteractiveUtils: subtypes # hide
-import NQCModels: Model # hide
+import NonadiabaticModels: Model # hide
 AbstractTrees.children(x::Type) = subtypes(x) # hide
 AbstractTrees.print_tree(Model) # hide
 ```
 
 !!! note "Contributing new models"
 
-    To learn more about NQCModels.jl and learn how to implement new models,
+    To learn more about NonadiabaticModels.jl and learn how to implement new models,
     visit the [developer documentation](@ref devdocs-model).

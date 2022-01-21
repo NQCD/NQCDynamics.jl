@@ -1,7 +1,7 @@
-using NQCDynamics: RingPolymers
+using NonadiabaticMolecularDynamics: RingPolymers
 
 function RingPolymerSimulation{Ehrenfest}(atoms::Atoms{S,T}, model::Model, n_beads::Integer; kwargs...) where {S,T}
-    RingPolymerSimulation(atoms, model, Ehrenfest{T}(NQCModels.nstates(model)), n_beads; kwargs...)
+    RingPolymerSimulation(atoms, model, Ehrenfest{T}(NonadiabaticModels.nstates(model)), n_beads; kwargs...)
 end
 
 function DynamicsMethods.motion!(du, u, sim::RingPolymerSimulation{<:Ehrenfest}, t)

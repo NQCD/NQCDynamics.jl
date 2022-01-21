@@ -1,8 +1,8 @@
 
 module IntegrationAlgorithms
 
-using ....NQCDynamics:
-    NQCDynamics,
+using ....NonadiabaticMolecularDynamics:
+    NonadiabaticMolecularDynamics,
     AbstractSimulation,
     Simulation,
     RingPolymerSimulation,

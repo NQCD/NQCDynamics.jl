@@ -1,6 +1,6 @@
 using Test
-using NQCDynamics
-using NQCDynamics.InitialConditions.MetropolisHastings
+using NonadiabaticMolecularDynamics
+using NonadiabaticMolecularDynamics.InitialConditions.MetropolisHastings
 using Unitful
 using StatsBase
 using Random
@@ -8,7 +8,7 @@ Random.seed!(10)
 
 atoms = Atoms{Float64}([:H, :H, :C])
 cell = PeriodicCell(hcat(1))
-model = NQCModels.Harmonic()
+model = NonadiabaticModels.Harmonic()
 
 Δ = Dict([(:H, 0.1), (:C, 0.1)])
 monte_carlo = MetropolisHastings.MonteCarlo{Float64}(Δ, length(atoms), 100, Int[], x->true)

@@ -1,8 +1,9 @@
 """
     Ensembles
 
-This module provides the main functions [`run_ensemble`](@ref Ensembles.run_ensemble).
-This serves to run multiple trajectories for a given simulation type, sampling
+This module provides two main functions [`run_trajectories`](@ref Ensembles.run_trajectories)
+and [`run_ensemble`](@ref Ensembles.run_ensemble).
+Each of these serves to run multiple trajectories for a given simulation type, sampling
 from an initial distribution.
 """
 module Ensembles
@@ -11,8 +12,8 @@ using SciMLBase: remake, EnsembleThreads, EnsembleProblem, solve
 using RecursiveArrayTools: ArrayPartition
 using TypedTables: TypedTables
 
-using NQCBase: NQCBase
-using NQCDynamics:
+using NonadiabaticDynamicsBase: NonadiabaticDynamicsBase
+using NonadiabaticMolecularDynamics:
     AbstractSimulation,
     Simulation,
     RingPolymerSimulation,
@@ -20,11 +21,9 @@ using NQCDynamics:
     DynamicsMethods,
     RingPolymers,
     NonadiabaticDistributions
-using NQCDynamics.NonadiabaticDistributions:
+using NonadiabaticMolecularDynamics.NonadiabaticDistributions:
     NuclearDistribution,
     CombinedDistribution
-
-export run_ensemble
 
 function sample_distribution(sim::AbstractSimulation, distribution::NuclearDistribution, i)
     u = getindex(distribution, i)
@@ -72,58 +71,79 @@ This function wraps the EnsembleProblem from DifferentialEquations and passes th
 to the `solve` function.
 """
 function run_ensemble(
-    sim::AbstractSimulation, tspan, distribution;
-    selection::Union{Nothing,AbstractVector}=nothing,
+    sim::AbstractSimulation, tspan,
+    distribution;
+    selection=nothing,
     output=(sol,i)->(sol,false),
     reduction::Symbol=:append,
     ensemble_algorithm=EnsembleThreads(),
     algorithm=DynamicsMethods.select_algorithm(sim),
-    saveat=[],
-    trajectories=1,
     kwargs...
-)
+    )
 
-    if output isa Symbol
-        output = (output,)
-    end
-    trajectories = convert(Int, trajectories)
-
-    output_func = get_output_func(output)
-
-    kwargs = NQCBase.austrip_kwargs(;kwargs...)
-    saveat = austrip.(saveat)
+    stripped_kwargs = NonadiabaticDynamicsBase.austrip_kwargs(;kwargs...)
 
     u0 = sample_distribution(sim, distribution, 1)
     problem = DynamicsMethods.create_problem(u0, austrip.(tspan), sim)
 
     reduction = select_reduction(reduction)
-    u_init = get_u_init(reduction, saveat, kwargs, tspan, u0, output_func)
-    prob_func = choose_selection(distribution, selection, sim, output, saveat, trajectories)
+    u_init = get_u_init(reduction, stripped_kwargs, tspan, u0, output)
 
-    ensemble_problem = EnsembleProblem(problem; prob_func, output_func, reduction, u_init)
-    sol = solve(ensemble_problem, algorithm, ensemble_algorithm; u_init, saveat, trajectories, kwargs...)
-
-    if output isa Tuple
-        return [TypedTables.Table(
-                    t=vals.t,
-                    [(;zip(output, val)...) for val in vals.saveval]
-                ) for vals in prob_func.values
-            ]
+    if selection isa AbstractVector
+        selection = OrderedSelection(distribution, selection)
     else
-        return sol.u
+        selection = RandomSelection(distribution)
     end
+
+    ensemble_problem = EnsembleProblem(
+        problem,
+        prob_func=selection,
+        output_func=output,
+        reduction=reduction,
+        u_init=u_init
+    )
+
+    sol = solve(ensemble_problem, algorithm, ensemble_algorithm; u_init=u_init, stripped_kwargs...)
+    return sol.u
 end
 
-function choose_selection(distribution, selection, sim, output::Tuple, saveat, trajectories)
-    selection = Selection(distribution, selection)
-    return SelectWithCallbacks(selection, DynamicsMethods.get_callbacks(sim), output, trajectories, saveat=saveat)
-end
+"""
+    run_trajectories(sim::AbstractSimulation, tspan, distribution;
+        selection=nothing, output=(:u),
+        ensemble_algorithm=EnsembleThreads(), saveat=[], kwargs...)
 
-function choose_selection(distribution, selection, sim, output, saveat, trajectories)
-    return Selection(distribution, selection)
-end
+Run multiple trajectories and output the results in the same way as the
+[`run_trajectory`](@ref DynamicsMethods.run_trajectory) function.
+"""
+function run_trajectories(sim::AbstractSimulation, tspan, distribution;
+    algorithm=DynamicsMethods.select_algorithm(sim),
+    selection=nothing, output=(:u),
+    ensemble_algorithm=EnsembleThreads(), saveat=[], kwargs...)
 
-get_output_func(::Tuple) = (sol,i)->(sol,false)
-get_output_func(output) = output
+    if !(output isa Tuple)
+        output = (output,)
+    end
+
+    stripped_kwargs = NonadiabaticDynamicsBase.austrip_kwargs(;kwargs...)
+    saveat = austrip.(saveat)
+
+    problem = DynamicsMethods.create_problem(
+        sample_distribution(sim, distribution, 1),
+        austrip.(tspan),
+        sim)
+
+    if selection isa AbstractVector
+        selection = OrderedSelection(distribution, selection)
+    else
+        selection = RandomSelection(distribution)
+    end
+
+    new_selection = SelectWithCallbacks(selection, DynamicsMethods.get_callbacks(sim), output, kwargs[:trajectories], saveat=saveat)
+
+    ensemble_problem = EnsembleProblem(problem, prob_func=new_selection)
+
+    solve(ensemble_problem, algorithm, ensemble_algorithm; saveat=saveat, stripped_kwargs...)
+    [TypedTables.Table(t=vals.t, [(;zip(output, val)...) for val in vals.saveval]) for vals in new_selection.values]
+end
 
 end # module

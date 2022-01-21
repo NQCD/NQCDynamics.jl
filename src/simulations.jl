@@ -3,7 +3,7 @@ using Unitful: @u_str
 using UnitfulAtomic: austrip, auconvert
 
 using .Calculators: AbstractCalculator, Calculator
-using NQCModels: Model
+using NonadiabaticModels: Model
 
 abstract type AbstractSimulation{M,Calc<:AbstractCalculator,A<:Atoms,T,C<:AbstractCell} end
 
@@ -59,9 +59,9 @@ function RingPolymerSimulation(atoms::Atoms, model::Model, method::M, n_beads::I
     RingPolymerSimulation(temperature, cell, atoms, model, method, n_beads, quantum_nuclei)
 end
 
-NQCModels.nstates(sim::AbstractSimulation) = NQCModels.nstates(sim.calculator.model)
+NonadiabaticModels.nstates(sim::AbstractSimulation) = NonadiabaticModels.nstates(sim.calculator.model)
 
-NQCModels.ndofs(sim::AbstractSimulation) = NQCModels.ndofs(sim.calculator.model)
+NonadiabaticModels.ndofs(sim::AbstractSimulation) = NonadiabaticModels.ndofs(sim.calculator.model)
 natoms(sim::AbstractSimulation) = length(sim.atoms)
 RingPolymers.nbeads(sim::RingPolymerSimulation) = RingPolymers.nbeads(sim.beads)
 masses(sim::AbstractSimulation) = sim.atoms.masses

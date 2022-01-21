@@ -1,6 +1,6 @@
 # ASE interface
 
-The easiest way to obtain potentials and forces from established codes is to
+The easiest way to obtain potentials and forces from established codes is to directly
 use the interfaces implemented in [ASE](https://wiki.fysik.dtu.dk/ase/).
 
 We provide the [`AdiabaticASEModel`](@ref) which wraps an ASE atoms object and its
@@ -9,7 +9,7 @@ associated calculator to implement the required [`potential`](@ref) and
 
 !!! note
 
-    The interface works by calling the relevant Python functions using
+    The interface works by directly calling the relevant Python functions using
     [PyCall](https://github.com/JuliaPy/PyCall.jl).
     To use PyCall, you must make sure that your `python` version contains all the
     relevant packages, such as ase.
@@ -36,7 +36,7 @@ nothing # hide
 Next, the [`AdiabaticASEModel`](@ref) is created by passing the `ase.Atoms` object directly
 to the model:
 ```@repl ase
-using NQCModels
+using NonadiabaticModels
 model = AdiabaticASEModel(h2)
 ```
 Now the model can be used in the same way as any of the previously introduced

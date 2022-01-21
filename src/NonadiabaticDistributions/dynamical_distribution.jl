@@ -21,7 +21,7 @@ which `select_item` has been implemented.
 # Example
 
 ```jldoctest; setup = :(using Random; Random.seed!(1))
-using NQCDynamics.InitialConditions
+using NonadiabaticMolecularDynamics.InitialConditions
 using Distributions
 
 d = DynamicalDistribution(5.0, Normal(), (1, 1))
@@ -29,7 +29,7 @@ rand(d)
 
 # output
 
-ComponentVector{Float64}(v = [5.0;;], r = [0.5314767537831963;;])
+ComponentVector{Float64}(v = [5.0], r = [-0.3170409357632898])
 ```
 """
 struct DynamicalDistribution{V,R,S} <: NuclearDistribution

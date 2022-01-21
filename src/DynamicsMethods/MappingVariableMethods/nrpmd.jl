@@ -2,9 +2,9 @@
 using LinearAlgebra: tr, mul!, dot, Diagonal
 using ComponentArrays: ComponentVector
 using Distributions: Normal
-using NQCDynamics: RingPolymers
-using NQCModels: nstates
-using NQCDynamics.NonadiabaticDistributions: SingleState, Diabatic
+using NonadiabaticMolecularDynamics: RingPolymers
+using NonadiabaticModels: nstates
+using NonadiabaticMolecularDynamics.NonadiabaticDistributions: SingleState, Diabatic
 
 """
     NRPMD{T} <: DynamicsMethods.Method
@@ -40,12 +40,12 @@ struct NRPMD{T} <: DynamicsMethods.Method
     end
 end
 
-function NQCDynamics.RingPolymerSimulation{NRPMD}(atoms::Atoms{S,T}, model::Model, n_beads::Integer; γ=0.5, kwargs...) where {S,T}
-    NQCDynamics.RingPolymerSimulation(atoms, model, NRPMD{T}(NQCModels.nstates(model), γ), n_beads; kwargs...)
+function NonadiabaticMolecularDynamics.RingPolymerSimulation{NRPMD}(atoms::Atoms{S,T}, model::Model, n_beads::Integer; γ=0.5, kwargs...) where {S,T}
+    NonadiabaticMolecularDynamics.RingPolymerSimulation(atoms, model, NRPMD{T}(NonadiabaticModels.nstates(model), γ), n_beads; kwargs...)
 end
 
 function DynamicsMethods.DynamicsVariables(sim::RingPolymerSimulation{<:NRPMD}, v, r, electronic::SingleState{Diabatic})
-    F = NQCModels.nstates(sim)
+    F = NonadiabaticModels.nstates(sim)
     n_beads = length(sim.beads)
 
     θ = rand(F, n_beads) .* 2π
@@ -109,7 +109,7 @@ function set_mapping_force!(du, u, sim::RingPolymerSimulation{<:NRPMD})
 end
 
 function Estimators.diabatic_population(sim::RingPolymerSimulation{<:NRPMD}, u)
-    K = NQCModels.nstates(sim)
+    K = NonadiabaticModels.nstates(sim)
     population = zeros(K)
     for i in 1:RingPolymers.nbeads(sim)
         qmap = get_mapping_positions(u, i)

@@ -1,5 +1,5 @@
 using Test
-using NQCDynamics
+using NonadiabaticMolecularDynamics
 
 atoms = Atoms([:H])
 model = Harmonic()

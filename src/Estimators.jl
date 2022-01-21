@@ -6,7 +6,7 @@ Functions for computing thermal expectation values as ensemble averages.
 """
 module Estimators
 
-using NQCDynamics:
+using NonadiabaticMolecularDynamics:
     AbstractSimulation,
     Simulation,
     RingPolymerSimulation,

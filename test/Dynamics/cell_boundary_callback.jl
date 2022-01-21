@@ -1,9 +1,9 @@
 using Test
-using NQCDynamics
+using NonadiabaticMolecularDynamics
 using ComponentArrays
 
 atoms = Atoms([:C])
-model = NQCModels.Harmonic()
+model = NonadiabaticModels.Harmonic()
 cell = PeriodicCell(hcat(1))
 sim = Simulation(atoms, model; cell=cell)
 

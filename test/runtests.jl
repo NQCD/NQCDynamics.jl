@@ -1,6 +1,6 @@
 using Test
 using SafeTestsets
-using NQCDynamics
+using NonadiabaticMolecularDynamics
 
 const GROUP = get(ENV, "GROUP", "All")
 

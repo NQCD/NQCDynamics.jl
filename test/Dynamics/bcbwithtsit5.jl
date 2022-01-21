@@ -1,5 +1,5 @@
 using Test
-using NQCDynamics
+using NonadiabaticMolecularDynamics
 using OrdinaryDiffEq: Tsit5
 using Random: seed!
 

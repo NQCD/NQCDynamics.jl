@@ -1,9 +1,9 @@
-module NQCDynamics
+module NonadiabaticMolecularDynamics
 
 using Reexport: @reexport
 
-@reexport using NQCBase
-@reexport using NQCModels
+@reexport using NonadiabaticDynamicsBase
+@reexport using NonadiabaticModels
 
 include("RingPolymers/RingPolymers.jl")
 @reexport using .RingPolymers: RingPolymerArray, nbeads
@@ -40,6 +40,5 @@ export InitialConditions
 
 include("Ensembles/Ensembles.jl")
 export Ensembles
-@reexport using .Ensembles
 
 end # module

@@ -1,5 +1,0 @@
-# NQCDynamics
-
-```@autodocs
-Modules=[NQCDynamics]
-```

@@ -28,11 +28,11 @@ alter the course of the simulation.
 
 Here we have a classical dynamics simulation without any extra callbacks:
 ```@example callbacks
-using NQCDynamics
+using NonadiabaticMolecularDynamics
 using Plots
 
 atoms = Atoms(:C)
-model = NQCModels.Harmonic()
+model = NonadiabaticModels.Harmonic()
 cell = PeriodicCell(hcat(50))
 sim = Simulation(atoms, model; cell=cell)
 

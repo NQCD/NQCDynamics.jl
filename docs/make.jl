@@ -1,29 +1,22 @@
 using Documenter
 using DocumenterCitations
-using NQCBase, NQCModels, NQCDynamics
+using NonadiabaticMolecularDynamics
+using NonadiabaticModels
 using CubeLDFAModel, NNInterfaces
 
-DocMeta.setdocmeta!(NQCDynamics, :DocTestSetup, :(using NQCDynamics); recursive=true)
-DocMeta.setdocmeta!(NQCModels, :DocTestSetup, :(using NQCModels, Symbolics); recursive=true)
-DocMeta.setdocmeta!(NQCBase, :DocTestSetup, :(using NQCBase); recursive=true)
+DocMeta.setdocmeta!(NonadiabaticMolecularDynamics, :DocTestSetup, :(using NonadiabaticMolecularDynamics); recursive=true)
+DocMeta.setdocmeta!(NonadiabaticModels, :DocTestSetup, :(using NonadiabaticModels, Symbolics); recursive=true)
 
 bib = CitationBibliography(joinpath(@__DIR__, "references.bib"), sorting=:nyt)
 
-function find_all_files(directory)
-    map(
-        s -> joinpath(directory, s),
-        sort(readdir(joinpath(@__DIR__, "src", directory)))
-    )
-end
-
 @time makedocs(
     bib,
-    sitename = "NQCDynamics.jl",
-    modules = [NQCDynamics, NQCModels, NQCBase, CubeLDFAModel],
+    sitename = "NonadiabaticMolecularDynamics.jl",
+    modules = [NonadiabaticMolecularDynamics, NonadiabaticModels, CubeLDFAModel],
     strict = false,
     format = Documenter.HTML(
         prettyurls = get(ENV, "CI", nothing) == "true",
-        canonical = "https://nqcd.github.io/NQCDynamics.jl/stable/",
+        canonical = "https://nqcd.github.io/NonadiabaticMolecularDynamics.jl/stable/",
         assets = ["assets/favicon.ico"],
         ansicolor = true,
         ),
@@ -32,28 +25,46 @@ end
         "Introduction" => "index.md"
         "Getting started" => "getting_started.md"
         "Atoms" => "atoms.md"
-        "NQCModels.jl" => Any[
-            "NQCModels/overview.md"
-            "NQCModels/analyticmodels.md"
-            "NQCModels/ase.md"
-            "NQCModels/neuralnetworkmodels.md"
-            "NQCModels/frictionmodels.md"
+        "NonadiabaticModels.jl" => Any[
+            "nonadiabaticmodels/overview.md"
+            "nonadiabaticmodels/analyticmodels.md"
+            "nonadiabaticmodels/ase.md"
+            "nonadiabaticmodels/neuralnetworkmodels.md"
+            "nonadiabaticmodels/frictionmodels.md"
         ]
         "Initial conditions" => Any[
             "initialconditions/dynamicaldistribution.md"
-            find_all_files("initialconditions/samplingmethods")
+            map(
+                s -> "initialconditions/samplingmethods/$(s)",
+                sort(readdir(joinpath(@__DIR__, "src/initialconditions/samplingmethods")))
+            )
         ]
         "Dynamics simulations" => Any[
             "dynamicssimulations/dynamicssimulations.md"
-            find_all_files("dynamicssimulations/dynamicsmethods")
+            map(
+                s -> "dynamicssimulations/dynamicsmethods/$(s)",
+                sort(readdir(joinpath(@__DIR__, "src/dynamicssimulations/dynamicsmethods")))
+            )
         ]
         "Ensemble simulations" => "ensemble_simulations.md"
-        "Examples" => find_all_files("examples")
-        "Developer documentation" => find_all_files("devdocs")
+        "Examples" => map(
+            s -> "examples/$(s)",
+            sort(readdir(joinpath(@__DIR__, "src/examples")))
+        )
+        "Developer documentation" => [
+            "devdocs/new_methods.md"
+            "devdocs/models.md"
+            "devdocs/diffeq.md"
+        ]
         "API" => Any[
-            "NQCBase" => find_all_files("api/NQCBase")
-            "NQCModels" => find_all_files("api/NQCModels")
-            "NQCDynamics" => find_all_files("api/NQCDynamics")
+            "NonadiabaticModels" => map(
+                s -> "api/nonadiabaticmodels/$(s)",
+                sort(readdir(joinpath(@__DIR__, "src/api/nonadiabaticmodels")))
+            ),
+            "NonadiabaticMolecularDynamics" => map(
+                s -> "api/nonadiabaticmoleculardynamics/$(s)",
+                sort(readdir(joinpath(@__DIR__, "src/api/nonadiabaticmoleculardynamics")))
+            ),
         ]
         "References" => "references.md"
     ])
@@ -61,7 +72,7 @@ end
 
 if get(ENV, "CI", nothing) == "true"
     deploydocs(
-        repo = "github.com/NQCD/NQCDynamics.jl",
+        repo = "github.com/NQCD/NonadiabaticMolecularDynamics.jl",
         push_preview=true
     )
 end

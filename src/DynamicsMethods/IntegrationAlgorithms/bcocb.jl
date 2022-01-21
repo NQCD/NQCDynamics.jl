@@ -2,7 +2,7 @@ using UnPack: @unpack
 using MuladdMacro: @muladd
 using DiffEqBase: @..
 using LinearAlgebra: Diagonal
-using NQCDynamics: RingPolymers, ndofs
+using NonadiabaticMolecularDynamics: RingPolymers, ndofs
 
 export BCOCB
 

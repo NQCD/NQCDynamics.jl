@@ -1,8 +1,8 @@
 
 module ClassicalMethods
 
-using NQCDynamics:
-    NQCDynamics,
+using NonadiabaticMolecularDynamics:
+    NonadiabaticMolecularDynamics,
     AbstractSimulation,
     Simulation,
     RingPolymerSimulation,
@@ -10,9 +10,9 @@ using NQCDynamics:
     DynamicsMethods,
     Estimators,
     RingPolymers
-using NQCDynamics.Calculators: Calculators
-using NQCBase: Atoms
-using NQCModels: Model, ndofs
+using NonadiabaticMolecularDynamics.Calculators: Calculators
+using NonadiabaticDynamicsBase: Atoms
+using NonadiabaticModels: Model, ndofs
 
 include("classical.jl")
 export Classical

@@ -1,5 +1,5 @@
 
-using NQCDynamics.Calculators: DiabaticFrictionCalculator
+using NonadiabaticMolecularDynamics.Calculators: DiabaticFrictionCalculator
 
 abstract type AbstractMDEF <: DynamicsMethods.Method end
 
@@ -26,11 +26,11 @@ function get_mass_scale_matrix(masses::AbstractVector, DoFs::Integer)
     vect * vect'
 end
 
-function NQCDynamics.Simulation{MDEF}(atoms::Atoms, model::Model; kwargs...)
-    NQCDynamics.Simulation(atoms, model, MDEF(atoms.masses, ndofs(model));  kwargs...)
+function NonadiabaticMolecularDynamics.Simulation{MDEF}(atoms::Atoms, model::Model; kwargs...)
+    NonadiabaticMolecularDynamics.Simulation(atoms, model, MDEF(atoms.masses, ndofs(model));  kwargs...)
 end
-function NQCDynamics.RingPolymerSimulation{MDEF}(atoms::Atoms, model::Model, n_beads::Integer; kwargs...)
-    NQCDynamics.RingPolymerSimulation(atoms, model, MDEF(atoms.masses, ndofs(model)), n_beads; kwargs...)
+function NonadiabaticMolecularDynamics.RingPolymerSimulation{MDEF}(atoms::Atoms, model::Model, n_beads::Integer; kwargs...)
+    NonadiabaticMolecularDynamics.RingPolymerSimulation(atoms, model, MDEF(atoms.masses, ndofs(model)), n_beads; kwargs...)
 end
 
 """

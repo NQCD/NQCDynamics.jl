@@ -1,5 +1,5 @@
-using NQCModels
-using NQCDynamics
+using NonadiabaticModels
+using NonadiabaticMolecularDynamics
 using Random, Distributions
 
 using PyCall
@@ -42,7 +42,7 @@ timestep = 0.1e-15 #fs
 bohr = 0.529177210903
 #println(auconvert(timestep*u"s"))
 
-filename = "/home/sjanke/Documents/Uni/Warwick/Documents/Projects/Anderson_Holstein_H/IESH_Tully/My_IESH/data/surface_Au111_4.dat"
+filename = "surface_Au111_4.dat"
 #filename = "/home/sjanke/Documents/Uni/Warwick/Documents/Projects/Anderson_Holstein_H/IESH_Tully/My_IESH/data/surface_Au111.dat"
 f = open(filename)
 data = readlines(f)

@@ -3,7 +3,7 @@
 Performing dynamics simulations is at the core of this package's functionality
 (as you might have guessed from the name).
 This section of the documentation will describe how to perform dynamics simulations,
-building on the introduction from [Getting started](@ref).
+building on the simple introduction from [Getting started](@ref).
 
 Since we use [DifferentialEquations](https://diffeq.sciml.ai/stable/)
 to perform the dynamics, it is most natural
@@ -13,28 +13,29 @@ This manifests itself as two separate data types: the [`Simulation`](@ref), and 
 
 !!! info
 
-    If you intend to implement a new dynamics method, we recommend reading
-    [`DifferentialEquations.jl`](https://diffeq.sciml.ai/stable/) to understand
-    more deeply how this package works.
+    An basic understanding of [`DifferentialEquations.jl`](https://diffeq.sciml.ai/stable/) helps to understand
+    how this package works, especially if you intend to implement a new dynamics method.
 
 The [`Simulation`](@ref) holds all the static information about the system: the atoms,
 the model, the temperature, the cell and the dynamics method.
 This takes the place of the `p` parameter seen throughout [DifferentialEquations](https://diffeq.sciml.ai/stable/).
 
 ```@example dynamics
-using NQCDynamics # hide
+using NonadiabaticMolecularDynamics # hide
 atoms = Atoms(2000) # Single atom with mass = 2000 a.u.
 sim = Simulation{Ehrenfest}(atoms, TullyModelOne(); temperature=0, cell=InfiniteCell())
 ```
 Here we have initialised the simulation parameters, including the default temperature and cell explicitly.
 
-For [DifferentialEquations](https://diffeq.sciml.ai/stable/) to allow for a wide variety of solvers, 
-the input arrays [`DynamicsVariables`](@ref) must be [`AbstractArray`](https://docs.julialang.org/en/v1/manual/interfaces/#man-interface-array)s.
+The [`DynamicsVariables`](@ref) must be [`AbstractArray`](https://docs.julialang.org/en/v1/manual/interfaces/#man-interface-array)s,
+which means behave similarly to a standard array of numbers.
+This is a requirement of [DifferentialEquations](https://diffeq.sciml.ai/stable/) which allows for the wide
+variety of solvers to be used. 
 In nonadiabatic dynamics simulations, we usually have different groups of variables that behave in particular ways.
 For example: for mapping variable methods we have positions, velocities, and two sets of mapping variables representing
 the electronic degrees of freedom.
 
-For this purpose we use the [`ComponentVector`](https://github.com/jonniedie/ComponentArrays.jl), which allows us
+For this purpose we use the [`ComponentVector`](https://github.com/jonniedie/ComponentArrays.jl) which allows us
 to arbitrarily partition the variables into their subgroups.
 This allows us to keep all the variables in a single array as required by
 [DifferentialEquations](https://diffeq.sciml.ai/stable/),
@@ -47,9 +48,9 @@ u0 = DynamicsVariables(sim, v0, r0, SingleState(1))
 ```
 
 Since each dynamics method has a different set of variables, each method implements
-[`DynamicsVariables(sim, args...)`](@ref DynamicsVariables), which will convert the input into the correct
+[`DynamicsVariables(sim, args...)`](@ref DynamicsVariables) which will convert the input into the correct
 structure.
-This helps to ensure each method follows a similar workflow making it easy to switch between different methods.
+This helps to ensure each method follows a similar workflow making for easy switching between different methods.
 The output of this function takes the place of the `u` argument seen throughout
 [DifferentialEquations](https://diffeq.sciml.ai/stable/).
 

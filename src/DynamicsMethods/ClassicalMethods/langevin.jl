@@ -28,8 +28,8 @@ function Langevin{T}(γ, temperature, masses, DoFs) where {T}
     Langevin(T(γ), T.(σ))
 end
 
-function NQCDynamics.Simulation{Langevin}(atoms::Atoms{S,T}, model::Model; γ=1, temperature=0u"K", kwargs...) where {S,T}
-    NQCDynamics.Simulation(atoms, model, Langevin{T}(γ, austrip(temperature), atoms.masses, ndofs(model));
+function NonadiabaticMolecularDynamics.Simulation{Langevin}(atoms::Atoms{S,T}, model::Model; γ=1, temperature=0u"K", kwargs...) where {S,T}
+    NonadiabaticMolecularDynamics.Simulation(atoms, model, Langevin{T}(γ, austrip(temperature), atoms.masses, ndofs(model));
                temperature=temperature, kwargs...)
 end
 
@@ -68,8 +68,8 @@ struct ThermalLangevin{T<:Real} <: DynamicsMethods.Method
     γ::T
 end
 
-function NQCDynamics.RingPolymerSimulation{ThermalLangevin}(atoms::Atoms, model::Model, n_beads::Integer; γ=1, kwargs...)
-    NQCDynamics.RingPolymerSimulation(atoms, model, ThermalLangevin(γ), n_beads; kwargs...)
+function NonadiabaticMolecularDynamics.RingPolymerSimulation{ThermalLangevin}(atoms::Atoms, model::Model, n_beads::Integer; γ=1, kwargs...)
+    NonadiabaticMolecularDynamics.RingPolymerSimulation(atoms, model, ThermalLangevin(γ), n_beads; kwargs...)
 end
 
 function DynamicsMethods.DynamicsVariables(::AbstractSimulation{<:Union{ThermalLangevin, Langevin}}, v, r)

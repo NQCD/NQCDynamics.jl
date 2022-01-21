@@ -1,14 +1,14 @@
 using Test
-using NQCDynamics
-using NQCDynamics: DynamicsMethods, Calculators
-using NQCDynamics.DynamicsMethods.EhrenfestMethods
+using NonadiabaticMolecularDynamics
+using NonadiabaticMolecularDynamics: DynamicsMethods, Calculators
+using NonadiabaticMolecularDynamics.DynamicsMethods.EhrenfestMethods
 using OrdinaryDiffEq
 
 @test Ehrenfest{Float64}(2) isa Ehrenfest
 atoms = Atoms(:H)
 
 @testset "Ehrenfest" begin
-    sim = Simulation{Ehrenfest}(atoms, NQCModels.DoubleWell())
+    sim = Simulation{Ehrenfest}(atoms, NonadiabaticModels.DoubleWell())
 
     r = zeros(size(sim)) 
     v = randn(size(sim)) 
@@ -35,7 +35,7 @@ atoms = Atoms(:H)
     end
 
 
-    sim1 = Simulation{Ehrenfest}(atoms, NQCModels.TullyModelOne())
+    sim1 = Simulation{Ehrenfest}(atoms, NonadiabaticModels.TullyModelOne())
     r = fill(-5.0, size(sim))
     v1 = fill(8.9, size(sim)) ./ sim1.atoms.masses[1]
     z1 = DynamicsVariables(sim, v1, r, SingleState(1, Adiabatic()))
@@ -43,7 +43,7 @@ atoms = Atoms(:H)
 
     @testset "run_trajectory" begin
         atoms = Atoms(2000)
-        sim = Simulation{Ehrenfest}(atoms, NQCModels.TullyModelTwo())
+        sim = Simulation{Ehrenfest}(atoms, NonadiabaticModels.TullyModelTwo())
         v = hcat(100 / 2000)
         r = hcat(-10.0)
         u = DynamicsVariables(sim, v, r, SingleState(1, Adiabatic()))
@@ -54,7 +54,7 @@ end
 
 @testset "Ehrenfest RPMD" begin
     atoms = Atoms(2000)
-    sim = RingPolymerSimulation{Ehrenfest}(atoms, NQCModels.TullyModelTwo(), 10)
+    sim = RingPolymerSimulation{Ehrenfest}(atoms, NonadiabaticModels.TullyModelTwo(), 10)
     v = fill(100 / 2000, 1, 1, 10)
     r = fill(-10.0, 1, 1, 10)
     u = DynamicsVariables(sim, v, r, SingleState(1, Adiabatic()))

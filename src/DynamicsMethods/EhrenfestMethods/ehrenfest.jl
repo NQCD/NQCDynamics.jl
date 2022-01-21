@@ -33,7 +33,7 @@ struct Ehrenfest{T} <: AbstractEhrenfest
 end
 
 function Simulation{Ehrenfest}(atoms::Atoms{S,T}, model::Model; kwargs...) where {S,T}
-    Simulation(atoms, model, Ehrenfest{T}(NQCModels.nstates(model)); kwargs...)
+    Simulation(atoms, model, Ehrenfest{T}(NonadiabaticModels.nstates(model)); kwargs...)
 end
 
 function DynamicsMethods.DynamicsVariables(

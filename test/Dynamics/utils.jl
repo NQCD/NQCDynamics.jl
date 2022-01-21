@@ -1,6 +1,6 @@
 using FiniteDiff
 using ComponentArrays: ComponentVector
-using NQCDynamics: DynamicsMethods, DynamicsUtils, nbeads, Estimators
+using NonadiabaticMolecularDynamics: DynamicsMethods, DynamicsUtils, nbeads, Estimators
 
 get_blank(sim::Simulation) = randn(size(sim))
 get_blank(sim::RingPolymerSimulation) = RingPolymerArray(randn(size(sim)))

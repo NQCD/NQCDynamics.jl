@@ -1,5 +1,5 @@
 using Test
-using NQCDynamics
+using NonadiabaticMolecularDynamics
 using Unitful
 using UnitfulAtomic
 using RecursiveArrayTools
@@ -7,8 +7,8 @@ using LinearAlgebra: diag
 using StatsBase
 using StochasticDiffEq
 using ComponentArrays
-using NQCDynamics: DynamicsMethods, DynamicsUtils
-using NQCDynamics.DynamicsMethods: ClassicalMethods, IntegrationAlgorithms
+using NonadiabaticMolecularDynamics: DynamicsMethods, DynamicsUtils
+using NonadiabaticMolecularDynamics.DynamicsMethods: ClassicalMethods, IntegrationAlgorithms
 
 atoms = Atoms([:H, :C])
 model = CompositeFrictionModel(Free(3), ConstantFriction(3, 1))
@@ -52,7 +52,7 @@ end
 
 @testset "ThermalLangevin" begin
     atoms = Atoms([:H, :C])
-    sim = RingPolymerSimulation{ThermalLangevin}(atoms, NQCModels.Free(), 3; temperature=100u"K", γ=0.01)
+    sim = RingPolymerSimulation{ThermalLangevin}(atoms, NonadiabaticModels.Free(), 3; temperature=100u"K", γ=0.01)
 
     v = RingPolymerArray(zeros(size(sim)))
     r = RingPolymerArray(zeros(size(sim)))

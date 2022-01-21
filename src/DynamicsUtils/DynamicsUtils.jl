@@ -1,7 +1,7 @@
 
 module DynamicsUtils
 
-using NQCDynamics:
+using NonadiabaticMolecularDynamics:
     AbstractSimulation,
     Simulation,
     RingPolymerSimulation,
