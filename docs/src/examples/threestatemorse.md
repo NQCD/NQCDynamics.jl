@@ -9,7 +9,7 @@ First let's visualise the diabats and couplings for the model.
 You can see two regions where the diabats cross with non-zero coupling where we can expect
 to see population transfer.
 ```@example threestatemorse
-using NonadiabaticMolecularDynamics
+using NQCDynamics
 using CairoMakie
 
 x = range(2, 12, length=200)
@@ -61,17 +61,17 @@ nothing # hide
 Now let's run the two simulations using Ehrenfest and FSSH.
 For both simulations we use the same initial distribution and average the results
 using `reduction=:mean`.
-[`TimeCorrelationsFunctions.PopulationCorrelationFunction`](@ref) will correlate
+[`TimeCorrelationFunctions.PopulationCorrelationFunction`](@ref) will correlate
 the intial population with the final population at each timestep.
 
 ```@example threestatemorse
 sim = Simulation{FSSH}(atoms, model)
-fssh_result = Ensembles.run_ensemble(sim, (0.0, 3000.0), distribution;
+fssh_result = run_ensemble(sim, (0.0, 3000.0), distribution;
     saveat=10, trajectories=1e3,
     output=TimeCorrelationFunctions.PopulationCorrelationFunction(sim, Diabatic()),
     reduction=:mean, dt=1.0)
 sim = Simulation{Ehrenfest}(atoms, model)
-ehrenfest_result = Ensembles.run_ensemble(sim, (0.0, 3000.0), distribution;
+ehrenfest_result = run_ensemble(sim, (0.0, 3000.0), distribution;
     saveat=10, trajectories=1e3,
     output=TimeCorrelationFunctions.PopulationCorrelationFunction(sim, Diabatic()),
     reduction=:mean, dt=1.0)

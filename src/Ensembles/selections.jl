@@ -1,6 +1,6 @@
 using DiffEqBase: CallbackSet
 
-using NonadiabaticMolecularDynamics: InitialConditions, DynamicsOutputs
+using NQCDynamics: InitialConditions, DynamicsOutputs
 
 abstract type AbstractSelection end
 
@@ -19,6 +19,16 @@ Obtain initial conditions by randomly sampling the distribution.
 struct RandomSelection{D} <: AbstractSelection
     "Distribution that is sampled."
     distribution::D
+end
+
+function Selection(distribution, selection::AbstractVector)
+    @info "Sampling the provided distribution in the range $selection." 
+    OrderedSelection(distribution, selection)
+end
+
+function Selection(distribution, ::Any)
+    @info "Sampling randomly from provided distribution." 
+    RandomSelection(distribution)
 end
 
 function (select::OrderedSelection)(prob, i, repeat)

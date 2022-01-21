@@ -1,10 +1,10 @@
-using NonadiabaticMolecularDynamics
+using NQCDynamics
 using Test
 using RecursiveArrayTools: ArrayPartition
 using ComponentArrays: ComponentVector
 
 atoms = Atoms([:H])
-model = NonadiabaticModels.Harmonic()
+model = NQCModels.Harmonic()
 sim = Simulation(atoms, model)
 
 positions = [randn(1, length(atoms)) for i=1:10]
@@ -12,8 +12,8 @@ velocities = [randn(1, length(atoms)) for i=1:10]
 distribution = DynamicalDistribution(positions, velocities, (1, 1))
 tspan = (0.0, 10.0)
 
-@testset "run_trajectories" begin
-    out = Ensembles.run_trajectories(sim, tspan, distribution;
+@testset "run_ensemble" begin
+    out = run_ensemble(sim, tspan, distribution;
         output=(:position), dt=1, trajectories=10)
     @test length(out) == 10
     @test out[1].position isa Vector{<:Matrix}
@@ -21,13 +21,13 @@ tspan = (0.0, 10.0)
 end
 
 @testset "run_ensemble" begin
-    out = Ensembles.run_ensemble(sim, tspan, distribution;
+    out = run_ensemble(sim, tspan, distribution;
         output=Ensembles.OutputFinal(), dt=1, trajectories=10, reduction=:append)
     @test out isa Vector{<:ArrayPartition}
 end
 
 @testset "run_ensemble, reduction=$reduction" for reduction ∈ (:sum, :mean)
-    out = Ensembles.run_ensemble(sim, tspan, distribution;
+    out = run_ensemble(sim, tspan, distribution;
         output=Ensembles.OutputFinal(), dt=1, trajectories=10, reduction=reduction)
     @test out isa ComponentVector
 end

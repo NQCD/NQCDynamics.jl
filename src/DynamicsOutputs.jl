@@ -5,8 +5,8 @@ using RecursiveArrayTools: ArrayPartition
 using DiffEqCallbacks: SavedValues, SavingCallback
 using ComponentArrays: ComponentVector
 
-using NonadiabaticModels: NonadiabaticModels
-using NonadiabaticMolecularDynamics:
+using NQCModels: NQCModels
+using NQCDynamics:
     Estimators,
     DynamicsUtils
 
@@ -99,7 +99,7 @@ position(u, t, integrator) = copy(get_positions(u))
 centroid_position(u, t, integrator) = get_centroid(get_positions(u))
 
 "Evaluate the potential from the model"
-potential(u, t, integrator) = DynamicsUtils.classical_potential_energy(integrator.p, u)
+potential(u, t, integrator) = NQCModels.potential(integrator.p.calculator.model, get_positions(u))[1]
 
 "Evaluate the classical Hamiltonian"
 hamiltonian(u, t, integrator) = DynamicsUtils.classical_hamiltonian(integrator.p, u)

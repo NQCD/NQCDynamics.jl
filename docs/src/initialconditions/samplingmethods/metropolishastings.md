@@ -16,7 +16,7 @@ We can perform the sampling by setting up a classical simulation in the usual wa
 providing an appropriate initial configuration.
 
 ```@example mh
-using NonadiabaticMolecularDynamics
+using NQCDynamics
 sim = Simulation(Atoms([:H, :H, :H, :H, :H]), Harmonic(); temperature=15)
 r0 = zeros(size(sim))
 ```
@@ -35,7 +35,7 @@ If we attempt to move the entire system at once, we can expect a very low accept
 whereas is we move only a single atom, the sampling will take much longer.
 You will likely have to experiment with this parameter to achieve optimal sampling.
 ```@example mh
-using NonadiabaticMolecularDynamics.InitialConditions: ThermalMonteCarlo
+using NQCDynamics.InitialConditions: ThermalMonteCarlo
 chain = ThermalMonteCarlo.run_advancedmh_sampling(sim, r0, steps, step_size; move_ratio=0.5)
 ```
 
@@ -51,18 +51,18 @@ sim.temperature / 2 * 5
 
 ## Legacy version
 
-Prior to the use of [`AdvancedMH.jl`](https://github.com/TuringLang/AdvancedMH.jl)
+Prior to the use of [`AdvancedMH.jl`](https://github.com/TuringLang/AdvancedMH.jl),
 an alternative version of the algorithm was implemented that works for both classical
 and ring polymer systems.
 This is currently still included in the code but should be regarded as deprecated and
 will likely be removed/combined with the [`AdvancedMH.jl`](https://github.com/TuringLang/AdvancedMH.jl)
 version.
 
-Here we use the legacy version to obtain a thermal distribution in a simple
+Here, we use the legacy version to obtain a thermal distribution in a simple
 model system.
 
 ```@setup monte
-using NonadiabaticMolecularDynamics
+using NQCDynamics
 using Plots
 ```
 First we set up the system in the usual way, here we're using an NO molecule with

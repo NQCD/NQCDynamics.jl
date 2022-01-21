@@ -36,12 +36,12 @@ struct AdiabaticIESH{T} <: AbstractIESH
     end
 end
 
-function NonadiabaticMolecularDynamics.Simulation{IESH_type}(atoms::Atoms{S,T}, model::Model; n_electrons, rescaling=:standard, kwargs...) where {S,T,IESH_type<:AbstractIESH}
-    NonadiabaticMolecularDynamics.Simulation(atoms, model, IESH_type{T}(NonadiabaticModels.nstates(model), n_electrons, rescaling); kwargs...)
+function NQCDynamics.Simulation{IESH_type}(atoms::Atoms{S,T}, model::Model; n_electrons, rescaling=:standard, kwargs...) where {S,T,IESH_type<:AbstractIESH}
+    NQCDynamics.Simulation(atoms, model, IESH_type{T}(NQCModels.nstates(model), n_electrons, rescaling); kwargs...)
 end
 
 function DynamicsMethods.DynamicsVariables(sim::Simulation{<:AdiabaticIESH}, v, r)
-    ψ = zeros(NonadiabaticModels.nstates(sim.calculator.model), sim.method.n_electrons)
+    ψ = zeros(NQCModels.nstates(sim.calculator.model), sim.method.n_electrons)
     
     for i=1:sim.method.n_electrons
         ψ[i,i] = 1
@@ -57,7 +57,7 @@ See Eq. 12 of Shenvi, Tully JCP 2009 paper.
 """
 function acceleration!(dv, v, r, sim::Simulation{<:AbstractIESH}, t, state)
     dv .= zero(eltype(dv))
-    NonadiabaticModels.state_independent_derivative!(sim.calculator.model, dv, r)
+    NQCModels.state_independent_derivative!(sim.calculator.model, dv, r)
     LinearAlgebra.lmul!(-1, dv)
     for I in eachindex(dv)
         for k in state
@@ -210,7 +210,7 @@ function Estimators.diabatic_population(sim::Simulation{<:AdiabaticIESH}, u)
 end
 
 function Estimators.adiabatic_population(sim::Simulation{<:AdiabaticIESH}, u)
-    population = zeros(NonadiabaticModels.nstates(sim.calculator.model))
+    population = zeros(NQCModels.nstates(sim.calculator.model))
     for i=1:sim.method.n_electrons
         population .+= abs2.(DynamicsUtils.get_quantum_subsystem(u)[:,i])
     end
@@ -222,7 +222,7 @@ unpack_states(sim::Simulation{<:AbstractIESH}) = symdiff(sim.method.new_state, s
 function DynamicsUtils.classical_potential_energy(sim::Simulation{<:AbstractIESH}, u)
     Calculators.evaluate_potential!(sim.calculator, DynamicsUtils.get_positions(u))
     Calculators.eigen!(sim.calculator)
-    potential = NonadiabaticModels.state_independent_potential(sim.calculator.model, DynamicsUtils.get_positions(u))
+    potential = NQCModels.state_independent_potential(sim.calculator.model, DynamicsUtils.get_positions(u))
     for i in u.state
         potential += sim.calculator.eigen.values[i]
     end

@@ -1,18 +1,18 @@
 using Test
-using NonadiabaticMolecularDynamics
+using NQCDynamics
 using OrdinaryDiffEq
 using StaticArrays
 using LinearAlgebra: Eigen
 using Random: seed!
-using NonadiabaticMolecularDynamics: DynamicsMethods, DynamicsUtils, Calculators
-using NonadiabaticMolecularDynamics.SurfaceHoppingMethods: SurfaceHoppingMethods
-using NonadiabaticMolecularDynamics.DynamicsUtils: get_positions, get_velocities
+using NQCDynamics: DynamicsMethods, DynamicsUtils, Calculators
+using NQCDynamics.SurfaceHoppingMethods: SurfaceHoppingMethods
+using NQCDynamics.DynamicsUtils: get_positions, get_velocities
 
 @test SurfaceHoppingMethods.FSSH{Float64}(2, :standard) isa SurfaceHoppingMethods.FSSH
 atoms = Atoms(2)
 
 @testset "FSSH" begin
-    sim = Simulation{FSSH}(atoms, NonadiabaticModels.DoubleWell())
+    sim = Simulation{FSSH}(atoms, NQCModels.DoubleWell())
     sim.method.state = 1
 
     r = zeros(size(sim)) 
@@ -95,7 +95,7 @@ atoms = Atoms(2)
 
     @testset "run_trajectory" begin
         atoms = Atoms(2000)
-        sim = Simulation{FSSH}(atoms, NonadiabaticModels.TullyModelTwo())
+        sim = Simulation{FSSH}(atoms, NQCModels.TullyModelTwo())
         v = hcat(100 / 2000)
         r = hcat(-10.0)
         u = DynamicsVariables(sim, v, r, SingleState(1, Adiabatic()))
@@ -105,7 +105,7 @@ atoms = Atoms(2)
 end
 
 @testset "RPSH" begin
-    sim = RingPolymerSimulation{FSSH}(atoms, NonadiabaticModels.DoubleWell(), 5)
+    sim = RingPolymerSimulation{FSSH}(atoms, NQCModels.DoubleWell(), 5)
 
     r = RingPolymerArray(zeros(size(sim)))
     v = RingPolymerArray(randn(size(sim)))

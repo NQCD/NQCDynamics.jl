@@ -1,9 +1,12 @@
 using Test
-using NonadiabaticMolecularDynamics
+using NQCDynamics
 using LinearAlgebra
-using NonadiabaticMolecularDynamics: DynamicsMethods, DynamicsUtils, Calculators
-using NonadiabaticMolecularDynamics.DynamicsMethods: SurfaceHoppingMethods
-using OrdinaryDiffEq: ODEProblem, Tsit5, init
+using Random
+using Distributions
+using NQCDynamics: DynamicsMethods, DynamicsUtils, Calculators
+using NQCDynamics.DynamicsMethods: SurfaceHoppingMethods
+using OrdinaryDiffEq
+using ComponentArrays
 
 kT = 9.5e-4
 M = 30 # number of bath states

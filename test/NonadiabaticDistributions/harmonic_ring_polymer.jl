@@ -1,5 +1,5 @@
 using Test
-using NonadiabaticMolecularDynamics
+using NQCDynamics
 
 ω = 3.4
 β = 11.2

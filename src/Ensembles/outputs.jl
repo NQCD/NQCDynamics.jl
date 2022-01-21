@@ -4,9 +4,9 @@ using LinearAlgebra: norm
 using ComponentArrays: ComponentVector
 
 using ..InitialConditions: QuantisedDiatomic
-using NonadiabaticMolecularDynamics: Estimators
-using NonadiabaticModels: nstates
-using NonadiabaticMolecularDynamics.NonadiabaticDistributions: Diabatic, Adiabatic
+using NQCDynamics: Estimators
+using NQCModels: nstates
+using NQCDynamics.NonadiabaticDistributions: Diabatic, Adiabatic
 
 abstract type AbstractOutput end
 
