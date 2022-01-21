@@ -25,7 +25,7 @@ end
 
 function DynamicsMethods.DynamicsVariables(sim::Simulation{<:DiabaticIESH}, v, r)
 
-    ψ = zeros(NQCModels.nstates(sim.calculator.model), sim.method.n_electrons)
+    ψ = zeros(NonadiabaticModels.nstates(sim.calculator.model), sim.method.n_electrons)
     for i=1:sim.method.n_electrons
         ψ[i,i] = 1
     end
@@ -61,7 +61,7 @@ function compute_overlap!(sim::Simulation{<:DiabaticIESH}, S::Matrix, ψ, state)
 end
 
 function Estimators.adiabatic_population(sim::Simulation{<:DiabaticIESH}, u)
-    population = zeros(NQCModels.nstates(sim.calculator.model))
+    population = zeros(NonadiabaticModels.nstates(sim.calculator.model))
     Calculators.update_electronics!(sim.calculator, DynamicsUtils.get_positions(u))
     U = sim.calculator.eigen.vectors
     for i=1:sim.method.n_electrons
