@@ -1,17 +1,11 @@
 using Test
 using NQCDynamics
 using LinearAlgebra
-<<<<<<< HEAD
-using NonadiabaticMolecularDynamics: DynamicsMethods, DynamicsUtils, Calculators
-using NonadiabaticMolecularDynamics.DynamicsMethods: SurfaceHoppingMethods
-using OrdinaryDiffEq: ODEProblem, Tsit5, init
-=======
 using Random
 using Distributions
 using NQCDynamics: DynamicsMethods, DynamicsUtils, Calculators
 using NQCDynamics.DynamicsMethods: SurfaceHoppingMethods
 using ComponentArrays
->>>>>>> master
 
 kT = 9.5e-4
 M = 30 # number of bath states
@@ -95,14 +89,8 @@ end
 
     SurfaceHoppingMethods.execute_hop!(integrator)
 
-<<<<<<< HEAD
-    KE_final = DynamicsUtils.classical_kinetic_energy(integrator.p, get_velocities(integrator.u))
-    H_final = DynamicsUtils.classical_hamiltonian(integrator.p, integrator.u)
-    ΔKE = KE_final - KE_initial
-=======
 @time res = run_ensemble(sim, (0.0, 5e4), dist;
     output=(:position, :population, :adiabatic_population), trajectories=2, abstol=1e-7, reltol=1e-4, saveat=0.0:50:5e4)
->>>>>>> master
 
     @test integrator.u.state == final_state # Check state has changed
     @test H_final ≈ H_initial

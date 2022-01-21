@@ -1,6 +1,6 @@
 using LinearAlgebra: mul!, det
 using Unitful, UnitfulAtomic
-using NonadiabaticModels
+using NQCModels
 export IESH_Tully
 
     """
@@ -37,14 +37,14 @@ struct IESH_Tully{T} <: SurfaceHopping
     end
 end
 
-function NonadiabaticMolecularDynamics.Simulation{IESH_Tully}(atoms::Atoms{S,T}, model::Model; n_electrons, kwargs...) where {S,T}
-    NonadiabaticMolecularDynamics.Simulation(atoms, model, IESH_Tully{T}(NonadiabaticModels.nstates(model), n_electrons); kwargs...)
+functionNQCDynamics.Simulation{IESH_Tully}(atoms::Atoms{S,T}, model::Model; n_electrons, kwargs...) where {S,T}
+   NQCDynamics.Simulation(atoms, model, IESH_Tully{T}(NQCModels.nstates(model), n_electrons); kwargs...)
 end
 
 function DynamicsMethods.DynamicsVariables(sim::Simulation{<:IESH_Tully}, v, r)
-    ψ = zeros(NonadiabaticModels.nstates(sim.calculator.model), sim.method.n_electrons)
-    #occnum = zeros(NonadiabaticModels.nstates(sim.calculator.model), sim.method.n_electrons)
-    phi = zeros(NonadiabaticModels.nstates(sim.calculator.model), sim.method.n_electrons)
+    ψ = zeros(NQCModels.nstates(sim.calculator.model), sim.method.n_electrons)
+    #occnum = zeros(NQCModels.nstates(sim.calculator.model), sim.method.n_electrons)
+    phi = zeros(NQCModels.nstates(sim.calculator.model), sim.method.n_electrons)
 
     # Include Hamiltonian ground state into IESH propagation
     # should be initialized as eigenvector of the occupied states, which, for beginning are 
@@ -296,7 +296,7 @@ function Estimators.diabatic_population(sim::Simulation{<:IESH_Tully}, u)
 end
 
 function Estimators.adiabatic_population(sim::Simulation{<:IESH_Tully}, u)
-    population = zeros(NonadiabaticModels.nstates(sim.calculator.model))
+    population = zeros(NQCModels.nstates(sim.calculator.model))
     population[u.state] .= 1
     return population
 end
