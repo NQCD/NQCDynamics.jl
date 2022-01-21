@@ -5,6 +5,7 @@ using Random
 using Distributions
 using NQCDynamics: DynamicsMethods, DynamicsUtils, Calculators
 using NQCDynamics.DynamicsMethods: SurfaceHoppingMethods
+using OrdinaryDiffEq
 using ComponentArrays
 
 kT = 9.5e-4
