@@ -3,7 +3,7 @@
 [NQCModels.jl](@ref) aims to provide a unified interface for defining both model
 Hamiltonians for nonadiabatic dynamics simulations.
 
-Here, we walk through the implementation of a few differnet types of model to
+Here, we walk through the implementation of a few different types of model to
 explain the interface.
 
 ## Abstract types

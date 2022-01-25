@@ -3,7 +3,7 @@
 The spin-boson model is widely used as a model for condensed phase quantum dynamics.
 It is defined by a system-bath Hamiltonian where the system is a 2-state spin
 coupled to a bath of harmonic oscillators.
-This example shows how to perform nonequilibrium population dynamics with this
+This example shows how to perform nonequilibrium population dynamics with the spin-boson
 model using a bath characterised by the Ohmic spectral density.
 
 ```@example spinboson
@@ -13,7 +13,7 @@ nothing # hide
 ```
 
 Our boson bath will have 100 oscillators, each with a mass of 1.
-Here we also set up the model with the ohmic density and an appropriate set of parameters.
+Here, we also set up the model with the ohmic density and an appropriate set of parameters.
 ```@example spinboson
 N = 100
 atoms = Atoms(fill(1, N))
@@ -26,7 +26,7 @@ nothing # hide
 
 ## Initial conditions
 
-For the initial conditions, we will sample directly from the Wigner distribution for
+For the initial conditions, we will sample directly from a Wigner distribution for
 the nuclear degrees of freedom.
 Since our nuclear degrees of freedom are harmonic, the Wigner distribution has an
 analytic form and we can use the distributions included in the package.
@@ -57,12 +57,12 @@ ensemble_ehrenfest = run_ensemble(ehrenfest, (0.0, 20.0), distribution;
 nothing # hide
 ```
 
-Here we can see the population difference between the two states.
+Here, we can see the population difference between the two states.
 For this set of parameters, Ehrenfest outperforms FSSH and comes close to the exact quantum
 result.
 ```@example spinboson
-plot(saveat, [p[1,1] - p[1,2] for p in ensemble_fssh])
-plot!(saveat, [p[1,1] - p[1,2] for p in ensemble_ehrenfest])
+plot(saveat, [p[1,1] - p[1,2] for p in ensemble_fssh], label="FSSH")
+plot!(saveat, [p[1,1] - p[1,2] for p in ensemble_ehrenfest], label="Ehrenfest")
 xlabel!("Time /a.u.")
 ylabel!("Population difference")
 ```
