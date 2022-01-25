@@ -61,8 +61,8 @@ Here, we can see the population difference between the two states.
 For this set of parameters, Ehrenfest outperforms FSSH and comes close to the exact quantum
 result.
 ```@example spinboson
-plot(saveat, [p[1,1] - p[1,2] for p in ensemble_fssh])
-plot!(saveat, [p[1,1] - p[1,2] for p in ensemble_ehrenfest])
+plot(saveat, [p[1,1] - p[1,2] for p in ensemble_fssh], label="FSSH")
+plot!(saveat, [p[1,1] - p[1,2] for p in ensemble_ehrenfest], label="Ehrenfest")
 xlabel!("Time /a.u.")
 ylabel!("Population difference")
 ```
