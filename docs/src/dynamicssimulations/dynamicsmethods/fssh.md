@@ -10,7 +10,7 @@ At each timestep, a hopping probability is evaluated. If the hopping probability
 population is transfered between the two different electronic states and the adiabatic propagation happens on the 
 second electronic state.
 When this algorithm is applied to an ensemble of trajectories, the discrete adiabatic state 
-populations approach the correct quantum mechanical populations for each state (cite?).
+populations approximate the quantum mechanical populations for each state.
 
 The surface hopping classical Hamiltonian can be written as
 ```math
@@ -38,7 +38,7 @@ then calculating the probability with
 At each timestep, a random number between 0 and 1 is generated which is compared to the
 probabilities. If the probability is higher than the random number, then a hop is attempted.
 
-Additionally in the fewest-switches scheme, the energy is that the Hamiltonian above is conserved
+Additionally in the fewest-switches scheme, the energy is conserved
 for each trajectory by rescaling the momenta whenever a hop is performed.
 As such, when a hop is attempted, it will only be successful when there is sufficient
 kinetic energy for the energy to be conserved after the hop.
@@ -72,7 +72,7 @@ that the reversal procedure may lead to better results.
 In this section we can investigate the results obtained for a single trajectory using FSSH.
 
 First, the simulation parameters are created. Here, we have a single atom with a mass of
-`2000` a.m.u.(?) and we are using Tully's third model (cite!), provided by [NQCModels.jl](@ref).
+`2000` a.u. and we are using Tully's third model ([Tully1990](@cite)), provided by [NQCModels.jl](@ref).
 ```@example fssh
 using Random; Random.seed!(10) # hide
 using NQCDynamics
