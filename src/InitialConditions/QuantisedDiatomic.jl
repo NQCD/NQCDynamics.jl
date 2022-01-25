@@ -260,11 +260,21 @@ function get_radial_momentum_function(total_energy, surface, J, model)
 end
 
 function find_integral_bounds(model, total_energy, J, surface, r₀, bond_limits=(0.5, 5.0))
-    optim_func(r) = abs(total_energy - effective_potential(r, J, model, surface))
+    energy_difference(r) = total_energy - effective_potential(r, J, model, surface)
+    optim_func(r) = energy_difference(r)^2
+
     optim = Optim.optimize(optim_func, first(bond_limits), r₀)
     r₁ = Optim.minimizer(optim)
+    while energy_difference(r₁) < 0
+        r₁ *= 1.01
+    end
+
     optim = Optim.optimize(optim_func, r₀, last(bond_limits))
     r₂ = Optim.minimizer(optim)
+    while energy_difference(r₂) < 0
+        r₂ *= 0.99
+    end
+
     return r₁, r₂
 end
 
