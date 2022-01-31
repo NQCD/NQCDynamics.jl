@@ -3,7 +3,7 @@
 Typically we'll be interested in computing observables based upon the statistics
 obtained from many trajectories.
 
-As usual we set up our system, this time we'll be doing FSSH dynamics:
+As an example, we set our system up for FSSH dynamics:
 ```@example ensemble
 using NQCDynamics # hide
 
@@ -33,7 +33,7 @@ nothing # hide
 
 The ensemble interface allows for specific outputs and reductions
 that apply to these outputs.
-Here we choose to output the populations of each diabatic state and reduce by averaging
+Here, we choose to output the populations of each diabatic state and reduce by averaging
 the results over all trajectories.
 ```@example ensemble
 output = TimeCorrelationFunctions.PopulationCorrelationFunction(sim, Diabatic())
@@ -41,6 +41,8 @@ nothing # hide
 ```
 
 Now we can run the ensemble of trajectories and visualise the surface hopping populations.
+The variable `saveat = n` allows to save the trajectory every `n` timepoints, so in this case,
+we will be saving information about the trajectory every 10.0 a.u.
 ```@example ensemble
 using Plots
 
@@ -55,7 +57,7 @@ xlabel!("Time")
 
 If instead it is preferred to output many quantities for each trajectory, this is
 also possible.
-Here the output is specified in the same way as for single trajectories.
+Here, the output is specified in the same way as for single trajectories.
 ```@example ensemble
 ensemble = run_ensemble(sim, (0.0, 3000.0), distribution;
     output=(:population), trajectories=50)
@@ -66,6 +68,6 @@ for e in ensemble
 end
 p
 ```
-Here we see the population of the second diabatic state for every trajectory.
+Here, we see the population of the second diabatic state for every trajectory.
 This is useful for checking the simulation is providing sensible results
 before scaling up and outputting only the necessary data.

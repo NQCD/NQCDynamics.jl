@@ -3,7 +3,7 @@
 
 ## Basic implementation
 
-To implement a new dynamics method a few simple steps should be followed:
+To implement a new dynamics method, the necessary steps are:
 
 ### Create a new subtype of `DynamicsMethods.Method`.
 
@@ -20,11 +20,11 @@ struct MyMethod <: DynamicsMethods.Method end
 
 ### Implement `DynamicsVariables`
 
-This function should return an `AbstractArray` of the variables to be used as the initial
+This function returns an `AbstractArray` of the variables to be used as the initial
 condition for the simulation.
 
 !!! tip
-    `ComponentArrays` is very useful for this. They provide the `ComponentVector` which
+    `ComponentArrays` is very useful for this. It provides the `ComponentVector` that
     makes it easy to structure and access the dynamics variables.
 
 ```@example mymethod
@@ -37,8 +37,10 @@ end
 
 ### Implement `motion!(du, u, sim, t)`
 
-This should fill `du` with the time-derivative of the dynamics variables `u` in the
-usual way expected by `DifferentialEquations.jl`.
+This function should fill `du` with the time-derivative of the dynamics variables `u` in the
+usual way expected by [`DifferentialEquations.jl`](https://diffeq.sciml.ai/stable/tutorials/ode_example/#Example-2:-Solving-Systems-of-Equations).
+We use the in-place version, where each element of `du` is filled with the time derivative of
+the correponding element in `u`.
 
 !!! tip
     Inside the `DynamicsUtils` submodule there are some useful functions like `velocity!` and
@@ -53,7 +55,7 @@ end
 
 ### Solve a trajectory
 
-With this very simple setup we can immediately perform a simple simulation.
+To perform a simulation with our new method, we can now write our usual script.
 In this form, it is just a simple wrapper around an `OrdinaryDiffEq.jl` solver, but
 by using the other parts of the framework like the `Models` and the `Calculator` interface
 it becomes straightforward to implement new dynamics methods.
@@ -66,8 +68,9 @@ sol = run_trajectory(u, (0.0, 10.0), sim, output=(:position, :velocity))
 
 using Plots
 
-plot(sol, :position)
-plot!(sol, :velocity)
+plot(sol, :position, label="Position")
+plot!(sol, :velocity, label="Velocity", legend=true)
+ylabel!("Value(t)")
 ```
 
 ## Advanced tips
@@ -82,4 +85,4 @@ internal modes of the ring polymer, allowing much larger timesteps.
 The `DifferentialEquations.jl` framework provides a simple interface for adding new
 algorithms, check out the [developer documentation](https://devdocs.sciml.ai/dev/)
 to learn how it works.
-You can see some examples of this in practice in the `DynamicsMethods.IntegrationAlgorithms` module.
+You can also find some examples of custom algorithms in the `DynamicsMethods.IntegrationAlgorithms` module.

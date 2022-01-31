@@ -1,11 +1,11 @@
 using Documenter
 using DocumenterCitations
-using NQCDynamics
-using NQCModels
+using NQCBase, NQCModels, NQCDynamics
 using CubeLDFAModel, NNInterfaces
 
 DocMeta.setdocmeta!(NQCDynamics, :DocTestSetup, :(using NQCDynamics); recursive=true)
 DocMeta.setdocmeta!(NQCModels, :DocTestSetup, :(using NQCModels, Symbolics); recursive=true)
+DocMeta.setdocmeta!(NQCBase, :DocTestSetup, :(using NQCBase); recursive=true)
 
 bib = CitationBibliography(joinpath(@__DIR__, "references.bib"), sorting=:nyt)
 
@@ -19,7 +19,7 @@ end
 @time makedocs(
     bib,
     sitename = "NQCDynamics.jl",
-    modules = [NQCDynamics, NQCModels, CubeLDFAModel],
+    modules = [NQCDynamics, NQCModels, NQCBase, CubeLDFAModel],
     strict = false,
     format = Documenter.HTML(
         prettyurls = get(ENV, "CI", nothing) == "true",
@@ -51,6 +51,7 @@ end
         "Examples" => find_all_files("examples")
         "Developer documentation" => find_all_files("devdocs")
         "API" => Any[
+            "NQCBase" => find_all_files("api/NQCBase")
             "NQCModels" => find_all_files("api/NQCModels")
             "NQCDynamics" => find_all_files("api/NQCDynamics")
         ]

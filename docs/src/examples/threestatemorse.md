@@ -1,6 +1,6 @@
 # Time-dependent populations with the ThreeStateMorse model
 
-In this example we shall investigate the time-dependent populations of the three state
+In this example we investigate the time-dependent populations of the three state
 morse model parametrised to describe photodissociation processes ([Coronado2001](@cite)).
 Technically, three different versions of this model exist and the one used
 here is model c.
@@ -36,7 +36,7 @@ fig
 
 To this model we can apply any of the methods capable of starting the population on a single
 diabatic state and returning the population as a function of time.
-Here let's use `FSSH` and `Ehrenfest`.
+Here, let's use `FSSH` and `Ehrenfest`.
 We can expect the nuclear quantum effects here to be minimal since the nuclear mass is
 chosen to be 20000. 
 ```@example threestatemorse
@@ -80,13 +80,14 @@ fig = Figure()
 ax = Axis(fig[1,1], xlabel="Time /a.u.", ylabel="Population")
 
 x = 0:10:3000
-lines!(ax, x, [p[1,1] for p in fssh_result], label="State 1", color=:red)
-lines!(ax, x, [p[1,2] for p in fssh_result], label="State 2", color=:green)
-lines!(ax, x, [p[1,3] for p in fssh_result], label="State 3", color=:blue)
+lines!(ax, x, [p[1,1] for p in fssh_result], label="FSSH State 1", color=:red)
+lines!(ax, x, [p[1,2] for p in fssh_result], label="FSSH State 2", color=:green)
+lines!(ax, x, [p[1,3] for p in fssh_result], label="FSSH State 3", color=:blue)
 
-lines!(ax, x, [p[1,1] for p in ehrenfest_result], label="State 1", color=:red, linestyle=:dash)
-lines!(ax, x, [p[1,2] for p in ehrenfest_result], label="State 2", color=:green, linestyle=:dash)
-lines!(ax, x, [p[1,3] for p in ehrenfest_result], label="State 3", color=:blue, linestyle=:dash)
+lines!(ax, x, [p[1,1] for p in ehrenfest_result], label="Ehrenfest State 1", color=:red, linestyle=:dash)
+lines!(ax, x, [p[1,2] for p in ehrenfest_result], label="Ehrenfest State 2", color=:green, linestyle=:dash)
+lines!(ax, x, [p[1,3] for p in ehrenfest_result], label="Ehrenfest State 3", color=:blue, linestyle=:dash)
+axislegend(ax)
 
 fig
 ```
