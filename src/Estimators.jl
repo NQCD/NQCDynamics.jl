@@ -45,10 +45,16 @@ macro estimate(expr)
     end)
 end
 
+"""
+    total_energy(sim, u)
+"""
 function total_energy(sim::AbstractSimulation, u)
     kinetic_energy(sim, u) + potential_energy(sim, u)
 end
 
+"""
+    potential_energy(sim, u)
+"""
 function potential_energy(sim::AbstractSimulation, u)
     potential_energy(sim, DynamicsUtils.get_positions(u))
 end
@@ -63,6 +69,9 @@ function potential_energy(sim::RingPolymerSimulation, r::AbstractArray{T,3}) whe
     mean(sim.calculator.potential)
 end
 
+"""
+    kinetic_energy(sim, u)
+"""
 function kinetic_energy(sim::Simulation, u)
     kinetic_energy(sim, DynamicsUtils.get_velocities(u))
 end
@@ -89,6 +98,9 @@ function kinetic_energy(sim::RingPolymerSimulation, r::AbstractArray{T,3}) where
     return kinetic / 2nbeads(sim)
 end
     
+"""
+    radius_of_gyration(sim, r)
+"""
 function radius_of_gyration(::RingPolymerSimulation, r::AbstractArray{T,3}) where {T}
     centroid = RingPolymers.get_centroid(r)
     deviation = (r .- centroid) .^ 2
@@ -96,7 +108,14 @@ function radius_of_gyration(::RingPolymerSimulation, r::AbstractArray{T,3}) wher
     return sqrt.(mean_deviation)
 end
 
+"""
+    diabatic_population
+"""
 function diabatic_population end
+
+"""
+    adiabatic_population
+"""
 function adiabatic_population end
 
 initial_diabatic_population(sim, u) = diabatic_population(sim, u)

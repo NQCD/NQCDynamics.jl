@@ -3,13 +3,13 @@
 
 This module exists to bridge the gap between the `Models` and the `Dynamics`.
 
-Here we provide functions and types for evaluating and storing quantities obtained from the
+Here, we provide functions and types for evaluating and storing quantities obtained from the
 `Models`.
 In addition any further manipulation of those quantities, such as computing eigenvalues,
 is included here.
 
-This module is largely needed to facilitate seemless integration of both ring polymer and
-classical dynamics, using the same models and functions for both.
+This module is largely needed to facilitate integration of both ring polymer and
+classical dynamics to allow using the same models and functions for both.
 Specific ring polymer types are provided that have the extra fields and methods needed
 to evaluate the quantities for each bead. 
 """
