@@ -24,14 +24,14 @@ This is the version that is implemented here.
 The bead approximation involves evaluating the nonadiabatic couplings for every bead
 and using these contributions from every bead to propagate the electronics.
 This version acts to conserve the kinetic energy for the entire ring polymer.
-
-For further information on the centroid implementation, please refer to
-[Shushkov2012](@cite), and for the bead approximation to [Shakib2017](@cite).
+[Shushkov2012](@cite) describes both the centroid and bead approximations, [Shakib2017](@cite)
+uses the centroid approximation.
 
 ## Example
 
 In this example we can apply RPSH to the [`ThreeStateMorse`](@ref) model as shown in the
-supporting info of [Shakib2017](@cite). We use 4 beads.
+supporting info of [Shakib2017](@cite). This model has a single particle with mass of 20000 a.u.
+and we use 4 beads for the ring polymer.
 
 ```@example rpsh
 using NQCDynamics
@@ -69,10 +69,11 @@ solution = run_ensemble(sim, (0.0, 3000.0), distribution;
     In the examples section at the end of the documentation we will return to this model
     and compare the performance of multiple methods.
 
-Here we plot .... The result closely resembles the literature reference. The small
-discrepancy that occurs at around `t=2000` is due to our use of a different way
-to calculate the diabatic populations and better results in general would be
-obtained if using the correct ring polymer distribution.
+Here we plot diabatic population of each state as a function of time.
+The result closely resembles the literature reference ([Shakib2017](@cite)). The small
+discrepancy that occurs at around `t=2000` is due to our use of an alternative method
+to calculate the diabatic populations.
+A discussion on this topic is available from [landry2013](@cite).
 ```@example rpsh
 using Plots
 
@@ -82,4 +83,10 @@ plot!(0:50:3000, [p[1,3] for p in solution], label="State 3")
 xlabel!("Time /a.u.")
 ylabel!("Population")
 ```
+
+For our simulation we are using a Normal distribution to initialise our ring polymer configuration.
+Since ring polymer surface hopping has not been rigorously derived, this choice is somewhat arbitrary
+and it is possible that better results could be achieved using a free ring polymer distribution instead.
+[Welsch2016](@cite) provides a theoretical description of how nonequilibrium simulations using RPMD
+should be performed. This techniques here should likely be applied to RPSH too.
 
