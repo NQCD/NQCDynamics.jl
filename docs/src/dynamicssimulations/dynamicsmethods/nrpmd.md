@@ -12,7 +12,7 @@ Originally, this method was proposed as a simple combination of the
 Meyer-Miller-Stock-Thoss mapping formalism with RPMD but has since been
 rigorously derived from nonadiabatic Matsubara dynamics ([Chowdhury2021](@cite)).
 
-The classical Hamiltonian conserved by the NRPMD is given by
+The classical Hamiltonian conserved by NRPMD is given by
 
 ```math
 H_N = \sum_{\alpha=1}^N \left[
@@ -25,6 +25,9 @@ H_N = \sum_{\alpha=1}^N \left[
 
 which contains ``N`` replicas with positions ``R_\alpha`` and momenta ``P_\alpha``
 joined by harmonic springs.
+``M`` is the mass, ``\beta_N = \beta / N`` is the inverse temperature scaled by the number of beads.
+``V_0(R_\alpha)`` is the state independent potential.
+``V_{nm}`` are the matrix elements of the diabatic potential. The sum runs over all pairs of states.
 Each replica has a set of mapping variables ``[q_\alpha]_n`` and ``[p_\alpha]_n``
 that interact only within the set associated with a single replica.
 The consequence of this is that the electronic dynamics is not contaminated by interbead 
@@ -70,7 +73,7 @@ Typically, the nuclear distribution will be sampled using Langevin dynamics or M
 sampling and the electronic variables are confined to a single electronic state.
 This is appropriate for modelling photoexcitation dynamics but is not yet suitable
 for equilibrium simulations.
-Equilibrium dynamicts would require also sampling a thermal distribution for the mapping variables.
+Equilibrium dynamics would require also sampling a thermal distribution for the mapping variables.
 
 ### Form of the Hamiltonian
 
@@ -84,7 +87,7 @@ However, here we have not done this for simplicity when defining the models.
 
 ## Example
 
-Using NRPMD we can reproduce the figure 3a in the 2019 paper of Chowdhury
+Using NRPMD we can reproduce the Fig. 3a in the 2019 paper of Chowdhury
 and Huo ([Chowdhury2019](@cite)).
 
 First we generate a thermal ring polymer distribution in a harmonic potential.
@@ -99,11 +102,21 @@ atom = Atoms(1)
 sim = RingPolymerSimulation(atom, Harmonic(dofs=1), 4; temperature=1/16)
 
 r0 = zeros(size(sim))
-output = InitialConditions.ThermalMonteCarlo.run_advancedmh_sampling(sim, r0, 5e3, Dict(:X=>1.0))
+steps = 5e3 # Number of Monte Carlo steps
+step_size = Dict(:X=>1.0) # Monte Carlo step size for species :X
+output = InitialConditions.ThermalMonteCarlo.run_advancedmh_sampling(sim, r0, steps, step_size)
 velocities = BoltzmannVelocityDistribution(1/16, masses(sim), size(sim))
 
 distribution = DynamicalDistribution(velocities, output, size(sim)) * SingleState(1)
 ```
+
+!!! note "`size(sim)`"
+
+    `size(sim)` returns the system size as `(degrees of freedom, number of atoms, number of beads)`.
+
+!!! tip "Monte Carlo sampling"
+
+    Further information on Monte Carlo sampling can be found [here](@ref mhmc-sampling).
 
 We can check the distribution by plotting the phasespace diagram for each of the points
 in our distribution:
@@ -112,10 +125,15 @@ in our distribution:
 using CairoMakie
 
 nuclear = distribution.nuclear
-flat_position = vcat([p[:] for p in nuclear.position]...)
-flat_velocity = vcat([rand(nuclear.velocity)[:] for p in 1:length(nuclear.position)]...)
+flat_position = reduce(vcat, (p[:] for p in nuclear.position))
+flat_velocity = reduce(vcat, (rand(nuclear.velocity)[:] for p in 1:length(nuclear.position)))
 scatter(flat_position, flat_velocity)
 ```
+
+!!! note "`reduce(vcat, ...)`"
+
+    Here we have used `reduce` in combination with `vcat` to vertically concatenate all of the information
+    into a single array for plotting.
 
 The simulation method is given as the type parameter `{NRPMD}` and
 the simulation constructor is given the atoms, model, number of beads,
@@ -140,6 +158,10 @@ that determines the output of each trajectory.
 The `reduction` can be one of `:mean`, `:append`, or `:sum`, which will determine
 how the data from each trajectory is combined.
 
+!!! note "Ensemble simulations"
+
+    Further details on ensemble simulations are available [here](@ref ensembles).
+
 ```@example nrpmd
 output = TimeCorrelationFunctions.PopulationCorrelationFunction(sim, Diabatic())
 nothing # hide
@@ -153,5 +175,8 @@ the figure from the paper we were attempting to reproduce. Nice!
 ensemble = run_ensemble(sim, (0.0, 30.0), distribution; trajectories=1000,
                                   output=output, reduction=:mean, dt=0.1)
 
-lines(0:0.1:30, [p[1,1]-p[2,1] for p in ensemble])
+plt = lines(0:0.1:30, [p[1,1]-p[2,1] for p in ensemble])
+plt.axis.xlabel = "Time"
+plt.axis.ylabel = "Population difference"
+plt
 ```
