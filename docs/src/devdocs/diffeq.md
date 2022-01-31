@@ -8,7 +8,7 @@ Due to the tight-knit integration of our dynamics, we can immediately exploit ma
 these features to save us a lot of work.
 This page details how we have used DifferentialEquations.jl to make our lives easier.
 
-## Callbacks
+## [Callbacks](@id devdocs-callbacks)
 
 [Callbacks](https://diffeq.sciml.ai/dev/features/callback_functions/#callbacks) allow
 us to introduce extra code during the dynamics without needing to meddle with the
