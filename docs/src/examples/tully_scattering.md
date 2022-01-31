@@ -55,7 +55,7 @@ and starts at a position of `-5`.
 ```@example tullymodeltwo
 result = []
 for k in momenta # Iterate through each momentum value
-    v = k / atoms.masses[1] # Starting velocity
+    v = k / sim.atoms.masses[1] # Starting velocity
     r = -5 # Starting position
     tspan = (0, 2abs(r)/v)
     distribution = DynamicalDistribution(v, -5, size(sim)) * SingleState(1, Adiabatic())
