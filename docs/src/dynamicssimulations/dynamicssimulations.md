@@ -26,8 +26,7 @@ atoms = Atoms(2000) # Single atom with mass = 2000 a.u.
 sim = Simulation{Ehrenfest}(atoms, TullyModelOne(); temperature=0, cell=InfiniteCell())
 ```
 Here we have initialised the simulation parameters, including the default temperature and cell explicitly.
-`sim` takes the place of the `p` parameter seen throughout [DifferentialEquations](https://diffeq.sciml.ai/stable/): 
-[`DynamicsVariables(sim, args...)`](@ref DynamicsVariables)
+`sim` takes the place of the `p` parameter seen throughout [DifferentialEquations](https://diffeq.sciml.ai/stable/).
 
 For [DifferentialEquations](https://diffeq.sciml.ai/stable/) to allow for a wide variety of solvers, 
 the input arrays [`DynamicsVariables`](@ref) must be [`AbstractArray`](https://docs.julialang.org/en/v1/manual/interfaces/#man-interface-array)s.
@@ -71,8 +70,9 @@ By passing a `Tuple` to the `output` keyword argument we can ask for specific qu
 ```@example dynamics
 out = run_trajectory(u0, tspan, sim; output=(:position, :adiabatic_population))
 ```
-The specific quantities that are available are listed [`here`]. If you need to add the output of another 
-quantity, the process for doing so is described [`here`]
+The quantities that are available are listed [here](@ref `DynamicsOutputs`).
+Adding more quantities requires that a new function is defined inside the [`DynamicsOutputs`](@ref) module
+that has the same set of parameters as the existing quantities.
 
 This time we can see that the output contains only the quantities that we asked for.
 
