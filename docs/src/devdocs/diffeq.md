@@ -18,7 +18,7 @@ On the developer side, [Callbacks] is the mechanism used for the saving in the
 The user can also write their own callbacks and give these to any of the dynamics functions
 to manipulate the progress of the dynamics or introduce their own saving mechanism.
 
-We also provide a few pre-made callbacks which can be given to the dynamics functions.
+We also provide two pre-made callbacks which can be given to the dynamics functions.
 These are the [`TerminatingCallback`](@ref DynamicsUtils.TerminatingCallback), for terminating the simulation early,
 and the [`CellBoundaryCallback`](@ref DynamicsUtils.CellBoundaryCallback)
 that can be used to ensure the atoms obey the periodicity of the simulation cell.
@@ -37,7 +37,7 @@ sim = Simulation(atoms, model; cell=cell)
 z = DynamicsVariables(sim, hcat(1.0), zeros(1,1))
 
 solution = run_trajectory(z, (0.0, 300), sim; dt=0.1, output=:position)
-plot(solution, :position, label="No callbacks")
+plot(solution, :position, label="No callbacks", legend=true)
 ```
 
 Now we can introduce callbacks and observe the difference:
@@ -53,3 +53,6 @@ plot!(solution, :position, label="Cell + termination")
 ```
 See how the callbacks have altered the dynamics? The atom no longer leaves
 the simulation cell, and the termination caused the simulation to exit early. 
+
+The callback setup we're using is exactly that provided by DifferentialEquations.jl,
+if you want more details on callbacks, please refer to their [documentation](https://diffeq.sciml.ai/dev/features/callback_functions/#callbacks).
