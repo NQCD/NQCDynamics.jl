@@ -22,7 +22,6 @@ We can create two particles with `mass = 1` and attach a `DiatomicHarmonic` inte
     parameter as below defaults to `Simulation{Classical}(...)`.
 
 ```@example
-
 using NQCDynamics
 using Plots
 
