@@ -15,7 +15,7 @@ ensemble averages for the classical ring polymer system.
 This is referred to as the field of imaginary-time path integrals and the techniques used
 are Path Integral Monte Carlo (PIMC) and Path Integral Molecular Dynamics (PIMD)
 depending on whether molecular dynamics or Monte Carlo methods are used to explore the
-phasespace. (cite!)
+phasespace ([tuckerman2010](@cite)).
 
 RPMD was proposed as a heuristic extension of imaginary-time path integrals to evaluate
 real-time dynamical quantities.
@@ -52,6 +52,11 @@ atoms = Atoms([:H])
 sim = RingPolymerSimulation(atoms, Free(2), 50; temperature=100u"K")
 ```
 
+!!! note "Atomic units"
+
+    Recall that the quantities are always in atomic units unless [Unitful.jl](@cite https://painterqubits.github.io/Unitful.jl/stable/)
+    has been used to specify alternative units. The temperature here has been specified using Kelvin.
+
 We initialise the simulation with zero velocity and a random distribution for the
 ring polymer bead positions. For a real RPMD simulation you will use the thermal ring
 polymer distribution obtained from a PIMC or Langevin simulation but here for simplicity
@@ -60,6 +65,10 @@ we use a normally distributed configuration.
 u = DynamicsVariables(sim, zeros(size(sim)), randn(size(sim)))
 nothing # hide
 ```
+
+!!! tip
+
+    To learn how to work with the thermal ring polymer phase space, refer to the [Storing and sampling distributions](@ref) section.
 
 Now we can run the simulation, for which we use the time interval 0.0 to 500.0 and a time 
 step of `dt = 2.5`:
@@ -72,7 +81,8 @@ nothing # hide
 We can visualise this ring polymer trajectory with a 2D scatter plot that shows how
 the ring polymer evolves in time. Here, we have joined the adjacent beads together with
 lines, with the end and start beads joined with a different color.
-Hopefully you can see that this interaction appears equivalent to all the others.
+This animation shows the cyclic nature of the ring polymer, and how every bead is connected
+to its two neighbours.
 
 ```@example rpmd
 using CairoMakie
