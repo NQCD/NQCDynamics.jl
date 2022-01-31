@@ -54,7 +54,7 @@ sim = RingPolymerSimulation(atoms, Free(2), 50; temperature=100u"K")
 
 !!! note "Atomic units"
 
-    Recall that the quantities are always in atomic units unless [Unitful.jl](@cite https://painterqubits.github.io/Unitful.jl/stable/)
+    Recall that the quantities are always in atomic units unless [Unitful.jl](https://painterqubits.github.io/Unitful.jl/stable/)
     has been used to specify alternative units. The temperature here has been specified using Kelvin.
 
 We initialise the simulation with zero velocity and a random distribution for the
