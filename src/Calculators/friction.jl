@@ -71,7 +71,7 @@ end
 
 Evaluate the electronic friction for a model given in the diabatic representation.
 
-Requires that `adiabatic_derivative` and `eigenvalues` be precomputed.
+Requires that `adiabatic_derivative` and `eigenvalues` be precomputed. 
 
 ```math
 γ = 2πħ ∑ⱼ <1|dH|j><j|dH|1> δ(ωⱼ) / ωⱼ
