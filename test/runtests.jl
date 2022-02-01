@@ -36,7 +36,6 @@ if GROUP == "All" || GROUP == "Dynamics"
     @time @safetestset "RPeCMM Tests" begin include("Dynamics/rpecmm.jl") end
     @time @safetestset "Cell Boundary Callback Tests" begin include("Dynamics/cell_boundary_callback.jl") end
     @time @safetestset "Ehrenfest Tests" begin include("Dynamics/ehrenfest.jl") end
-    @time @safetestset "IESH Tests" begin include("Dynamics/iesh.jl") end
     @time @safetestset "Ensemble Tests" begin include("Ensembles/ensembles.jl") end
     @time @safetestset "Ensemble Selection Tests" begin include("Ensembles/selections.jl") end
     @time @safetestset "Ensemble Reduction Tests" begin include("Ensembles/reductions.jl") end

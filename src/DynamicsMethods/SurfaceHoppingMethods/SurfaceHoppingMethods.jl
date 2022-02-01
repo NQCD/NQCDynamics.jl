@@ -124,7 +124,6 @@ function DynamicsMethods.create_problem(u0, tspan, sim::AbstractSimulation{<:Sur
 end
 
 include("fssh.jl")
-include("iesh.jl")
 include("rpsh.jl")
 
 end # module
