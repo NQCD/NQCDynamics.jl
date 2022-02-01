@@ -11,7 +11,7 @@ end
 
 @testset "get_u_init" begin
 
-    @testset "AbstractOutput, reduction=$reduction" for reduction in (:mean, :sum)
+    @testset "Output, reduction=$reduction" for reduction in (:mean, :sum)
         reduction = Ensembles.select_reduction(reduction)
         tspan = (0.0, 1.0)
         u0 = 1.0
@@ -44,15 +44,14 @@ end
 end
 
 @testset "$reduction" for reduction in (Ensembles.MeanReduction(0), Ensembles.SumReduction())
-    prob = ODEProblem((u,p,t) -> 1.01u, 0.5, (0.0,1.0))
-    prob_func(prob, i, repeat) = remake(prob,u0=rand())
+    prob = ODEProblem((u,p,t) -> 1.01u, [0.5], (0.0,1.0))
+    prob_func(prob, i, repeat) = remake(prob,u0=[rand()])
     output = Ensembles.OutputFinal()
-    u_init = Ensembles.output_template(output, rand())
-    ensemble = EnsembleProblem(prob, prob_func=prob_func, output_func=output, reduction=reduction, u_init=u_init)
+    ensemble = EnsembleProblem(prob, prob_func=prob_func, output_func=output, reduction=reduction, u_init=[0.0])
     sol = solve(ensemble, Tsit5(), trajectories=1e3, batch_size=20)
     if reduction isa Ensembles.SumReduction
-        @test sol.u / 1e3 ≈ 0.5 * exp(1.01) rtol=1e-1
+        @test sol.u[1] / 1e3 ≈ 0.5 * exp(1.01) rtol=1e-1
     else
-        @test sol.u ≈ 0.5 * exp(1.01) rtol=1e-1
+        @test sol.u[1] ≈ 0.5 * exp(1.01) rtol=1e-1
     end
 end
