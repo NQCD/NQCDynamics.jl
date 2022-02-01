@@ -25,11 +25,6 @@ along with specific customised output.
 Already implemented in the code are a small library of existing functions of this type, but it is possible to use any Julia function in its place.
 The existing ensemble outputs can be found [here](@ref `Ensembles`).
 
-!!! warning "Reduction keyword"
-
-    When using a functional output, the `reduction` keyword can be used to modify how the data is reduced between trajectories.
-    If using the tuple output, only `reduction=:append` is currently valid.
-
 Internally, the [DifferentialEquations.jl](https://diffeq.sciml.ai/stable/features/ensemble/#Performing-an-Ensemble-Simulation)
 ensemble infrastructure is used to handle per trajectory parallelism.
 The `ensemble_algorithm` keyword takes one of the [EnsembleAlgorithms](https://diffeq.sciml.ai/stable/features/ensemble/#EnsembleAlgorithms).
@@ -103,7 +98,10 @@ plot(ensemble, :population)
 
 !!! note
 
-    Here we have also specified the `saveat` keyword.
+    Here we have also specified the `saveat` keyword to ensure the output is saved at the
+    same points for every trajectory, otherwise the averaging will not work.
+    This is necessary because we are using an integrator with adaptive timestepping that will
+    save at different points for each trajectory.
 
 This workflow can be applied for any of the quantities defined in the [`DynamicsOutputs`](@ref) submodule.
 If we want a more complex output, such as a scattering probability or a time-correlation function,
@@ -114,9 +112,9 @@ it also allows greater flexibility when modifying the output.
 
 Inside the [`Ensembles`](@ref) submodule we define a few premade functions of this sort, but here
 we can demonstrate how to reformulate the previous simulation using the alternative format.
-```
+```@example ensemble
 function output_function(sol, i)
-    output = zeros(2,length(sol.u))
+    output = zeros(2,div(3000, 50) + 1)
     for (i,u) in enumerate(sol.u)
         output[:,i] = Estimators.diabatic_population(sim, u)
     end
@@ -124,48 +122,18 @@ function output_function(sol, i)
 end
 
 ensemble = run_ensemble(sim, (0.0, 3000.0), product_distribution;
-    trajectories=20, output=output_function, reduction=:mean)
+    trajectories=20, output=output_function, reduction=:mean, u_init=zeros(2,div(3000, 50)+1), saveat=50.0)
 ```
 This function provides us the same output as above, but here we have defined it
 in a way compatible with the [DifferentialEquations.jl format](https://diffeq.sciml.ai/stable/features/ensemble/#Building-a-Problem).
+To use this format, we have additionally specified `u_init` and `saveat`.
+These keywords come from [DifferentialEquations.jl](https://diffeq.sciml.ai/stable/features/ensemble/#Building-a-Problem),
+and specify the shape of the output and at which timesteps we want to evaluate `output_function` and save the values.
+In this example we have saved the output at intervals of 50 from 0 to 3000, our `tspan`.
+The advantage of this format is that greater flexibility is available
+since `output_function` can be modified to output any quantity.
 
-The ensemble interface allows for specific outputs and reductions
-that apply to these outputs.
-Here, we choose to output the populations of each diabatic state and reduce by averaging
-the results over all trajectories.
-```@example ensemble
-output = TimeCorrelationFunctions.PopulationCorrelationFunction(sim, Diabatic())
-nothing # hide
-```
-
-Now we can run the ensemble of trajectories and visualise the surface hopping populations.
-The variable `saveat = n` allows to save the trajectory every `n` timepoints, so in this case,
-we will be saving information about the trajectory every 10.0 a.u.
-```@example ensemble
-using Plots
-
-solution = run_ensemble(sim, (0.0, 3000.0), distribution; trajectories=1e3,
-    output=output, reduction=:mean, saveat=10.0)
-
-plot(0:10:3000, [p[1,1] for p in solution], legend=false)
-plot!(0:10:3000, [p[2,1] for p in solution])
-ylabel!("Population difference")
-xlabel!("Time")
-```
-
-If instead it is preferred to output many quantities for each trajectory, this is
-also possible.
-Here, the output is specified in the same way as for single trajectories.
-```@example ensemble
-ensemble = run_ensemble(sim, (0.0, 3000.0), distribution;
-    output=(:population), trajectories=50)
-
-p = plot(legend=(false))
-for e in ensemble
-    plot!(e.t, [pop[2] for pop in e.population])
-end
-p
-```
-Here, we see the population of the second diabatic state for every trajectory.
-This is useful for checking the simulation is providing sensible results
-before scaling up and outputting only the necessary data.
+Throughout the documentation, ensemble simulations like this one are used to demonstrate
+many of the dynamics methods.
+Now that you have understood the contents of this page, all of the ensemble simulations
+will appear familiar.
