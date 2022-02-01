@@ -65,5 +65,5 @@ end
 
 function (select::SelectWithCallbacks)(prob, i, repeat)
     prob = select.selection(prob, i, repeat)
-    remake(prob, callback=CallbackSet(select.standard_callbacks, select.changing_callbacks[i]))
+    SciMLBase.remake(prob, callback=CallbackSet(select.standard_callbacks, select.changing_callbacks[i]))
 end
