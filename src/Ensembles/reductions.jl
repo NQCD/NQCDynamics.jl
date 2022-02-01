@@ -2,32 +2,48 @@ using StatsBase: mean
 using NQCDynamics: TimeCorrelationFunctions
 using .TimeCorrelationFunctions: TimeCorrelationFunction
 
-abstract type AbstractReduction end
-
 """
 Sum the outputs from each trajectory.
 """
-struct SumReduction <: AbstractReduction end
-(reduction::SumReduction)(u, batch, I) = u + sum(batch), false
+struct SumReduction end
+function (reduction::SumReduction)(u, batch, I)
+    sum_outputs!(u, batch)
+    return (u, false)
+end
 
 """
 Average the outputs over all trajectories.
 """
-mutable struct MeanReduction <: AbstractReduction
+mutable struct MeanReduction
     counter::Int
 end
 
 function (reduction::MeanReduction)(u, batch, I)
-    failed_trajectories = length.(batch) .!= length(u)
-    deleteat!(batch, failed_trajectories)
-
-    previous = u .* reduction.counter
+    u .*= reduction.counter
     reduction.counter += length(batch)
-    current = previous .+ sum(batch)
-
-    (current ./ reduction.counter, false)
+    sum_outputs!(u, batch)
+    u ./= reduction.counter
+    return (u, false)
 end
 
+function sum_outputs!(u, batch)
+    for i=1:length(batch)
+        if size(batch[i]) != size(u)
+            @warn "DimensionMismatch encountered when reducing outputs. \
+                Discarding trajectory. Check `u_init` matches the output size."
+        else
+            u .+= batch[i]
+        end
+    end
+end
+
+"""
+    select_reduction(reduction::Symbol)
+
+Converts reduction keyword into function that performs reduction.
+
+* `:discard` is used internally when using callbacks to save outputs instead.
+"""
 function select_reduction(reduction::Symbol)
     if reduction === :mean
         return MeanReduction(0)
@@ -35,6 +51,8 @@ function select_reduction(reduction::Symbol)
         return SumReduction()
     elseif reduction === :append
         return (u,data,I)->(append!(u,data),false)
+    elseif reduction === :discard
+        return (u,data,I)->((nothing,),false)
     else
         throw(ArgumentError("`reduction` $reduction not recognised."))
     end
