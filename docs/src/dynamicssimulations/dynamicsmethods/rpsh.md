@@ -61,7 +61,7 @@ and it will be averaged over all trajectories by the `:mean` keyword.
 solution = run_ensemble(sim, (0.0, 3000.0), distribution;
     saveat=50, trajectories=5e2, dt=1,
     output=TimeCorrelationFunctions.PopulationCorrelationFunction(sim, Diabatic()),
-    reduction=:mean)
+    reduction=:mean, u_init=[zeros(3,3) for i=1:length(0:50:3000)])
 ```
 
 !!! note

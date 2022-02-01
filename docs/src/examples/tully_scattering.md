@@ -61,7 +61,9 @@ for k in momenta # Iterate through each momentum value
     distribution = DynamicalDistribution(v, -5, size(sim)) * SingleState(1, Adiabatic())
 
     out = run_ensemble(sim, tspan, distribution;
-        trajectories=ntraj, output=output, reduction=:mean)
+        trajectories=ntraj, output=output, reduction=:mean,
+        u_init=ComponentVector(reflection=zeros(2), transmission=zeros(2))
+    )
 
     push!(result, out)
 end

@@ -69,12 +69,12 @@ sim = Simulation{FSSH}(atoms, model)
 fssh_result = run_ensemble(sim, (0.0, 3000.0), distribution;
     saveat=10, trajectories=1e3,
     output=TimeCorrelationFunctions.PopulationCorrelationFunction(sim, Diabatic()),
-    reduction=:mean, dt=1.0)
+    reduction=:mean, dt=1.0, u_init=[zeros(3,3) for i=1:length(0:10:3000)])
 sim = Simulation{Ehrenfest}(atoms, model)
 ehrenfest_result = run_ensemble(sim, (0.0, 3000.0), distribution;
     saveat=10, trajectories=1e3,
     output=TimeCorrelationFunctions.PopulationCorrelationFunction(sim, Diabatic()),
-    reduction=:mean, dt=1.0)
+    reduction=:mean, dt=1.0, u_init=[zeros(3,3) for i=1:length(0:10:3000)])
 
 fig = Figure()
 ax = Axis(fig[1,1], xlabel="Time /a.u.", ylabel="Population")

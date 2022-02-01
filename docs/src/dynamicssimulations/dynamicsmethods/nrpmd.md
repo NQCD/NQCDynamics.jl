@@ -172,8 +172,9 @@ The resulting plot shows the time dependent population difference and closely ma
 the figure from the paper we were attempting to reproduce. Nice!
 
 ```@example nrpmd
-ensemble = run_ensemble(sim, (0.0, 30.0), distribution; trajectories=1000,
-                                  output=output, reduction=:mean, dt=0.1)
+ensemble = run_ensemble(sim, (0.0, 30.0), distribution;
+    trajectories=1000, output, reduction=:mean, dt=0.1,
+    u_init=[zeros(2,2) for i=1:length(0:0.1:30.0)])
 
 plt = lines(0:0.1:30, [p[1,1]-p[2,1] for p in ensemble])
 plt.axis.xlabel = "Time"
