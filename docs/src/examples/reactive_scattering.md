@@ -48,7 +48,7 @@ v = first.(configurations)
 r = last.(configurations)
 
 distribution = DynamicalDistribution(v, r, (3,2))
-JLD2.save("distribution.jld2",Dict("dist"=>ditribution,"atoms"=>atoms,"cell"=>cell))
+JLD2.save("distribution.jld2",Dict("dist"=>distribution,"atoms"=>atoms,"cell"=>cell))
 
 ```
 The as-produced initial conditions can be subsequently saved in an external binary file
@@ -59,7 +59,7 @@ is being widely used.
 
 In order to produce unweighted distribution, the initial lateral and angular orientation were randomly selected within the unit cell. As example of the spacial and orientation distribution generated with this module,  a small subset of data (300 points) is shown in next Figure. To run our production simulations, however, a set of 80,000 initial velocities and positions were generated to save it to run ensemble simulation with the same pair of quantum numbers.
 
-Figure_1 :"icond_scatter.png"
+![initial conditions](../assets/figures/icond_scatter.png)
 
 ## MDEF with the LDFA
 
@@ -156,7 +156,7 @@ function starting with  an initial translation energy at 1.0 eV. For both figure
 the top panels along with the H-H distance and z coordinate of center of mass for each
 individual trajectory.
 
-Figure_2 "S5.png".
+![truncation](../assets/figures/scattering_truncation.png)
 
 
 
