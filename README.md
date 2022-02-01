@@ -2,7 +2,7 @@
 
 <p align="right">
   <a href="https://nqcd.github.io/NQCDynamics.jl/stable/">
-    <img src="https://github.com/NQCD/NQCDLogo/blob/main/logo.png" alt="NQCDynamics.jl logo"
+    <img src="https://github.com/NQCD/NQCDLogo/blob/main/images/logo_with_text.png" alt="NQCDynamics.jl logo"
          title="NQCDynamics.jl" align="right" height="60"/>
   </a>
 </p>
