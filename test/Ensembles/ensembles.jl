@@ -10,6 +10,7 @@ sim = Simulation(atoms, model)
 positions = [randn(1, length(atoms)) for i=1:10]
 velocities = [randn(1, length(atoms)) for i=1:10]
 distribution = DynamicalDistribution(positions, velocities, (1, 1))
+u0 = rand(distribution)
 tspan = (0.0, 10.0)
 
 @testset "run_ensemble" begin
@@ -28,6 +29,6 @@ end
 
 @testset "run_ensemble, reduction=$reduction" for reduction ∈ (:sum, :mean)
     out = run_ensemble(sim, tspan, distribution;
-        output=Ensembles.OutputFinal(), dt=1, trajectories=10, reduction=reduction)
+        output=Ensembles.OutputFinal(), dt=1, trajectories=10, reduction=reduction, u_init=u0)
     @test out isa ComponentVector
 end

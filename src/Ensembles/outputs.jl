@@ -8,8 +8,6 @@ using NQCDynamics: Estimators
 using NQCModels: nstates
 using NQCDynamics.NonadiabaticDistributions: Diabatic, Adiabatic
 
-abstract type AbstractOutput end
-
 function output_template(output, u0)
     return zero(output(ComponentVector(u=[u0]), 1)[1])
 end
@@ -17,14 +15,14 @@ end
 """
 Output the end point of each trajectory.
 """
-struct OutputFinal <: AbstractOutput end
+struct OutputFinal end
 
 (::OutputFinal)(sol, i) = (last(sol.u), false)
 
 """
 Output a 1 if the molecule has dissociated, 0 otherwise.
 """
-struct OutputDissociation{T} <: AbstractOutput
+struct OutputDissociation{T}
     "The maximum distance at which the two atoms can be considered bonded."
     distance::T
     "The indices of the two atoms in the molecule of interest."
@@ -41,7 +39,7 @@ end
 """
 Output the vibrational and rotational quantum numbers of the final image.
 """
-struct OutputQuantisedDiatomic{S,H,V} <: AbstractOutput
+struct OutputQuantisedDiatomic{S,H,V}
     sim::S
     height::H
     normal_vector::V
@@ -62,7 +60,7 @@ Output a `ComponentVector` with fields `reflection` and `transmission` containin
 the probability of the outcome.
 Each index in the arrays refers to the adiabatic state.
 """
-struct OutputStateResolvedScattering1D{S} <: AbstractOutput
+struct OutputStateResolvedScattering1D{S}
     sim::S
     type::Symbol
 end
