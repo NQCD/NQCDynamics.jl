@@ -22,11 +22,11 @@
 [ci-img]: https://github.com/nqcd/NQCDynamics.jl/actions/workflows/CI.yml/badge.svg
 [ci-url]: https://github.com/nqcd/NQCDynamics.jl/actions/workflows/CI.yml
 
-[ccov-img]: https://codecov.io/gh/NQCD/NQCDynamics.jl/branch/master/graph/badge.svg
+[ccov-img]: https://codecov.io/gh/NQCD/NQCDynamics.jl/branch/main/graph/badge.svg
 [ccov-url]: https://codecov.io/gh/NQCD/NQCDynamics.jl
 
 [license-img]: https://img.shields.io/github/license/NQCD/NQCDynamics.jl
-[license-url]: https://github.com/NQCD/NQCDynamics.jl/blob/master/LICENSE
+[license-url]: https://github.com/NQCD/NQCDynamics.jl/blob/main/LICENSE
 
 **Fast and flexible nonadiabatic molecular dynamics in Julia!**
 
