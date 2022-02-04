@@ -2,8 +2,8 @@
 
 In this example we investigate the time-dependent populations of the three state
 morse model parametrised to describe photodissociation processes ([Coronado2001](@cite)).
-Technically, three different versions of this model exist and the one used
-here is model c.
+This reference introduces three versions of this model with different parameter sets.
+Our `ThreeStateMorse` model matches model C from the reference.
 
 First let's visualise the diabats and couplings for the model.
 You can see two regions where the diabats cross with non-zero coupling where we can expect
@@ -40,20 +40,23 @@ Here, let's use `FSSH` and `Ehrenfest`.
 We can expect the nuclear quantum effects here to be minimal since the nuclear mass is
 chosen to be 20000. 
 ```@example threestatemorse
-atoms = Atoms(20000)
+m = 20000
+atoms = Atoms(m)
 nothing # hide
 ```
 
-For our initial conditions let's use a position distribution centred at 2.1 a.u.
-with Boltzmann velocities at 300 K.
+For our initial conditions, we use the Wigner distribution for a Harmonic oscillator
+centred at 2.1 with a frequency of 5e-3 at a temperature of 300 K.
 This distribution is chosen to mimic a thermal ground state distribution before
 photoexcitation.
 ```@example threestatemorse
 using Distributions: Normal
-using Unitful
+using Unitful, UnitfulAtomic
 
-position = Normal(2.1, 1 / sqrt(20000 * 0.005))
-velocity = BoltzmannVelocityDistribution(300u"K", [20000], (1,1))
+ω = 5e-3
+β = 1/austrip(300u"K")
+position = PositionHarmonicWigner(ω, β, m; centre=2.1)
+velocity = VelocityHarmonicWigner(ω, β, m)
 distribution = DynamicalDistribution(velocity, position, (1,1)) * SingleState(1)
 nothing # hide
 ```
@@ -93,6 +96,6 @@ fig
 ```
 
 To reduce the build time for the documentation the results here are underconverged but
-already it is clear that the trends demonstrated in the papers are reproduced here.
-We can attempt to improve the results by adding more beads, more trajectories, and improving
-the initial distribution by correctly sampling the harmonic ground state.
+already it is clear that both of these methods come close to the exact result shown by [Coronado2001](@cite).
+After performing enough trajectories to converge the population dynamics,
+we would be better able to judge the effectiveness of FSSH and Ehrenfest at reproducing the exact quantum dynamics for this model.
