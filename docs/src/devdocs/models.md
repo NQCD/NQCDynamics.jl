@@ -1,6 +1,6 @@
 # [Implementing a new model](@id devdocs-model)
 
-[NQCModels.jl](@ref) aims to provide a unified interface for defining both model
+[NQCModels.jl](@ref) aims to provide a unified interface for defining model
 Hamiltonians for nonadiabatic dynamics simulations.
 
 Here, we walk through the implementation of a few different types of model to
