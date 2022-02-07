@@ -1,29 +1,32 @@
 # [Reactive scattering from a metal surface](@id example-h2scattering)
 
-The current version of our Julia implementation allow us to simulate the state-to-state
-vibrational de-excitation probability on reactive scattering events at metal surfaces for any diatomic molecule 
-with a proper model to describe energies and forces (and eventually friction coefficients for MDEF simulations). 
-Here, specifically, we examine the hydrogen reactive scattering on Ag(111) metal surface as a prototypical example to show how the general
-workflow works.
+Our implementation allows us to simulate vibrational de-excitation probability during reactive scattering events at metal surfaces for any diatomic molecule 
+with a suitable model to describe energies and forces (and friction coefficients for MDEF simulations). 
+Here, we investigate the reactive scattering of hydrogen on a Ag(111) metal surface as a prototypical example.
 
-To run this kind of simulations, a set of initial positions and velocities (``r_{0}^{i}`` and ``v_{0}^{i}``) with a specific
-set of ro-vibrational quantum states ``\nu`` and ``j`` have to be initially generated
-(see initial condition section/ sampling methods/ semiclassical EBK quantisation).
-With a specific ro-vibrational quantum state is possible to compute different properties
+To run this kind of simulation, a set of initial positions and velocities (``\mathbf{R}`` and ``\mathbf{\dot{R}}``) with
+ro-vibrational quantum states ``\nu`` and ``j`` have to be generated
+(see [EBK quantisation](@ref ebk-sampling)).
+With a specific ro-vibrational quantum state it is possible to compute different properties
 after molecular collision and energy transfer with the metal surface like the vibrational
 de-excitation probabilities discussed here.
 
-In order to reproduce the state-to-state vibrational de-excitation probability results presented originally by [Maurer2019](@cite) for this system, the same initial conditions were generated through [`QuantisedDiatomic.generate_configurations`](@ref InitialConditions.QuantisedDiatomic.generate_configurations)
-function with initial ro-vibrational quantum state (``\nu``=2 and ``j``=0) as was explored in the original paper. 
+In order to reproduce the state-to-state vibrational de-excitation probability results presented originally by [Maurer2019](@cite) for this system, the same initial conditions were generated with [`QuantisedDiatomic.generate_configurations`](@ref InitialConditions.QuantisedDiatomic.generate_configurations)
+setting the initial ro-vibrational quantum state to (``\nu=2, j=0``) as was explored in the original paper. 
 
 As shown earlier in the [EBK documentation](@ref ebk-sampling) we are able to generate
 a semiclassically quantised distribution for a diatomic molecule on a collision course
 with a metal surface.
-Here we can follow that example with the [`H2AgModel`](@ref NNInterfaces.H2AgModel) model
+In this example we follow the [EBK example](@ref ebk-sampling) using the [`H2AgModel`](@ref NNInterface.H2AgModel)
 to prepare our initial distribution and run our simulation.
 
-Specifically, we have produced a set of initial conditions with different translational energy (`translational_energy` keyword) ranging from 0.2 to 1.4 eV, locating the hydrogen molecule at 8 Å away from the metal
-surface (`height` keyword) with a normal incidence. Note, we use the unit transformation from Angstrom to atomic unit inside the function(`ang_to_au()`)
+Specifically, we have produced a set of initial conditions with different translational energy (`translational_energy` keyword) ranging from 0.2 to 1.4 eV, locating the hydrogen molecule 8 Å away from the metal
+surface (`height` keyword) with a normal incidence.
+
+!!! note "Atomic units"
+
+    As usual, all quantities default to atomic units. Here we use [Unitful](https://painterqubits.github.io/Unitful.jl/stable/)
+    to input the translational energy and height using different units, where they are later converted internally.
 
 ```@example h2scatter
 using NQCDynamics
@@ -37,27 +40,29 @@ model = H2AgModel()
 cell = PeriodicCell([11.1175 -5.5588 0.0; 0.0 9.628 0.0; 0.0 0.0 70.3079])
 sim = Simulation(atoms, model; cell=cell)
 
-ν, J = 2, 0           # selected ro-vibrational quantum states  
-nsamples = 300        # number of configurations      
-Ek = 0.5              # Translational energy [eV] ; range considered [0.2-1.4] eV
-z = 8.0               # Height [Å]  ; fixed at 8 Å
+ν, J = 2, 0     # selected ro-vibrational quantum states  
+nsamples = 300  # number of configurations      
+Ek = 0.5u"eV"   # Translational energy [eV] ; range considered [0.2-1.4] eV
+z = 8.0u"Å"     # Height [Å]  ; fixed at 8 Å
 
 configurations = QuantisedDiatomic.generate_configurations(sim, ν, J;
-    samples=nsamples, translational_energy=Ek*u"eV", height= ang_to_au(z))
+    samples=nsamples, translational_energy=Ek, height=z)
 v = first.(configurations)
 r = last.(configurations)
 
 distribution = DynamicalDistribution(v, r, (3,2))
-JLD2.save("distribution.jld2",Dict("dist"=>distribution,"atoms"=>atoms,"cell"=>cell))
-
+nothing # hide
 ```
-The as-produced initial conditions can be subsequently saved in an external binary file
-`distribution.jld2` format which store the distribution data (``r_{0}^{i}`` and ``v_{0}^{i}``) along
-with useful information of the `unit cell` and `atoms type` with a dictionary structure. The
-”jld2” format is a binary format which is able to store complex Julia data structure and it
-is being widely used.
 
-In order to produce unweighted distribution, the initial lateral and angular orientation were randomly selected within the unit cell. As example of the spacial and orientation distribution generated with this module,  a small subset of data (300 points) is shown in next Figure. To run our production simulations, however, a set of 80,000 initial velocities and positions were generated to save it to run ensemble simulation with the same pair of quantum numbers.
+!!! tip "Saving the distribution"
+
+    Generally it will be desirable to generate a distribution once and re-use it for multiple dynamics simulations.
+    The simplest way to do this is to save the distribution using [JLD2.jl](https://juliaio.github.io/JLD2.jl/dev/).
+    Refer to [Saving and loading](@id saving-and-loading) to learn more.
+
+In order to produce an unweighted distribution, the lateral and angular orientation are randomly selected within the unit cell.
+As an example of the spacial and orientation distribution generated with this module, a subset of data (300 configurations) is shown below.
+To run our production simulations, however, a set of 80,000 initial velocities and positions were used.
 
 ![initial conditions](../assets/figures/icond_scatter.png)
 
@@ -83,19 +88,6 @@ trajectories using [`run_ensemble`](@ref).
 sim = Simulation{MDEF}(atoms, model, cell=cell, temperature=300u"K")
 ensemble = run_ensemble(sim, tspan, distribution;selection=1:20,
     dt=0.1u"fs", output=:position, trajectories=20, callback=terminate)
-```
-
-A full description of our reactive system also includes other basic variables definition
-like type of atoms, unit cell and electronic temperature which can be properly defined
-before to run any simulation. The generated distribution can be uploaded and use it in the following way.
-
-```@example reading
-system = load("distribution.jld2")
-
-Tel = 0u"K"
-cell = system["cell"]
-distribution = system["dist"]
-atoms = system["atoms"]
 ```
 
 ## MDEF with neural network friction 
@@ -128,12 +120,13 @@ using LinearAlgebra: norm
 
 h2distance(p) = norm(p[:,1] .- p[:,2])
 
+"Terminates simulation if returns `true`." 
 function termination_condition(u, t, integrator)::Bool
     R = get_positions(u)
-    zcom = au_to_ang(mean(R[3,:]))
-    if zcom > 8.1
+    zcom = au_to_ang(mean(R[3,:]))          # Convert vertical centre of mass to angstrom
+    if zcom > 8.1                           # Scattering event
         return true
-    elseif au_to_ang(h2distance(R)) > 2.5
+    elseif au_to_ang(h2distance(R)) > 2.5   # Reactive event
         return true
     else
         return false
@@ -145,15 +138,14 @@ tspan = (0.0, 420.0u"fs")
 nothing # hide
 ```
 
-Specifically, for this example, the original criteria to define a reactive or scattering events was used and a
-”termination condition function” was implemented as above. We consider a reactive event if the H-H
-bond length is larger than 2.5 Å in any point of the molecular dynamics trajectory and a
-scattering event if the ``H_2`` molecule scattering back with a vertical distance from the metal
-surface larger than 8.1 Å.
+In this example, we consider the outcome a reactive event if the H-H
+bond length is larger than 2.5 Å in any point of during the trajectory and a
+scattering event if the molecule rebounds to a vertical distance from the metal
+surface greater than 8.1 Å.
 
-As example to show this, we have run 20 trajectories with and without the truncation
-function starting with  an initial translation energy at 1.0 eV. For both figures, the total and kinetic energies are shown in
-the top panels along with the H-H distance and z coordinate of center of mass for each
+To show this, we have run 20 trajectories with and without the truncation
+function starting with an initial translation energy at 1.0 eV. For both figures, the total and kinetic energies are shown in
+the top panels along with the H-H distance and centre of mass z coordinate for each
 individual trajectory.
 
 ![truncation](../assets/figures/scattering_truncation.png)
