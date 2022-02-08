@@ -33,6 +33,7 @@ end
         "Getting started" => "getting_started.md"
         "Atoms" => "atoms.md"
         "Ensemble simulations" => "ensemble_simulations.md"
+        "Saving and loading" => "saving_loading.md"
         "NQCModels.jl" => Any[
             "NQCModels/overview.md"
             "NQCModels/analyticmodels.md"

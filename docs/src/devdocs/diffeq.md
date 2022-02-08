@@ -1,12 +1,12 @@
 
 # DifferentialEquations.jl integration
 
-This package is built directly on top of the established
+NQCDynamics.jl is built directly on top of the established
 [DifferentialEquations.jl](https://diffeq.sciml.ai/dev/index.html)
-that houses a vast array of features.
-Due to the tight-knit integration of our dynamics, we can immediately exploit many of
-these features to save us a lot of work.
-This page details how we have used DifferentialEquations.jl to make our lives easier.
+that provides a vast array of features.
+By using DifferentialEquations.jl to perform the dynamics,
+we can immediately exploit many of these features to save us a lot of work.
+This page details some of the features from DifferentialEquations.jl that we have used.
 
 ## [Callbacks](@id devdocs-callbacks)
 
