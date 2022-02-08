@@ -98,14 +98,11 @@ function transform_density!(
 end
 
 function evaluate_transformation(calculator::DiabaticCalculator, r)
-    Calculators.evaluate_potential!(calculator, r)
-    Calculators.eigen!(calculator)
-    return calculator.eigen.vectors
+    eigs =  Calculators.get_eigen(calculator, r)
+    return eigs.vectors
 end
 
 function evaluate_transformation(calculator::RingPolymerDiabaticCalculator, r)
-    RingPolymers.get_centroid!(calculator.tmp_centroid, r)
-    Calculators.evaluate_centroid_potential!(calculator, calculator.tmp_centroid)
-    Calculators.centroid_eigen!(calculator)
-    return calculator.centroid_eigen.vectors
+    centroid_eigs = Calculators.get_centroid_eigen(calculator, r)
+    return centroid_eigs.vectors
 end

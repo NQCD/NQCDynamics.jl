@@ -102,7 +102,9 @@ end
 
 @testset "RingPolymerDiabaticCalculator" begin
     model = NQCModels.DoubleWell()
-    calc = Calculators.RingPolymerDiabaticCalculator{Float64}(model, 1, 10)
+
+    reset_calc() = Calculators.RingPolymerDiabaticCalculator{Float64}(model, 1, 10)
+
     r = rand(1,1,10)
     r_centroid = rand(1,1)
     standard_quantities = (:potential, :derivative, :eigen, :adiabatic_derivative, :nonadiabatic_coupling)
@@ -110,6 +112,7 @@ end
         :centroid_eigen, :centroid_adiabatic_derivative, :centroid_nonadiabatic_coupling)
 
     @testset "Potential evaluation" begin
+        calc = reset_calc()
         true_potential = [potential(model, r[:,:,i]) for i=1:10]
 
         @test calc.potential != true_potential
@@ -130,6 +133,7 @@ end
     end
 
     @testset "Dependent evaluation" begin
+        calc = reset_calc()
 
         # Reset the position fields
         for name in standard_quantities
@@ -156,6 +160,7 @@ end
 
 
     @testset "Centroid dependent evaluation" begin
+        calc = reset_calc()
         r_centroid = RingPolymers.get_centroid(r)
 
         # Check the position fields are different
@@ -182,8 +187,10 @@ end
     end
 
     @testset "Extra quantities" begin
+        calc = reset_calc()
 
         Calculators.get_traceless_potential(calc, r)
+        Calculators.get_traceless_derivative(calc, r)
         Calculators.get_traceless_adiabatic_derivative(calc, r)
 
         @test calc.V̄[1] ≈ tr(calc.potential[1]) / nstates(model)
@@ -194,6 +201,32 @@ end
     end
 
     @testset "Zero allocations" begin
+
+        calc = reset_calc()
+
+        # Call all functions to ensure they have been compiled
+        Calculators.evaluate_potential!(calc, r)
+        Calculators.evaluate_derivative!(calc, r)
+        Calculators.evaluate_eigen!(calc, r)
+        Calculators.evaluate_adiabatic_derivative!(calc, r)
+        Calculators.evaluate_nonadiabatic_coupling!(calc, r)
+
+        Calculators.evaluate_traceless_potential!(calc, r)
+        Calculators.evaluate_V̄!(calc, r)
+        Calculators.evaluate_traceless_derivative!(calc, r)
+        Calculators.evaluate_D̄!(calc, r)
+        Calculators.evaluate_traceless_adiabatic_derivative!(calc, r)
+
+        Calculators.evaluate_centroid!(calc, r)
+        Calculators.evaluate_centroid_potential!(calc, r)
+        Calculators.evaluate_centroid_derivative!(calc, r)
+        Calculators.evaluate_centroid_eigen!(calc, r)
+        Calculators.evaluate_centroid_adiabatic_derivative!(calc, r)
+        Calculators.evaluate_centroid_nonadiabatic_coupling!(calc, r)
+
+        calc = reset_calc()
+
+        # Check for no allocations
         @test @allocated(Calculators.evaluate_potential!(calc, r)) == 0
         @test @allocated(Calculators.evaluate_derivative!(calc, r)) == 0
         @test @allocated(Calculators.evaluate_eigen!(calc, r)) == 0

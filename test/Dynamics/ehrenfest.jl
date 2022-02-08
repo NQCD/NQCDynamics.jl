@@ -19,7 +19,7 @@ atoms = Atoms(:H)
 
     DynamicsMethods.motion!(du, u, sim, 0.0)
 
-    Calculators.evaluate_nonadiabatic_coupling!(sim.calculator)
+    Calculators.evaluate_nonadiabatic_coupling!(sim.calculator, r)
     @test sim.calculator.nonadiabatic_coupling ≈ -sim.calculator.nonadiabatic_coupling'
 
     problem = ODEProblem(DynamicsMethods.motion!, u, (0.0, 1.0), sim)

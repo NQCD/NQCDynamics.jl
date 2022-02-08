@@ -24,8 +24,8 @@ atoms = Atoms(2)
 
     DynamicsMethods.motion!(du, u, sim, 0.0)
 
-    Calculators.evaluate_nonadiabatic_coupling!(sim.calculator)
-    @test sim.calculator.nonadiabatic_coupling ≈ -sim.calculator.nonadiabatic_coupling'
+    coupling = Calculators.get_nonadiabatic_coupling(sim.calculator, r)
+    @test coupling ≈ -coupling'
 
     problem = ODEProblem(DynamicsMethods.motion!, u, (0.0, 1.0), sim)
     integrator = init(problem, Tsit5(), callback=SurfaceHoppingMethods.HoppingCallback)

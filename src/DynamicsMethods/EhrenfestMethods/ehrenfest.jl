@@ -26,9 +26,11 @@ Simulation{Ehrenfest{Float64}}:
 """
 struct Ehrenfest{T} <: AbstractEhrenfest
     density_propagator::Matrix{Complex{T}}
+    tmp_complex_matrix::Matrix{Complex{T}}
     function Ehrenfest{T}(n_states::Integer) where {T}
-        density_propagator = zeros(n_states, n_states)
-        new{T}(density_propagator)
+        density_propagator = zeros(T, n_states, n_states)
+        tmp_complex_matrix = zeros(Complex{T}, n_states, n_states)
+        new{T}(density_propagator, tmp_complex_matrix)
     end
 end
 
@@ -71,9 +73,8 @@ end
 function DynamicsUtils.classical_hamiltonian(sim::Simulation{<:Ehrenfest}, u)
     kinetic = DynamicsUtils.classical_kinetic_energy(sim, DynamicsUtils.get_velocities(u))
 
-    Calculators.evaluate_potential!(sim.calculator, DynamicsUtils.get_positions(u))
-    Calculators.eigen!(sim.calculator)
-    potential = sum(diag(DynamicsUtils.get_quantum_subsystem(u)) .* sim.calculator.eigen.values)
+    eigs = Calculators.get_eigen(sim.calculator, DynamicsUtils.get_positions(u))
+    potential = sum(diag(DynamicsUtils.get_quantum_subsystem(u)) .* eigs.values)
 
     return kinetic + potential
 end

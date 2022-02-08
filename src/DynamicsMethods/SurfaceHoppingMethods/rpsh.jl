@@ -51,8 +51,7 @@ function DynamicsUtils.classical_hamiltonian(sim::RingPolymerSimulation{<:FSSH},
     kinetic = DynamicsUtils.classical_kinetic_energy(sim, DynamicsUtils.get_velocities(u))
     spring = RingPolymers.get_spring_energy(sim.beads, sim.atoms.masses, DynamicsUtils.get_positions(u))
 
-    Calculators.evaluate_potential!(sim.calculator, DynamicsUtils.get_positions(u))
-    Calculators.eigen!(sim.calculator)
-    potential = sum(eigs.values[u.state] for eigs in sim.calculator.eigen)
+    all_eigs = Calculators.get_eigen(sim.calculator, DynamicsUtils.get_positions(u))
+    potential = sum(eigs.values[u.state] for eigs in all_eigs)
     return kinetic + spring + potential
 end

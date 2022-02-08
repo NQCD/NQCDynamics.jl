@@ -68,7 +68,7 @@ end
 """
 Each of the quantities specified here has functions:
 `get_quantity(calculator, r)`
-`evaluate_quantity(calculator, r)!`
+`evaluate_quantity!(calculator, r)!`
 
 The user should access only the former.
 This will ensure quantities are correctly evaluated and cached accordingly.
@@ -286,11 +286,11 @@ function evaluate_traceless_potential!(calc::RingPolymerDiabaticCalculator, r)
     end
 end
 
-function evaluate_centroid!(calc::AbstractCalculator, r::Array{T,3}) where {T}
+function evaluate_centroid!(calc::AbstractCalculator, r::AbstractArray{T,3}) where {T}
     RingPolymers.get_centroid!(calc.centroid, r)
 end
 
-function evaluate_centroid_potential!(calc::AbstractCalculator, r::Array{T,3}) where {T}
+function evaluate_centroid_potential!(calc::AbstractCalculator, r::AbstractArray{T,3}) where {T}
     centroid = get_centroid(calc, r)
     calc.centroid_potential = NQCModels.potential(calc.model, centroid)
 end
@@ -440,5 +440,43 @@ end
 
 include("friction.jl")
 include("large_diabatic.jl")
+
+"""
+Evaluates all electronic properties for the current position `r`.
+# Properties evaluated:
+- Diabatic potential
+- Diabatic derivative
+- Eigenvalues and eigenvectors
+- Adiabatic derivative
+- Nonadiabatic coupling
+
+This should no longer be used, instead access the quantities directly with `get_quantity(calc, r)`.
+"""
+function update_electronics!(calculator::AbstractDiabaticCalculator, r::AbstractArray)
+    evaluate_potential!(calculator, r)
+    evaluate_derivative!(calculator, r)
+    evaluate_eigen!(calculator, r)
+    evaluate_adiabatic_derivative!(calculator, r)
+    evaluate_nonadiabatic_coupling!(calculator, r)
+end
+
+function update_electronics!(calculator::RingPolymerDiabaticCalculator, r::AbstractArray{T,3}) where {T}
+    evaluate_potential!(calculator, r)
+    evaluate_derivative!(calculator, r)
+    evaluate_eigen!(calculator, r)
+    evaluate_adiabatic_derivative!(calculator, r)
+    evaluate_nonadiabatic_coupling!(calculator, r)
+
+    update_centroid_electronics!(calculator, r)
+end
+
+function update_centroid_electronics!(calculator::RingPolymerDiabaticCalculator, r::AbstractArray{T,3}) where {T}
+    evaluate_centroid!(calculator, r)
+    evaluate_centroid_potential!(calculator, r)
+    evaluate_centroid_derivative!(calculator, r)
+    evaluate_centroid_eigen!(calculator, r)
+    evaluate_centroid_adiabatic_derivative!(calculator, r)
+    evaluate_centroid_nonadiabatic_coupling!(calculator, r)
+end
 
 end # module

@@ -36,11 +36,11 @@ function Calculator(model::LargeDiabaticModel, atoms::Integer, T::Type=Float64)
     LargeDiabaticCalculator{T}(model, atoms)
 end
 
-function evaluate_potential!(calc::LargeDiabaticCalculator, r)
+function evaluate_potential!(calc::Union{LargeDiabaticCalculator,DiabaticFrictionCalculator}, r)
     NQCModels.potential!(calc.model, calc.potential, r)
 end
 
-function evaluate_eigen!(calc::LargeDiabaticCalculator, r)
+function evaluate_eigen!(calc::Union{LargeDiabaticCalculator,DiabaticFrictionCalculator}, r)
     potential = get_potential(calc, r)
     eig = LinearAlgebra.eigen(potential)
     correct_phase!(eig, calc.eigen.vectors)
@@ -56,7 +56,7 @@ function correct_phase!(eig::LinearAlgebra.Eigen, old_eigenvectors::AbstractMatr
     end
 end
 
-function evaluate_adiabatic_derivative!(calc::LargeDiabaticCalculator, r)
+function evaluate_adiabatic_derivative!(calc::Union{LargeDiabaticCalculator,DiabaticFrictionCalculator}, r)
     eigen = get_eigen(calc, r)
     derivative = get_derivative(calc, r)
     for I in eachindex(derivative)
@@ -65,7 +65,7 @@ function evaluate_adiabatic_derivative!(calc::LargeDiabaticCalculator, r)
     end
 end
 
-function evaluate_nonadiabatic_coupling!(calc::LargeDiabaticCalculator, r)
+function evaluate_nonadiabatic_coupling!(calc::Union{LargeDiabaticCalculator,DiabaticFrictionCalculator}, r)
     eigen = get_eigen(calc, r)
     adiabatic_derivative = get_adiabatic_derivative(calc, r)
     for I in eachindex(adiabatic_derivative)
