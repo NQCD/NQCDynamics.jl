@@ -26,10 +26,9 @@ function DynamicsUtils.classical_hamiltonian(sim::RingPolymerSimulation{<:Ehrenf
     kinetic = DynamicsUtils.classical_kinetic_energy(sim, v)
     spring = RingPolymers.get_spring_energy(sim.beads, sim.atoms.masses, r)
 
-    Calculators.evaluate_potential!(sim.calculator, r)
-    Calculators.eigen!(sim.calculator)
+    all_eigs = Calculators.get_eigen(sim.calculator, r)
     population = Estimators.adiabatic_population(sim, u)
-    potential = sum([dot(population, eigs.values) for eigs in sim.calculator.eigen])
+    potential = sum([dot(population, eigs.values) for eigs in all_eigs])
 
     return kinetic + potential + spring
 end

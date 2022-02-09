@@ -49,9 +49,9 @@ function OrdinaryDiffEq.initialize!(_, ::MIntCache) end
     RingPolymers.transform_from_normal_modes!(p.beads, u)
 
     Calculators.update_electronics!(calc, DynamicsUtils.get_positions(u))
-    Calculators.evaluate_V̄!(calc)
-    Calculators.evaluate_D̄!(calc)
-    Calculators.evaluate_traceless_adiabatic_derivative!(calc)
+    Calculators.evaluate_V̄!(calc, DynamicsUtils.get_positions(u))
+    Calculators.evaluate_D̄!(calc, DynamicsUtils.get_positions(u))
+    Calculators.evaluate_traceless_adiabatic_derivative!(calc, DynamicsUtils.get_positions(u))
 
     propagate_mapping_variables!(calc, u, dt)
 

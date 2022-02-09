@@ -25,10 +25,12 @@ mutable struct FSSH{T} <: SurfaceHopping
     state::Int
     new_state::Int
     rescaling::Symbol
+    tmp_complex_matrix::Matrix{Complex{T}}
     function FSSH{T}(states::Integer, rescaling::Symbol) where {T}
         density_propagator = zeros(states, states)
         hopping_probability = zeros(states)
-        new{T}(density_propagator, hopping_probability, 0, 0, rescaling)
+        tmp_complex_matrix = zeros(Complex{T}, states, states)
+        new{T}(density_propagator, hopping_probability, 0, 0, rescaling, tmp_complex_matrix)
     end
 end
 
@@ -224,8 +226,7 @@ end
 
 function DynamicsUtils.classical_hamiltonian(sim::Simulation{<:FSSH}, u)
     kinetic = DynamicsUtils.classical_kinetic_energy(sim, DynamicsUtils.get_velocities(u))
-    Calculators.evaluate_potential!(sim.calculator, DynamicsUtils.get_positions(u))
-    Calculators.eigen!(sim.calculator)
-    potential = sim.calculator.eigen.values[sim.method.state]
+    eigs = Calculators.get_eigen(sim.calculator, DynamicsUtils.get_positions(u))
+    potential = eigs.values[sim.method.state]
     return kinetic + potential
 end

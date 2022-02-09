@@ -3,14 +3,12 @@ using NQCModels.DiabaticModels: LargeDiabaticModel
 
 struct LargeDiabaticCalculator{T,M} <: AbstractDiabaticCalculator{T,M}
     model::M
-    potential::Hermitian{T,Matrix{T}}
-    derivative::Matrix{Hermitian{T,Matrix{T}}}
-    eigen::LinearAlgebra.Eigen{T,T,Matrix{T},Vector{T}}
-    adiabatic_derivative::Matrix{Matrix{T}}
-    nonadiabatic_coupling::Matrix{Matrix{T}}
+    potential::DependentField{Hermitian{T,Matrix{T}},Matrix{T}}
+    derivative::DependentField{Matrix{Hermitian{T,Matrix{T}}},Matrix{T}}
+    eigen::DependentField{LinearAlgebra.Eigen{T,T,Matrix{T},Vector{T}},Matrix{T}}
+    adiabatic_derivative::DependentField{Matrix{Matrix{T}},Matrix{T}}
+    nonadiabatic_coupling::DependentField{Matrix{Matrix{T}},Matrix{T}}
     tmp_mat::Matrix{T}
-    tmp_mat_complex1::Matrix{Complex{T}}
-    tmp_mat_complex2::Matrix{Complex{T}}
     function LargeDiabaticCalculator{T}(model::M, atoms::Integer) where {T,M<:Model}
         n = nstates(model)
         potential = Hermitian(zeros(n, n))
@@ -19,10 +17,18 @@ struct LargeDiabaticCalculator{T,M} <: AbstractDiabaticCalculator{T,M}
         adiabatic_derivative = [zeros(n, n) for i=1:ndofs(model), j=1:atoms]
         nonadiabatic_coupling = [zeros(n, n) for i=1:ndofs(model), j=1:atoms]
         tmp_mat = zeros(T, n, n)
-        tmp_mat_complex1 = zeros(Complex{T}, n, n)
-        tmp_mat_complex2 = zeros(Complex{T}, n, n)
-        new{T,M}(model, potential, derivative, eigen, adiabatic_derivative, nonadiabatic_coupling,
-            tmp_mat, tmp_mat_complex1, tmp_mat_complex2)
+
+        position = fill(NaN, ndofs(model), atoms)
+
+        new{T,M}(
+            model,
+            DependentField(potential, copy(position)),
+            DependentField(derivative, copy(position)),
+            DependentField(eigen, copy(position)),
+            DependentField(adiabatic_derivative, copy(position)),
+            DependentField(nonadiabatic_coupling, copy(position)),
+            tmp_mat,
+        )
     end
 end
 
@@ -30,25 +36,13 @@ function Calculator(model::LargeDiabaticModel, atoms::Integer, T::Type=Float64)
     LargeDiabaticCalculator{T}(model, atoms)
 end
 
-function evaluate_potential!(calc::LargeDiabaticCalculator, R)
-    NQCModels.potential!(calc.model, calc.potential, R)
+function evaluate_potential!(calc::Union{LargeDiabaticCalculator,DiabaticFrictionCalculator}, r)
+    NQCModels.potential!(calc.model, calc.potential, r)
 end
 
-function evaluate_potential!(calc::LargeDiabaticCalculator, R::AbstractArray{T,3}) where {T}
-    @views for i in axes(R, 3)
-        NQCModels.potential!(calc.model, calc.potential[i], R[:,:,i])
-    end
-end
-
-function transform_derivative!(calc::LargeDiabaticCalculator)
-    for I in eachindex(calc.derivative)
-        LinearAlgebra.mul!(calc.tmp_mat, calc.derivative[I], calc.eigen.vectors)
-        LinearAlgebra.mul!(calc.adiabatic_derivative[I], calc.eigen.vectors', calc.tmp_mat)
-    end
-end
-
-function eigen!(calc::LargeDiabaticCalculator)
-    eig = LinearAlgebra.eigen(calc.potential)
+function evaluate_eigen!(calc::Union{LargeDiabaticCalculator,DiabaticFrictionCalculator}, r)
+    potential = get_potential(calc, r)
+    eig = LinearAlgebra.eigen(potential)
     correct_phase!(eig, calc.eigen.vectors)
     copyto!(calc.eigen.vectors, eig.vectors)
     copyto!(calc.eigen.values, eig.values)
@@ -62,9 +56,20 @@ function correct_phase!(eig::LinearAlgebra.Eigen, old_eigenvectors::AbstractMatr
     end
 end
 
-function evaluate_nonadiabatic_coupling!(calc::LargeDiabaticCalculator)
-    for I in eachindex(calc.adiabatic_derivative)
-        evaluate_nonadiabatic_coupling!(calc.nonadiabatic_coupling[I], calc.adiabatic_derivative[I], calc.eigen.values)
+function evaluate_adiabatic_derivative!(calc::Union{LargeDiabaticCalculator,DiabaticFrictionCalculator}, r)
+    eigen = get_eigen(calc, r)
+    derivative = get_derivative(calc, r)
+    for I in eachindex(derivative)
+        LinearAlgebra.mul!(calc.tmp_mat, derivative[I], eigen.vectors)
+        LinearAlgebra.mul!(calc.adiabatic_derivative[I], eigen.vectors', calc.tmp_mat)
+    end
+end
+
+function evaluate_nonadiabatic_coupling!(calc::Union{LargeDiabaticCalculator,DiabaticFrictionCalculator}, r)
+    eigen = get_eigen(calc, r)
+    adiabatic_derivative = get_adiabatic_derivative(calc, r)
+    for I in eachindex(adiabatic_derivative)
+        evaluate_nonadiabatic_coupling!(calc.nonadiabatic_coupling[I], adiabatic_derivative[I], eigen.values)
     end
 end
 

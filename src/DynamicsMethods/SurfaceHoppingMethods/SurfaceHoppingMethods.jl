@@ -64,7 +64,7 @@ end
 
 function DynamicsUtils.set_quantum_derivative!(dσ, v, σ, sim::AbstractSimulation{<:SurfaceHopping})
     V = DynamicsUtils.calculate_density_matrix_propagator!(sim, v)
-    DynamicsUtils.commutator!(dσ, V, σ, sim.calculator.tmp_mat_complex1)
+    DynamicsUtils.commutator!(dσ, V, σ, sim.method.tmp_complex_matrix)
     lmul!(-im, dσ)
 end
 
