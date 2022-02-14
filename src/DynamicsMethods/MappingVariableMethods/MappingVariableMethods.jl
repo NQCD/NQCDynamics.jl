@@ -24,4 +24,7 @@ include("cmm.jl")
 export eCMM
 include("rpecmm.jl")
 
+include("spin_mapping.jl")
+export SpinMappingW
+
 end # module
