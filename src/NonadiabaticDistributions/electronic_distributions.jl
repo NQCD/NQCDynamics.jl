@@ -42,6 +42,18 @@ struct ElectronicPopulation{T,S} <: ElectronicDistribution{S}
 end
 ElectronicPopulation(state) = ElectronicPopulation(state, Diabatic())
 
+"""
+    FermiPopulation{T,S} <: ElectronicDistribution{S}
+
+Electronic distribution for Fermions following Fermi-Dirac distribution.
+"""
+struct FermiPopulation{T,S} <: ElectronicDistribution{S}
+    fermi_level::T
+    temperature::T
+    statetype::S
+end
+FermiPopulation(fermi_level, temperature) = ElectronicPopulation(fermi_level, temperature, Adiabatic())
+
 function initialise_adiabatic_density_matrix(
     electronics::ElectronicDistribution{Diabatic},
     calculator::AbstractDiabaticCalculator,
