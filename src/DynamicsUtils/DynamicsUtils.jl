@@ -32,7 +32,7 @@ function apply_interbead_coupling!(dr::AbstractArray{T,3}, r::AbstractArray{T,3}
     return nothing
 end
 
-function classical_hamiltonian end
+function classical_hamiltonian(sim, u) end
 
 function classical_kinetic_energy(sim::Simulation, v::AbstractMatrix)
     kinetic = zero(eltype(v))
