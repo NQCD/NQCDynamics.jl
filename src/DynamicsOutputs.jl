@@ -134,6 +134,7 @@ noise(u, t, integrator) = copy(integrator.W.dW) / sqrt(integrator.dt)
 
 "Evaluate the diabatic population"
 population(u, t, integrator) = Estimators.diabatic_population(integrator.p, u)
+total_population(u, t, integrator) = sum(Estimators.diabatic_population(integrator.p, u))
 
 "Evaluate the adiabatic population"
 adiabatic_population(u, t, integrator) = Estimators.adiabatic_population(integrator.p, u)
