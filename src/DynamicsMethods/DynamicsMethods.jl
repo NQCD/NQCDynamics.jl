@@ -109,7 +109,9 @@ function run_trajectory(u0, tspan::Tuple, sim::AbstractSimulation;
     problem = DiffEqBase.remake(problem, callback=callback_set)
 
     stripped_kwargs = austrip_kwargs(;kwargs...)
-    DiffEqBase.solve(problem, algorithm; stripped_kwargs...)
+    @info "Performing a single trajectory."
+    stats = @timed DiffEqBase.solve(problem, algorithm; stripped_kwargs...)
+    @info "Finished after $(stats.time) seconds."
     out = [(;zip(output, val)...) for val in vals.saveval]
     TypedTables.Table(t=vals.t, out)
 end
