@@ -64,10 +64,10 @@ total_population = sum.(DynamicsMethods.MappingVariableMethods.mapping_kernel.(q
 end
 
 @testset "Algorithm comparison" begin
-    sol = run_trajectory(u, (0, 10.0), sim; dt=1e-2, algorithm=DynamicsMethods.IntegrationAlgorithms.MInt())
+    sol = run_trajectory(u, (0, 10.0), sim; dt=1e-2, algorithm=DynamicsMethods.IntegrationAlgorithms.RingPolymerMInt())
     sol1 = run_trajectory(u, (0, 10.0), sim; algorithm=Tsit5(), reltol=1e-10, abstol=1e-10, saveat=sol.t)
     @test sol.u ≈ sol1.u rtol=1e-2
-    sol = run_trajectory(u, (0, 10.0), sim1; dt=1e-2, algorithm=DynamicsMethods.IntegrationAlgorithms.MInt())
+    sol = run_trajectory(u, (0, 10.0), sim1; dt=1e-2, algorithm=DynamicsMethods.IntegrationAlgorithms.RingPolymerMInt())
     sol1 = run_trajectory(u, (0, 10.0), sim1; algorithm=Tsit5(), reltol=1e-10, abstol=1e-10, saveat=sol.t)
     @test sol.u ≈ sol1.u rtol=1e-2
 end
