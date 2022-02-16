@@ -4,7 +4,9 @@ using FiniteDiff
 using Random
 using NQCDynamics: DynamicsMethods, DynamicsUtils
 using NQCDynamics.DynamicsMethods.MappingVariableMethods
-# Random.seed!(1)
+using OrdinaryDiffEq
+using DiffEqDevTools
+Random.seed!(1)
 
 atoms = Atoms(1)
 sim = Simulation{SpinMappingW}(atoms, DoubleWell())
@@ -32,6 +34,24 @@ u = DynamicsVariables(sim, v, r, SingleState(2))
 end
 
 @testset "Energy conservation" begin
-    sol = run_trajectory(u, (0, 10.0), sim; output=:hamiltonian, atol=1e-10, reltol=1e-10)
+    sol = run_trajectory(u, (0, 10.0), sim; output=:hamiltonian, dt=1e-2)
     @test sol.hamiltonian[1] ≈ sol.hamiltonian[end] rtol=1e-2
+end
+
+@testset "Algorithm comparison" begin
+    sol = run_trajectory(u, (0, 3.0), sim; dt=1e-2, algorithm=DynamicsMethods.IntegrationAlgorithms.MInt())
+    sol1 = run_trajectory(u, (0, 3.0), sim; algorithm=Tsit5(), reltol=1e-10, abstol=1e-10, saveat=sol.t)
+    @test sol.u ≈ sol1.u rtol=1e-2
+end
+
+@testset "MInt algorithm convergence" begin
+    tspan=(0, 10.0)
+    prob = DynamicsMethods.create_problem(u, tspan, sim)
+    dts = 1 .// 2 .^(8:-1:2)
+
+    alg = DynamicsMethods.IntegrationAlgorithms.MInt()
+    test_alg = Vern9()
+    setup = Dict(:alg => test_alg, :adaptive=>true, :abstol=>1e-8, :reltol=>1e-8)
+    res = analyticless_test_convergence(dts, prob, alg, setup)
+    @test res.𝒪est[:final] ≈ 2 atol=0.1
 end

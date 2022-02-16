@@ -50,14 +50,14 @@ end
     test_motion!(sim, u)
 end
 
-algs = (DynamicsMethods.IntegrationAlgorithms.MInt(), Tsit5())
+algs = (DynamicsMethods.IntegrationAlgorithms.RingPolymerMInt(), Tsit5())
 @testset "Energy conservation $alg" for alg in algs
     sol = run_trajectory(u, (0, 10.0), sim; output=(:hamiltonian, :population), dt=1e-2, algorithm=alg, abstol=1e-8, reltol=1e-8)
     @test sol.hamiltonian[1] ≈ sol.hamiltonian[end] rtol=1e-2
 end
 
 @testset "Algorithm comparison" begin
-    sol = run_trajectory(u, (0, 10.0), sim; dt=1e-2, algorithm=DynamicsMethods.IntegrationAlgorithms.MInt())
+    sol = run_trajectory(u, (0, 10.0), sim; dt=1e-2, algorithm=DynamicsMethods.IntegrationAlgorithms.RingPolymerMInt())
     sol1 = run_trajectory(u, (0, 10.0), sim; algorithm=Tsit5(), reltol=1e-10, abstol=1e-10, saveat=sol.t)
     @test sol.u ≈ sol1.u rtol=1e-2
 end
@@ -67,7 +67,7 @@ end
     prob = DynamicsMethods.create_problem(u, tspan, sim)
     dts = 1 .// 2 .^(8:-1:4)
 
-    alg = DynamicsMethods.IntegrationAlgorithms.MInt()
+    alg = DynamicsMethods.IntegrationAlgorithms.RingPolymerMInt()
     test_alg = Vern9()
     setup = Dict(:alg => test_alg, :adaptive=>true, :abstol=>1e-8, :reltol=>1e-8)
     res = analyticless_test_convergence(dts, prob, alg, setup)
