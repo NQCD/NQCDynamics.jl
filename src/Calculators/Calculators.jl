@@ -154,14 +154,14 @@ struct DiabaticCalculator{T,M,S,L} <: AbstractDiabaticCalculator{T,M}
     nonadiabatic_coupling::DependentField{Matrix{SMatrix{S,S,T,L}},Matrix{T}}
     function DiabaticCalculator{T}(model::M, atoms::Integer) where {T,M<:Model}
         n = nstates(model)
-        matrix_template = NQCModels.DiabaticModels.matrix_template(model, T)
-        vector_template = NQCModels.DiabaticModels.vector_template(model, T)
+        mat = NQCModels.DiabaticModels.matrix_template(model, T)
+        vec = NQCModels.DiabaticModels.vector_template(model, T)
 
-        potential = Hermitian(matrix_template)
-        derivative = [Hermitian(matrix_template) for _=1:ndofs(model), _=1:atoms]
-        eigen = Eigen(vector_template, matrix_template + I)
-        adiabatic_derivative = [matrix_template for _ in CartesianIndices(derivative)]
-        nonadiabatic_coupling = [matrix_template for _ in CartesianIndices(derivative)]
+        potential = Hermitian(zero(mat))
+        derivative = [Hermitian(zero(mat)) for _=1:ndofs(model), _=1:atoms]
+        eigen = Eigen(zero(vec), zero(mat) + I)
+        adiabatic_derivative = [zero(mat) for _ in CartesianIndices(derivative)]
+        nonadiabatic_coupling = [zero(mat) for _ in CartesianIndices(derivative)]
         position = fill(NaN, ndofs(model), atoms)
 
         new{T,M,n,n^2}(
@@ -197,27 +197,27 @@ struct RingPolymerDiabaticCalculator{T,M,S,L} <: AbstractDiabaticCalculator{T,M}
     centroid_nonadiabatic_coupling::DependentField{Matrix{SMatrix{S,S,T,L}},Array{T,3}}
     function RingPolymerDiabaticCalculator{T}(model::M, atoms::Integer, beads::Integer) where {T,M<:Model}
         n = nstates(model)
-        matrix_template = NQCModels.DiabaticModels.matrix_template(model, T)
-        vector_template = NQCModels.DiabaticModels.vector_template(model, T)
+        mat = NQCModels.DiabaticModels.matrix_template(model, T)
+        vec = NQCModels.DiabaticModels.vector_template(model, T)
 
-        potential = [Hermitian(matrix_template) for _=1:beads]
-        derivative = [Hermitian(matrix_template) for _=1:ndofs(model), _=1:atoms, _=1:beads]
-        adiabatic_derivative = [matrix_template for _=1:ndofs(model), _=1:atoms, _=1:beads]
-        eigen = [Eigen(vector_template, matrix_template + I) for _=1:beads]
-        nonadiabatic_coupling = [matrix_template for _=1:ndofs(model), _=1:atoms, _=1:beads]
+        potential = [Hermitian(zero(mat)) for _=1:beads]
+        derivative = [Hermitian(zero(mat)) for _=1:ndofs(model), _=1:atoms, _=1:beads]
+        adiabatic_derivative = [zero(mat) for _=1:ndofs(model), _=1:atoms, _=1:beads]
+        eigen = [Eigen(zero(vec), zero(mat) + I) for _=1:beads]
+        nonadiabatic_coupling = [zero(mat) for _=1:ndofs(model), _=1:atoms, _=1:beads]
 
-        traceless_potential = [Hermitian(matrix_template) for _=1:beads]
+        traceless_potential = [Hermitian(zero(mat)) for _=1:beads]
         V̄ = zeros(beads)
-        traceless_derivative = [Hermitian(matrix_template) for _=1:ndofs(model), _=1:atoms, _=1:beads]
+        traceless_derivative = [Hermitian(zero(mat)) for _=1:ndofs(model), _=1:atoms, _=1:beads]
         D̄ = zeros(ndofs(model), atoms, beads)
-        traceless_adiabatic_derivative = [matrix_template for _=1:ndofs(model), _=1:atoms, _=1:beads]
+        traceless_adiabatic_derivative = [zero(mat) for _=1:ndofs(model), _=1:atoms, _=1:beads]
 
         centroid = zeros(T, ndofs(model), atoms)
-        centroid_potential = Hermitian(matrix_template)
-        centroid_derivative = [Hermitian(matrix_template) for _=1:ndofs(model), _=1:atoms]
-        centroid_eigen = Eigen(vector_template, matrix_template + I)
-        centroid_adiabatic_derivative = [matrix_template for _ in CartesianIndices(centroid_derivative)]
-        centroid_nonadiabatic_coupling = [matrix_template for _ in CartesianIndices(centroid_derivative)]
+        centroid_potential = Hermitian(zero(mat))
+        centroid_derivative = [Hermitian(zero(mat)) for _=1:ndofs(model), _=1:atoms]
+        centroid_eigen = Eigen(zero(vec), zero(mat) + I)
+        centroid_adiabatic_derivative = [zero(mat) for _ in CartesianIndices(centroid_derivative)]
+        centroid_nonadiabatic_coupling = [zero(mat) for _ in CartesianIndices(centroid_derivative)]
 
         position = fill(NaN, ndofs(model), atoms, beads)
 

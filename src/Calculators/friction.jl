@@ -54,15 +54,16 @@ struct DiabaticFrictionCalculator{T,M} <: AbstractDiabaticCalculator{T,M}
     tmp_mat::Matrix{T}
 
     function DiabaticFrictionCalculator{T}(model::M, atoms::Integer) where {T,M<:Model}
+        mat = NQCModels.DiabaticModels.matrix_template(model, T)
+        vec = NQCModels.DiabaticModels.vector_template(model, T)
 
-        n = nstates(model)
-        potential = Hermitian(zeros(n, n))
-        derivative = [Hermitian(zeros(n, n)) for i=1:ndofs(model), j=1:atoms]
-        eigen = Eigen(zeros(n), zeros(n, n)+I)
-        adiabatic_derivative = [zeros(n, n) for i=1:ndofs(model), j=1:atoms]
-        nonadiabatic_coupling = [zeros(n, n) for i=1:ndofs(model), j=1:atoms]
+        potential = Hermitian(zero(mat))
+        derivative = [Hermitian(zero(mat)) for i=1:ndofs(model), j=1:atoms]
+        eigen = Eigen(zero(vec), zero(mat)+I)
+        adiabatic_derivative = [zero(mat) for i=1:ndofs(model), j=1:atoms]
+        nonadiabatic_coupling = [zero(mat) for i=1:ndofs(model), j=1:atoms]
         friction = zeros(ndofs(model)*atoms, ndofs(model)*atoms)
-        tmp_mat = zeros(T, n, n)
+        tmp_mat = zero(mat)
 
         position = fill(NaN, ndofs(model), atoms)
 
