@@ -215,7 +215,7 @@ struct RingPolymerDiabaticCalculator{T,M,S,L} <: AbstractDiabaticCalculator{T,M}
         centroid = zeros(T, ndofs(model), atoms)
         centroid_potential = Hermitian(zero(mat))
         centroid_derivative = [Hermitian(zero(mat)) for _=1:ndofs(model), _=1:atoms]
-        centroid_eigen = Eigen(vector_template, zero(mat) + I)
+        centroid_eigen = Eigen(zero(vec), zero(mat) + I)
         centroid_adiabatic_derivative = [zero(mat) for _ in CartesianIndices(centroid_derivative)]
         centroid_nonadiabatic_coupling = [zero(mat) for _ in CartesianIndices(centroid_derivative)]
 
