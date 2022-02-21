@@ -378,8 +378,7 @@ to intersect the origin.
 This requires that the model implicitly provides the surface, or works fine without one.
 """
 function calculate_diatomic_energy(
-    model::AdiabaticModel, r₀::Real, surface::SurfaceParameters
-)
+    model::AdiabaticModel, r₀::Real, surface::SurfaceParameters)
 
     (;surface_normal, orthogonal_vectors, height) = surface
     molecule = surface_normal .* height .+ orthogonal_vectors .* r₀ ./ sqrt(2)
