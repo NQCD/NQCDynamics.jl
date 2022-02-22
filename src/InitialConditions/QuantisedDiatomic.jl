@@ -89,7 +89,7 @@ function generate_configurations(sim, ν, J;
     r=zeros(size(sim)))
 
     _, slab = separate_slab_and_molecule(atom_indices, r)
-    surface = SurfaceParameters(sim.atoms.masses, atom_indices, slab, height, surface_normal)
+    surface = SurfaceParameters(sim.atoms.masses, atom_indices, slab, austrip(height), surface_normal)
     generation = GenerationParameters(direction, austrip(translational_energy), samples)
 
     total_energy, bounds = find_total_energy(sim.calculator.model, ν, J, surface)

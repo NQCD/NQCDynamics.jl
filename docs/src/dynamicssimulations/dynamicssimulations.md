@@ -70,8 +70,8 @@ By passing a `Tuple` to the `output` keyword argument we can ask for specific qu
 ```@example dynamics
 out = run_trajectory(u0, tspan, sim; output=(:position, :adiabatic_population))
 ```
-The quantities that are available are listed [here](@ref `DynamicsOutputs`).
-Adding more quantities requires that a new function is defined inside the [`DynamicsOutputs`](@ref) module
+The quantities that are available are listed [here](@ref NQCDynamics).
+Adding more quantities requires that a new function is defined inside the [`DynamicsOutputs`](@ref NQCDynamics.DynamicsOutputs) module
 that has the same set of parameters as the existing quantities.
 
 This time we can see that the output contains only the quantities that we asked for.

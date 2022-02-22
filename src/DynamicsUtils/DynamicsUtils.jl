@@ -1,4 +1,14 @@
 
+"""
+    DynamicsUtils
+
+Utilities for dynamics simulations.
+Includes:
+* Basic dynamics variables functions
+* Density matrix dynamics functions
+* Standard callbacks to use during dynamics
+* Plotting recipes for outputs
+"""
 module DynamicsUtils
 
 using NQCDynamics:
@@ -8,7 +18,21 @@ using NQCDynamics:
     Calculators,
     masses
 
+"""
+    divide_by_mass!(dv, masses)
+
+Divide the contents of `dv` by the `masses`.
+Assumes `dv` is an array of size (dofs, atoms) or (dofs, atoms, beads).
+`masses` is the vector of masses for each atom that matches length with the second dimension.
+"""
 divide_by_mass!(dv, masses) = dv ./= masses'
+
+"""
+    velocity!(dr, v, r, sim, t)
+
+Write the velocity `v` into `dr`.
+Has extra arguments to work with `Dynamical(O/S)DEProblem`s.
+"""
 velocity!(dr, v, r, sim, t) = dr .= v
 
 """

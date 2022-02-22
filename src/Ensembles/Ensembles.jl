@@ -1,7 +1,7 @@
 """
     Ensembles
 
-This module provides the main functions [`run_ensemble`](@ref Ensembles.run_ensemble).
+This module provides the main function [`run_ensemble`](@ref Ensembles.run_ensemble).
 This serves to run multiple trajectories for a given simulation type, sampling
 from an initial distribution.
 """

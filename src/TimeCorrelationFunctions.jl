@@ -1,4 +1,12 @@
 
+"""
+    TimeCorrelationFunctions
+
+This module defines extra types that can be used as Ensemble outputs when computing
+time-correlation functions.
+It hopes to provide a minimal interface that reduces code repetition when implementing
+different correlation functions.
+"""
 module TimeCorrelationFunctions
 
 using NQCDynamics: AbstractSimulation, Estimators
