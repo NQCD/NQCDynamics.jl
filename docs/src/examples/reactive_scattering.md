@@ -58,7 +58,7 @@ nothing # hide
 
     Generally it will be desirable to generate a distribution once and re-use it for multiple dynamics simulations.
     The simplest way to do this is to save the distribution using [JLD2.jl](https://juliaio.github.io/JLD2.jl/dev/).
-    Refer to [Saving and loading](@id saving-and-loading) to learn more.
+    Refer to [Saving and loading](@ref saving-and-loading) to learn more.
 
 In order to produce an unweighted distribution, the lateral and angular orientation are randomly selected within the unit cell.
 As an example of the spacial and orientation distribution generated with this module, a subset of data (300 configurations) is shown below.
