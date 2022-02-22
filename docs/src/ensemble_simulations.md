@@ -13,17 +13,17 @@ The key function for performing ensemble simulations is [`run_ensemble`](@ref).
 run_ensemble
 ```
 
-From the function signature displayed above it should be possible to identify the similarities to the [`run_trajectory'](@ref) function.
-The `sim` and `tspan` positional arguments are the same, but the initial [`DynamicalVariables`](@ref) have been replaced by a distribution.
+From the function signature displayed above it should be possible to identify the similarities to the [`run_trajectory`](@ref) function.
+The `sim` and `tspan` positional arguments are the same, but the initial [`DynamicsVariables`](@ref) have been replaced by a distribution.
 These distributions are defined such that they can be sampled to provide initial conditions for each trajectory.
 The [Storing and sampling distributions](@ref) page details the format this distribution must take.
 
 The output may take two distinct forms: the tuple structure familiar from [`run_trajectory`](@ref) `output=(:position, :velocity, :hamiltonian)`
 or a function as described in the [DifferentialEquations.jl](https://diffeq.sciml.ai/stable/features/ensemble/#Performing-an-Ensemble-Simulation) documentation.
-These options allow access to the common output quantities defined in the [`DynamicsOutputs`](@ref) module
+These options allow access to the common output quantities defined in the [`DynamicsOutputs`](@ref NQCDynamics.DynamicsOutputs) module
 along with specific customised output.
 Already implemented in the code are a small library of existing functions of this type, but it is possible to use any Julia function in its place.
-The existing ensemble outputs can be found [here](@ref `Ensembles`).
+The existing ensemble outputs can be found [here](@ref Ensembles).
 
 Internally, the [DifferentialEquations.jl](https://diffeq.sciml.ai/stable/features/ensemble/#Performing-an-Ensemble-Simulation)
 ensemble infrastructure is used to handle per trajectory parallelism.
@@ -103,7 +103,7 @@ plot(ensemble, :population)
     This is necessary because we are using an integrator with adaptive timestepping that will
     save at different points for each trajectory.
 
-This workflow can be applied for any of the quantities defined in the [`DynamicsOutputs`](@ref) submodule.
+This workflow can be applied for any of the quantities defined in the [`DynamicsOutputs`](@ref NQCDynamics.DynamicsOutputs) submodule.
 If we want a more complex output, such as a scattering probability or a time-correlation function,
 we can provide a function to the output argument as described in the
 [DifferentialEquations.jl documentation](https://diffeq.sciml.ai/stable/features/ensemble/#Building-a-Problem).

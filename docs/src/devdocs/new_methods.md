@@ -147,7 +147,7 @@ ylabel!("Value(t)")
     In the plot, two of the lines labelled `u` overlap the position and velocity result.
     The unique line labelled `u` is the `x` variable.
     When implementing your method, if you want to add new output quantities you should do
-    this inside the [`DynamicsOutputs`](@ref) submodule.
+    this inside the [`DynamicsOutputs`](@ref NQCDynamics.DynamicsOutputs) submodule.
 
 ## Advanced tips
 

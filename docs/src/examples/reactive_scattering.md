@@ -17,7 +17,7 @@ setting the initial ro-vibrational quantum state to (``\nu=2, j=0``) as was expl
 As shown earlier in the [EBK documentation](@ref ebk-sampling) we are able to generate
 a semiclassically quantised distribution for a diatomic molecule on a collision course
 with a metal surface.
-In this example we follow the [EBK example](@ref ebk-sampling) using the [`H2AgModel`](@ref NNInterface.H2AgModel)
+In this example we follow the [EBK example](@ref ebk-sampling) using the [`H2AgModel`](@ref NNInterfaces.H2AgModel)
 to prepare our initial distribution and run our simulation.
 
 Specifically, we have produced a set of initial conditions with different translational energy (`translational_energy` keyword) ranging from 0.2 to 1.4 eV, locating the hydrogen molecule 8 Å away from the metal
@@ -66,6 +66,43 @@ To run our production simulations, however, a set of 80,000 initial velocities a
 
 ![initial conditions](../assets/figures/icond_scatter.png)
 
+## Data analysis and truncation function
+
+Since we are interested in the dynamics only when the molecule is close to the surface,
+we can use a callback to terminate the simulation early to save us some time.
+This requires defining a function that returns `true` when we want the simulation to
+terminate.
+This means we can set our time span relatively long since we expect most simulations to
+terminate before reaching the time limit.
+
+```@example h2scatter
+using Statistics: mean
+using LinearAlgebra: norm
+
+h2distance(p) = norm(p[:,1] .- p[:,2])
+
+"Terminates simulation if returns `true`." 
+function termination_condition(u, t, integrator)::Bool
+    R = get_positions(u)
+    zcom = au_to_ang(mean(R[3,:]))          # Convert vertical centre of mass to angstrom
+    if zcom > 8.1                           # Scattering event
+        return true
+    elseif au_to_ang(h2distance(R)) > 2.5   # Reactive event
+        return true
+    else
+        return false
+    end
+end
+
+terminate = DynamicsUtils.TerminatingCallback(termination_condition)
+tspan = (0.0, 420.0u"fs")
+nothing # hide
+```
+In this example, we consider the outcome a reactive event if the H-H
+bond length is larger than 2.5 Å in any point of during the trajectory and a
+scattering event if the molecule rebounds to a vertical distance from the metal
+surface greater than 8.1 Å.
+
 ## MDEF with the LDFA
 
 Now that we have set up the initial distribution and some of our simulation parameters,
@@ -105,45 +142,9 @@ ensemble = run_ensemble(sim, tspan, distribution;selection=1:20,
     dt=0.1u"fs", output=:position, trajectories=20, callback=terminate)
 ```
 
-## Data analysis and truncation function
+## Visualisation
 
-Since we are interested in the dynamics only when the molecule is close to the surface,
-we can use a callback to terminate the simulation early to save us some time.
-This requires defining a function that returns `true` when we want the simulation to
-terminate.
-This means we can set our time span relatively long since we expect most simulations to
-terminate before reaching the time limit.
-
-```@example h2scatter
-using Statistics: mean
-using LinearAlgebra: norm
-
-h2distance(p) = norm(p[:,1] .- p[:,2])
-
-"Terminates simulation if returns `true`." 
-function termination_condition(u, t, integrator)::Bool
-    R = get_positions(u)
-    zcom = au_to_ang(mean(R[3,:]))          # Convert vertical centre of mass to angstrom
-    if zcom > 8.1                           # Scattering event
-        return true
-    elseif au_to_ang(h2distance(R)) > 2.5   # Reactive event
-        return true
-    else
-        return false
-    end
-end
-
-terminate = DynamicsUtils.TerminatingCallback(termination_condition)
-tspan = (0.0, 420.0u"fs")
-nothing # hide
-```
-
-In this example, we consider the outcome a reactive event if the H-H
-bond length is larger than 2.5 Å in any point of during the trajectory and a
-scattering event if the molecule rebounds to a vertical distance from the metal
-surface greater than 8.1 Å.
-
-To show this, we have run 20 trajectories with and without the truncation
+To show the effect of the truncation procedure, we have run 20 trajectories with and without the truncation
 function starting with an initial translation energy at 1.0 eV. For both figures, the total and kinetic energies are shown in
 the top panels along with the H-H distance and centre of mass z coordinate for each
 individual trajectory.

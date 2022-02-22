@@ -1,4 +1,9 @@
 
+"""
+    SurfaceHoppingMethods
+
+Implementation for surface hopping methods.
+"""
 module SurfaceHoppingMethods
 
 using DEDataArrays: DEDataArrays

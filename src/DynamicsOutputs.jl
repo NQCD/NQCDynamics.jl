@@ -1,4 +1,12 @@
 
+"""
+    DynamicsOutputs
+
+Infrastructure for saving quantities during trajectories.
+
+Defines all available options that can be used within the `output` tuple along with
+the functions that perform the saving operation.
+"""
 module DynamicsOutputs
 
 using RecursiveArrayTools: ArrayPartition
