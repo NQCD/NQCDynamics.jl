@@ -59,112 +59,90 @@ struct RingPolymerFrictionCalculator{T,M} <: AbstractFrictionCalculator{T,M}
     end
 end
 
-struct DiabaticFrictionCalculator{T,M} <: AbstractDiabaticCalculator{T,M}
-    model::M
-    potential::DependentField{Hermitian{T,Matrix{T}},Matrix{T}}
-    derivative::DependentField{Matrix{Hermitian{T,Matrix{T}}},Matrix{T}}
-    eigen::DependentField{LinearAlgebra.Eigen{T,T,Matrix{T},Vector{T}},Matrix{T}}
-    adiabatic_derivative::DependentField{Matrix{Matrix{T}},Matrix{T}}
-    nonadiabatic_coupling::DependentField{Matrix{Matrix{T}},Matrix{T}}
-    friction::DependentField{Matrix{T},Matrix{T}}
-    tmp_mat::Matrix{T}
-    stats::Dict{Symbol,Int}
+# struct DiabaticFrictionCalculator{T,M} <: AbstractDiabaticCalculator{T,M}
+#     model::M
+#     potential::DependentField{Hermitian{T,Matrix{T}},Matrix{T}}
+#     derivative::DependentField{Matrix{Hermitian{T,Matrix{T}}},Matrix{T}}
+#     eigen::DependentField{LinearAlgebra.Eigen{T,T,Matrix{T},Vector{T}},Matrix{T}}
+#     adiabatic_derivative::DependentField{Matrix{Matrix{T}},Matrix{T}}
+#     nonadiabatic_coupling::DependentField{Matrix{Matrix{T}},Matrix{T}}
+#     friction::DependentField{Matrix{T},Matrix{T}}
+#     tmp_mat::Matrix{T}
 
-    function DiabaticFrictionCalculator{T}(model::M, atoms::Integer) where {T,M<:Model}
-        mat = NQCModels.DiabaticModels.matrix_template(model, T)
-        vec = NQCModels.DiabaticModels.vector_template(model, T)
+#     function DiabaticFrictionCalculator{T}(model::M, atoms::Integer) where {T,M<:Model}
+#         mat = NQCModels.DiabaticModels.matrix_template(model, T)
+#         vec = NQCModels.DiabaticModels.vector_template(model, T)
 
-        potential = Hermitian(zero(mat))
-        derivative = [Hermitian(zero(mat)) for i=1:ndofs(model), j=1:atoms]
-        eigen = Eigen(zero(vec), zero(mat)+I)
-        adiabatic_derivative = [zero(mat) for i=1:ndofs(model), j=1:atoms]
-        nonadiabatic_coupling = [zero(mat) for i=1:ndofs(model), j=1:atoms]
-        friction = zeros(ndofs(model)*atoms, ndofs(model)*atoms)
-        tmp_mat = zero(mat)
+#         potential = Hermitian(zero(mat))
+#         derivative = [Hermitian(zero(mat)) for i=1:ndofs(model), j=1:atoms]
+#         eigen = Eigen(zero(vec), zero(mat)+I)
+#         adiabatic_derivative = [zero(mat) for i=1:ndofs(model), j=1:atoms]
+#         nonadiabatic_coupling = [zero(mat) for i=1:ndofs(model), j=1:atoms]
+#         friction = zeros(ndofs(model)*atoms, ndofs(model)*atoms)
+#         tmp_mat = zero(mat)
 
-        position = fill(NaN, ndofs(model), atoms)
+#         position = fill(NaN, ndofs(model), atoms)
 
-        stats = Dict{Symbol,Int}(
-            :potential=>0,
-            :derivative=>0,
-            :eigen=>0,
-            :adiabatic_derivative=>0,
-            :nonadiabatic_coupling=>0,
-            :friction=>0
-        )
+#         new{T,M}(
+#             model,
+#             DependentField(potential, copy(position)),
+#             DependentField(derivative, copy(position)),
+#             DependentField(eigen, copy(position)),
+#             DependentField(adiabatic_derivative, copy(position)),
+#             DependentField(nonadiabatic_coupling, copy(position)),
+#             DependentField(friction, copy(position)),
+#             tmp_mat
+#         )
+#     end
+# end
 
-        new{T,M}(
-            model,
-            DependentField(potential, copy(position)),
-            DependentField(derivative, copy(position)),
-            DependentField(eigen, copy(position)),
-            DependentField(adiabatic_derivative, copy(position)),
-            DependentField(nonadiabatic_coupling, copy(position)),
-            DependentField(friction, copy(position)),
-            tmp_mat,
-            stats
-        )
-    end
-end
+# struct RingPolymerDiabaticFrictionCalculator{T,M} <: AbstractDiabaticCalculator{T,M}
+#     model::M
+#     potential::DependentField{Vector{Hermitian{T,Matrix{T}}},Array{T,3}}
+#     derivative::DependentField{Array{Hermitian{T,Matrix{T}},3},Array{T,3}}
+#     eigen::DependentField{Vector{LinearAlgebra.Eigen{T,T,Matrix{T},Vector{T}}},Array{T,3}}
+#     adiabatic_derivative::DependentField{Array{Matrix{T},3},Array{T,3}}
+#     nonadiabatic_coupling::DependentField{Array{Matrix{T},3},Array{T,3}}
+#     friction::DependentField{Matrix{T},Array{T,3}}
+#     tmp_mat::Matrix{T}
 
-struct RingPolymerDiabaticFrictionCalculator{T,M} <: AbstractDiabaticCalculator{T,M}
-    model::M
-    potential::DependentField{Vector{Hermitian{T,Matrix{T}}},Array{T,3}}
-    derivative::DependentField{Array{Hermitian{T,Matrix{T}},3},Array{T,3}}
-    eigen::DependentField{Vector{LinearAlgebra.Eigen{T,T,Matrix{T},Vector{T}}},Array{T,3}}
-    adiabatic_derivative::DependentField{Array{Matrix{T},3},Array{T,3}}
-    nonadiabatic_coupling::DependentField{Array{Matrix{T},3},Array{T,3}}
-    friction::DependentField{Matrix{T},Array{T,3}}
-    tmp_mat::Matrix{T}
-    stats::Dict{Symbol,Int}
+#     function RingPolymerDiabaticFrictionCalculator{T}(model::M, atoms::Integer, beads::Integer) where {T,M<:Model}
+#         n = nstates(model)
+#         matrix_template = NQCModels.DiabaticModels.matrix_template(model, T)
+#         vector_template = NQCModels.DiabaticModels.vector_template(model, T)
 
-    function RingPolymerDiabaticFrictionCalculator{T}(model::M, atoms::Integer, beads::Integer) where {T,M<:Model}
-        n = nstates(model)
-        matrix_template = NQCModels.DiabaticModels.matrix_template(model, T)
-        vector_template = NQCModels.DiabaticModels.vector_template(model, T)
+#         potential = [Hermitian(matrix_template) for _=1:beads]
+#         derivative = [Hermitian(matrix_template) for _=1:ndofs(model), _=1:atoms, _=1:beads]
+#         adiabatic_derivative = [matrix_template for _=1:ndofs(model), _=1:atoms, _=1:beads]
+#         eigen = [Eigen(vector_template, matrix_template + I) for _=1:beads]
+#         nonadiabatic_coupling = [matrix_template for _=1:ndofs(model), _=1:atoms, _=1:beads]
+#         friction = zeros(ndofs(model)*atoms*beads, ndofs(model)*atoms*beads)
+#         tmp_mat = zeros(T, n, n)
 
-        potential = [Hermitian(matrix_template) for _=1:beads]
-        derivative = [Hermitian(matrix_template) for _=1:ndofs(model), _=1:atoms, _=1:beads]
-        adiabatic_derivative = [matrix_template for _=1:ndofs(model), _=1:atoms, _=1:beads]
-        eigen = [Eigen(vector_template, matrix_template + I) for _=1:beads]
-        nonadiabatic_coupling = [matrix_template for _=1:ndofs(model), _=1:atoms, _=1:beads]
-        friction = zeros(ndofs(model)*atoms*beads, ndofs(model)*atoms*beads)
-        tmp_mat = zeros(T, n, n)
+#         position = fill(NaN, ndofs(model), atoms, beads)
 
-        position = fill(NaN, ndofs(model), atoms, beads)
-
-        stats = Dict{Symbol,Int}(
-            :potential=>0,
-            :derivative=>0,
-            :eigen=>0,
-            :adiabatic_derivative=>0,
-            :nonadiabatic_coupling=>0,
-            :friction=>0
-        )
-
-        new{T,M}(
-            model,
-            DependentField(potential, copy(position)),
-            DependentField(derivative, copy(position)),
-            DependentField(eigen, copy(position)),
-            DependentField(adiabatic_derivative, copy(position)),
-            DependentField(nonadiabatic_coupling, copy(position)),
-            DependentField(friction, copy(position)),
-            tmp_mat,
-            stats
-        )
-    end
-end
+#         new{T,M}(
+#             model,
+#             DependentField(potential, copy(position)),
+#             DependentField(derivative, copy(position)),
+#             DependentField(eigen, copy(position)),
+#             DependentField(adiabatic_derivative, copy(position)),
+#             DependentField(nonadiabatic_coupling, copy(position)),
+#             DependentField(friction, copy(position)),
+#             tmp_mat
+#         )
+#     end
+# end
 
 function Calculator(model::AdiabaticFrictionModel, atoms::Integer, t::Type{T}) where {T}
     FrictionCalculator{t}(model, atoms)
 end
-function Calculator(model::DiabaticFrictionModel, atoms::Integer, t::Type{T}) where {T}
-    DiabaticFrictionCalculator{t}(model, atoms)
-end
-function Calculator(model::DiabaticFrictionModel, atoms::Integer, beads::Integer, t::Type{T}) where {T}
-    RingPolymerDiabaticFrictionCalculator{t}(model, atoms, beads)
-end
+# function Calculator(model::DiabaticFrictionModel, atoms::Integer, t::Type{T}) where {T}
+#     DiabaticFrictionCalculator{t}(model, atoms)
+# end
+# function Calculator(model::DiabaticFrictionModel, atoms::Integer, beads::Integer, t::Type{T}) where {T}
+#     RingPolymerDiabaticFrictionCalculator{t}(model, atoms, beads)
+# end
 function Calculator(model::AdiabaticFrictionModel, atoms::Integer, beads::Integer, t::Type{T}) where {T}
     RingPolymerFrictionCalculator{t}(model, atoms, beads)
 end
@@ -181,31 +159,47 @@ function evaluate_friction!(calc::AbstractFrictionCalculator, R::AbstractArray{T
     end
 end
 
-@doc raw"""
-    evaluate_friction!(calc::DiabaticFrictionCalculator, R::AbstractMatrix)
+# @doc raw"""
+#     evaluate_friction!(calc::DiabaticFrictionCalculator, R::AbstractMatrix)
 
-Evaluate the electronic friction for a model given in the diabatic representation.
+# Evaluate the electronic friction for a model given in the diabatic representation.
 
-```math
-γ = 2πħ ∑ⱼ <1|dH|j><j|dH|1> δ(ωⱼ) / ωⱼ
-```
-Note that the delta function is approximated by a normalised gaussian.
-"""
-function evaluate_friction!(calc::DiabaticFrictionCalculator, r::AbstractMatrix)
+# ```math
+# γ = 2πħ ∑ᵢⱼ <i|dH|j><j|dH|i> (f(ϵᵢ)-f(ϵⱼ)) δ(ϵⱼ-ϵᵢ) / (ϵⱼ-ϵᵢ)
+# ```
+# Note that the delta function is approximated by a normalised gaussian.
+# """
+# function evaluate_friction!(calc::DiabaticFrictionCalculator, r::AbstractMatrix, β, σ, deriv=false)
 
-    gauss(x, σ) = exp(-0.5 * x^2 / σ^2) / (σ*sqrt(2π))
-    adiabatic_derivative = get_adiabatic_derivative(calc, r)
-    eigen = get_eigen(calc, r)
+#     fermi(ϵ, μ, β) = 1 / (1 + exp(β*(ϵ-μ)))
+#     ∂fermi(ϵ, μ, β) = -β * exp(β*(ϵ-μ)) / (1 + exp(β*(ϵ-μ)))^2
+#     gauss(x, σ) = exp(-0.5 * x^2 / σ^2) / (σ*sqrt(2π))
 
-    dofs = ndofs(calc.model)
-    calc.friction .= 0
-    for i in axes(r, 2) # Atoms
-        for j in axes(r, 1) # dofs
-            for m=2:nstates(calc.model)
-                ω = eigen.values[m] - eigen.values[1]
-                g = gauss(ω, calc.model.σ) / ω
-                calc.friction[j+(i-1)*dofs] += 2π*abs2(adiabatic_derivative[j,i][m,1])*g
-            end
-        end
-    end
-end
+#     adiabatic_derivative = get_adiabatic_derivative(calc, r)
+#     eigen = get_eigen(calc, r)
+#     μ = NQCModels.fermilevel(calc.model)
+
+#     fill!(calc.friction, zero(eltype(calc)))
+#     for I in eachindex(r)
+#         for J in eachindex(r)
+#             for m=1:nstates(calc.model)
+#                 for n=m+1:nstates(calc.model)
+#                     ϵₙ = eigen.values[n]
+#                     ϵₘ = eigen.values[m]
+#                     Δϵ = ϵₙ - ϵₘ
+
+#                     fₙ = fermi(ϵₙ, μ, β)
+#                     fₘ = fermi(ϵₘ, μ, β)
+#                     Δf = (fₘ - fₙ)
+
+#                     coupling = adiabatic_derivative[I][n,m] * adiabatic_derivative[J][m,n]
+#                     if deriv
+#                         calc.friction[I,J] += -2π * coupling * gauss(Δϵ, σ) * ∂fermi(ϵₘ, μ, β)
+#                     else
+#                         calc.friction[I,J] += 2π * coupling * gauss(Δϵ, σ) * Δf / Δϵ
+#                     end
+#                 end
+#             end
+#         end
+#     end
+# end
