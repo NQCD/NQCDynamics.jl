@@ -22,8 +22,8 @@ If the atoms leave the simulation cell, terminate the simulation.
 TerminateCellCallback() = DiscreteCallback(outside_cell, terminate!)
 
 """
-    TerminatingCallback(func::Function)
+    TerminatingCallback(func)
 
 Provide a function that returns true when the simulation should terminate.
 """
-TerminatingCallback(func::Function) = DiscreteCallback(func, terminate!)
+TerminatingCallback(func) = DiscreteCallback(func, terminate!)
