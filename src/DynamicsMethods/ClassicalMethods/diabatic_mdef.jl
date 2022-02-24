@@ -63,6 +63,9 @@ function evaluate_friction!(Λ::AbstractMatrix, sim::Simulation{<:DiabaticMDEF},
                 Λ[I,J] = friction_gaussian_broadening(∂H[I], ∂H[J], eigen.values, μ, β, σ)
             elseif sim.method.friction_type === :ONGB
                 Λ[I,J] = friction_off_diagonal_gaussian_broadening(∂H[I], ∂H[J], eigen.values, μ, β, σ)
+            elseif sim.method.friction_type === :DQ
+                ρ = 1 / (sim.calculator.model.bathstates[1] - sim.calculator.model.bathstates[2])
+                Λ[I,J] = friction_direct_quadrature(∂H[I], ∂H[J], eigen.values, μ, β, ρ)
             else
                 throw(ArgumentError("Friction type $(sim.method.friction_type) not recognised."))
             end
@@ -105,3 +108,13 @@ function friction_off_diagonal_gaussian_broadening(∂Hᵢ, ∂Hⱼ, eigenvalues
     end
     return out
 end
+
+function friction_direct_quadrature(∂Hᵢ, ∂Hⱼ, eigenvalues, μ, β, ρ)
+    out = zero(eltype(eigenvalues))
+    for n in eachindex(eigenvalues)
+        ϵₙ = eigenvalues[n]
+        out += π * ∂Hᵢ[n,n] * ∂Hⱼ[n,n] * ρ * ∂fermi(ϵₙ, μ, β)
+    end
+    return out
+end
+
