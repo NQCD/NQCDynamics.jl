@@ -4,7 +4,7 @@ using StatsBase: sample, Weights
 using NQCDynamics.Calculators: RingPolymerDiabaticCalculator
 using NQCDynamics: RingPolymerSimulation, RingPolymers
 
-function RingPolymerSimulation{FSSH}(atoms::Atoms{S,T}, model::Model, n_beads::Integer; rescaling=:standard, kwargs...) where {S,T}
+function RingPolymerSimulation{FSSH}(atoms::Atoms{T}, model::Model, n_beads::Integer; rescaling=:standard, kwargs...) where {T}
     RingPolymerSimulation(atoms, model, FSSH{T}(NQCModels.nstates(model), rescaling), n_beads; kwargs...)
 end
 

@@ -4,7 +4,7 @@ using NQCDynamics.NonadiabaticDistributions: ElectronicDistribution
 using NQCDynamics: nbeads
 using NQCModels: nstates
 
-function NQCDynamics.RingPolymerSimulation{eCMM}(atoms::Atoms{S,T}, model::Model, n_beads::Integer; γ=0, kwargs...) where {S,T}
+function NQCDynamics.RingPolymerSimulation{eCMM}(atoms::Atoms{T}, model::Model, n_beads::Integer; γ=0, kwargs...) where {T}
     NQCDynamics.RingPolymerSimulation(atoms, model, eCMM{T}(nstates(model), γ), n_beads; kwargs...)
 end
 

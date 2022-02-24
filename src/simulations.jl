@@ -5,42 +5,42 @@ using UnitfulAtomic: austrip, auconvert
 using .Calculators: AbstractCalculator, Calculator
 using NQCModels: Model
 
-abstract type AbstractSimulation{M,Calc<:AbstractCalculator,A<:Atoms,T,C<:AbstractCell} end
+abstract type AbstractSimulation{M} end
 
 Base.broadcastable(sim::AbstractSimulation) = Ref(sim)
 
-struct Simulation{M,Calc,A,T,C} <: AbstractSimulation{M,Calc,A,T,C}
-    temperature::T
+struct Simulation{M,Calc,T,Ttype,C} <: AbstractSimulation{M}
+    temperature::Ttype
     cell::C
-    atoms::A
+    atoms::Atoms{T}
     calculator::Calc
     method::M
 end
 
 """
-    Simulation(atoms::Atoms{S,T}, model::Model, method::M;
+    Simulation(atoms::Atoms{T}, model::Model, method::M;
         temperature=0u"K", cell::AbstractCell=InfiniteCell()) where {M,S,T}
 
 Simulation parameters that controls the types of atoms, interactions,
 dynamics method, temperature and simulation cell.
 """
-function Simulation(atoms::Atoms{S,T}, model::Model, method::M;
-        temperature=0u"K", cell::AbstractCell=InfiniteCell()) where {M,S,T}
+function Simulation(atoms::Atoms{T}, model::Model, method::M;
+        temperature=0u"K", cell::AbstractCell=InfiniteCell()) where {M,T}
     calc = Calculator(model, length(atoms), T)
     Simulation(temperature, cell, atoms, calc, method)
 end
 
-struct RingPolymerSimulation{M,Calc,A,T,C,B} <: AbstractSimulation{M,Calc,A,T,C}
+struct RingPolymerSimulation{M,Calc,T,Type,C,B} <: AbstractSimulation{M}
     temperature::T
     cell::C
-    atoms::A
+    atoms::Atoms{T}
     calculator::Calc
     method::M
     beads::B
 end
 
 function RingPolymerSimulation(temperature, cell::AbstractCell,
-        atoms::Atoms{S,T}, model::Model, method::M,
+        atoms::Atoms{T}, model::Model, method::M,
         n_beads::Integer, quantum_nuclei::Vector{Symbol}) where {M,S,T}
         
     if isempty(quantum_nuclei)

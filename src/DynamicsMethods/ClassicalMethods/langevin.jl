@@ -28,7 +28,7 @@ function Langevin{T}(γ, temperature, masses, DoFs) where {T}
     Langevin(T(γ), T.(σ))
 end
 
-function NQCDynamics.Simulation{Langevin}(atoms::Atoms{S,T}, model::Model; γ=1, temperature=0u"K", kwargs...) where {S,T}
+function NQCDynamics.Simulation{Langevin}(atoms::Atoms{T}, model::Model; γ=1, temperature=0u"K", kwargs...) where {T}
     NQCDynamics.Simulation(atoms, model, Langevin{T}(γ, austrip(temperature), atoms.masses, ndofs(model));
                temperature=temperature, kwargs...)
 end
