@@ -30,8 +30,8 @@ function Simulation(atoms::Atoms{T}, model::Model, method::M;
     Simulation(temperature, cell, atoms, calc, method)
 end
 
-struct RingPolymerSimulation{M,Calc,T,Type,C,B} <: AbstractSimulation{M}
-    temperature::T
+struct RingPolymerSimulation{M,Calc,T,Ttype,C,B} <: AbstractSimulation{M}
+    temperature::Ttype
     cell::C
     atoms::Atoms{T}
     calculator::Calc
@@ -41,7 +41,7 @@ end
 
 function RingPolymerSimulation(temperature, cell::AbstractCell,
         atoms::Atoms{T}, model::Model, method::M,
-        n_beads::Integer, quantum_nuclei::Vector{Symbol}) where {M,S,T}
+        n_beads::Integer, quantum_nuclei::Vector{Symbol}) where {M,T}
         
     if isempty(quantum_nuclei)
         beads = RingPolymers.RingPolymerParameters{T}(n_beads, get_temperature(temperature), length(atoms))
