@@ -1,6 +1,6 @@
 using NQCDynamics: RingPolymers
 
-function RingPolymerSimulation{Ehrenfest}(atoms::Atoms{S,T}, model::Model, n_beads::Integer; kwargs...) where {S,T}
+function RingPolymerSimulation{Ehrenfest}(atoms::Atoms{T}, model::Model, n_beads::Integer; kwargs...) where {T}
     RingPolymerSimulation(atoms, model, Ehrenfest{T}(NQCModels.nstates(model)), n_beads; kwargs...)
 end
 

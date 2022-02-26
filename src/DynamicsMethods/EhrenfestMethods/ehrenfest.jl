@@ -34,7 +34,7 @@ struct Ehrenfest{T} <: AbstractEhrenfest
     end
 end
 
-function Simulation{Ehrenfest}(atoms::Atoms{S,T}, model::Model; kwargs...) where {S,T}
+function Simulation{Ehrenfest}(atoms::Atoms{T}, model::Model; kwargs...) where {T}
     Simulation(atoms, model, Ehrenfest{T}(NQCModels.nstates(model)); kwargs...)
 end
 

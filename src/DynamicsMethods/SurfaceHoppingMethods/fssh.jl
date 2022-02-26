@@ -34,7 +34,7 @@ mutable struct FSSH{T} <: SurfaceHopping
     end
 end
 
-function Simulation{FSSH}(atoms::Atoms{S,T}, model::Model; rescaling=:standard, kwargs...) where {S,T}
+function Simulation{FSSH}(atoms::Atoms{T}, model::Model; rescaling=:standard, kwargs...) where {T}
     Simulation(atoms, model, FSSH{T}(NQCModels.nstates(model), rescaling); kwargs...)
 end
 
