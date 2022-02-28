@@ -115,13 +115,3 @@ The first page to read is the [Getting started](@ref) section which walks throug
 needed to perform a conventional classical molecular dynamics simulation.
 After this, the reader is free to explore at their leisure since everything else builds directly
 upon sections from the [Getting started](@ref) page.
-
-### Package ecosystem
-
-Included in the `NQCRegistry` alongside the main package are a few others that provide extra
-models and add-ons. Here is an overview of the currently existing packages included in
-the registry:
-
-```@raw html
-<img src="./assets/registry.png">
-```
