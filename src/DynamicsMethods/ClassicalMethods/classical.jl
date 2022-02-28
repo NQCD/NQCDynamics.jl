@@ -11,7 +11,7 @@ sim = Simulation{Classical}(Atoms(:H), Harmonic())
 # output
 
 Simulation{Classical}:
-  Atoms{1, Float64}([:H], UInt8[0x01], [1837.4715941070515])
+  Atoms{Float64}([:H], [1], [1837.4715941070515])
   Harmonic{Float64, Float64, Float64}
   m: Float64 1.0
   ω: Float64 1.0

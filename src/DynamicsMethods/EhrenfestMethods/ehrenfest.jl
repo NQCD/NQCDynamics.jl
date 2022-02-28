@@ -16,7 +16,7 @@ Simulation{Ehrenfest}(Atoms(:H), DoubleWell())
 # output
 
 Simulation{Ehrenfest{Float64}}:
-  Atoms{1, Float64}([:H], UInt8[0x01], [1837.4715941070515])
+  Atoms{Float64}([:H], [1], [1837.4715941070515])
   DoubleWell{Int64, Int64, Int64, Int64}
   mass: Int64 1
   ω: Int64 1
