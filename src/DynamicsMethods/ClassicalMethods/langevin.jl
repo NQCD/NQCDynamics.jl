@@ -14,7 +14,7 @@ sim = Simulation{Langevin}(Atoms(:H), Free(); γ=2.5, temperature=100u"K")
 # output
 
 Simulation{Langevin{Float64}}:
-  Atoms{1, Float64}([:H], UInt8[0x01], [1837.4715941070515])
+  Atoms{Float64}([:H], [1], [1837.4715941070515])
   Free(1)
 ```
 """
@@ -58,7 +58,7 @@ RingPolymerSimulation{ThermalLangevin}(Atoms(:H), Free(), 10; γ=0.1, temperatur
 
 RingPolymerSimulation{ThermalLangevin{Float64}}:
  
-  Atoms{1, Float64}([:H], UInt8[0x01], [1837.4715941070515])
+  Atoms{Float64}([:H], [1], [1837.4715941070515])
  
   Free(1)
   with 10 beads.

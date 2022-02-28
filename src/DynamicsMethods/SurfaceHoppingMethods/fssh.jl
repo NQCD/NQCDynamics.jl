@@ -15,7 +15,7 @@ Simulation{FSSH}(Atoms(:H), Free())
 # output
 
 Simulation{FSSH{Float64}}:
-  Atoms{1, Float64}([:H], UInt8[0x01], [1837.4715941070515])
+  Atoms{Float64}([:H], [1], [1837.4715941070515])
   Free(1)
 ```
 """
