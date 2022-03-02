@@ -1,5 +1,6 @@
 using NQCModels: NQCModels
 using NQCDynamics: get_temperature
+using Optim: Optim
 
 struct DiabaticMDEF{T,M} <: AbstractMDEF
     mass_scaling::M
@@ -46,15 +47,22 @@ function friction!(g, r, sim::Simulation{<:DiabaticMDEF}, t)
 end
 
 fermi(ϵ, μ, β) = 1 / (1 + exp(β*(ϵ-μ)))
-∂fermi(ϵ, μ, β) = -β * exp(β*(ϵ-μ)) / (1 + exp(β*(ϵ-μ)))^2
+function ∂fermi(ϵ, μ, β)
+    ∂f = -β * exp(β*(ϵ-μ)) / (1 + exp(β*(ϵ-μ)))^2
+    return isnan(∂f) ? zero(ϵ) : ∂f
+end
 gauss(x, σ) = exp(-0.5 * x^2 / σ^2) / (σ*sqrt(2π))
 
 function evaluate_friction!(Λ::AbstractMatrix, sim::Simulation{<:DiabaticMDEF}, r::AbstractMatrix, t::Real)
     ∂H = Calculators.get_adiabatic_derivative(sim.calculator, r)
     eigen = Calculators.get_eigen(sim.calculator, r)
-    μ = NQCModels.fermilevel(sim.calculator.model)
     σ = sim.method.σ
     β = 1/get_temperature(sim, t)
+    # μ = determine_fermi_level(NQCModels.nelectrons(sim.calculator.model), β, eigen.values)
+    μ = 0.0
+
+    potential = Calculators.get_potential(sim.calculator, r)
+    derivative = Calculators.get_derivative(sim.calculator, r)
 
     fill!(Λ, zero(eltype(r)))
     for I in eachindex(r)
@@ -66,6 +74,8 @@ function evaluate_friction!(Λ::AbstractMatrix, sim::Simulation{<:DiabaticMDEF},
             elseif sim.method.friction_type === :DQ
                 ρ = 1 / (sim.calculator.model.bathstates[1] - sim.calculator.model.bathstates[2])
                 Λ[I,J] = friction_direct_quadrature(∂H[I], ∂H[J], eigen.values, μ, β, ρ)
+            elseif sim.method.friction_type === :WB
+                Λ[I,J] = friction_wideband(potential, derivative[I], eigen.values, μ, β)
             else
                 throw(ArgumentError("Friction type $(sim.method.friction_type) not recognised."))
             end
@@ -116,5 +126,42 @@ function friction_direct_quadrature(∂Hᵢ, ∂Hⱼ, eigenvalues, μ, β, ρ)
         out += π * ∂Hᵢ[n,n] * ∂Hⱼ[n,n] * ρ * ∂fermi(ϵₙ, μ, β)
     end
     return out
+end
+
+using QuadGK: QuadGK
+
+function friction_wideband(potential, derivative, eigenvalues, μ, β)
+    h = potential[1,1]
+    ∂h = derivative[1,1]
+    Γ = 2π * potential[2,1]^2
+    # Γ = 0.028
+    # ∂Γ = -0.011
+    ∂Γ = 2Γ * derivative[2,1]
+    @info Γ
+    @info ∂Γ
+
+    A(ϵ) = 1/π * Γ/2 / ((ϵ-h)^2 + (Γ/2)^2)
+    kernel(ϵ) = -π * (∂h + (ϵ-h)*∂Γ/Γ)^2 * A(ϵ)^2 * ∂fermi(ϵ, μ, β)
+    integral, _ = QuadGK.quadgk(kernel, eigenvalues[begin], eigenvalues[end])
+    return integral
+end
+
+function determine_fermi_level(nelectrons, β, eigenvalues)
+
+    count_electrons(μ) = sum(fermi(ϵ, μ, β) for ϵ in eigenvalues)
+    optim_func(μ) = (count_electrons(μ) - nelectrons)^2
+
+    optim = Optim.optimize(optim_func, eigenvalues[begin], eigenvalues[end])
+    μ = Optim.minimizer(optim)
+    filled_electrons = count_electrons(μ)
+    if !isapprox(filled_electrons, nelectrons)
+        throw(error(
+            "Unable to determine the fermi level. \
+            Got $μ with $filled_electrons electrons but there should be $nelectrons electrons. \
+            Try increasing the temperature."
+        ))
+    end
+
+    return μ
 end
 
