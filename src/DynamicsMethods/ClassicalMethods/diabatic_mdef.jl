@@ -4,21 +4,20 @@ using Optim: Optim
 
 struct DiabaticMDEF{T,M} <: AbstractMDEF
     mass_scaling::M
-    fermi_level::T
     σ::T
     friction_type::Symbol
 end
 
-function DiabaticMDEF(masses::AbstractVector, DoFs::Integer, fermi_level, σ, friction_type)
-    DiabaticMDEF(get_mass_scale_matrix(masses, DoFs), austrip(fermi_level), austrip(σ), friction_type)
+function DiabaticMDEF(masses::AbstractVector, DoFs::Integer, σ, friction_type)
+    DiabaticMDEF(get_mass_scale_matrix(masses, DoFs), austrip(σ), friction_type)
 end
 
 function NQCDynamics.Simulation{DiabaticMDEF}(atoms::Atoms, model::Model;
-    fermi_level=0.0, σ=1.0, friction_type=:GB,
+    σ=1.0, friction_type=:GB,
     kwargs...
 )
     NQCDynamics.Simulation(atoms, model,
-        DiabaticMDEF(atoms.masses, ndofs(model), fermi_level, σ, friction_type);
+        DiabaticMDEF(atoms.masses, ndofs(model), σ, friction_type);
         kwargs...
     )
 end
@@ -27,12 +26,14 @@ function acceleration!(dv, v, r, sim::Simulation{<:DiabaticMDEF}, t)
 
     adiabatic_derivative = Calculators.get_adiabatic_derivative(sim.calculator, r)
     eigen = Calculators.get_eigen(sim.calculator, r)
+    μ = NQCModels.fermilevel(sim.calculator.model)
+    β = 1 / get_temperature(sim.calculator.model, t)
 
     NQCModels.state_independent_derivative!(sim.calculator.model, dv, r)
     LinearAlgebra.lmul!(-1, dv)
     for I in eachindex(dv)
         for i in eachindex(eigen.values)
-            f = fermi(eigen.values[i], sim.method.fermi_level, 1/get_temperature(sim, t))
+            f = fermi(eigen.values[i], μ, β)
             dv[I] -= adiabatic_derivative[I][i,i] * f
         end
     end
@@ -58,13 +59,12 @@ function evaluate_friction!(Λ::AbstractMatrix, sim::Simulation{<:DiabaticMDEF},
     eigen = Calculators.get_eigen(sim.calculator, r)
     σ = sim.method.σ
     β = 1/get_temperature(sim, t)
-    # μ = determine_fermi_level(NQCModels.nelectrons(sim.calculator.model), β, eigen.values)
-    μ = 0.0
+    μ = NQCModels.fermilevel(sim.calculator.model)
 
+    ρ = sim.calculator.model.ρ
     potential = Calculators.get_potential(sim.calculator, r)
     derivative = Calculators.get_derivative(sim.calculator, r)
 
-    fill!(Λ, zero(eltype(r)))
     for I in eachindex(r)
         for J in eachindex(r)
             if sim.method.friction_type === :GB
@@ -72,10 +72,9 @@ function evaluate_friction!(Λ::AbstractMatrix, sim::Simulation{<:DiabaticMDEF},
             elseif sim.method.friction_type === :ONGB
                 Λ[I,J] = friction_off_diagonal_gaussian_broadening(∂H[I], ∂H[J], eigen.values, μ, β, σ)
             elseif sim.method.friction_type === :DQ
-                ρ = 1 / (sim.calculator.model.bathstates[1] - sim.calculator.model.bathstates[2])
                 Λ[I,J] = friction_direct_quadrature(∂H[I], ∂H[J], eigen.values, μ, β, ρ)
             elseif sim.method.friction_type === :WB
-                Λ[I,J] = friction_wideband(potential, derivative[I], eigen.values, μ, β)
+                Λ[I,J] = friction_wideband(potential, derivative[I], eigen.values, μ, β, ρ)
             else
                 throw(ArgumentError("Friction type $(sim.method.friction_type) not recognised."))
             end
@@ -87,12 +86,10 @@ function friction_gaussian_broadening(∂Hᵢ, ∂Hⱼ, eigenvalues, μ, β, σ)
     out = zero(eltype(eigenvalues))
     for n in eachindex(eigenvalues)
         for m in eachindex(eigenvalues)
-            # if n != m
-                ϵₙ = eigenvalues[n]
-                ϵₘ = eigenvalues[m]
-                Δϵ = ϵₙ - ϵₘ
-                out += -π * ∂Hᵢ[n,m] * ∂Hⱼ[m,n] * gauss(Δϵ, σ) * ∂fermi(ϵₙ, μ, β)
-            # end
+            ϵₙ = eigenvalues[n]
+            ϵₘ = eigenvalues[m]
+            Δϵ = ϵₙ - ϵₘ
+            out += -π * ∂Hᵢ[n,m] * ∂Hⱼ[m,n] * gauss(Δϵ, σ) * ∂fermi(ϵₙ, μ, β)
         end
     end
     return out
@@ -101,19 +98,16 @@ end
 function friction_off_diagonal_gaussian_broadening(∂Hᵢ, ∂Hⱼ, eigenvalues, μ, β, σ)
     out = zero(eltype(eigenvalues))
     for n in eachindex(eigenvalues)
-        # for m in eachindex(eigenvalues)
         for m=n+1:length(eigenvalues)
-            if n != m
-                ϵₙ = eigenvalues[n]
-                ϵₘ = eigenvalues[m]
-                Δϵ = ϵₙ - ϵₘ
+            ϵₙ = eigenvalues[n]
+            ϵₘ = eigenvalues[m]
+            Δϵ = ϵₙ - ϵₘ
 
-                fₙ = fermi(ϵₙ, μ, β)
-                fₘ = fermi(ϵₘ, μ, β)
-                Δf = (fₘ - fₙ)
+            fₙ = fermi(ϵₙ, μ, β)
+            fₘ = fermi(ϵₘ, μ, β)
+            Δf = (fₘ - fₙ)
 
-                out += 2π * ∂Hᵢ[n,m] * ∂Hⱼ[m,n] * gauss(Δϵ, σ) * Δf / Δϵ
-            end
+            out += 2π * ∂Hᵢ[n,m] * ∂Hⱼ[m,n] * gauss(Δϵ, σ) * Δf / Δϵ
         end
     end
     return out
@@ -123,22 +117,19 @@ function friction_direct_quadrature(∂Hᵢ, ∂Hⱼ, eigenvalues, μ, β, ρ)
     out = zero(eltype(eigenvalues))
     for n in eachindex(eigenvalues)
         ϵₙ = eigenvalues[n]
-        out += π * ∂Hᵢ[n,n] * ∂Hⱼ[n,n] * ρ * ∂fermi(ϵₙ, μ, β)
+        out += -π * ∂Hᵢ[n,n] * ∂Hⱼ[n,n] * ρ * ∂fermi(ϵₙ, μ, β)
     end
     return out
 end
 
 using QuadGK: QuadGK
 
-function friction_wideband(potential, derivative, eigenvalues, μ, β)
+function friction_wideband(potential, derivative, eigenvalues, μ, β, ρ)
     h = potential[1,1]
     ∂h = derivative[1,1]
-    Γ = 2π * potential[2,1]^2
-    # Γ = 0.028
-    # ∂Γ = -0.011
-    ∂Γ = 2Γ * derivative[2,1]
-    @info Γ
-    @info ∂Γ
+    Γ = 2π * potential[2,1]^2 * ρ
+    ∂Γ∂potential = 4π * potential[2,1] * ρ
+    ∂Γ = ∂Γ∂potential * derivative[2,1]
 
     A(ϵ) = 1/π * Γ/2 / ((ϵ-h)^2 + (Γ/2)^2)
     kernel(ϵ) = -π * (∂h + (ϵ-h)*∂Γ/Γ)^2 * A(ϵ)^2 * ∂fermi(ϵ, μ, β)
