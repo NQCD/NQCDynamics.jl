@@ -1,23 +1,24 @@
 using NQCModels: NQCModels
 using NQCDynamics: get_temperature
 using Optim: Optim
+using QuadGK: QuadGK
 
-struct DiabaticMDEF{T,M} <: AbstractMDEF
+abstract type FrictionEvaluationMethod end
+
+struct DiabaticMDEF{M<:AbstractMatrix,F<:FrictionEvaluationMethod} <: AbstractMDEF
     mass_scaling::M
-    σ::T
-    friction_type::Symbol
+    friction_method::F
 end
 
-function DiabaticMDEF(masses::AbstractVector, DoFs::Integer, σ, friction_type)
-    DiabaticMDEF(get_mass_scale_matrix(masses, DoFs), austrip(σ), friction_type)
+function DiabaticMDEF(masses::AbstractVector, DoFs::Integer, friction_method)
+    DiabaticMDEF(get_mass_scale_matrix(masses, DoFs), friction_method)
 end
 
 function NQCDynamics.Simulation{DiabaticMDEF}(atoms::Atoms, model::Model;
-    σ=1.0, friction_type=:GB,
-    kwargs...
+    friction_method, kwargs...
 )
     NQCDynamics.Simulation(atoms, model,
-        DiabaticMDEF(atoms.masses, ndofs(model), σ, friction_type);
+        DiabaticMDEF(atoms.masses, ndofs(model), friction_method);
         kwargs...
     )
 end
@@ -43,8 +44,8 @@ function acceleration!(dv, v, r, sim::Simulation{<:DiabaticMDEF}, t)
 end
 
 function friction!(g, r, sim::Simulation{<:DiabaticMDEF}, t)
-    # Calculators.evaluate_friction!(sim.calculator, r)
-    # g .= sim.calculator.friction ./ sim.method.mass_scaling
+    evaluate_friction!(g, sim, r, t)
+    g ./= sim.method.mass_scaling
 end
 
 fermi(ϵ, μ, β) = 1 / (1 + exp(β*(ϵ-μ)))
@@ -52,50 +53,47 @@ function ∂fermi(ϵ, μ, β)
     ∂f = -β * exp(β*(ϵ-μ)) / (1 + exp(β*(ϵ-μ)))^2
     return isnan(∂f) ? zero(ϵ) : ∂f
 end
+
 gauss(x, σ) = exp(-0.5 * x^2 / σ^2) / (σ*sqrt(2π))
+gauss(x, friction_method::FrictionEvaluationMethod) = gauss(x, friction_method.σ)
 
 function evaluate_friction!(Λ::AbstractMatrix, sim::Simulation{<:DiabaticMDEF}, r::AbstractMatrix, t::Real)
-    ∂H = Calculators.get_adiabatic_derivative(sim.calculator, r)
-    eigen = Calculators.get_eigen(sim.calculator, r)
-    σ = sim.method.σ
     β = 1/get_temperature(sim, t)
     μ = NQCModels.fermilevel(sim.calculator.model)
+    fill_friction_tensor!(Λ, sim.method.friction_method, sim.calculator, r, μ, β)
+    return Λ
+end
 
-    ρ = sim.calculator.model.ρ
-    potential = Calculators.get_potential(sim.calculator, r)
-    derivative = Calculators.get_derivative(sim.calculator, r)
-
+function fill_friction_tensor!(Λ, friction_method::FrictionEvaluationMethod, calculator, r, μ, β)
+    ∂H = Calculators.get_adiabatic_derivative(calculator, r)
+    eigen = Calculators.get_eigen(calculator, r)
     for I in eachindex(r)
         for J in eachindex(r)
-            if sim.method.friction_type === :GB
-                Λ[I,J] = friction_gaussian_broadening(∂H[I], ∂H[J], eigen.values, μ, β, σ)
-            elseif sim.method.friction_type === :ONGB
-                Λ[I,J] = friction_off_diagonal_gaussian_broadening(∂H[I], ∂H[J], eigen.values, μ, β, σ)
-            elseif sim.method.friction_type === :DQ
-                Λ[I,J] = friction_direct_quadrature(∂H[I], ∂H[J], eigen.values, μ, β, ρ)
-            elseif sim.method.friction_type === :WB
-                Λ[I,J] = friction_wideband(potential, derivative[I], eigen.values, μ, β, ρ)
-            else
-                throw(ArgumentError("Friction type $(sim.method.friction_type) not recognised."))
-            end
+            Λ[J,I] = friction_method(∂H[J], ∂H[I], eigen.values, μ, β)
         end
     end
 end
 
-function friction_gaussian_broadening(∂Hᵢ, ∂Hⱼ, eigenvalues, μ, β, σ)
+struct GaussianBroadening{T} <: FrictionEvaluationMethod 
+    σ::T
+end
+function (friction_method::GaussianBroadening)(∂Hᵢ, ∂Hⱼ, eigenvalues, μ, β)
     out = zero(eltype(eigenvalues))
     for n in eachindex(eigenvalues)
         for m in eachindex(eigenvalues)
             ϵₙ = eigenvalues[n]
             ϵₘ = eigenvalues[m]
             Δϵ = ϵₙ - ϵₘ
-            out += -π * ∂Hᵢ[n,m] * ∂Hⱼ[m,n] * gauss(Δϵ, σ) * ∂fermi(ϵₙ, μ, β)
+            out += -π * ∂Hᵢ[n,m] * ∂Hⱼ[m,n] * gauss(Δϵ, friction_method) * ∂fermi(ϵₙ, μ, β)
         end
     end
     return out
 end
 
-function friction_off_diagonal_gaussian_broadening(∂Hᵢ, ∂Hⱼ, eigenvalues, μ, β, σ)
+struct OffDiagonalGaussianBroadening{T} <: FrictionEvaluationMethod
+    σ::T
+end
+function (friction_method::OffDiagonalGaussianBroadening)(∂Hᵢ, ∂Hⱼ, eigenvalues, μ, β)
     out = zero(eltype(eigenvalues))
     for n in eachindex(eigenvalues)
         for m=n+1:length(eigenvalues)
@@ -107,34 +105,53 @@ function friction_off_diagonal_gaussian_broadening(∂Hᵢ, ∂Hⱼ, eigenvalues
             fₘ = fermi(ϵₘ, μ, β)
             Δf = (fₘ - fₙ)
 
-            out += 2π * ∂Hᵢ[n,m] * ∂Hⱼ[m,n] * gauss(Δϵ, σ) * Δf / Δϵ
+            out += 2π * ∂Hᵢ[n,m] * ∂Hⱼ[m,n] * gauss(Δϵ, friction_method) * Δf / Δϵ
         end
     end
     return out
 end
 
-function friction_direct_quadrature(∂Hᵢ, ∂Hⱼ, eigenvalues, μ, β, ρ)
+struct DirectQuadrature{T} <: FrictionEvaluationMethod
+    ρ::T    
+end
+function (friction_method::DirectQuadrature)(∂Hᵢ, ∂Hⱼ, eigenvalues, μ, β)
     out = zero(eltype(eigenvalues))
     for n in eachindex(eigenvalues)
         ϵₙ = eigenvalues[n]
-        out += -π * ∂Hᵢ[n,n] * ∂Hⱼ[n,n] * ρ * ∂fermi(ϵₙ, μ, β)
+        out += -π * ∂Hᵢ[n,n] * ∂Hⱼ[n,n] * friction_method.ρ * ∂fermi(ϵₙ, μ, β)
     end
     return out
 end
 
-using QuadGK: QuadGK
-
-function friction_wideband(potential, derivative, eigenvalues, μ, β, ρ)
+struct WideBandExact{T} <: FrictionEvaluationMethod
+    ρ::T
+end
+function (friction_method::WideBandExact)(potential, ∂potentialᵢ, ∂potentialⱼ, eigenvalues, μ, β)
     h = potential[1,1]
-    ∂h = derivative[1,1]
+    ∂hᵢ = ∂potentialᵢ[1,1]
+    ∂hⱼ = ∂potentialⱼ[1,1]
+
+    ρ = friction_method.ρ
     Γ = 2π * potential[2,1]^2 * ρ
-    ∂Γ∂potential = 4π * potential[2,1] * ρ
-    ∂Γ = ∂Γ∂potential * derivative[2,1]
+    ∂Γ∂potential = sqrt(8π * ρ * Γ)
+    ∂Γᵢ = ∂Γ∂potential * ∂potentialᵢ[2,1]
+    ∂Γⱼ = ∂Γ∂potential * ∂potentialⱼ[2,1]
 
     A(ϵ) = 1/π * Γ/2 / ((ϵ-h)^2 + (Γ/2)^2)
-    kernel(ϵ) = -π * (∂h + (ϵ-h)*∂Γ/Γ)^2 * A(ϵ)^2 * ∂fermi(ϵ, μ, β)
+    kernel(ϵ) = -π * (∂hᵢ + (ϵ-h)*∂Γᵢ/Γ) * (∂hⱼ + (ϵ-h)*∂Γⱼ/Γ) * A(ϵ)^2 * ∂fermi(ϵ, μ, β)
     integral, _ = QuadGK.quadgk(kernel, eigenvalues[begin], eigenvalues[end])
     return integral
+end
+
+function fill_friction_tensor!(Λ, friction_method::WideBandExact, calculator, r, μ, β)
+    potential = Calculators.get_potential(calculator, r)
+    derivative = Calculators.get_derivative(calculator, r)
+    eigen = Calculators.get_eigen(calculator, r)
+    for I in eachindex(r)
+        for J in eachindex(r)
+            Λ[J,I] = friction_method(potential, derivative[J], derivative[I], eigen.values, μ, β)
+        end
+    end
 end
 
 function determine_fermi_level(nelectrons, β, eigenvalues)
@@ -155,4 +172,3 @@ function determine_fermi_level(nelectrons, β, eigenvalues)
 
     return μ
 end
-
