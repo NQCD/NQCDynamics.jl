@@ -305,24 +305,3 @@ end
     @test @allocated(Calculators.evaluate_derivative!(calc, r)) == 0
     @test @allocated(Calculators.evaluate_friction!(calc, r)) == 1920
 end
-
-@testset "DiabaticFrictionCalculator" begin
-    model = NQCModels.MiaoSubotnik()
-    calc = Calculators.DiabaticFrictionCalculator{Float64}(model, 1) 
-    r = rand(1,1)
-
-    Calculators.get_nonadiabatic_coupling(calc, r)
-
-    Calculators.evaluate_potential!(calc, r)
-    Calculators.evaluate_derivative!(calc, r)
-    Calculators.evaluate_eigen!(calc, r)
-    Calculators.evaluate_adiabatic_derivative!(calc, r)
-    Calculators.evaluate_nonadiabatic_coupling!(calc, r)
-
-    @test @allocated(Calculators.evaluate_potential!(calc, r)) == 0
-    @test @allocated(Calculators.evaluate_derivative!(calc, r)) == 0
-    @test @allocated(Calculators.evaluate_eigen!(calc, r)) == 56896 # nonzero due to eigenroutines
-    @test @allocated(Calculators.evaluate_adiabatic_derivative!(calc, r)) == 0
-    @test @allocated(Calculators.evaluate_nonadiabatic_coupling!(calc, r)) == 0
-end
-
