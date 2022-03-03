@@ -1,7 +1,8 @@
 using NQCModels: NQCModels
-using NQCDynamics: get_temperature
+using NQCDynamics: get_temperature, masses
 using Optim: Optim
 using QuadGK: QuadGK
+using LinearAlgebra: LinearAlgebra
 
 abstract type FrictionEvaluationMethod end
 
@@ -28,7 +29,7 @@ function acceleration!(dv, v, r, sim::Simulation{<:DiabaticMDEF}, t)
     adiabatic_derivative = Calculators.get_adiabatic_derivative(sim.calculator, r)
     eigen = Calculators.get_eigen(sim.calculator, r)
     μ = NQCModels.fermilevel(sim.calculator.model)
-    β = 1 / get_temperature(sim.calculator.model, t)
+    β = 1 / get_temperature(sim, t)
 
     NQCModels.state_independent_derivative!(sim.calculator.model, dv, r)
     LinearAlgebra.lmul!(-1, dv)
@@ -38,7 +39,7 @@ function acceleration!(dv, v, r, sim::Simulation{<:DiabaticMDEF}, t)
             dv[I] -= adiabatic_derivative[I][i,i] * f
         end
     end
-    DynamicsUtils.divide_by_mass!(dv, sim.atoms.masse)
+    DynamicsUtils.divide_by_mass!(dv, masses(sim))
 
     return nothing
 end
@@ -171,4 +172,16 @@ function determine_fermi_level(nelectrons, β, eigenvalues)
     end
 
     return μ
+end
+
+function DynamicsUtils.classical_potential_energy(sim::Simulation{<:DiabaticMDEF}, r::AbstractMatrix)
+    eigen = Calculators.get_eigen(sim.calculator, r)
+    μ = NQCModels.fermilevel(sim.calculator.model)
+    β = 1 / get_temperature(sim)
+
+    potential = NQCModels.state_independent_potential(sim.calculator.model, r)
+    for ϵ in eigen.values
+        potential += ϵ * fermi(ϵ, μ, β)
+    end
+    return potential
 end
