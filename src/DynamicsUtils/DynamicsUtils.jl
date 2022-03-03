@@ -58,6 +58,10 @@ end
 
 function classical_hamiltonian(sim, u) end
 
+function classical_kinetic_energy(sim::AbstractSimulation, u)
+    classical_kinetic_energy(sim,  DynamicsUtils.get_velocities(u))
+end
+
 function classical_kinetic_energy(sim::Simulation, v::AbstractMatrix)
     kinetic = zero(eltype(v))
     for i in axes(v, 2)
@@ -80,14 +84,17 @@ function classical_kinetic_energy(sim::RingPolymerSimulation, v::AbstractArray{T
     return kinetic / 2
 end
 
+function classical_potential_energy(sim::AbstractSimulation, u)
+    classical_potential_energy(sim,  DynamicsUtils.get_positions(u))
+end
+
 function classical_potential_energy(sim::Simulation, r::AbstractMatrix)
-    Calculators.evaluate_potential!(sim.calculator, r)
-    sim.calculator.potential
+    Calculators.get_potential(sim.calculator, r)
 end
 
 function classical_potential_energy(sim::RingPolymerSimulation, r::AbstractArray{T,3}) where {T}
-    Calculators.evaluate_potential!(sim.calculator, r)
-    sum(sim.calculator.potential) + RingPolymers.get_spring_energy(sim.beads, masses(sim), r)
+    V = Calculators.get_potential(sim.calculator, r)
+    sum(V) + RingPolymers.get_spring_energy(sim.beads, masses(sim), r)
 end
 
 include("dynamics_variables.jl")
