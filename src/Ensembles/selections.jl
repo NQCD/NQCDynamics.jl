@@ -42,28 +42,3 @@ function (select::RandomSelection)(prob, i, repeat)
     u0 = sample_distribution(prob.p, select.distribution, j)
     DynamicsMethods.create_problem(u0, prob.tspan, prob.p)
 end
-
-struct SelectWithCallbacks{S<:AbstractSelection,C1,C2,V} <: AbstractSelection
-    selection::S
-    standard_callbacks::C1
-    changing_callbacks::C2
-    values::V
-    function SelectWithCallbacks(selection, standard_callbacks, output, trajectories; saveat=[])
-
-        callbacks = []
-        values = []
-        for i=1:trajectories
-            cb, vals = DynamicsOutputs.create_saving_callback(output; saveat=saveat)
-            push!(callbacks, cb)
-            push!(values, vals)
-        end
-
-        new{typeof(selection), typeof(standard_callbacks), typeof(callbacks), typeof(values)}(
-            selection, standard_callbacks, callbacks, values)
-    end
-end
-
-function (select::SelectWithCallbacks)(prob, i, repeat)
-    prob = select.selection(prob, i, repeat)
-    SciMLBase.remake(prob, callback=CallbackSet(select.standard_callbacks, select.changing_callbacks[i]))
-end

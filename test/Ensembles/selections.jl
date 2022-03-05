@@ -29,8 +29,3 @@ end
     selector = Ensembles.RandomSelection(distribution)
     new_prob = selector(prob, 3, false)
 end
-
-@testset "SelectWithCallbacks" begin
-    selector = Ensembles.RandomSelection(distribution)
-    Ensembles.SelectWithCallbacks(selector, CallbackSet(), (:position,), 10)
-end

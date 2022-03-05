@@ -16,7 +16,8 @@ using ComponentArrays: ComponentVector
 using NQCModels: NQCModels
 using NQCDynamics:
     Estimators,
-    DynamicsUtils
+    DynamicsUtils,
+    AbstractSimulation
 
 using ..DynamicsUtils:
     get_positions,
@@ -24,6 +25,38 @@ using ..DynamicsUtils:
     get_quantum_subsystem
 
 using ..RingPolymers: get_centroid
+
+struct EnsembleSaver{N,F,S<:AbstractSimulation}
+    function_names::NTuple{N, Symbol}
+    output_functions::F
+    sim::S
+end
+
+function EnsembleSaver(function_names::NTuple{N, Symbol}, sim) where {N}
+    output_functions = tuple([getfield(DynamicsOutputs, f) for f in function_names]...)
+    EnsembleSaver(function_names, output_functions, sim)
+end
+
+function output_template(output::EnsembleSaver, savepoints, u0)
+    sol = (t=savepoints, u=[u0 for _ in savepoints])
+    out = output(sol, 0)[1]
+    for i in eachindex(out)
+        for j in eachindex(out[i])
+            out[i][j] = zero(out[i][j])
+        end
+    end
+    return out
+end
+
+function (output::EnsembleSaver)(sol, _)
+    out = [Any[] for _ in 1:length(sol.t)]
+    for (i, (t, u)) in enumerate(zip(sol.t, sol.u))
+        sizehint!(out[i], length(output.function_names)+1)
+        push!(out[i], t)
+        evaluate_output!(out[i], u, t, output.sim, output.output_functions...)
+    end
+    return (out, false)
+end
 
 """
     create_saving_callback(quantities::NTuple{N, Symbol}; saveat=[]) where {N}
@@ -60,7 +93,7 @@ Evaluates every function listed in `output.function_names` and returns all the r
 function (output::OutputSaver)(u, t, integrator)
     out = Any[]
     sizehint!(out, length(output.function_names))
-    evaluate_output!(out, u, t, integrator, output.output_functions...)
+    evaluate_output!(out, u, t, integrator.p, output.output_functions...)
     return out
 end
 
@@ -70,11 +103,11 @@ Used to recursively evaluate every function for the [`OutputSaver`](@ref).
 See here for a description of why it is written like this: 
 https://stackoverflow.com/questions/55840333/type-stability-for-lists-of-closures
 """
-function evaluate_output!(out, u, t, integrator, f::F, output_functions...) where {F}
-    push!(out, f(u, t, integrator))
-    return evaluate_output!(out, u, t, integrator, output_functions...)
+function evaluate_output!(out, u, t, sim, f::F, output_functions...) where {F}
+    push!(out, f(u, t, sim))
+    return evaluate_output!(out, u, t, sim, output_functions...)
 end
-evaluate_output!(out, u, t, integrator) = out
+evaluate_output!(out, u, t, sim) = out
 
 export force
 export velocity
@@ -92,41 +125,41 @@ export adiabatic_population
 export friction
 
 "Get the force"
-force(u, t, integrator) = -copy(integrator.p.calculator.derivative)
+force(u, t, sim) = -copy(sim.calculator.derivative)
 
 "Get the velocity"
-velocity(u, t, integrator) = copy(get_velocities(u))
+velocity(u, t, sim) = copy(get_velocities(u))
 
 "Get the velocity of the ring polymer centroid"
-centroid_velocity(u, t, integrator) = get_centroid(get_velocities(u))
+centroid_velocity(u, t, sim) = get_centroid(get_velocities(u))
 
 "Get the position"
-position(u, t, integrator) = copy(get_positions(u))
+position(u, t, sim) = copy(get_positions(u))
 
 "Get the position of the ring polymer centroid"
-centroid_position(u, t, integrator) = get_centroid(get_positions(u))
+centroid_position(u, t, sim) = get_centroid(get_positions(u))
 
 "Evaluate the potential from the model"
-potential(u, t, integrator) = DynamicsUtils.classical_potential_energy(integrator.p, u)
+potential(u, t, sim) = DynamicsUtils.classical_potential_energy(sim, u)
 
 "Evaluate the classical Hamiltonian"
-hamiltonian(u, t, integrator) = DynamicsUtils.classical_hamiltonian(integrator.p, u)
+hamiltonian(u, t, sim) = DynamicsUtils.classical_hamiltonian(sim, u)
 
 "Evaluate the classical kinetic energy"
-kinetic(u, t, integrator) = DynamicsUtils.classical_kinetic_energy(integrator.p, get_velocities(u))
+kinetic(u, t, sim) = DynamicsUtils.classical_kinetic_energy(sim, get_velocities(u))
 
 "Get all the dynamics variables. This is the default"
-u(u, t, integrator) = copy(u)
-u(u::ArrayPartition, t, integrator) = ComponentVector(v=copy(get_velocities(u)), r=copy(get_positions(u)))
+u(u, t, sim) = copy(u)
+u(u::ArrayPartition, t, sim) = ComponentVector(v=copy(get_velocities(u)), r=copy(get_positions(u)))
 
 """
 Get the quantum subsystem of the dynamics variables.
 Requires that `DynamicsUtils.get_quantum_subsystem` is implemented for your chosen method.
 """
-quantum_subsystem(u, t, integrator) = copy(get_quantum_subsystem(u))
+quantum_subsystem(u, t, sim) = copy(get_quantum_subsystem(u))
 
-mapping_position(u, t, integrator) = copy(DynamicsUtils.get_mapping_positions(u))
-mapping_momentum(u, t, integrator) = copy(DynamicsUtils.get_mapping_momenta(u))
+mapping_position(u, t, sim) = copy(DynamicsUtils.get_mapping_positions(u))
+mapping_momentum(u, t, sim) = copy(DynamicsUtils.get_mapping_momenta(u))
 
 """
 Get the currently occupied state from the dynamics variables.
@@ -134,23 +167,13 @@ Requires that the dynamics variable has a field `state`.
 Currently this is for surface hopping methods only.
 Use [`population`](@ref) or [`adiabatic_population`](@ref) for most other methods.
 """
-state(u, t, integrator) = copy(u.state)
-
-"Get the noise along the stochastic trajectory"
-
-noise(u, t, integrator) = copy(integrator.W.dW) / sqrt(integrator.dt)
+state(u, t, sim) = copy(u.state)
 
 "Evaluate the diabatic population"
-population(u, t, integrator) = Estimators.diabatic_population(integrator.p, u)
-total_population(u, t, integrator) = sum(Estimators.diabatic_population(integrator.p, u))
+population(u, t, sim) = Estimators.diabatic_population(sim, u)
+total_population(u, t, sim) = sum(Estimators.diabatic_population(sim, u))
 
 "Evaluate the adiabatic population"
-adiabatic_population(u, t, integrator) = Estimators.adiabatic_population(integrator.p, u)
-
-"Evaluate the friction. This is used for MDEF only."
-function friction(u, t, integrator)
-    integrator.g(integrator.cache.gtmp,get_positions(u),integrator.p,t)
-    copy(integrator.cache.gtmp)
-end
+adiabatic_population(u, t, sim) = Estimators.adiabatic_population(sim, u)
 
 end # module
