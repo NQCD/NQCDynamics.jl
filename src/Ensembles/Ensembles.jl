@@ -19,7 +19,8 @@ using NQCDynamics:
     DynamicsUtils,
     DynamicsMethods,
     RingPolymers,
-    NonadiabaticDistributions
+    NonadiabaticDistributions,
+    DynamicsOutputs
 using NQCDynamics.NonadiabaticDistributions:
     NuclearDistribution,
     CombinedDistribution
@@ -93,68 +94,67 @@ function run_ensemble(
     saveat = austrip.(saveat)
     tspan = austrip.(tspan)
     (output isa Symbol) && (output = (output,))
+    reduction = Reduction(reduction)
 
-    ensemble_problem = EnsembleProblem(sim, tspan, distribution, selection, output, reduction, u_init, saveat, trajectories)
+    ensemble_problem = EnsembleProblem(sim, tspan, distribution, selection, output, reduction, u_init, saveat, trajectories, kwargs)
 
     @info "Performing $trajectories trajectories."
     stats = @timed solve(ensemble_problem, algorithm, ensemble_algorithm; saveat, trajectories, kwargs...)
     @info "Finished after $(stats.time) seconds."
-    sol = stats.value
 
-    if output isa Tuple
-        return process_output(output, ensemble_problem.prob_func, reduction)
-    else
-        return sol.u
-    end
+    return extract_output(stats, output, reduction, trajectories)
 end
 
-function SciMLBase.EnsembleProblem(sim::AbstractSimulation, tspan, distribution, selection, output, reduction, u_init, saveat, trajectories)
+function SciMLBase.EnsembleProblem(sim::AbstractSimulation, tspan, distribution, selection, output, reduction, u_init, saveat, trajectories, kwargs)
 
     prob_func = Selection(distribution, selection)
-    if output isa Tuple
-        reduction_func = select_reduction(:discard)
-        prob_func = SelectWithCallbacks(prob_func, DynamicsMethods.get_callbacks(sim), output, trajectories; saveat)
-    else
-        reduction_func = select_reduction(reduction)
-    end
 
     problem = create_problem(sim, distribution, tspan)
-    output_func = get_output_func(output)
+    output_func = Output(output, sim)
+    if output_func isa DynamicsOutputs.EnsembleSaver
+        u_init = get_u_init(reduction, saveat, kwargs, tspan, problem.u0, output_func)
+    end
 
-    return EnsembleProblem(problem; prob_func, output_func, reduction=reduction_func, u_init)
+    return EnsembleProblem(problem; prob_func, output_func, reduction, u_init)
 end
 
-get_output_func(::Tuple) = (sol,i)->(nothing,false)
-get_output_func(output) = output
+Output(output::Tuple, sim) = DynamicsOutputs.EnsembleSaver(output, sim)
+Output(output, _) = output
 
 function create_problem(sim::AbstractSimulation, distribution, tspan)
     u0 = sample_distribution(sim, distribution, 1)
     return DynamicsMethods.create_problem(u0, tspan, sim)
 end
 
-function process_output(output, prob_func, reduction)
-    out = [TypedTables.Table(
-            t=vals.t,
-            [(;zip(output, val)...) for val in vals.saveval]
-        ) for vals in prob_func.values
-    ]
+function extract_output(stats, output, reduction, trajectories)
+    sol = stats.value
 
-    first_cols = (getproperty(out[1], o) for o in TypedTables.columnnames(out[1]))
-    reduced_output = Dict(zip(TypedTables.columnnames(out[1]), first_cols))
-
-    if reduction === :mean
-        for quantity in output
-            reduced_output[quantity] = mean(getproperty(traj, quantity) for traj in out)
-        end
-        return TypedTables.Table(;reduced_output...)
-    elseif reduction === :sum
-        for quantity in output
-            reduced_output[quantity] = sum(getproperty(traj, quantity) for traj in out)
-        end
-        return TypedTables.Table(;reduced_output...)
+    if output isa Tuple
+        process_output(reduction, sol, output, trajectories)
     else
-        return out
+        return sol.u
     end
+end
+
+function process_output(::AppendReduction, sol, output, trajectories)
+    return [generate_table(output, s) for s in sol.u]
+end
+
+function process_output(::SumReduction, sol, output, trajectories)
+    for i in eachindex(sol.u)
+        sol.u[i][1] /= trajectories
+    end
+    return generate_table(output, sol.u)
+end
+
+function process_output(::MeanReduction, sol, output, trajectories)
+    return generate_table(output, sol.u)
+end
+
+function generate_table(output, u)
+    output = (:t, output...)
+    out = [(;zip(output, quantity)...) for quantity in u]
+    return TypedTables.Table(out)
 end
 
 end # module

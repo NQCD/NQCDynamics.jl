@@ -3,16 +3,16 @@ using NQCDynamics
 using Test
 using OrdinaryDiffEq
 
-@testset "select_reduction" begin
-    @test Ensembles.select_reduction(:mean) isa Ensembles.MeanReduction
-    @test Ensembles.select_reduction(:sum) isa Ensembles.SumReduction
-    @test Ensembles.select_reduction(:append) isa Function
+@testset "Reduction" begin
+    @test Ensembles.Reduction(:mean) isa Ensembles.MeanReduction
+    @test Ensembles.Reduction(:sum) isa Ensembles.SumReduction
+    @test Ensembles.Reduction(:append) isa Ensembles.AppendReduction
 end
 
 @testset "get_u_init" begin
 
     @testset "Output, reduction=$reduction" for reduction in (:mean, :sum)
-        reduction = Ensembles.select_reduction(reduction)
+        reduction = Ensembles.Reduction(reduction)
         tspan = (0.0, 1.0)
         u0 = 1.0
         saveat = 1
@@ -22,16 +22,16 @@ end
     end
 
     @testset "reduction=:append" begin
-        reduction = Ensembles.select_reduction(:append)
+        reduction = Ensembles.Reduction(:append)
         output = Ensembles.OutputFinal()
         u0 = 1
         saveat = 1
         u_init = Ensembles.get_u_init(reduction, saveat, Dict(), (0, 1), u0, output)
-        @test u_init == []
+        @test u_init === nothing
     end
 
     @testset "TimeCorrelationFunction, reduction=$reduction" for reduction in (:mean, :sum)
-        reduction = Ensembles.select_reduction(reduction)
+        reduction = Ensembles.Reduction(reduction)
         sim = Simulation{FSSH}(Atoms(1), DoubleWell())
         saveat = 0.1
         tspan = (0.0, 1.0)

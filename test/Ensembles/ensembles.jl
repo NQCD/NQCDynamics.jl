@@ -13,12 +13,20 @@ distribution = DynamicalDistribution(positions, velocities, (1, 1))
 u0 = rand(distribution)
 tspan = (0.0, 10.0)
 
-@testset "run_ensemble" begin
-    out = run_ensemble(sim, tspan, distribution;
-        output=(:position), dt=1, trajectories=10)
-    @test length(out) == 10
-    @test out[1].position isa Vector{<:Matrix}
-    @test out[1].t isa Vector{<:Real}
+@testset "run_ensemble" for reduction in (:append, :sum, :mean)
+    out = run_ensemble(sim, tspan, distribution; reduction,
+        output=(:position, :velocity, :hamiltonian), dt=1, trajectories=10)
+    if (reduction === :sum) || (reduction === :mean)
+        @test out.t == 0.0:10.0
+        @test out.position isa Vector{<:AbstractMatrix}
+        @test out.velocity isa Vector{<:AbstractMatrix}
+        @test out.hamiltonian isa Vector{<:Number}
+    else
+        @test all(x -> x == 0.0:10.0, (traj.t for traj in out))
+        @test all(x -> x isa Vector{<:AbstractMatrix}, (traj.position for traj in out))
+        @test all(x -> x isa Vector{<:AbstractMatrix}, (traj.velocity for traj in out))
+        @test all(x -> x isa Vector{<:Number}, (traj.hamiltonian for traj in out))
+    end
 end
 
 @testset "run_ensemble" begin
