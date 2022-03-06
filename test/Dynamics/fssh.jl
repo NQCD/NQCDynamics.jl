@@ -71,7 +71,11 @@ atoms = Atoms(2)
     end
 
     @testset "execute_hop!" begin
-        Calculators.update_electronics!(integrator.p.calculator, get_positions(integrator.u))
+        r = get_positions(integrator.u)
+        r .= rand()
+        sim = integrator.p
+        calc = sim.calculator
+        Calculators.update_electronics!(calc, r)
         DynamicsUtils.get_velocities(integrator.u) .= 2 # Set high momentum to ensure successful hop
         integrator.u.state = 1
         integrator.p.method.new_state = 2
