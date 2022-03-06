@@ -309,6 +309,7 @@ end
 function evaluate_potential!(calc::AbstractCalculator, R)
     calc.stats[:potential] += 1
     calc.potential = NQCModels.potential(calc.model, R)
+    return nothing
 end
 
 function evaluate_potential!(calc::AbstractCalculator, R::AbstractArray{T,3}) where {T}
@@ -316,6 +317,7 @@ function evaluate_potential!(calc::AbstractCalculator, R::AbstractArray{T,3}) wh
     @views for i in axes(R, 3)
         calc.potential[i] = NQCModels.potential(calc.model, R[:,:,i])
     end
+    return nothing
 end
 
 function evaluate_V̄!(calc::RingPolymerDiabaticCalculator, r)

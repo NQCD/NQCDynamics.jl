@@ -299,7 +299,6 @@ end
     r = rand(1,1)
 
     Calculators.get_nonadiabatic_coupling(calc, r)
-    @test all(x->x==1, values(calc.stats))
 
     @test @allocated(Calculators.evaluate_potential!(calc, r)) == 0
     @test @allocated(Calculators.evaluate_derivative!(calc, r)) == 0

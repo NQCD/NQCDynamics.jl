@@ -51,6 +51,7 @@ end
 function evaluate_potential!(calc::Union{LargeDiabaticCalculator,DiabaticFrictionCalculator}, r)
     calc.stats[:potential] += 1
     NQCModels.potential!(calc.model, calc.potential, r)
+    return nothing
 end
 
 function evaluate_eigen!(calc::Union{LargeDiabaticCalculator,DiabaticFrictionCalculator}, r)
