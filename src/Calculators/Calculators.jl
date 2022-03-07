@@ -117,14 +117,22 @@ struct AdiabaticCalculator{T,M} <: AbstractAdiabaticCalculator{T,M}
     model::M
     potential::DependentField{T,Matrix{T}}
     derivative::DependentField{Matrix{T},Matrix{T}}
+    stats::Dict{Symbol,Int}
     function AdiabaticCalculator{T}(model::M, atoms::Integer) where {T,M<:Model}
         potential = zero(T)
         derivative = zeros(T, ndofs(model), atoms)
         position = fill(NaN, ndofs(model), atoms)
+
+        stats = Dict{Symbol,Int}(
+            :potential=>0,
+            :derivative=>0,
+        )
+
         new{T,M}(
             model,
             DependentField(potential, copy(position)),
-            DependentField(derivative, copy(position))
+            DependentField(derivative, copy(position)),
+            stats
         )
     end
 end
@@ -133,14 +141,22 @@ struct RingPolymerAdiabaticCalculator{T,M} <: AbstractAdiabaticCalculator{T,M}
     model::M
     potential::DependentField{Vector{T},Array{T,3}}
     derivative::DependentField{Array{T,3},Array{T,3}}
+    stats::Dict{Symbol,Int}
     function RingPolymerAdiabaticCalculator{T}(model::M, atoms::Integer, beads::Integer) where {T,M<:Model}
         potential = zeros(T, beads)
         derivative = zeros(T, ndofs(model), atoms, beads)
         position = fill(NaN, ndofs(model), atoms, beads)
+
+        stats = Dict{Symbol,Int}(
+            :potential=>0,
+            :derivative=>0,
+        )
+
         new{T,M}(
             model,
             DependentField(potential, copy(position)),
-            DependentField(derivative, copy(position))
+            DependentField(derivative, copy(position)),
+            stats
         )
     end
 end
@@ -152,6 +168,7 @@ struct DiabaticCalculator{T,M,S,L} <: AbstractDiabaticCalculator{T,M}
     eigen::DependentField{LinearAlgebra.Eigen{T,T,SMatrix{S,S,T,L},SVector{S,T}},Matrix{T}}
     adiabatic_derivative::DependentField{Matrix{SMatrix{S,S,T,L}},Matrix{T}}
     nonadiabatic_coupling::DependentField{Matrix{SMatrix{S,S,T,L}},Matrix{T}}
+    stats::Dict{Symbol,Int}
     function DiabaticCalculator{T}(model::M, atoms::Integer) where {T,M<:Model}
         n = nstates(model)
         mat = NQCModels.DiabaticModels.matrix_template(model, T)
@@ -164,6 +181,14 @@ struct DiabaticCalculator{T,M,S,L} <: AbstractDiabaticCalculator{T,M}
         nonadiabatic_coupling = [zero(mat) for _ in CartesianIndices(derivative)]
         position = fill(NaN, ndofs(model), atoms)
 
+        stats = Dict{Symbol,Int}(
+            :potential=>0,
+            :derivative=>0,
+            :eigen=>0,
+            :adiabatic_derivative=>0,
+            :nonadiabatic_coupling=>0
+        )
+
         new{T,M,n,n^2}(
             model,
             DependentField(potential, copy(position)),
@@ -171,6 +196,7 @@ struct DiabaticCalculator{T,M,S,L} <: AbstractDiabaticCalculator{T,M}
             DependentField(eigen, copy(position)),
             DependentField(adiabatic_derivative, copy(position)),
             DependentField(nonadiabatic_coupling, copy(position)),
+            stats
         )
     end
 end
@@ -195,6 +221,8 @@ struct RingPolymerDiabaticCalculator{T,M,S,L} <: AbstractDiabaticCalculator{T,M}
     centroid_eigen::DependentField{LinearAlgebra.Eigen{T,T,SMatrix{S,S,T,L},SVector{S,T}},Array{T,3}}
     centroid_adiabatic_derivative::DependentField{Matrix{SMatrix{S,S,T,L}},Array{T,3}}
     centroid_nonadiabatic_coupling::DependentField{Matrix{SMatrix{S,S,T,L}},Array{T,3}}
+
+    stats::Dict{Symbol,Int}
     function RingPolymerDiabaticCalculator{T}(model::M, atoms::Integer, beads::Integer) where {T,M<:Model}
         n = nstates(model)
         mat = NQCModels.DiabaticModels.matrix_template(model, T)
@@ -221,6 +249,25 @@ struct RingPolymerDiabaticCalculator{T,M,S,L} <: AbstractDiabaticCalculator{T,M}
 
         position = fill(NaN, ndofs(model), atoms, beads)
 
+        stats = Dict{Symbol,Int}(
+            :potential=>0,
+            :derivative=>0,
+            :eigen=>0,
+            :adiabatic_derivative=>0,
+            :nonadiabatic_coupling=>0,
+            :traceless_potential=>0,
+            :V̄=>0,
+            :traceless_derivative=>0,
+            :D̄=>0,
+            :traceless_adiabatic_derivative=>0,
+            :centroid=>0,
+            :centroid_potential=>0,
+            :centroid_derivative=>0,
+            :centroid_eigen=>0,
+            :centroid_adiabatic_derivative=>0,
+            :centroid_nonadiabatic_coupling=>0,
+        )
+
         new{T,M,n,n^2}(
             model,
             DependentField(potential, copy(position)),
@@ -241,6 +288,7 @@ struct RingPolymerDiabaticCalculator{T,M,S,L} <: AbstractDiabaticCalculator{T,M}
             DependentField(centroid_eigen, copy(position)),
             DependentField(centroid_adiabatic_derivative, copy(position)),
             DependentField(centroid_nonadiabatic_coupling, copy(position)),
+            stats
         )
     end
 end
@@ -259,16 +307,21 @@ function Calculator(model::AdiabaticModel, atoms::Integer, beads::Integer, t::Ty
 end
 
 function evaluate_potential!(calc::AbstractCalculator, R)
+    calc.stats[:potential] += 1
     calc.potential = NQCModels.potential(calc.model, R)
+    return nothing
 end
 
 function evaluate_potential!(calc::AbstractCalculator, R::AbstractArray{T,3}) where {T}
+    calc.stats[:potential] += 1
     @views for i in axes(R, 3)
         calc.potential[i] = NQCModels.potential(calc.model, R[:,:,i])
     end
+    return nothing
 end
 
 function evaluate_V̄!(calc::RingPolymerDiabaticCalculator, r)
+    calc.stats[:V̄] += 1
     potential = get_potential(calc, r)
     for i in 1:length(calc.V̄)
         calc.V̄[i] = tr(potential[i]) / nstates(calc.model)
@@ -276,6 +329,7 @@ function evaluate_V̄!(calc::RingPolymerDiabaticCalculator, r)
 end
 
 function evaluate_traceless_potential!(calc::RingPolymerDiabaticCalculator, r)
+    calc.stats[:traceless_potential] += 1
     n = nstates(calc.model)
     potential = get_potential(calc, r)
     V̄ = get_V̄(calc, r)
@@ -287,25 +341,30 @@ function evaluate_traceless_potential!(calc::RingPolymerDiabaticCalculator, r)
 end
 
 function evaluate_centroid!(calc::AbstractCalculator, r::AbstractArray{T,3}) where {T}
+    calc.stats[:centroid] += 1
     RingPolymers.get_centroid!(calc.centroid, r)
 end
 
 function evaluate_centroid_potential!(calc::AbstractCalculator, r::AbstractArray{T,3}) where {T}
+    calc.stats[:centroid_potential] += 1
     centroid = get_centroid(calc, r)
     calc.centroid_potential = NQCModels.potential(calc.model, centroid)
 end
 
 function evaluate_derivative!(calc::AbstractCalculator, R)
+    calc.stats[:derivative] += 1
     NQCModels.derivative!(calc.model, calc.derivative, R)
 end
 
 function evaluate_derivative!(calc::AbstractCalculator, R::AbstractArray{T,3}) where {T}
+    calc.stats[:derivative] += 1
     @views for i in axes(R, 3)
         NQCModels.derivative!(calc.model, calc.derivative[:,:,i], R[:,:,i])
     end
 end
 
 function evaluate_D̄!(calc::RingPolymerDiabaticCalculator, r)
+    calc.stats[:D̄] += 1
     derivative = get_derivative(calc, r)
     for I in eachindex(derivative)
         calc.D̄[I] = tr(derivative[I]) / nstates(calc.model)
@@ -313,6 +372,7 @@ function evaluate_D̄!(calc::RingPolymerDiabaticCalculator, r)
 end
 
 function evaluate_traceless_derivative!(calc::RingPolymerDiabaticCalculator, r)
+    calc.stats[:traceless_derivative] += 1
     n = nstates(calc.model)
     derivative = get_derivative(calc, r)
     D̄ = get_D̄(calc, r)
@@ -324,6 +384,7 @@ function evaluate_traceless_derivative!(calc::RingPolymerDiabaticCalculator, r)
 end
 
 function evaluate_traceless_adiabatic_derivative!(calc::RingPolymerDiabaticCalculator, r)
+    calc.stats[:traceless_adiabatic_derivative] += 1
     n = nstates(calc.model)
     adiabatic_derivative = get_adiabatic_derivative(calc, r)
     D̄ = get_D̄(calc, r)
@@ -335,11 +396,13 @@ function evaluate_traceless_adiabatic_derivative!(calc::RingPolymerDiabaticCalcu
 end
 
 function evaluate_centroid_derivative!(calc::AbstractCalculator, r::AbstractArray{T,3}) where {T}
+    calc.stats[:centroid_derivative] += 1
     centroid = get_centroid(calc, r)
     NQCModels.derivative!(calc.model, calc.centroid_derivative, centroid)
 end
 
 function evaluate_eigen!(calc::AbstractDiabaticCalculator, r)
+    calc.stats[:eigen] += 1
     potential = get_potential(calc, r)
     eig = LinearAlgebra.eigen(potential)
     corrected_vectors = correct_phase(eig.vectors, calc.eigen.vectors)
@@ -348,6 +411,7 @@ function evaluate_eigen!(calc::AbstractDiabaticCalculator, r)
 end
 
 function evaluate_centroid_eigen!(calc::RingPolymerDiabaticCalculator, r)
+    calc.stats[:centroid_eigen] += 1
     potential = get_centroid_potential(calc, r)
     eig = LinearAlgebra.eigen(potential)
     corrected_vectors = correct_phase(eig.vectors, calc.centroid_eigen.vectors)
@@ -356,6 +420,7 @@ function evaluate_centroid_eigen!(calc::RingPolymerDiabaticCalculator, r)
 end
 
 function evaluate_eigen!(calc::RingPolymerDiabaticCalculator, r)
+    calc.stats[:eigen] += 1
     potential = get_potential(calc, r)
     for i=1:length(potential)
         eig = LinearAlgebra.eigen(potential[i])
@@ -372,6 +437,7 @@ function correct_phase(new_vectors::SMatrix, old_vectors::SMatrix)
 end
 
 function evaluate_adiabatic_derivative!(calc::AbstractDiabaticCalculator, r)
+    calc.stats[:adiabatic_derivative] += 1
     U = get_eigen(calc, r).vectors
     diabatic_derivative = get_derivative(calc, r)
     for I in eachindex(diabatic_derivative)
@@ -380,6 +446,7 @@ function evaluate_adiabatic_derivative!(calc::AbstractDiabaticCalculator, r)
 end
 
 function evaluate_centroid_adiabatic_derivative!(calc::RingPolymerDiabaticCalculator, r)
+    calc.stats[:centroid_adiabatic_derivative] += 1
     centroid_derivative = get_centroid_derivative(calc, r)
     centroid_eigen = get_centroid_eigen(calc, r)
     for I in eachindex(centroid_derivative)
@@ -388,6 +455,7 @@ function evaluate_centroid_adiabatic_derivative!(calc::RingPolymerDiabaticCalcul
 end
 
 function evaluate_adiabatic_derivative!(calc::RingPolymerDiabaticCalculator, r)
+    calc.stats[:adiabatic_derivative] += 1
     derivative = get_derivative(calc, r)
     eigen = get_eigen(calc, r)
     for i in axes(derivative, 3) # Beads
@@ -400,6 +468,7 @@ function evaluate_adiabatic_derivative!(calc::RingPolymerDiabaticCalculator, r)
 end
 
 function evaluate_nonadiabatic_coupling!(calc::AbstractDiabaticCalculator, r)
+    calc.stats[:nonadiabatic_coupling] += 1
     adiabatic_derivative = get_adiabatic_derivative(calc, r)
     eigen = get_eigen(calc, r)
     for I in eachindex(calc.adiabatic_derivative)
@@ -408,6 +477,7 @@ function evaluate_nonadiabatic_coupling!(calc::AbstractDiabaticCalculator, r)
 end
 
 function evaluate_centroid_nonadiabatic_coupling!(calc::RingPolymerDiabaticCalculator, r)
+    calc.stats[:centroid_nonadiabatic_coupling] += 1
     centroid_adiabatic_derivative = get_centroid_adiabatic_derivative(calc, r)
     centroid_eigen = get_centroid_eigen(calc, r)
     for I in eachindex(centroid_adiabatic_derivative)
@@ -416,6 +486,7 @@ function evaluate_centroid_nonadiabatic_coupling!(calc::RingPolymerDiabaticCalcu
 end
 
 function evaluate_nonadiabatic_coupling!(calc::RingPolymerDiabaticCalculator, r)
+    calc.stats[:nonadiabatic_coupling] += 1
     adiabatic_derivative = get_adiabatic_derivative(calc, r)
     eigen = get_eigen(calc, r)
     for i in eachindex(eigen) # Beads
@@ -453,30 +524,19 @@ Evaluates all electronic properties for the current position `r`.
 This should no longer be used, instead access the quantities directly with `get_quantity(calc, r)`.
 """
 function update_electronics!(calculator::AbstractDiabaticCalculator, r::AbstractArray)
-    evaluate_potential!(calculator, r)
-    evaluate_derivative!(calculator, r)
-    evaluate_eigen!(calculator, r)
-    evaluate_adiabatic_derivative!(calculator, r)
-    evaluate_nonadiabatic_coupling!(calculator, r)
+    get_nonadiabatic_coupling(calculator, r)
+    return nothing
 end
 
 function update_electronics!(calculator::RingPolymerDiabaticCalculator, r::AbstractArray{T,3}) where {T}
-    evaluate_potential!(calculator, r)
-    evaluate_derivative!(calculator, r)
-    evaluate_eigen!(calculator, r)
-    evaluate_adiabatic_derivative!(calculator, r)
-    evaluate_nonadiabatic_coupling!(calculator, r)
-
+    get_nonadiabatic_coupling(calculator, r)
     update_centroid_electronics!(calculator, r)
+    return nothing
 end
 
 function update_centroid_electronics!(calculator::RingPolymerDiabaticCalculator, r::AbstractArray{T,3}) where {T}
-    evaluate_centroid!(calculator, r)
-    evaluate_centroid_potential!(calculator, r)
-    evaluate_centroid_derivative!(calculator, r)
-    evaluate_centroid_eigen!(calculator, r)
-    evaluate_centroid_adiabatic_derivative!(calculator, r)
-    evaluate_centroid_nonadiabatic_coupling!(calculator, r)
+    get_centroid_nonadiabatic_coupling(calculator, r)
+    return nothing
 end
 
 end # module
