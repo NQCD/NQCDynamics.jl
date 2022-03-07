@@ -2,7 +2,7 @@ using NQCModels: NQCModels
 using NQCDynamics: get_temperature, masses
 using Optim: Optim
 using QuadGK: QuadGK
-using LinearAlgebra: LinearAlgebra
+using LinearAlgebra: LinearAlgebra, diagind
 
 abstract type FrictionEvaluationMethod end
 
@@ -127,7 +127,7 @@ end
 struct WideBandExact{T} <: FrictionEvaluationMethod
     ρ::T
 end
-function (friction_method::WideBandExact)(potential, ∂potentialᵢ, ∂potentialⱼ, eigenvalues, μ, β)
+function (friction_method::WideBandExact)(potential, ∂potentialᵢ, ∂potentialⱼ, μ, β)
     h = potential[1,1]
     ∂hᵢ = ∂potentialᵢ[1,1]
     ∂hⱼ = ∂potentialⱼ[1,1]
@@ -140,17 +140,17 @@ function (friction_method::WideBandExact)(potential, ∂potentialᵢ, ∂potenti
 
     A(ϵ) = 1/π * Γ/2 / ((ϵ-h)^2 + (Γ/2)^2)
     kernel(ϵ) = -π * (∂hᵢ + (ϵ-h)*∂Γᵢ/Γ) * (∂hⱼ + (ϵ-h)*∂Γⱼ/Γ) * A(ϵ)^2 * ∂fermi(ϵ, μ, β)
-    integral, _ = QuadGK.quadgk(kernel, eigenvalues[begin], eigenvalues[end])
+    diagonal = @view potential[diagind(potential)]
+    integral, _ = QuadGK.quadgk(kernel, extrema(diagonal)...)
     return integral
 end
 
 function fill_friction_tensor!(Λ, friction_method::WideBandExact, calculator, r, μ, β)
     potential = Calculators.get_potential(calculator, r)
     derivative = Calculators.get_derivative(calculator, r)
-    eigen = Calculators.get_eigen(calculator, r)
     for I in eachindex(r)
         for J in eachindex(r)
-            Λ[J,I] = friction_method(potential, derivative[J], derivative[I], eigen.values, μ, β)
+            Λ[J,I] = friction_method(potential, derivative[J], derivative[I], μ, β)
         end
     end
 end
