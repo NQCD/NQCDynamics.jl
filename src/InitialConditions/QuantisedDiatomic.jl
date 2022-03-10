@@ -26,6 +26,8 @@ using UnitfulAtomic: austrip
 using Distributions: Uniform
 using UnicodePlots: lineplot, lineplot!, DotCanvas
 using Optim: Optim
+using Roots: Roots
+using TimerOutputs: TimerOutputs, @timeit
 
 using NQCDynamics: Simulation, Calculators, DynamicsUtils
 using NQCBase: Atoms, PeriodicCell, InfiniteCell
@@ -34,6 +36,8 @@ using NQCModels.AdiabaticModels: AdiabaticModel
 
 export generate_configurations
 export quantise_diatomic
+
+const TIMER = TimerOutputs.TimerOutput()
 
 struct SurfaceParameters{T}
     reduced_mass::T
@@ -214,8 +218,11 @@ If the potential is independent of centre of mass position, this has no effect.
 Otherwise, be sure to modify these parameters to give the intended behaviour.
 """
 function quantise_diatomic(sim::Simulation, v::Matrix, r::Matrix;
-    height=10.0, surface_normal=[0, 0, 1.0], atom_indices=[1, 2])
+    height=10.0, surface_normal=[0, 0, 1.0], atom_indices=[1, 2],
+    show_timer=false, reset_timer=false
+)
 
+    reset_timer && TimerOutputs.reset_timer!(TIMER)
 
     r, slab = separate_slab_and_molecule(atom_indices, r)
     surface = SurfaceParameters(sim.atoms.masses, atom_indices, slab, austrip(height), surface_normal)
@@ -231,7 +238,7 @@ function quantise_diatomic(sim::Simulation, v::Matrix, r::Matrix;
     L = total_angular_momentum(r_com, p_com)
     J = (sqrt(1+4*L^2) - 1) / 2 # L^2 = J(J+1)ħ^2
 
-    r₁, r₂ = find_integral_bounds(sim.calculator.model, E, J, surface, bond_length(r_com))
+    r₁, r₂ = @timeit TIMER "Finding bounds" find_integral_bounds(sim.calculator.model, E, J, surface, bond_length(r_com))
 
     μ = surface.reduced_mass
     V(r) = effective_potential(r, J, sim.calculator.model, surface)
@@ -242,7 +249,10 @@ function quantise_diatomic(sim::Simulation, v::Matrix, r::Matrix;
         return sqrt(2μ)/π * integral - 1/2
     end
 
-    ν = nᵣ(E, r₁, r₂)
+    ν = @timeit TIMER "Calculating ν" nᵣ(E, r₁, r₂)
+
+    TimerOutputs.complement!(TIMER)
+    show_timer && show(TIMER)
 
     ν, J
 end
@@ -261,19 +271,9 @@ end
 
 function find_integral_bounds(model, total_energy, J, surface, r₀, bond_limits=(0.5, 5.0))
     energy_difference(r) = total_energy - effective_potential(r, J, model, surface)
-    optim_func(r) = energy_difference(r)^2
 
-    optim = Optim.optimize(optim_func, first(bond_limits), r₀)
-    r₁ = Optim.minimizer(optim)
-    while energy_difference(r₁) < 0
-        r₁ *= 1.01
-    end
-
-    optim = Optim.optimize(optim_func, r₀, last(bond_limits))
-    r₂ = Optim.minimizer(optim)
-    while energy_difference(r₂) < 0
-        r₂ *= 0.99
-    end
+    r₁ = @timeit TIMER "Lower bound" Roots.find_zero(energy_difference, (first(bond_limits), r₀))
+    r₂ = @timeit TIMER "Upper bound" Roots.find_zero(energy_difference, (r₀, last(bond_limits)))
 
     return r₁, r₂
 end
