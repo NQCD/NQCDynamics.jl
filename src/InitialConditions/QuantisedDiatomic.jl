@@ -135,6 +135,24 @@ function combine_slab_and_molecule(surface::SurfaceParameters, molecule)
 end
 
 """
+    sqrt_avoid_negatives(x)
+
+Same as `sqrt` but returns `zero(x)` if `x` is negative.
+Used here just in case the endpoints are a little off.
+"""
+function sqrt_avoid_negatives(x)
+    if x < zero(x) 
+        @warn """
+        `sqrt(x)` of negative number attempted: x = $x, returning zero instead.\
+        This is acceptable if x is very close to zero. Otherwise something has gone wrong.
+        """
+        return zero(x)
+    else
+        return sqrt(x)
+    end
+end
+
+"""
     find_total_energy(sim, ν, J, surface)
 
 Returns the energy associated with the specified quantum numbers
@@ -156,21 +174,21 @@ function find_total_energy(model::AdiabaticModel, ν, J, surface::SurfaceParamet
 
     "Evaluate vibrational quantum number."
     function nᵣ(E, r₁, r₂)
-        kernel(r) = sqrt(E - V(r))
+        kernel(r) = sqrt_avoid_negatives(E - V(r))
         integral, _ = QuadGK.quadgk(kernel, r₁, r₂; maxevals=100)
         return sqrt(2μ)/π * integral - 1/2
     end
 
     "Derivative of the above"
     function ∂nᵣ∂E(E, r₁, r₂)
-        kernel(r) = 1 / sqrt(E - V(r))
+        kernel(r) = 1 / sqrt_avoid_negatives(E - V(r))
         integral, _ = QuadGK.quadgk(kernel, r₁, r₂; maxevals=100)
         return sqrt(2μ)/2π * integral
     end
 
     "Second derivative of the above"
     function ∂²nᵣ∂E²(E, r₁, r₂)
-        kernel(r) = 1 / sqrt(E - V(r))^3
+        kernel(r) = 1 / sqrt_avoid_negatives(E - V(r))^3
         integral, _ = QuadGK.quadgk(kernel, r₁, r₂; maxevals=100)
         return -sqrt(2μ)/4π * integral
     end
@@ -244,7 +262,7 @@ function quantise_diatomic(sim::Simulation, v::Matrix, r::Matrix;
     V(r) = effective_potential(r, J, sim.calculator.model, surface)
 
     function nᵣ(E, r₁, r₂)
-        kernel(r) = sqrt(E - V(r))
+        kernel(r) = sqrt_avoid_negatives(E - V(r))
         integral, _ = QuadGK.quadgk(kernel, r₁, r₂; maxevals=100)
         return sqrt(2μ)/π * integral - 1/2
     end
@@ -266,7 +284,7 @@ function effective_potential(r, J, model, surface)
 end
 
 function get_radial_momentum_function(total_energy, surface, J, model)
-    radial_momentum(r) = sqrt(2surface.reduced_mass * (total_energy - effective_potential(r, J, model, surface)))
+    radial_momentum(r) = sqrt_avoid_negatives(2surface.reduced_mass * (total_energy - effective_potential(r, J, model, surface)))
 end
 
 function find_integral_bounds(model, total_energy, J, surface, r₀, bond_limits=(0.5, 5.0))
