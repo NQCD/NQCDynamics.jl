@@ -1,18 +1,37 @@
-
 using Test, NQCDynamics
 
 ω = 3
 β = 5
 m = 10
-mom = MomentumHarmonicWigner(ω, β)
+mom = MomentumHarmonicWigner(ω, β, m)
 pos = PositionHarmonicWigner(ω, β, m)
 vel = VelocityHarmonicWigner(ω, β, m)
 
-norm = tanh(β*ω/2) / π
-@test norm ≈ 1 / (mom.σ * pos.σ * 2π) / sqrt(m)
-@test norm ≈ 1 / (vel.σ * pos.σ * 2π) / sqrt(m) / m
+@testset "Correct norm" begin
+    norm = tanh(β*ω/2) / π
+    @test norm ≈ 1 / (mom.σ * pos.σ * 2π)
+    @test norm ≈ 1 / (vel.σ * pos.σ * 2π) / m
+end
 
-vec = MomentumHarmonicWigner.([1, 2, 3, 4, 5], β)
+@testset "Energy comparison" begin
+    energy_expectation = ω * (1/(exp(ω*β) - 1) + 1/2)
+
+    velocity_kinetic() = m/2*rand(vel)^2
+    momentum_kinetic() = rand(mom)^2/2m
+
+    function wigner_energy_expectation(kinetic, n)
+        e = 0.0
+        for _=1:n
+            e += kinetic() + rand(pos)^2 * m *  ω^2/2
+        end
+        return e / n
+    end
+
+    @test wigner_energy_expectation(velocity_kinetic, 100000) ≈ energy_expectation rtol=1e-2
+    @test wigner_energy_expectation(momentum_kinetic, 100000) ≈ energy_expectation rtol=1e-2
+end
+
+vec = MomentumHarmonicWigner.([1, 2, 3, 4, 5], β, m)
 
 d = DynamicalDistribution(vec, vec, (1, 1, 1))
 @test_throws ErrorException rand(d)

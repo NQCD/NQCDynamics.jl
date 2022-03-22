@@ -2,12 +2,12 @@
 using Distributions: Normal
 
 """
-    MomentumHarmonicWigner(ω, β)
+    MomentumHarmonicWigner(ω, β, m)
 
 Wigner distribution in a 1D harmonic potential for the momentum
 """
-function MomentumHarmonicWigner(ω, β)
-    σ = sqrt(Q(ω, β) / β)
+function MomentumHarmonicWigner(ω, β, m)
+    σ = sqrt(Q(ω, β) / β * m)
     Normal(0, σ)
 end
 
@@ -27,7 +27,7 @@ end
 Wigner distribution in a 1D harmonic potential for the velocity
 """
 function VelocityHarmonicWigner(ω, β, m)
-    σ = sqrt(Q(ω, β) / β) / m
+    σ = sqrt(Q(ω, β) / β / m)
     Normal(0, σ)
 end
 
