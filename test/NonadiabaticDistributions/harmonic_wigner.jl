@@ -27,8 +27,8 @@ end
         return e / n
     end
 
-    @test wigner_energy_expectation(velocity_kinetic, 100000) ≈ energy_expectation rtol=1e-2
-    @test wigner_energy_expectation(momentum_kinetic, 100000) ≈ energy_expectation rtol=1e-2
+    @test wigner_energy_expectation(velocity_kinetic, 100000) ≈ energy_expectation atol=1e-1
+    @test wigner_energy_expectation(momentum_kinetic, 100000) ≈ energy_expectation atol=1e-1
 end
 
 vec = MomentumHarmonicWigner.([1, 2, 3, 4, 5], β, m)
