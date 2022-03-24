@@ -40,3 +40,10 @@ end
     s = HarmonicRingPolymer(ω, β, m, n_beads; centre)
     @test mean(rand(s)) ≈ 57 atol=0.1
 end
+
+@testset "DynamicalDistribution, HarmonicRingPolymer" begin
+    d = DynamicalDistribution(s, s, size(sim))
+    u = rand(d)
+    @test mean(u.r) ≈ 0 atol=0.2
+    @test mean(u.v) ≈ 0 atol=0.2
+end

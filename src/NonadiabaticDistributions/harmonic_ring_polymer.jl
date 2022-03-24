@@ -29,6 +29,20 @@ function Base.rand(rng::AbstractRNG, s::HarmonicRingPolymer)
     return s.normal_mode_transformation * R
 end
 
+function select_item(x::HarmonicRingPolymer{T}, ::Integer, size::NTuple) where {T}
+    length(size) == 3 || throw(error("`size` $size must have 3 dimensions."))
+    size[3] == length(x.normal_mode_distribution) || throw(error("Sample size does not match distribution."))
+
+    out = Array{T,3}(undef, size)
+    @views for i in axes(out, 2)
+        for j in axes(out, 1)
+            copyto!(out[j,i,:], rand(x))
+        end
+    end
+
+    return out
+end
+
 function select_item(x::Vector{<:HarmonicRingPolymer{T}}, ::Integer, size::NTuple) where {T}
     length(size) == 3 || throw(error("`size` $size must have 3 dimensions."))
     size[2] == length(x) || throw(error("Sample size does not match distribution."))
