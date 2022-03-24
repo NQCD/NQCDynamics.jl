@@ -11,14 +11,15 @@ end
 
 Ring polymer position distribution in a 1D harmonic potential
 """
-function HarmonicRingPolymer(ω, β, m, n_beads)
+function HarmonicRingPolymer(ω, β, m, n_beads; centre=0)
     βₙ = β / n_beads
     ωₙ = 1 / βₙ
     ωₖ = RingPolymers.get_matsubara_frequencies(n_beads, ωₙ)
     σ⁻¹ = sqrt.(βₙ*m .* (ω^2 .+ ωₖ.^2))
     σ = 1 ./ σ⁻¹
 
-    normal_mode_distribution = Distributions.MvNormal(σ)
+    μ = [centre * sqrt(n_beads); zeros(n_beads-1)]
+    normal_mode_distribution = Distributions.MvNormal(μ, σ)
     normal_mode_transformation = RingPolymers.get_normal_mode_transformation(n_beads)
     HarmonicRingPolymer(normal_mode_distribution, normal_mode_transformation)
 end

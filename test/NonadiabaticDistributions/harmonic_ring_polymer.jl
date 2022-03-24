@@ -34,3 +34,9 @@ end
     @test_throws ErrorException("Sample size does not match distribution.") NonadiabaticDistributions.select_item(s, 0, (3, 1, 1))
     @test_throws ErrorException("`size` (3, 1) must have 3 dimensions.") NonadiabaticDistributions.select_item(s, 0, (3, 1))
 end
+
+@testset "modified centre" begin
+    centre = 57
+    s = HarmonicRingPolymer(ω, β, m, n_beads; centre)
+    @test mean(rand(s)) ≈ 57 atol=0.1
+end
