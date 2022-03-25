@@ -1,6 +1,6 @@
 using Test
 using NQCDynamics
-using Statistics: mean
+using StatsBase: mean
 
 ω = 3.4
 β = 11.2
