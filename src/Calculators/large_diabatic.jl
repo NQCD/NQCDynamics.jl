@@ -75,9 +75,11 @@ function evaluate_adiabatic_derivative!(calc::Union{LargeDiabaticCalculator,Diab
     calc.stats[:adiabatic_derivative] += 1
     eigen = get_eigen(calc, r)
     derivative = get_derivative(calc, r)
-    for I in eachindex(derivative)
-        LinearAlgebra.mul!(calc.tmp_mat, derivative[I], eigen.vectors)
-        LinearAlgebra.mul!(calc.adiabatic_derivative[I], eigen.vectors', calc.tmp_mat)
+    @inbounds for i in NQCModels.mobileatoms(calc)
+        for j in NQCModels.dofs(calc)
+            LinearAlgebra.mul!(calc.tmp_mat, derivative[j,i], eigen.vectors)
+            LinearAlgebra.mul!(calc.adiabatic_derivative[j,i], eigen.vectors', calc.tmp_mat)
+        end
     end
 end
 
@@ -85,16 +87,27 @@ function evaluate_nonadiabatic_coupling!(calc::Union{LargeDiabaticCalculator,Dia
     calc.stats[:nonadiabatic_coupling] += 1
     eigen = get_eigen(calc, r)
     adiabatic_derivative = get_adiabatic_derivative(calc, r)
-    for I in eachindex(adiabatic_derivative)
-        evaluate_nonadiabatic_coupling!(calc.nonadiabatic_coupling[I], adiabatic_derivative[I], eigen.values)
+
+    evaluate_inverse_difference_matrix!(calc.tmp_mat, eigen.values)
+
+    @inbounds for i in NQCModels.mobileatoms(calc)
+        for j in NQCModels.dofs(calc)
+            multiply_elementwise!(calc.nonadiabatic_coupling[j,i], adiabatic_derivative[j,i], calc.tmp_mat)
+        end
     end
 end
 
-function evaluate_nonadiabatic_coupling!(coupling::Matrix, adiabatic_derivative::Matrix, eigenvalues::Vector)
-    for i=1:length(eigenvalues)
-        for j=i+1:length(eigenvalues)
-            coupling[j,i] = -adiabatic_derivative[j,i] / (eigenvalues[j]-eigenvalues[i])
-            coupling[i,j] = -coupling[j,i]
+function evaluate_inverse_difference_matrix!(out, eigenvalues)
+    @inbounds for i in eachindex(eigenvalues)
+        for j in eachindex(eigenvalues)
+            out[j,i] = 1 / (eigenvalues[i] - eigenvalues[j])
         end
+        out[i,i] = zero(eltype(out))
+    end
+end
+
+function multiply_elementwise!(coupling::Matrix, adiabatic_derivative::Matrix, eigenvalue_difference_matrix::Matrix)
+    @inbounds for I in eachindex(coupling, adiabatic_derivative, eigenvalue_difference_matrix)
+        coupling[I] = adiabatic_derivative[I] * eigenvalue_difference_matrix[I]
     end
 end
