@@ -59,7 +59,12 @@ function RingPolymerSimulation(atoms::Atoms, model::Model, method::M, n_beads::I
     RingPolymerSimulation(temperature, cell, atoms, model, method, n_beads, quantum_nuclei)
 end
 
-NQCModels.nstates(sim::AbstractSimulation) = NQCModels.nstates(sim.calculator.model)
+NQCModels.nstates(sim::AbstractSimulation) = NQCModels.nstates(sim.calculator)
+NQCModels.eachstate(sim::AbstractSimulation) = NQCModels.eachstate(sim.calculator)
+NQCModels.nelectrons(sim::AbstractSimulation) = NQCModels.nelectrons(sim.calculator)
+NQCModels.eachelectron(sim::AbstractSimulation) = NQCModels.eachelectron(sim.calculator)
+NQCModels.mobileatoms(sim::AbstractSimulation) = NQCModels.mobileatoms(sim.calculator)
+NQCModels.dofs(sim::AbstractSimulation) = NQCModels.dofs(sim.calculator)
 
 NQCModels.ndofs(sim::AbstractSimulation) = NQCModels.ndofs(sim.calculator.model)
 natoms(sim::AbstractSimulation) = length(sim.atoms)

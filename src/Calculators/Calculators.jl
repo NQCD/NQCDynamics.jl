@@ -39,6 +39,13 @@ abstract type AbstractDiabaticCalculator{T,M<:Union{DiabaticFrictionModel,Diabat
 abstract type AbstractStaticDiabaticCalculator{T,M} <: AbstractDiabaticCalculator{T,M} end
 abstract type AbstractFrictionCalculator{T,M<:AdiabaticFrictionModel} <: AbstractCalculator{T,M} end
 
+NQCModels.nstates(calc::AbstractCalculator) = NQCModels.nstates(calc.model)
+NQCModels.eachstate(calc::AbstractCalculator) = NQCModels.eachstate(calc.model)
+NQCModels.nelectrons(calc::AbstractCalculator) = NQCModels.nelectrons(calc.model)
+NQCModels.eachelectron(calc::AbstractCalculator) = NQCModels.eachelectron(calc.model)
+NQCModels.mobileatoms(calc::AbstractCalculator) = NQCModels.mobileatoms(calc.model, size(calc.derivative, 2))
+NQCModels.dofs(calc::AbstractCalculator) = NQCModels.dofs(calc.model)
+
 Base.eltype(::AbstractCalculator{T}) where {T} = T
 
 mutable struct DependentField{V,R}
