@@ -1,5 +1,6 @@
 using Test
 using NQCDynamics
+using StatsBase: mean
 
 ω = 3.4
 β = 11.2
@@ -33,4 +34,17 @@ end
     @test_throws ErrorException("Sample size does not match distribution.") NonadiabaticDistributions.select_item(s, 0, (3, 1, beads))
     @test_throws ErrorException("Sample size does not match distribution.") NonadiabaticDistributions.select_item(s, 0, (3, 1, 1))
     @test_throws ErrorException("`size` (3, 1) must have 3 dimensions.") NonadiabaticDistributions.select_item(s, 0, (3, 1))
+end
+
+@testset "modified centre" begin
+    centre = 57
+    s = HarmonicRingPolymer(ω, β, m, n_beads; centre)
+    @test mean(rand(s)) ≈ 57 atol=0.5
+end
+
+@testset "DynamicalDistribution, HarmonicRingPolymer" begin
+    d = DynamicalDistribution(s, s, size(sim))
+    u = rand(d)
+    @test mean(u.r) ≈ 0 atol=0.2
+    @test mean(u.v) ≈ 0 atol=0.2
 end
