@@ -39,7 +39,7 @@ end
 @testset "modified centre" begin
     centre = 57
     s = HarmonicRingPolymer(ω, β, m, n_beads; centre)
-    @test mean(rand(s)) ≈ 57 atol=0.1
+    @test mean(rand(s)) ≈ 57 atol=0.5
 end
 
 @testset "DynamicalDistribution, HarmonicRingPolymer" begin
