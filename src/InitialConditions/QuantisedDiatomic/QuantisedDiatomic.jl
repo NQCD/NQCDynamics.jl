@@ -28,6 +28,7 @@ using Optim: Optim
 using Roots: Roots
 using TimerOutputs: TimerOutputs, @timeit
 using Interpolations: interpolate, BSpline, Cubic, Line, OnGrid, scale, hessian
+using AdvancedMH: DensityModel, sample, StaticProposal
 
 using NQCDynamics: Simulation, Calculators, DynamicsUtils, masses
 using NQCBase: Atoms, PeriodicCell, InfiniteCell
@@ -107,9 +108,12 @@ function generate_configurations(sim, ν, J;
 
     radial_momentum = RadialMomentum(total_energy, V)
     bonds, momenta = select_random_bond_lengths(bounds, radial_momentum, samples)
+    velocities = momenta ./ μ
+
+    plot_distributions(bonds, velocities)
 
     @info "Generating the requested configurations..."
-    configure_diatomic.(sim, bonds, momenta, J, environment, generation, μ)
+    configure_diatomic.(sim, bonds, velocities, J, environment, generation, μ)
 end
 
 function generate_1D_vibrations(model::AdiabaticModel, μ::Real, ν::Integer;
@@ -127,16 +131,11 @@ function generate_1D_vibrations(model::AdiabaticModel, μ::Real, ν::Integer;
 
     radial_momentum = RadialMomentum(total_energy, V)
     bonds, momenta = select_random_bond_lengths(bounds, radial_momentum, samples)
-    return bonds, momenta ./ μ
-end
+    velocities = momenta ./ μ
 
-function plot_distribution(bonds, velocities)
-    r_hist = histogram(bonds, title="Bond length distribution", border=:ascii)
-    v_hist = histogram(velocities, title="Velocity distribution", border=:ascii)
-    show(r_hist)
-    println()
-    show(v_hist)
-    println()
+    plot_distributions(bonds, velocities)
+
+    return bonds, velocities
 end
 
 """

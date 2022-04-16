@@ -218,6 +218,5 @@ end
 
 @testset "generate_configurations 1D" begin
     sim = Simulation(Atoms(2000), Morse())
-    r, v = QuantisedDiatomic.generate_1D_vibrations(Morse(), 1000.0, 1; samples=10000)
-    QuantisedDiatomic.plot_distribution(r, v)
+    r, v = QuantisedDiatomic.generate_1D_vibrations(Morse(), 1000.0, 0; samples=100)
 end

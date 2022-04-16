@@ -10,39 +10,39 @@ Base.broadcastable(p::GenerationParameters) = Ref(p)
 """
 Pick a random bond length and corresponding radial momentum that matches the
 radial probability distribution.
-
-Uses rejection sampling: https://en.wikipedia.org/wiki/Rejection_sampling
 """
 function select_random_bond_lengths(bounds, momentum_function, samples)
     @info "Generating distribution of bond lengths and radial momenta..."
-    M = 1 / momentum_function(bounds[1]+1e-3)
-    radius_proposal = Uniform(bounds...)
-    bonds = zeros(samples)
-    momenta = zeros(samples)
-    for i=1:samples
-        keep_going = true
-        while keep_going
-            r = rand(radius_proposal) # Generate radius
-            p = momentum_function(r) # Evaluate probability
-            probability = 1 / p # Probability inversely proportional to momentum
-            if rand() < probability / M
-                bonds[i] = r
-                momenta[i] = rand([-1, 1]) * p
-                keep_going = false
-            end
-        end
-    end
-    bonds, momenta
+
+    insupport(θ) = bounds[1] < θ < bounds[2]
+    density(θ) = insupport(θ) ? log(1/momentum_function(θ)) : -Inf
+    model = DensityModel(density)
+    spl = MetropolisHastings(StaticProposal(Uniform(bounds...)))
+    chain = sample(model, spl, samples; chain_type=Vector{NamedTuple})
+
+    bonds = [c.param_1 for c in chain]
+    momenta = [1/exp(c.lp) * rand((-1, 1)) for c in chain]
+
+    return bonds, momenta
+end
+
+function plot_distributions(bonds, velocities)
+    r_hist = histogram(bonds, title="Bond length distribution", border=:ascii)
+    v_hist = histogram(velocities, title="Radial velocity distribution", border=:ascii)
+    show(r_hist)
+    println()
+    show(v_hist)
+    println()
 end
 
 """
 Randomly orient molecule in space for a given bond length and radial momentum
 """
-function configure_diatomic(sim, bond, momentum, J, environment::EvaluationEnvironment, generation::GenerationParameters, μ)
+function configure_diatomic(sim, bond, velocity, J, environment::EvaluationEnvironment, generation::GenerationParameters, μ)
     r = zeros(3,2)
     v = zeros(3,2)
     r[1,1] = bond
-    v[1,1] = momentum ./ μ
+    v[1,1] = velocity
     r = subtract_centre_of_mass(r, masses(sim)[environment.molecule_indices])
     v = subtract_centre_of_mass(v, masses(sim)[environment.molecule_indices])
 
