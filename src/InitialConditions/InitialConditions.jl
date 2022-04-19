@@ -5,7 +5,7 @@ Functions and types for generating initial conditions for simulations.
 """
 module InitialConditions
 
-include("QuantisedDiatomic.jl")
+include("QuantisedDiatomic/QuantisedDiatomic.jl")
 export QuantisedDiatomic
 
 include("ThermalMonteCarlo.jl")
