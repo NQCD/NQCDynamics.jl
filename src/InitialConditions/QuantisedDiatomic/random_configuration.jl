@@ -1,3 +1,4 @@
+using AdvancedMH: MetropolisHastings, DensityModel, sample, StaticProposal
 
 struct GenerationParameters{T}
     direction::Vector{T}

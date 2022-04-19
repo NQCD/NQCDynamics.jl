@@ -28,7 +28,6 @@ using Optim: Optim
 using Roots: Roots
 using TimerOutputs: TimerOutputs, @timeit
 using Interpolations: interpolate, BSpline, Cubic, Line, OnGrid, scale, hessian
-using AdvancedMH: DensityModel, sample, StaticProposal
 
 using NQCDynamics: Simulation, Calculators, DynamicsUtils, masses
 using NQCBase: Atoms, PeriodicCell, InfiniteCell
