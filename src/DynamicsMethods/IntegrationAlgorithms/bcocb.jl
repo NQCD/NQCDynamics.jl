@@ -43,7 +43,7 @@ struct MDEFCache{flatV,G,N,C,M,S}
     σ::S
 end
 
-function FrictionCache(sim::RingPolymerSimulation{<:DynamicsMethods.ClassicalMethods.MDEF}, dt) 
+function FrictionCache(sim::RingPolymerSimulation{<:DynamicsMethods.ClassicalMethods.AbstractMDEF}, dt) 
     DoFs = ndofs(sim)
     atoms = length(sim.atoms)
     beads = length(sim.beads)

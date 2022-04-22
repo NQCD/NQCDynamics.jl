@@ -1,7 +1,9 @@
 
 using NQCModels.DiabaticModels: LargeDiabaticModel
 
-struct LargeDiabaticCalculator{T,M} <: AbstractDiabaticCalculator{T,M}
+abstract type AbstractLargeDiabaticCalculators{T,M} <: AbstractDiabaticCalculator{T,M} end
+
+struct LargeDiabaticCalculator{T,M} <: AbstractLargeDiabaticCalculators{T,M}
     model::M
     potential::DependentField{Hermitian{T,Matrix{T}},Matrix{T}}
     derivative::DependentField{Matrix{Hermitian{T,Matrix{T}}},Matrix{T}}

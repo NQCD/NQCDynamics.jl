@@ -22,6 +22,7 @@ include("mdef.jl")
 export MDEF
 include("diabatic_mdef.jl")
 export DiabaticMDEF
+include("rpmdef.jl")
 
 const ClassicalMethodUnion = Union{Classical, Langevin, ThermalLangevin, MDEF, DiabaticMDEF}
 

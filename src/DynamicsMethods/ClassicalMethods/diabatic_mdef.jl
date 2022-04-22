@@ -44,7 +44,7 @@ function acceleration!(dv, v, r, sim::Simulation{<:DiabaticMDEF}, t)
     return nothing
 end
 
-function friction!(g, r, sim::Simulation{<:DiabaticMDEF}, t)
+function friction!(g, r, sim::AbstractSimulation{<:DiabaticMDEF}, t)
     evaluate_friction!(g, sim, r, t)
     g ./= sim.method.mass_scaling
 end
@@ -61,13 +61,19 @@ gauss(x, friction_method::FrictionEvaluationMethod) = gauss(x, friction_method.�
 function evaluate_friction!(Λ::AbstractMatrix, sim::Simulation{<:DiabaticMDEF}, r::AbstractMatrix, t::Real)
     β = 1/get_temperature(sim, t)
     μ = NQCModels.fermilevel(sim.calculator.model)
-    fill_friction_tensor!(Λ, sim.method.friction_method, sim.calculator, r, μ, β)
+    if sim.method.friction_method isa WideBandExact
+        potential = Calculators.get_potential(sim.calculator, r)
+        derivative = Calculators.get_derivative(sim.calculator, r)
+        fill_friction_tensor!(Λ, sim.method.friction_method, potential, derivative, r, μ, β)
+    else
+        ∂H = Calculators.get_adiabatic_derivative(sim.calculator, r)
+        eigen = Calculators.get_eigen(sim.calculator, r)
+        fill_friction_tensor!(Λ, sim.method.friction_method, ∂H, eigen, r, μ, β)
+    end
     return Λ
 end
 
-function fill_friction_tensor!(Λ, friction_method::FrictionEvaluationMethod, calculator, r, μ, β)
-    ∂H = Calculators.get_adiabatic_derivative(calculator, r)
-    eigen = Calculators.get_eigen(calculator, r)
+function fill_friction_tensor!(Λ, friction_method::FrictionEvaluationMethod, ∂H, eigen, r, μ, β)
     for I in eachindex(r)
         for J in eachindex(r)
             Λ[J,I] = friction_method(∂H[J], ∂H[I], eigen.values, μ, β)
@@ -145,9 +151,7 @@ function (friction_method::WideBandExact)(potential, ∂potentialᵢ, ∂potenti
     return integral
 end
 
-function fill_friction_tensor!(Λ, friction_method::WideBandExact, calculator, r, μ, β)
-    potential = Calculators.get_potential(calculator, r)
-    derivative = Calculators.get_derivative(calculator, r)
+function fill_friction_tensor!(Λ, friction_method::WideBandExact, potential, derivative, r, μ, β)
     for I in eachindex(r)
         for J in eachindex(r)
             Λ[J,I] = friction_method(potential, derivative[J], derivative[I], μ, β)
