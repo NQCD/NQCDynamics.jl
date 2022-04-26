@@ -1,5 +1,6 @@
 using LinearAlgebra: eigvecs, diag, diagind, dot
 using StatsBase: sample, Weights
+using RingPolymerArrays: get_centroid
 
 using NQCDynamics.Calculators: RingPolymerDiabaticCalculator
 using NQCDynamics: RingPolymerSimulation, RingPolymers
@@ -31,7 +32,7 @@ function get_hopping_nonadiabatic_coupling(sim::RingPolymerSimulation{<:FSSH})
 end
 
 function get_hopping_velocity(::RingPolymerSimulation{<:FSSH}, u)
-    RingPolymers.get_centroid(DynamicsUtils.get_velocities(u))
+    get_centroid(DynamicsUtils.get_velocities(u))
 end
 
 function get_hopping_eigenvalues(sim::RingPolymerSimulation{<:FSSH})

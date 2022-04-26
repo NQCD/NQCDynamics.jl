@@ -17,13 +17,14 @@ module Calculators
 
 using LinearAlgebra: LinearAlgebra, Hermitian, I, Eigen, tr
 using StaticArrays: SMatrix, SVector
+using RingPolymerArrays: get_centroid!
 
 using NQCModels: NQCModels, Model, nstates
 using NQCModels.AdiabaticModels: AdiabaticModel
 using NQCModels.DiabaticModels: DiabaticModel, DiabaticFrictionModel
 using NQCModels.FrictionModels: AdiabaticFrictionModel
 
-using NQCDynamics: RingPolymers, ndofs
+using NQCDynamics: ndofs
 
 """
     AbstractCalculator{M<:Model}
@@ -349,7 +350,7 @@ end
 
 function evaluate_centroid!(calc::AbstractCalculator, r::AbstractArray{T,3}) where {T}
     calc.stats[:centroid] += 1
-    RingPolymers.get_centroid!(calc.centroid, r)
+    get_centroid!(calc.centroid, r)
 end
 
 function evaluate_centroid_potential!(calc::AbstractCalculator, r::AbstractArray{T,3}) where {T}

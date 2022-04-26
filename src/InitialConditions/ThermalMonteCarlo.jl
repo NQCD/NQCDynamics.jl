@@ -7,6 +7,7 @@ using AdvancedMH: AdvancedMH
 using AdvancedHMC: AdvancedHMC
 using Random: Random
 using UnPack: @unpack
+using RingPolymerArrays: RingPolymerArrays
 
 using NQCDynamics:
     NQCDynamics,
@@ -84,7 +85,7 @@ function get_density_function(sim::RingPolymerSimulation)
     temperature = get_temperature(sim)
     function density(r)
         r_local = reshape(copy(r), size(sim))
-        RingPolymers.transform_from_normal_modes!(sim.beads, r_local)
+        RingPolymerArrays.transform_from_normal_modes!(r_local, sim.beads.transformation)
         -DynamicsUtils.classical_potential_energy(sim, r_local) / temperature
     end
 end
@@ -94,7 +95,7 @@ get_proposal(sim::RingPolymerSimulation, σ, move_ratio, internal_ratio) = RingP
 
 reshape_input(::Simulation, r) = r[:]
 function reshape_input(sim::RingPolymerSimulation, r)
-    RingPolymers.transform_to_normal_modes!(sim.beads, r)
+    RingPolymerArrays.transform_to_normal_modes!(r, sim.beads.transformation)
     return r[:]
 end
 
@@ -103,7 +104,9 @@ function reshape_output(sim::Simulation, chain)
 end
 function reshape_output(sim::RingPolymerSimulation, chain)
     rs = [reshape(copy(config.params), size(sim)) for config in chain]
-    RingPolymers.transform_from_normal_modes!.(sim.beads, rs)
+    for r in rs
+        RingPolymerArrays.transform_from_normal_modes!(r, sim.beads.transformation)
+    end
     return rs
 end
 

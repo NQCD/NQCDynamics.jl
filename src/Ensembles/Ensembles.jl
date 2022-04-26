@@ -18,12 +18,12 @@ using NQCDynamics:
     RingPolymerSimulation,
     DynamicsUtils,
     DynamicsMethods,
-    RingPolymers,
     NonadiabaticDistributions,
     DynamicsOutputs
 using NQCDynamics.NonadiabaticDistributions:
     NuclearDistribution,
     CombinedDistribution
+using RingPolymerArrays: RingPolymerArray
 
 export run_ensemble
 
@@ -34,7 +34,7 @@ end
 
 function sample_distribution(sim::RingPolymerSimulation{<:DynamicsMethods.ClassicalMethods.ThermalLangevin}, distribution::NuclearDistribution, i)
     u = getindex(distribution, i)
-    DynamicsMethods.DynamicsVariables(sim, RingPolymers.RingPolymerArray(u.v), RingPolymers.RingPolymerArray(u.r))
+    DynamicsMethods.DynamicsVariables(sim, RingPolymerArray(u.v), RingPolymerArray(u.r))
 end
 
 function sample_distribution(sim::AbstractSimulation, distribution::CombinedDistribution, i)

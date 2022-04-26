@@ -8,7 +8,6 @@ if GROUP == "All" || GROUP == "Core"
     @time @safetestset "Calculator Tests" begin include("Core/calculators.jl") end
     @time @safetestset "Simulation Tests" begin include("Core/simulations.jl") end
     @time @safetestset "Ring Polymer Tests" begin include("Core/ring_polymers.jl") end
-    @time @safetestset "RingPolymerArrays Tests" begin include("Core/ring_polymer_array.jl") end
     @time @safetestset "Estimator tests" begin include("Core/estimators.jl") end
 end
 

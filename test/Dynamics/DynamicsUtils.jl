@@ -12,7 +12,6 @@ name(sim) = typeof(sim).name.wrapper
 @testset "classical_potential_energy : $(name(sim))" for sim in sims
     u = DynamicsVariables(sim, randn(size(sim)), randn(size(sim)))
     r = DynamicsUtils.get_positions(u)
-    @show DynamicsUtils.classical_potential_energy(sim, r)
     @test DynamicsUtils.classical_potential_energy(sim, r) == DynamicsUtils.classical_potential_energy(sim, u)
 end
 

@@ -1,9 +1,11 @@
 using NQCDynamics: RingPolymers
 using Distributions: Distributions
+using RingPolymerArrays: RingPolymerArrays, NormalModeTransformation
+using LinearAlgebra: mul!
 
 struct HarmonicRingPolymer{T,D}
     normal_mode_distribution::D
-    normal_mode_transformation::Matrix{T}
+    normal_mode_transformation::NormalModeTransformation{T}
 end
 
 """
@@ -20,13 +22,15 @@ function HarmonicRingPolymer(ω, β, m, n_beads; centre=0)
 
     μ = [centre * sqrt(n_beads); zeros(n_beads-1)]
     normal_mode_distribution = Distributions.MvNormal(μ, σ)
-    normal_mode_transformation = RingPolymers.get_normal_mode_transformation(n_beads)
+    normal_mode_transformation = RingPolymerArrays.NormalModeTransformation{Float64}(n_beads)
     HarmonicRingPolymer(normal_mode_distribution, normal_mode_transformation)
 end
 
 function Base.rand(rng::AbstractRNG, s::HarmonicRingPolymer)
     R = rand(rng, s.normal_mode_distribution)
-    return s.normal_mode_transformation * R
+    mul!(s.normal_mode_transformation.tmp, s.normal_mode_transformation.U, R)
+    copy!(R, s.normal_mode_transformation.tmp)
+    return R
 end
 
 function select_item(x::HarmonicRingPolymer{T}, ::Integer, size::NTuple) where {T}

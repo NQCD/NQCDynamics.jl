@@ -1,3 +1,4 @@
+using RingPolymerArrays: RingPolymerArrays
 
 struct BCBwithTsit5 <: OrdinaryDiffEq.OrdinaryDiffEqAlgorithm end
 
@@ -52,11 +53,11 @@ end
     copyto!(rtmp, rprev)
 
     step_B!(vtmp, vprev, dt/2, k)
-    RingPolymers.transform_to_normal_modes!(p.beads, rtmp)
-    RingPolymers.transform_to_normal_modes!(p.beads, vtmp)
+    RingPolymerArrays.transform_to_normal_modes!(rtmp, p.beads.transformation)
+    RingPolymerArrays.transform_to_normal_modes!(vtmp, p.beads.transformation)
     step_C!(vtmp, rtmp, cayley)
-    RingPolymers.transform_from_normal_modes!(p.beads, rtmp)
-    RingPolymers.transform_from_normal_modes!(p.beads, vtmp)
+    RingPolymerArrays.transform_from_normal_modes!(rtmp, p.beads.transformation)
+    RingPolymerArrays.transform_from_normal_modes!(vtmp, p.beads.transformation)
 
     Calculators.update_electronics!(p.calculator, rtmp)
     if p.method isa DynamicsMethods.EhrenfestMethods.AbstractEhrenfest
