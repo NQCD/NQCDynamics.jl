@@ -3,6 +3,7 @@ using MuladdMacro: @muladd
 using DiffEqBase: @..
 using LinearAlgebra: Diagonal
 using NQCDynamics: RingPolymers, ndofs
+using RingPolymerArrays: RingPolymerArray
 
 export BCOCB
 
@@ -103,8 +104,8 @@ end
     step_B!(vtmp, v1, half*dt, k)
     @.. rtmp = r1
 
-    RingPolymers.transform_to_normal_modes!(p.beads, rtmp)
-    RingPolymers.transform_to_normal_modes!(p.beads, vtmp)
+    RingPolymerArrays.transform_to_normal_modes!(rtmp, p.beads.transformation)
+    RingPolymerArrays.transform_to_normal_modes!(vtmp, p.beads.transformation)
 
     step_C!(vtmp, rtmp, cayley)
 
@@ -112,8 +113,8 @@ end
 
     step_C!(vtmp, rtmp, cayley)
 
-    RingPolymers.transform_from_normal_modes!(p.beads, rtmp)
-    RingPolymers.transform_from_normal_modes!(p.beads, vtmp)
+    RingPolymerArrays.transform_from_normal_modes!(rtmp, p.beads.transformation)
+    RingPolymerArrays.transform_from_normal_modes!(vtmp, p.beads.transformation)
 
     @.. u.x[2] = rtmp
 
@@ -121,9 +122,9 @@ end
     step_B!(u.x[1], vtmp, half*dt, k)
 end
 
-function step_C!(v::R, r::R, cayley::Vector{<:Matrix}) where {R<:RingPolymers.RingPolymerArray}
+function step_C!(v::RingPolymerArray, r::RingPolymerArray, cayley::Vector{<:Matrix})
     for i in axes(r, 3)
-        for j in v.quantum_atoms
+        for j in RingPolymerArrays.quantumindices(v)
             for k in axes(r, 1)
                 rtmp = cayley[i][1,1] * r[k,j,i] + cayley[i][1,2] * v[k,j,i]
                 vtmp = cayley[i][2,1] * r[k,j,i] + cayley[i][2,2] * v[k,j,i]
@@ -176,14 +177,14 @@ function step_O!(friction::MDEFCache, integrator, v, r, t)
 
 end
 
-function step_O!(friction::LangevinCache, integrator, v::R, r::R, t) where {R<:RingPolymers.RingPolymerArray}
+function step_O!(friction::LangevinCache, integrator, v::RingPolymerArray, r::RingPolymerArray, t)
     @unpack W, p, dt, sqdt = integrator
     @unpack c1, c2, sqrtmass, σ = friction
 
     @.. σ = sqrt(get_temperature(p, t)) * sqrtmass
 
     for i in axes(r, 3)
-        for j in v.quantum_atoms
+        for j in RingPolymerArrays.quantumindices(v)
             @. v[:,j,i] = c1[i] * v[:,j,i] + c2[i] * σ[:,j] * W.dW[:,j,i] / sqdt
         end
     end

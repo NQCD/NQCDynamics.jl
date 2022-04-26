@@ -2,6 +2,7 @@ using Test
 using NQCDynamics
 using NQCDynamics.Calculators
 using LinearAlgebra: tr, Diagonal, eigvecs, eigvals
+using RingPolymerArrays: RingPolymerArrays
 
 @testset "General constructors" begin
     model = NQCModels.DoubleWell()
@@ -161,7 +162,7 @@ end
 
     @testset "Centroid dependent evaluation" begin
         calc = reset_calc()
-        r_centroid = RingPolymers.get_centroid(r)
+        r_centroid = RingPolymerArrays.get_centroid(r)
 
         # Check the position fields are different
         for name in centroid_quantities

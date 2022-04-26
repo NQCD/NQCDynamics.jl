@@ -43,15 +43,20 @@ function OrdinaryDiffEq.initialize!(_, ::RingPolymerMIntCache) end
     calc = p.calculator
 
     copyto!(u, uprev)
-    
-    RingPolymers.transform_to_normal_modes!(p.beads, u)
-    step_C!(DynamicsUtils.get_velocities(u), DynamicsUtils.get_positions(u), cayley)
-    RingPolymers.transform_from_normal_modes!(p.beads, u)
 
-    Calculators.update_electronics!(calc, DynamicsUtils.get_positions(u))
-    Calculators.evaluate_V̄!(calc, DynamicsUtils.get_positions(u))
-    Calculators.evaluate_D̄!(calc, DynamicsUtils.get_positions(u))
-    Calculators.evaluate_traceless_adiabatic_derivative!(calc, DynamicsUtils.get_positions(u))
+    r = DynamicsUtils.get_positions(u)
+    v = DynamicsUtils.get_velocities(u)
+    
+    RingPolymerArrays.transform_to_normal_modes!(r, p.beads.transformation)
+    RingPolymerArrays.transform_to_normal_modes!(v, p.beads.transformation)
+    step_C!(v, r, cayley)
+    RingPolymerArrays.transform_from_normal_modes!(r, p.beads.transformation)
+    RingPolymerArrays.transform_from_normal_modes!(v, p.beads.transformation)
+
+    Calculators.update_electronics!(calc, r)
+    Calculators.evaluate_V̄!(calc, r)
+    Calculators.evaluate_D̄!(calc, r)
+    Calculators.evaluate_traceless_adiabatic_derivative!(calc, r)
 
     propagate_mapping_variables!(calc, u, dt)
 
@@ -75,9 +80,11 @@ function OrdinaryDiffEq.initialize!(_, ::RingPolymerMIntCache) end
         end
     end
 
-    RingPolymers.transform_to_normal_modes!(p.beads, u)
-    step_C!(DynamicsUtils.get_velocities(u), DynamicsUtils.get_positions(u), cayley)
-    RingPolymers.transform_from_normal_modes!(p.beads, u)
+    RingPolymerArrays.transform_to_normal_modes!(r, p.beads.transformation)
+    RingPolymerArrays.transform_to_normal_modes!(v, p.beads.transformation)
+    step_C!(v, r, cayley)
+    RingPolymerArrays.transform_from_normal_modes!(r, p.beads.transformation)
+    RingPolymerArrays.transform_from_normal_modes!(v, p.beads.transformation)
 
 end
 

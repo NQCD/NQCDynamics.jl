@@ -4,6 +4,7 @@ using NQCDynamics.InitialConditions.MetropolisHastings
 using Unitful
 using StatsBase
 using Random
+using RingPolymerArrays
 Random.seed!(10)
 
 atoms = Atoms{Float64}([:H, :H, :C])
@@ -83,8 +84,8 @@ end
     MetropolisHastings.propose_centroid_move!(sim, monte_carlo, Rᵢ, Rₚ, 2)
     @test mean(Rₚ[:,1,:]) ≈ mean(Rᵢ[:,1,:]) # Check fixed atom does not move
     
-    RingPolymers.transform_to_normal_modes!(sim.beads, Rₚ)
-    RingPolymers.transform_to_normal_modes!(sim.beads, Rᵢ)
+    RingPolymerArrays.transform_to_normal_modes!(Rₚ, sim.beads.transformation)
+    RingPolymerArrays.transform_to_normal_modes!(Rᵢ, sim.beads.transformation)
     @test !(Rₚ[:,:,1] ≈ Rᵢ[:,:,1]) # Test centroid has moved
     @test Rₚ[:,1:2,2:end] ≈ Rᵢ[:,1:2,2:end] # Test only centroid moves for quantum atoms
 end

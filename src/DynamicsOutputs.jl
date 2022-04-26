@@ -12,6 +12,7 @@ module DynamicsOutputs
 using RecursiveArrayTools: ArrayPartition
 using DiffEqCallbacks: SavedValues, SavingCallback
 using ComponentArrays: ComponentVector
+using RingPolymerArrays: get_centroid
 
 using NQCModels: NQCModels
 using NQCDynamics:
@@ -23,8 +24,6 @@ using ..DynamicsUtils:
     get_positions,
     get_velocities,
     get_quantum_subsystem
-
-using ..RingPolymers: get_centroid
 
 struct EnsembleSaver{N,F,S<:AbstractSimulation}
     function_names::NTuple{N, Symbol}

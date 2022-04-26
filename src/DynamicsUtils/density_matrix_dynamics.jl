@@ -2,6 +2,7 @@ using StructArrays: StructArray
 using ComponentArrays: ComponentArrays
 using LinearAlgebra: diagm, mul!
 using NQCDynamics: RingPolymers
+using RingPolymerArrays: get_centroid
 
 function set_quantum_derivative! end
 
@@ -17,7 +18,7 @@ end
 
 function calculate_density_matrix_propagator!(sim::RingPolymerSimulation, v)
     V = sim.method.density_propagator
-    centroid_v = RingPolymers.get_centroid(v)
+    centroid_v = get_centroid(v)
 
     V .= diagm(sim.calculator.centroid_eigen.values)
     for I in eachindex(centroid_v)

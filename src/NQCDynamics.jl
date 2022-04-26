@@ -6,8 +6,8 @@ using Reexport: @reexport
 @reexport using NQCModels
 
 include("RingPolymers/RingPolymers.jl")
-@reexport using .RingPolymers: RingPolymerArray, nbeads
-export RingPolymers
+@reexport using .RingPolymers
+@reexport using RingPolymerArrays
 
 include("Calculators/Calculators.jl")
 

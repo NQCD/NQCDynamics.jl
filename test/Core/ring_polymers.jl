@@ -19,20 +19,13 @@ sim = RingPolymerSimulation{Classical}(atoms, model, 10)
 sim = RingPolymerSimulation{Classical}(atoms, model, 10; quantum_nuclei=[:H])
 @test sim.beads.quantum_atoms == collect(1:10)
 
-U = sim.beads.U
+U = sim.beads.transformation.U
 S = sim.beads.springs
 λ = sim.beads.normal_mode_springs
 @test U'U ≈ I
 @test abs(det(U)) ≈ 1
 @test U'S*U ≈ diagm(λ)
 
-R = rand(3, 11, 10)
-R_original = copy(R)
-@test R == R_original
-RingPolymers.transform_to_normal_modes!(sim.beads, R)
-@test !(R ≈ R_original)
-RingPolymers.transform_from_normal_modes!(sim.beads, R)
-@test R ≈ R_original
 
 half = RingPolymers.cayley_propagator(sim.beads, 0.1; half=true)
 full = RingPolymers.cayley_propagator(sim.beads, 0.1; half=false)

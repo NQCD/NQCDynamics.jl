@@ -15,6 +15,7 @@ using Random
 using StatsBase: AnalyticWeights, sample
 using ProgressMeter: @showprogress
 using Distributions: Normal
+using RingPolymerArrays: RingPolymerArrays
 
 using NQCBase: NQCBase, Atoms
 using NQCDynamics:
@@ -209,14 +210,14 @@ Propose a move for the ring polymer centroid for one atom.
 """
 function propose_centroid_move!(sim::RingPolymerSimulation, monte::PathIntegralMonteCarlo, Rᵢ::Array{T, 3}, Rₚ::Array{T, 3}, atom::Integer) where {T<:AbstractFloat}
     Rₚ .= Rᵢ
-    RingPolymers.transform_to_normal_modes!(sim.beads, Rₚ)
+    RingPolymerArrays.transform_to_normal_modes!(Rₚ, sim.beads.transformation)
     @views apply_random_perturbation!(sim.atoms, monte, Rₚ[:,:,1], atom, ndofs(sim)) # Perturb the centroid mode
     @views if atom ∉ sim.beads.quantum_atoms # Ensure replicas are identical if not quantum
         for i=2:length(sim.beads)
             Rₚ[:, atom, i] .= Rₚ[:, atom, 1]
         end
     end
-    RingPolymers.transform_from_normal_modes!(sim.beads, Rₚ)
+    RingPolymerArrays.transform_from_normal_modes!(Rₚ, sim.beads.transformation)
 end
 
 """
@@ -235,12 +236,12 @@ Propose a move for a single normal mode for a single atom.
 """
 function propose_normal_mode_move!(sim::RingPolymerSimulation, monte::PathIntegralMonteCarlo, Rᵢ::Array{T,3},  Rₚ::Array{T, 3}, i::Integer) where {T}
     Rₚ .= Rᵢ
-    RingPolymers.transform_to_normal_modes!(sim.beads, Rₚ)
+    RingPolymerArrays.transform_to_normal_modes!(Rₚ, sim.beads.transformation)
     for _=1:monte.segment_length
         mode = sample(2:length(sim.beads))
         @views sample_mode!(sim.beads, sim.atoms.masses[i], mode, Rₚ[:, i, mode])
     end
-    RingPolymers.transform_from_normal_modes!(sim.beads, Rₚ)
+    RingPolymerArrays.transform_from_normal_modes!(Rₚ, sim.beads.transformation)
 end
 
 function sample_mode!(beads::RingPolymers.RingPolymerParameters, mass::AbstractFloat, mode::Integer, R::AbstractArray)

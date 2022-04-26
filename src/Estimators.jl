@@ -21,6 +21,7 @@ using NQCDynamics:
 
 using StatsBase: mean
 using ComponentArrays: ComponentVector
+using RingPolymerArrays: get_centroid
 
 """
     @estimate f(simulation, vector)
@@ -85,7 +86,7 @@ function kinetic_energy(sim::RingPolymerSimulation, u)
 end
 
 function kinetic_energy(sim::RingPolymerSimulation, r::AbstractArray{T,3}) where {T}
-    centroid = RingPolymers.get_centroid(r)
+    centroid = get_centroid(r)
 
     Calculators.evaluate_derivative!(sim.calculator, r)
 
@@ -102,7 +103,7 @@ end
     radius_of_gyration(sim, r)
 """
 function radius_of_gyration(::RingPolymerSimulation, r::AbstractArray{T,3}) where {T}
-    centroid = RingPolymers.get_centroid(r)
+    centroid = get_centroid(r)
     deviation = (r .- centroid) .^ 2
     mean_deviation = dropdims(mean(deviation; dims=3); dims=3)
     return sqrt.(mean_deviation)

@@ -1,6 +1,7 @@
 using LinearAlgebra: LinearAlgebra, Symmetric, SymTridiagonal, I
 
 using NQCBase: NQCBase, PeriodicCell, InfiniteCell
+using RingPolymerArrays: RingPolymerArrays, NormalModeTransformation
 
 struct RingPolymerParameters{T<:AbstractFloat}
     n_beads::Int
@@ -8,9 +9,8 @@ struct RingPolymerParameters{T<:AbstractFloat}
     ω_n²::T
     springs::Symmetric{T,Matrix{T}}
     normal_mode_springs::Vector{T}
-    U::Matrix{T}
+    transformation::NormalModeTransformation{T}
     quantum_atoms::Vector{Int}
-    tmp::Vector{T}
     function RingPolymerParameters{T}(
         n_beads::Integer, temperature::Real,
         quantum_atoms::Vector{<:Integer}) where {T<:AbstractFloat}
@@ -19,9 +19,9 @@ struct RingPolymerParameters{T<:AbstractFloat}
         new(n_beads, ω_n, ω_n^2,
             get_spring_matrix(n_beads, ω_n),
             get_normal_mode_springs(n_beads, ω_n), 
-            get_normal_mode_transformation(n_beads),
+            NormalModeTransformation{T}(n_beads),
             quantum_atoms,
-            zeros(T, n_beads))
+        )
     end
 end
 
@@ -58,58 +58,6 @@ end
 
 get_normal_mode_springs(n_beads::Integer, ω_n::Real) = get_matsubara_frequencies(n_beads, ω_n) .^2 / 2
 get_matsubara_frequencies(n::Integer, ω_n::Real) = 2ω_n*sin.((0:n-1)*π/n)
-
-# """
-#     get_normal_mode_transformation(n::Int)::Matrix
-    
-# Get the transformation matrix that converts to normal mode coordinates.
-# """
-# function get_normal_mode_transformation(n::Int)::Matrix
-#     a = ([exp(2π*im/n * j * k) for j=0:n-1, k=0:n-1])
-#     (real(a) + imag(a)) / sqrt(n)
-# end
-
-"""
-Creates normal mode transformation for `n` beads.
-"""
-function get_normal_mode_transformation(n::Integer)::Matrix
-    # Real and imaginary parts of the discrete Fourier transform matrix. 
-    U = sqrt(2/n) .* hcat([cos(2π * j * k / n) for j=0:n-1, k=0:n÷2],
-                        [sin(2π * j * k / n) for j=0:n-1, k=n÷2+1:n-1])
-
-    # Normalisation
-    U[:, 1] ./= sqrt(2)
-    iseven(n) && (U[:, n÷2+1] ./= sqrt(2))
-
-    U
-end
-
-function transform_to_normal_modes!(p::RingPolymerParameters, R::AbstractArray{T,3}) where {T}
-    @views for i in p.quantum_atoms
-        for j in axes(R, 1)
-            LinearAlgebra.mul!(p.tmp, p.U', R[j,i,:])
-            R[j,i,:] .= p.tmp
-        end
-    end
-end
-
-function transform_from_normal_modes!(p::RingPolymerParameters, R::AbstractArray{T,3}) where {T}
-    @views for i in p.quantum_atoms
-        for j in axes(R, 1)
-            LinearAlgebra.mul!(p.tmp, p.U, R[j,i,:])
-            R[j,i,:] .= p.tmp
-        end
-    end
-end
-
-function transform!(p::RingPolymerParameters, A::RingPolymerArray)
-    if A.normal
-        transform_from_normal_modes!(p, A)
-    else
-        transform_to_normal_modes!(p, A)
-    end
-    A.normal = !A.normal
-end
 
 nbeads(beads::RingPolymerParameters) = beads.n_beads
 Base.length(beads::RingPolymerParameters) = nbeads(beads)
@@ -156,10 +104,10 @@ function get_spring_energy(beads::RingPolymerParameters, masses, R)
 end
 
 function NQCBase.apply_cell_boundaries!(cell::PeriodicCell, R::AbstractArray{T,3}, beads::RingPolymerParameters) where {T}
-    transform_to_normal_modes!(beads, R)
+    RingPolymerArrays.transform_to_normal_modes!(R, beads.transformation)
     R[:,beads.quantum_atoms,1] ./= sqrt(length(beads))
     @views NQCBase.apply_cell_boundaries!(cell, R[:,:,1])
     R[:,beads.quantum_atoms,1] .*= sqrt(length(beads))
-    transform_from_normal_modes!(beads, R)
+    RingPolymerArrays.transform_from_normal_modes!(R, beads.transformation)
 end
 NQCBase.apply_cell_boundaries!(::InfiniteCell, ::AbstractArray{T,3}, ::RingPolymerParameters) where {T} = nothing
