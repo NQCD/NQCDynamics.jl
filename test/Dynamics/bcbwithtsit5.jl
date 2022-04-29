@@ -5,7 +5,7 @@ using Random: seed!
 
 @testset "Ehrenfest" begin
     sim = RingPolymerSimulation{Ehrenfest}(Atoms(2000), TullyModelOne(), 10; temperature=1e-3)
-    u = DynamicsVariables(sim, fill(10/2000, size(sim)), fill(-5, size(sim)) .+ randn(size(sim)), SingleState(1))
+    u = DynamicsVariables(sim, fill(10/2000, size(sim)), fill(-5, size(sim)) .+ randn(size(sim)), PureState(1))
     dt = 0.1
 
     sol = run_trajectory(u, (0, 2000.0), sim; algorithm=DynamicsMethods.IntegrationAlgorithms.BCBwithTsit5(), saveat=0:10:2000, dt=dt)
@@ -16,7 +16,7 @@ end
 
 @testset "FSSH" begin
     sim = RingPolymerSimulation{FSSH}(Atoms(2000), TullyModelOne(), 10; temperature=1e-3)
-    u = DynamicsVariables(sim, fill(20/2000, size(sim)), fill(-5, size(sim)) .+ randn(size(sim)), SingleState(1))
+    u = DynamicsVariables(sim, fill(20/2000, size(sim)), fill(-5, size(sim)) .+ randn(size(sim)), PureState(1))
     dt = 0.1
 
     seed!(1)

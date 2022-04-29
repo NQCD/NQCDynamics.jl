@@ -6,7 +6,7 @@ using ComponentArrays: ComponentVector
 using ..InitialConditions: QuantisedDiatomic
 using NQCDynamics: Estimators
 using NQCModels: nstates
-using NQCDynamics.NonadiabaticDistributions: Diabatic, Adiabatic
+using NQCDistributions: Diabatic, Adiabatic
 
 function output_template(output, u0)
     return zero(output(ComponentVector(u=[u0]), 1)[1])

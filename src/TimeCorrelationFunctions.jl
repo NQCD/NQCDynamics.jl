@@ -10,8 +10,9 @@ different correlation functions.
 module TimeCorrelationFunctions
 
 using NQCDynamics: AbstractSimulation, Estimators
-using NQCDynamics.NonadiabaticDistributions: Diabatic, Adiabatic
 using NQCDynamics.NQCModels: nstates
+
+using NQCDistributions: Diabatic, Adiabatic
 
 export PopulationCorrelationFunction
 

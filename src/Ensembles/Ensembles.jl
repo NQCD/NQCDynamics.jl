@@ -18,29 +18,10 @@ using NQCDynamics:
     RingPolymerSimulation,
     DynamicsUtils,
     DynamicsMethods,
-    NonadiabaticDistributions,
     DynamicsOutputs
-using NQCDynamics.NonadiabaticDistributions:
-    NuclearDistribution,
-    CombinedDistribution
 using RingPolymerArrays: RingPolymerArray
 
 export run_ensemble
-
-function sample_distribution(sim::AbstractSimulation, distribution::NuclearDistribution, i)
-    u = getindex(distribution, i)
-    DynamicsMethods.DynamicsVariables(sim, u.v, u.r)
-end
-
-function sample_distribution(sim::RingPolymerSimulation{<:DynamicsMethods.ClassicalMethods.ThermalLangevin}, distribution::NuclearDistribution, i)
-    u = getindex(distribution, i)
-    DynamicsMethods.DynamicsVariables(sim, RingPolymerArray(u.v), RingPolymerArray(u.r))
-end
-
-function sample_distribution(sim::AbstractSimulation, distribution::CombinedDistribution, i)
-    u = getindex(distribution.nuclear, i)
-    DynamicsMethods.DynamicsVariables(sim, u.v, u.r, distribution.electronic)
-end
 
 include("selections.jl")
 include("outputs.jl")
@@ -122,7 +103,7 @@ Output(output::Tuple, sim) = DynamicsOutputs.EnsembleSaver(output, sim)
 Output(output, _) = output
 
 function create_problem(sim::AbstractSimulation, distribution, tspan)
-    u0 = sample_distribution(sim, distribution, 1)
+    u0 = sample_distribution(sim, distribution)
     return DynamicsMethods.create_problem(u0, tspan, sim)
 end
 

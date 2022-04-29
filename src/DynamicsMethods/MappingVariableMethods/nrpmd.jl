@@ -4,7 +4,7 @@ using ComponentArrays: ComponentVector
 using Distributions: Normal
 using NQCDynamics: RingPolymers
 using NQCModels: nstates
-using NQCDynamics.NonadiabaticDistributions: SingleState, Diabatic
+using NQCDistributions: PureState, Diabatic
 
 """
     NRPMD{T} <: DynamicsMethods.Method
@@ -44,7 +44,7 @@ function NQCDynamics.RingPolymerSimulation{NRPMD}(atoms::Atoms{T}, model::Model,
     NQCDynamics.RingPolymerSimulation(atoms, model, NRPMD{T}(NQCModels.nstates(model), γ), n_beads; kwargs...)
 end
 
-function DynamicsMethods.DynamicsVariables(sim::RingPolymerSimulation{<:NRPMD}, v, r, electronic::SingleState{Diabatic})
+function DynamicsMethods.DynamicsVariables(sim::RingPolymerSimulation{<:NRPMD}, v, r, electronic::PureState{Diabatic})
     F = NQCModels.nstates(sim)
     n_beads = length(sim.beads)
 

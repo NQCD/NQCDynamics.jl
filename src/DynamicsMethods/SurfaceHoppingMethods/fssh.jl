@@ -1,6 +1,6 @@
 using StatsBase: mean
-using .NonadiabaticDistributions: NonadiabaticDistribution
 using NQCDynamics: masses
+using NQCDistributions: ElectronicDistribution
 
 export FSSH
 
@@ -39,9 +39,9 @@ function Simulation{FSSH}(atoms::Atoms{T}, model::Model; rescaling=:standard, kw
 end
 
 function DynamicsMethods.DynamicsVariables(
-    sim::AbstractSimulation{<:SurfaceHopping}, v, r, electronic::NonadiabaticDistribution
+    sim::AbstractSimulation{<:SurfaceHopping}, v, r, electronic::ElectronicDistribution
 )
-    σ = NonadiabaticDistributions.initialise_adiabatic_density_matrix(electronic, sim.calculator, r)
+    σ = DynamicsUtils.initialise_adiabatic_density_matrix(electronic, sim.calculator, r)
     state = sample(Weights(diag(real.(σ))))
     return SurfaceHoppingVariables(ComponentVector(v=v, r=r, σreal=σ, σimag=zero(σ)), state)
 end
@@ -209,7 +209,7 @@ end
 
 function Estimators.diabatic_population(sim::AbstractSimulation{<:FSSH}, u)
     r = DynamicsUtils.get_positions(u)
-    U = NonadiabaticDistributions.evaluate_transformation(sim.calculator, r)
+    U = DynamicsUtils.evaluate_transformation(sim.calculator, r)
 
     σ = copy(DynamicsUtils.get_quantum_subsystem(u).re)
     σ[diagind(σ)] .= 0

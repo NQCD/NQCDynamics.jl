@@ -35,7 +35,7 @@ end
         sim = Simulation{FSSH}(Atoms(1), DoubleWell())
         saveat = 0.1
         tspan = (0.0, 1.0)
-        u0 = DynamicsVariables(sim, 1, 0, SingleState(1, Adiabatic()))
+        u0 = DynamicsVariables(sim, 1, 0, PureState(1, Adiabatic()))
         output = TimeCorrelationFunctions.PopulationCorrelationFunction(sim, Diabatic())
         u_init = Ensembles.get_u_init(reduction, saveat, Dict(), tspan, u0, output)
         @test u_init ≈ [zeros(2, 2) for _ ∈ tspan[1]:0.1:tspan[2]]

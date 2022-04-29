@@ -1,6 +1,6 @@
 using LinearAlgebra: lmul!, norm
 using Parameters: Parameters
-using NQCDynamics.NonadiabaticDistributions: ElectronicDistribution
+using NQCDistributions: ElectronicDistribution
 
 """
     eCMM{T} <: DynamicsMethods.Method
