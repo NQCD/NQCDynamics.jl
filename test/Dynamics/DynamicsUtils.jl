@@ -1,5 +1,6 @@
 using Test
 using NQCDynamics
+using NQCDynamics: Calculators
 using Unitful
 
 atoms = Atoms([:C, :H])
@@ -29,4 +30,32 @@ end
     end
     DynamicsUtils.divide_by_mass!(dv, masses(sim))
     @test true_value ≈ dv
+end
+
+rs = (fill(0.0, 1, 1), fill(0.0, 1, 1, 1))
+calculators = (
+    Calculators.Calculator(DoubleWell(), 1, Float64),
+    Calculators.Calculator(DoubleWell(), 1, 1, Float64),
+    )
+@testset "transform_density!" for (r, calc) ∈ zip(rs, calculators)
+    density = [1.0 0; 0 0]
+    DynamicsUtils.transform_density!(density, calc, r, :to_adiabatic)
+    @test density ≈ [0.5 0.5; 0.5 0.5]
+    DynamicsUtils.transform_density!(density, calc, r, :to_diabatic)
+    @test density ≈ [1.0 0; 0 0]
+    @test_throws ArgumentError DynamicsUtils.transform_density!(density, calc, r, :blah)
+end
+
+@testset "initialise_adiabatic_density_matrix" for (r, calc) ∈ zip(rs, calculators)
+    @testset "Adiabatic" begin
+        electronics = PureState(1, Adiabatic())
+        density = DynamicsUtils.initialise_adiabatic_density_matrix(electronics, calc, r)
+        @test density[1,1] == 1
+    end
+
+    @testset "Diabatic" begin
+        electronics = PureState(1, Diabatic())
+        density = DynamicsUtils.initialise_adiabatic_density_matrix(electronics, calc, r)
+        @test all(density .≈ 0.5)
+    end
 end

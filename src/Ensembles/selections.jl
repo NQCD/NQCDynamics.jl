@@ -1,6 +1,7 @@
 using DiffEqBase: CallbackSet
 
 using NQCDynamics: InitialConditions, DynamicsOutputs
+using NQCDistributions: DynamicalDistribution, ProductDistribution
 
 abstract type AbstractSelection end
 
@@ -37,8 +38,28 @@ function (select::OrderedSelection)(prob, i, repeat)
     DynamicsMethods.create_problem(u0, prob.tspan, prob.p)
 end
 
+function sample_distribution(sim::AbstractSimulation, distribution::DynamicalDistribution, i)
+    u = distribution[i]
+    DynamicsMethods.DynamicsVariables(sim, u.v, u.r)
+end
+
+function sample_distribution(sim::AbstractSimulation, distribution::ProductDistribution, i)
+    u = distribution.nuclear[i]
+    DynamicsMethods.DynamicsVariables(sim, u.v, u.r, distribution.electronic)
+end
+
 function (select::RandomSelection)(prob, i, repeat)
-    j = rand(1:lastindex(select.distribution))
-    u0 = sample_distribution(prob.p, select.distribution, j)
+    u0 = sample_distribution(prob.p, select.distribution)
     DynamicsMethods.create_problem(u0, prob.tspan, prob.p)
 end
+
+function sample_distribution(sim::AbstractSimulation, distribution::DynamicalDistribution)
+    u = rand(distribution)
+    DynamicsMethods.DynamicsVariables(sim, u.v, u.r)
+end
+
+function sample_distribution(sim::AbstractSimulation, distribution::ProductDistribution)
+    u = rand(distribution.nuclear)
+    DynamicsMethods.DynamicsVariables(sim, u.v, u.r, distribution.electronic)
+end
+

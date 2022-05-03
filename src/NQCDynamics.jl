@@ -17,8 +17,7 @@ export Simulation,
        natoms,
        masses
 
-include("NonadiabaticDistributions/NonadiabaticDistributions.jl")
-@reexport using .NonadiabaticDistributions
+@reexport using NQCDistributions
 
 include("DynamicsUtils/DynamicsUtils.jl")
 @reexport using .DynamicsUtils: get_positions, get_velocities

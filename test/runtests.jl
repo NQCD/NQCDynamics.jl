@@ -15,11 +15,6 @@ if GROUP == "All" || GROUP == "InitialConditions"
     @time @safetestset "Monte Carlo Tests" begin include("InitialConditions/monte_carlo.jl") end
     @time @safetestset "AdvancedMH Sampling Tests" begin include("InitialConditions/advancedmh_sampling.jl") end
     @time @safetestset "QuantisedDiatomic Tests" begin include("InitialConditions/quantised_diatomic.jl") end
-    @time @safetestset "NonadiabaticDistributions" begin include("NonadiabaticDistributions/nonadiabatic_distributions.jl") end
-    @time @safetestset "Distribution Tests" begin include("NonadiabaticDistributions/nuclear_distributions.jl") end
-    @time @safetestset "Harmonic Wigner distribution tests" begin include("NonadiabaticDistributions/harmonic_wigner.jl") end
-    @time @safetestset "Harmonic Ring Polymer distribution tests" begin include("NonadiabaticDistributions/harmonic_ring_polymer.jl") end
-    @time @safetestset "ElectronicDistributions" begin include("NonadiabaticDistributions/electronic_distributions.jl") end
 end
 
 if GROUP == "All" || GROUP == "Dynamics"

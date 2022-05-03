@@ -23,8 +23,8 @@ sim1 = Simulation{eCMM}(Atoms(1), DoubleWell(); γ=0.5)
 
 v = randn(1,1)
 r = randn(1,1)
-u = DynamicsVariables(sim, v, r, SingleState(1))
-u1 = DynamicsVariables(sim1, v, r, SingleState(1))
+u = DynamicsVariables(sim, v, r, PureState(1))
+u1 = DynamicsVariables(sim1, v, r, PureState(1))
 
 test_motion!(sim, u)
 test_motion!(sim1, u1)
@@ -60,7 +60,7 @@ end
             normalisation = TimeCorrelationFunctions.evaluate_normalisation(sim, correlation)
 
             for i=1:n
-                u = DynamicsVariables(sim, 0, 0, SingleState(1))
+                u = DynamicsVariables(sim, 0, 0, PureState(1))
                 K = Estimators.initial_diabatic_population(sim, u)
                 Kinv = Estimators.diabatic_population(sim, u)
                 out .+= normalisation * K * Kinv'

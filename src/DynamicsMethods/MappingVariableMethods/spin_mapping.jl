@@ -13,7 +13,7 @@ function NQCDynamics.Simulation{SpinMappingW}(atoms::Atoms{T}, model::Model; kwa
     NQCDynamics.Simulation(atoms, model, SpinMappingW{T}(NQCModels.nstates(model)); kwargs...)
 end
 
-function DynamicsMethods.DynamicsVariables(sim::Simulation{<:SpinMappingW}, v, r, electronic::SingleState{Diabatic})
+function DynamicsMethods.DynamicsVariables(sim::Simulation{<:SpinMappingW}, v, r, electronic::PureState{Diabatic})
     F = NQCModels.nstates(sim)
 
     γ = sim.method.γ

@@ -12,7 +12,7 @@ atoms = Atoms(:H)
 
     r = zeros(size(sim)) 
     v = randn(size(sim)) 
-    u = DynamicsVariables(sim, v, r, SingleState(1, Adiabatic()))
+    u = DynamicsVariables(sim, v, r, PureState(1, Adiabatic()))
     du = zero(u)
 
     @test DynamicsUtils.get_quantum_subsystem(u) ≈ Complex.([1 0; 0 0])
@@ -38,7 +38,7 @@ atoms = Atoms(:H)
     sim1 = Simulation{Ehrenfest}(atoms, NQCModels.TullyModelOne())
     r = fill(-5.0, size(sim))
     v1 = fill(8.9, size(sim)) ./ sim1.atoms.masses[1]
-    z1 = DynamicsVariables(sim, v1, r, SingleState(1, Adiabatic()))
+    z1 = DynamicsVariables(sim, v1, r, PureState(1, Adiabatic()))
     solution1 = run_trajectory(z1, (0.0, 2500.0), sim1; output=(:population), reltol=1e-6)
 
     @testset "run_trajectory" begin
@@ -46,7 +46,7 @@ atoms = Atoms(:H)
         sim = Simulation{Ehrenfest}(atoms, NQCModels.TullyModelTwo())
         v = hcat(100 / 2000)
         r = hcat(-10.0)
-        u = DynamicsVariables(sim, v, r, SingleState(1, Adiabatic()))
+        u = DynamicsVariables(sim, v, r, PureState(1, Adiabatic()))
         solution = run_trajectory(u, (0.0, 500.0), sim, output=(:hamiltonian), reltol=1e-6)
         @test solution.hamiltonian[1] ≈ solution.hamiltonian[end] rtol=1e-2
     end
@@ -57,7 +57,7 @@ end
     sim = RingPolymerSimulation{Ehrenfest}(atoms, NQCModels.TullyModelTwo(), 10)
     v = fill(100 / 2000, 1, 1, 10)
     r = fill(-10.0, 1, 1, 10)
-    u = DynamicsVariables(sim, v, r, SingleState(1, Adiabatic()))
+    u = DynamicsVariables(sim, v, r, PureState(1, Adiabatic()))
     solution = run_trajectory(u, (0.0, 500.0), sim, output=(:hamiltonian), dt=1)
     @test solution.hamiltonian[1] ≈ solution.hamiltonian[end] rtol=1e-2
 end

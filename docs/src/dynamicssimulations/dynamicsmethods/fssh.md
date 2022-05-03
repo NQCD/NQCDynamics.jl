@@ -93,7 +93,7 @@ The adiabatic states are always arranged from lowest to highest energy, whereas 
 states will be ordered as defined in the model.
 You can inspect the fields of `u` to ensure the initilisation has proceeded as you intend.
 ```@example fssh
-u = DynamicsVariables(sim, [20/2000;;], [-10.;;], SingleState(1, Adiabatic()))
+u = DynamicsVariables(sim, [20/2000;;], [-10.;;], PureState(1, Adiabatic()))
 ```
 
 Finally, the trajectory can be run by passing all the parameters we have set up so far.
