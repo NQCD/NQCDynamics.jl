@@ -20,7 +20,6 @@ using NQCDynamics:
     DynamicsMethods,
     DynamicsUtils,
     Estimators,
-    NonadiabaticDistributions,
     ndofs
 using NQCModels: NQCModels, Model
 using NQCBase: Atoms

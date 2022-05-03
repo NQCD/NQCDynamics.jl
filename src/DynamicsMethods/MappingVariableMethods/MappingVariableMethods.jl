@@ -10,7 +10,6 @@ using NQCDynamics:
     DynamicsUtils,
     Calculators,
     Estimators,
-    NonadiabaticDistributions,
     TimeCorrelationFunctions,
     ndofs
 using NQCModels: NQCModels, Model

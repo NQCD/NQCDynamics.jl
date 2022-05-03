@@ -1,6 +1,6 @@
 using Documenter
 using DocumenterCitations
-using NQCBase, NQCModels, NQCDynamics
+using NQCBase, NQCModels, NQCDistributions, NQCDynamics
 using CubeLDFAModel, NNInterfaces
 
 DocMeta.setdocmeta!(NQCDynamics, :DocTestSetup, :(using NQCDynamics); recursive=true)
@@ -19,7 +19,7 @@ end
 @time makedocs(
     bib,
     sitename = "NQCDynamics.jl",
-    modules = [NQCDynamics, NQCModels, NQCBase, CubeLDFAModel],
+    modules = [NQCDynamics, NQCDistributions, NQCModels, NQCBase, CubeLDFAModel],
     strict = false,
     format = Documenter.HTML(
         prettyurls = get(ENV, "CI", nothing) == "true",
@@ -41,10 +41,10 @@ end
             "NQCModels/neuralnetworkmodels.md"
             "NQCModels/frictionmodels.md"
         ]
-        "Initial conditions" => Any[
-            "initialconditions/dynamicaldistribution.md"
-            find_all_files("initialconditions/samplingmethods")
+        "NQCDistributions.jl" => Any[
+            "NQCDistributions/overview.md"
         ]
+        "Initial conditions" => find_all_files("initialconditions")
         "Dynamics simulations" => Any[
             "dynamicssimulations/dynamicssimulations.md"
             find_all_files("dynamicssimulations/dynamicsmethods")
@@ -54,6 +54,7 @@ end
         "API" => Any[
             "NQCBase" => find_all_files("api/NQCBase")
             "NQCModels" => find_all_files("api/NQCModels")
+            "NQCDistributions" => find_all_files("api/NQCDistributions")
             "NQCDynamics" => find_all_files("api/NQCDynamics")
         ]
         "References" => "references.md"

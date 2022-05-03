@@ -11,8 +11,7 @@ using NQCDynamics:
     Calculators,
     DynamicsMethods,
     DynamicsUtils,
-    Estimators,
-    NonadiabaticDistributions
+    Estimators
 
 using NQCModels: NQCModels, Model
 using NQCBase: Atoms

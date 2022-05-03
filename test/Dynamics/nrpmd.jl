@@ -14,7 +14,7 @@ sim = RingPolymerSimulation{NRPMD}(atoms, DoubleWell(), 10; temperature=1e-3)
 
 v = randn(size(sim))
 r = randn(size(sim))
-u = DynamicsVariables(sim, v, r, SingleState(2))
+u = DynamicsVariables(sim, v, r, PureState(2))
 
 @testset "Population correlation" begin
     K = NQCModels.nstates(sim)
@@ -24,7 +24,7 @@ u = DynamicsVariables(sim, v, r, SingleState(2))
     normalisation = TimeCorrelationFunctions.evaluate_normalisation(sim, correlation)
 
     for i=1:n
-        u = DynamicsVariables(sim, v, r, SingleState(1))
+        u = DynamicsVariables(sim, v, r, PureState(1))
         K = Estimators.initial_diabatic_population(sim, u)
         Kinv = Estimators.diabatic_population(sim, u)
         out += normalisation * K * Kinv'

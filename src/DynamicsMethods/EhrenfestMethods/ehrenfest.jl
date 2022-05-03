@@ -1,6 +1,6 @@
 using StatsBase: mean
-using .NonadiabaticDistributions: NonadiabaticDistribution
 using ComponentArrays: ComponentVector
+using NQCDistributions: ElectronicDistribution
 
 export Ehrenfest
 
@@ -39,9 +39,9 @@ function Simulation{Ehrenfest}(atoms::Atoms{T}, model::Model; kwargs...) where {
 end
 
 function DynamicsMethods.DynamicsVariables(
-    sim::AbstractSimulation{<:AbstractEhrenfest}, v, r, electronic::NonadiabaticDistribution
+    sim::AbstractSimulation{<:AbstractEhrenfest}, v, r, electronic::ElectronicDistribution
 )
-    σ = NonadiabaticDistributions.initialise_adiabatic_density_matrix(electronic, sim.calculator, r)
+    σ = DynamicsUtils.initialise_adiabatic_density_matrix(electronic, sim.calculator, r)
     return ComponentVector(v=v, r=r, σreal=σ, σimag=zero(σ))
 end
 
@@ -63,7 +63,7 @@ end
 
 function Estimators.diabatic_population(sim::AbstractSimulation{<:AbstractEhrenfest}, u)
     r = DynamicsUtils.get_positions(u)
-    U = NonadiabaticDistributions.evaluate_transformation(sim.calculator, r)
+    U = DynamicsUtils.evaluate_transformation(sim.calculator, r)
 
     σ = DynamicsUtils.get_quantum_subsystem(u)
 

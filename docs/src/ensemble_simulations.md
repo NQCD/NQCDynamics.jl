@@ -55,14 +55,14 @@ k = 10 # Initial momentum = 10
 v = k / atoms.masses[1] # Convert momentum to velocity
 r = Normal(-8) # Create Normal distribution centred at -8 for sampling initial position
 nuclear_distribution = DynamicalDistribution(v, r, (1,1)) # Combine position and velocity
-electronic_distribution = SingleState(2) # Create nonequilibrium electronic distribution
+electronic_distribution = PureState(2) # Create nonequilibrium electronic distribution
 product_distribution = nuclear_distribution * electronic_distribution
 nothing # hide
 ```
 In this case, we have used a deterministic momentum of ``10`` a.u. and a
 gaussian position distribution with width 1 centered at ``-8`` a.u..
 The electronic variables will be sampled such that the initial population is confined
-to the second state by `SingleState(2)`.
+to the second state by `PureState(2)`.
 
 The final step before running the dynamics is to decide how to output the results.
 The simplest option is to use the built-in tuple format familiar from [`run_trajectory`](@ref).

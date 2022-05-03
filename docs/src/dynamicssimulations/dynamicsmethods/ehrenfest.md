@@ -26,7 +26,7 @@ e = 0.03
 k = sqrt(e*2*atoms.masses[1])
 r = Normal(-5, 1/sqrt(0.25))
 v = k / atoms.masses[1]
-distribution = DynamicalDistribution(v, r, size(sim))* SingleState(1, Adiabatic())
+distribution = DynamicalDistribution(v, r, size(sim))* PureState(1, Adiabatic())
 ```
 
 To run an ensemble simulation we additionally choose number of trajectories `n_traj` and timespan `tspan` and we pass all the established settings to the `run_ensemble` function. In this example we output velocities by specifying `output=:velocity` and store the final values in the `final_velocities` array. Following that, we calculate final momenta.

@@ -105,9 +105,9 @@ r0 = zeros(size(sim))
 steps = 5e3 # Number of Monte Carlo steps
 step_size = Dict(:X=>1.0) # Monte Carlo step size for species :X
 output = InitialConditions.ThermalMonteCarlo.run_advancedmh_sampling(sim, r0, steps, step_size)
-velocities = BoltzmannVelocityDistribution(1/16, masses(sim), size(sim))
+velocities = VelocityBoltzmann(1/16, masses(sim), (1,1))
 
-distribution = DynamicalDistribution(velocities, output, size(sim)) * SingleState(1)
+distribution = DynamicalDistribution(velocities, output, size(sim)) * PureState(1)
 ```
 
 !!! note "`size(sim)`"
@@ -125,8 +125,8 @@ in our distribution:
 using CairoMakie
 
 nuclear = distribution.nuclear
-flat_position = reduce(vcat, (p[:] for p in nuclear.position))
-flat_velocity = reduce(vcat, (rand(nuclear.velocity)[:] for p in 1:length(nuclear.position)))
+flat_position = reduce(vcat, (nuclear.position[i][:] for i in 1:length(nuclear)))
+flat_velocity = reduce(vcat, (rand(nuclear.velocity)[:] for _ in 1:length(nuclear)))
 scatter(flat_position, flat_velocity)
 ```
 

@@ -13,7 +13,7 @@ sim = Simulation{SpinMappingW}(atoms, DoubleWell())
 
 v = randn(size(sim))
 r = randn(size(sim))
-u = DynamicsVariables(sim, v, r, SingleState(2))
+u = DynamicsVariables(sim, v, r, PureState(2))
 
 @testset "motion! obeys Hamilton's equations" begin
     function test_motion!(sim, u)
