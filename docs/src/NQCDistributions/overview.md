@@ -1,14 +1,31 @@
+# NQCDistributions.jl
+
 # Storing and sampling distributions
 
 In order to perform ensembles of trajectories, it is useful to have a convenient way
 to generate distributions of velocities and positions which can be sampled to
 initialise trajectories.
-The [`NonadiabaticDistributions`](@ref) module contains the types and functions that seek
+The [NQCDistributions.jl](https://github.com/NQCD/NQCDistributions.jl) package contains the types and functions that seek
 to address this requirement as painlessly as possible. 
+
+For quantum classical nonadiabatic dynamics simulations, the initial distributions contain
+both nuclear and electronic degrees of freedom.
+
+!!! note
+
+    Currently, we allow for *product distributions* only, where the nuclear and electronic distributions are separable.
+    In the future it would be great to remove this restriction, if you are interested, please open an issue on GitHub.
+
+This page describes the types that can be used to represent nuclear and electronic distributions
+and demonstrates how they can be combined into a product distribution.
 
 ## Nuclear Distributions
 
 ### DynamicalDistribution
+
+```@docs
+DynamicalDistribution
+```
 
 When handling distributions for the nuclear degrees of freedom,
 the [`DynamicalDistribution`](@ref) type can be used to store initial velocities and positions:
@@ -48,12 +65,12 @@ rand(d)
 This has generated normally distributed positions along with one of the three velocities
 we provided.
 
-### BoltzmannVelocityDistribution
+### VelocityBoltzmann
 
 When performing equilibrium simulations it is often desirable to initialise trajectories
 when thermal velocities.
 These can be obtained for each atom from a gaussian distribution of the appropriate
-width, or alternatively, using the [`BoltzmannVelocityDistribution`](@ref) which simplifies
+width, or alternatively, using the [`VelocityBoltzmann`](@ref) distribution which simplifies
 the process.
 This takes the temperature, masses and size of the system and ensures the samples you
 obtain are of the correct shape:
@@ -61,7 +78,7 @@ obtain are of the correct shape:
 using NQCDynamics
 using Unitful
 
-velocity = BoltzmannVelocityDistribution(300u"K", rand(10), (3, 10))
+velocity = VelocityBoltzmann(300u"K", rand(10), (3, 10))
 rand(velocity)
 ```
 This can be handed directly to the [`DynamicalDistribution`](@ref) when Boltzmann
@@ -76,6 +93,8 @@ For harmonic oscillator systems, we have implemented the analytic Wigner distrib
 These are just mormal distributions of the appropriate width but can be accessed easily
 as in the following:
 ```@repl wigner
+using NQCDistributions 
+
 omega = 1.0;
 beta = 1e-3;
 mass = 10;
@@ -91,17 +110,19 @@ univariate normal distributions.
 ## Electronic distributions
 
 For nonadiabatic dynamics, the initial electronic variables must also be sampled.
-For this, we can use an [`ElectronicDistribution`](@ref NonadiabaticDistributions.ElectronicDistribution)
+For this, we can use an [`ElectronicDistribution`](@ref NQCDistributions.ElectronicDistribution)
 which will tell our simulation how we want to sample the initial variables.
-Currently, two of these are provided, the [`SingleState`](@ref) and the [`ElectronicPopulation`](@ref).
-The [`SingleState`](@ref) is used for nonequilibrium simulations when the population
-is confined to a single state, whereas [`ElectronicPopulation`](@ref) allows for a mixed state
+Currently, two of these are provided, the [`PureState`](@ref) and the [`MixedState`](@ref).
+The [`PureState`](@ref) is used for nonequilibrium simulations when the population
+is confined to a single state, whereas [`MixedState`](@ref) allows for a mixed state
 distribution.
 
 ```@repl electronicdistribution
-SingleState(1, Diabatic())
-SingleState(2, Adiabatic())
-ElectronicPopulation([1, 2], Diabatic())
+using NQCDistributions 
+
+PureState(1, Diabatic())
+PureState(2, Adiabatic())
+MixedState([1, 2], Diabatic())
 ```
 
 These structs contain only the minimal information about the distributions, whereas the sampling

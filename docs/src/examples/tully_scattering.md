@@ -58,7 +58,7 @@ for k in momenta # Iterate through each momentum value
     v = k / sim.atoms.masses[1] # Starting velocity
     r = -5 # Starting position
     tspan = (0, 2abs(r)/v)
-    distribution = DynamicalDistribution(v, -5, size(sim)) * SingleState(1, Adiabatic())
+    distribution = DynamicalDistribution(v, -5, size(sim)) * PureState(1, Adiabatic())
 
     out = run_ensemble(sim, tspan, distribution;
         trajectories=ntraj, output=output, reduction=:mean,

@@ -31,14 +31,15 @@ For the initial conditions, we will sample directly from a Wigner distribution f
 the nuclear degrees of freedom.
 Since our nuclear degrees of freedom are harmonic, the Wigner distribution has an
 analytic form and we can use the distributions included in the package.
-The `position` and `velocity` variables we create here are `Vector`s of `Normal` distributions.
+The `position` and `velocity` variables we create here are `Matrix`s of `Normal` distributions,
+which are shaped to match the system size `(1, N)`.
 Inside the `DynamicalDistribution` they will provide samples that match the size of the system.
-The initial electronic state is confined to 1 with `SingleState(1)`.
+The initial electronic state is confined to 1 with `PureState(1)`.
 
 ```@example spinboson
-position = PositionHarmonicWigner.(model.ωⱼ, β, 1)
-velocity = VelocityHarmonicWigner.(model.ωⱼ, β, 1)
-distribution = DynamicalDistribution(velocity, position, (1, 100)) * SingleState(1)
+position = reshape([PositionHarmonicWigner(ω, β, 1) for ω in model.ωⱼ], 1, :)
+velocity = reshape([VelocityHarmonicWigner(ω, β, 1) for ω in model.ωⱼ], 1, :)
+distribution = DynamicalDistribution(velocity, position, (1, 100)) * PureState(1)
 nothing # hide
 ```
 

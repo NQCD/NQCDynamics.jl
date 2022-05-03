@@ -57,7 +57,7 @@ using Unitful, UnitfulAtomic
 β = 1/austrip(300u"K")
 position = PositionHarmonicWigner(ω, β, m; centre=2.1)
 velocity = VelocityHarmonicWigner(ω, β, m)
-distribution = DynamicalDistribution(velocity, position, (1,1)) * SingleState(1)
+distribution = DynamicalDistribution(velocity, position, (1,1)) * PureState(1)
 nothing # hide
 ```
 
