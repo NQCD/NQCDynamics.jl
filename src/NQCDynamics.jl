@@ -5,6 +5,8 @@ using Reexport: @reexport
 @reexport using NQCBase
 @reexport using NQCModels
 
+include("NumericUtils/FastDeterminant.jl")
+
 include("RingPolymers/RingPolymers.jl")
 @reexport using .RingPolymers
 @reexport using RingPolymerArrays

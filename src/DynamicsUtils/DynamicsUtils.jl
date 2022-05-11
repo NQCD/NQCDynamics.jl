@@ -27,6 +27,8 @@ Assumes `dv` is an array of size (dofs, atoms) or (dofs, atoms, beads).
 """
 divide_by_mass!(dv, masses) = dv ./= masses'
 
+multiply_by_mass!(dv, masses) = dv .*= masses'
+
 """
     velocity!(dr, v, r, sim, t)
 
@@ -34,6 +36,8 @@ Write the velocity `v` into `dr`.
 Has extra arguments to work with `Dynamical(O/S)DEProblem`s.
 """
 velocity!(dr, v, r, sim, t) = dr .= v
+
+function acceleration! end
 
 """
     apply_interbead_coupling!(du::DynamicalVariables, u::DynamicalVariables,
@@ -104,5 +108,16 @@ export TerminatingCallback
 
 include("density_matrix_dynamics.jl")
 include("plot.jl")
+
+function set_unoccupied_states!(unoccupied::AbstractVector, occupied::AbstractVector)
+    nstates = length(unoccupied) + length(occupied) 
+    index = 1
+    for i in 1:nstates
+        if !(i in occupied)
+            unoccupied[index] = i
+            index += 1
+        end
+    end
+end
 
 end # module

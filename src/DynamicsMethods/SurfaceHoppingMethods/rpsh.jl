@@ -22,7 +22,7 @@ function DynamicsMethods.motion!(du, u, sim::RingPolymerSimulation{<:SurfaceHopp
 
     DynamicsUtils.velocity!(dr, v, r, sim, t)
     Calculators.update_electronics!(sim.calculator, r)
-    acceleration!(dv, v, r, sim, t, sim.method.state)
+    DynamicsUtils.acceleration!(dv, v, r, sim, t, sim.method.state)
     DynamicsUtils.apply_interbead_coupling!(dv, r, sim)
     DynamicsUtils.set_quantum_derivative!(dσ, v, σ, sim)
 end
