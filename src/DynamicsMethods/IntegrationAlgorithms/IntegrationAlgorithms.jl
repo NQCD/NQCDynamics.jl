@@ -66,5 +66,6 @@ include("ringpolymer_mint.jl")
 include("bcb_electronics.jl")
 include("bcb.jl")
 include("steps.jl")
+include("verlet_with_electronics.jl")
 
 end # module

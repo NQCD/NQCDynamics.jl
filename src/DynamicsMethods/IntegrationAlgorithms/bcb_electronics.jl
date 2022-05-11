@@ -36,7 +36,7 @@ function OrdinaryDiffEq.initialize!(integrator, cache::BCBwithTsit5Cache)
     if integrator.p.method isa DynamicsMethods.EhrenfestMethods.AbstractEhrenfest
         DynamicsMethods.EhrenfestMethods.acceleration!(cache.k, v, r, integrator.p, integrator.t, σprev)
     elseif integrator.p.method isa DynamicsMethods.SurfaceHoppingMethods.SurfaceHopping
-        DynamicsMethods.SurfaceHoppingMethods.acceleration!(cache.k, v, r, integrator.p, integrator.t, integrator.p.method.state)
+        DynamicsUtils.acceleration!(cache.k, v, r, integrator.p, integrator.t, integrator.p.method.state)
     end
 end
 
@@ -61,7 +61,7 @@ end
     if p.method isa DynamicsMethods.EhrenfestMethods.AbstractEhrenfest
         DynamicsMethods.EhrenfestMethods.acceleration!(k, vtmp, rtmp, p, t, σprev)
     elseif p.method isa DynamicsMethods.SurfaceHoppingMethods.SurfaceHopping
-        DynamicsMethods.SurfaceHoppingMethods.acceleration!(k, vtmp, rtmp, p, t, p.method.state)
+        DynamicsUtils.acceleration!(k, vtmp, rtmp, p, t, p.method.state)
     end
     step_B!(DynamicsUtils.get_velocities(u), vtmp, dt/2, k)
 

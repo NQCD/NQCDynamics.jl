@@ -3,6 +3,8 @@ Manifest.toml
 docs/build
 dev/
 .*
+*.jld2
+*.dat
 !/.gitignore
 !/.github
 !/.codecov.yml
