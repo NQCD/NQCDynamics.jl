@@ -1,3 +1,8 @@
+using OrdinaryDiffEq: OrdinaryDiffEqAlgorithm, OrdinaryDiffEqMutableCache, update_coefficients!
+using SciMLBase: SciMLBase, set_ut!
+using NQCDynamics: Calculators
+using NQCDynamics: DynamicsUtils
+using .DynamicsUtils: acceleration!, get_positions, get_velocities, get_quantum_subsystem
 
 struct VerletwithElectronics <: OrdinaryDiffEq.OrdinaryDiffEqAlgorithm end
 
@@ -47,6 +52,82 @@ end
 
     DynamicsMethods.SurfaceHoppingMethods.propagate_wavefunction!(σfinal, σprev, vfinal, p, dt)
 
+end
+
+struct VerletwithElectronics2{T<:OrdinaryDiffEqAlgorithm,K<:Base.Pairs} <: OrdinaryDiffEqAlgorithm
+    electronic_algorithm::T
+    kwargs::K
+end
+
+VerletwithElectronics2(electronic_algorithm; kwargs...) = VerletwithElectronics2(electronic_algorithm, kwargs)
+
+OrdinaryDiffEq.isfsal(::VerletwithElectronics2) = false
+
+mutable struct VerletwithElectronics2Cache{uType,vType,rateType,E} <: OrdinaryDiffEqMutableCache
+    u::uType
+    uprev::uType
+    tmp::uType
+    vtmp::vType
+    k::rateType
+    electronic_integrator::E
+end
+
+function OrdinaryDiffEq.alg_cache(alg::VerletwithElectronics2,u,rate_prototype,::Type{uEltypeNoUnits},::Type{uBottomEltypeNoUnits},::Type{tTypeNoUnits},uprev,uprev2,f,t,dt,reltol,p,calck,inplace::Val{true}) where {uEltypeNoUnits,uBottomEltypeNoUnits,tTypeNoUnits}
+    tmp = zero(u)
+    vtmp = zero(DynamicsUtils.get_velocities(u))
+    k = zero(DynamicsUtils.get_positions(rate_prototype))
+
+    electronic_problem = DynamicsMethods.SurfaceHoppingMethods.ElectronicODEProblem(Array(DynamicsUtils.get_quantum_subsystem(u)[:,1]), (0.0, dt), nstates(p))
+    electronic_integrator = SciMLBase.init(electronic_problem, alg.electronic_algorithm; save_on=false, save_everystep=false, alg.kwargs...)
+
+    VerletwithElectronics2Cache(u, uprev, tmp, vtmp, k, electronic_integrator)
+end
+
+function OrdinaryDiffEq.initialize!(integrator, cache::VerletwithElectronics2Cache)
+    r = get_positions(integrator.u)
+    v = get_velocities(integrator.u)
+    Calculators.update_electronics!(integrator.p.calculator, r)
+    acceleration!(cache.k, v, r, integrator.p, integrator.t, integrator.p.method.state)
+end
+
+@muladd function OrdinaryDiffEq.perform_step!(integrator, cache::VerletwithElectronics2Cache, repeat_step=false)
+    @unpack t, dt, uprev, u, p = integrator
+    @unpack k, vtmp, electronic_integrator = cache
+    sim = p
+
+    rprev = get_positions(uprev)
+    vprev = get_velocities(uprev)
+
+    rfinal = get_positions(u)
+    vfinal = get_velocities(u)
+
+    # Velocity verlet steps
+    step_B!(vtmp, vprev, dt/2, k)
+    step_A!(rfinal, rprev, dt, vtmp)
+    acceleration!(k, vtmp, rfinal, p, t, p.method.state)
+    step_B!(vfinal, vtmp, dt/2, k)
+
+    update_parameters!(electronic_integrator.p, sim.calculator, vfinal, rfinal)
+    DynamicsMethods.SurfaceHoppingMethods.update_operator!(electronic_integrator.f.f, electronic_integrator.p)
+
+    for i in axes(get_quantum_subsystem(u), 2)
+        c = view(get_quantum_subsystem(u), :, i)
+        set_ut!(electronic_integrator, c, t)
+        SciMLBase.step!(electronic_integrator, dt, true) # Step electronic integrator to current timestep
+        get_quantum_subsystem(u)[:,i] .= electronic_integrator.u
+    end
+
+end
+
+"""
+    Update electronic parameters with current position and velocity
+"""
+function update_parameters!(p::DynamicsMethods.SurfaceHoppingMethods.ElectronicParameters, calculator, v, r)
+    eigen = Calculators.get_eigen(calculator, r)
+    DynamicsMethods.SurfaceHoppingMethods.set_eigenvalues!(p, eigen.values)
+
+    nonadiabatic_coupling = Calculators.get_nonadiabatic_coupling(calculator, r)
+    DynamicsMethods.SurfaceHoppingMethods.set_dynamical_coupling!(p, nonadiabatic_coupling, v)
 end
 
 DynamicsMethods.select_algorithm(::Simulation{<:DynamicsMethods.SurfaceHoppingMethods.AbstractIESH}) = VerletwithElectronics()

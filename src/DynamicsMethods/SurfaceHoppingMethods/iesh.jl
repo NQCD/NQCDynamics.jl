@@ -29,6 +29,8 @@ struct AdiabaticIESH{T} <: AbstractIESH
     quantum_propagator::Matrix{Complex{T}}
     tmp_matrix_complex_square1::Matrix{Complex{T}}
     tmp_matrix_complex_square2::Matrix{Complex{T}}
+    tmp_matrix_complex_rect1::Matrix{Complex{T}}
+    tmp_matrix_complex_rect2::Matrix{Complex{T}}
     tmp_vector_int::Vector{Int}
     v_dot_d::Matrix{T}
     unoccupied::Vector{Int}
@@ -43,12 +45,16 @@ struct AdiabaticIESH{T} <: AbstractIESH
         quantum_propagator = zeros(Complex{T}, states, states)
         tmp_matrix_complex_square1 = zeros(Complex{T}, states, states)
         tmp_matrix_complex_square2 = zeros(Complex{T}, states, states)
+        tmp_matrix_complex_rect1 = zeros(Complex{T}, states, n_electrons)
+        tmp_matrix_complex_rect2 = zeros(Complex{T}, states, n_electrons)
         tmp_vector_int = zeros(Int, n_electrons)
         v_dot_d = zeros(T, states, n_electrons)
         unoccupied = zeros(Int, states - n_electrons)
 
         new{T}(hopping_probability, state, new_state, proposed_state, overlap, tmp, rescaling, quantum_propagator,
-            tmp_matrix_complex_square1, tmp_matrix_complex_square2, tmp_vector_int, v_dot_d, unoccupied
+            tmp_matrix_complex_square1, tmp_matrix_complex_square2,
+            tmp_matrix_complex_rect1, tmp_matrix_complex_rect2,
+            tmp_vector_int, v_dot_d, unoccupied
         )
     end
 end
@@ -85,11 +91,13 @@ function DynamicsUtils.acceleration!(dv, v, r, sim::Simulation{<:AbstractIESH}, 
     dv .= zero(eltype(dv))
     NQCModels.state_independent_derivative!(sim.calculator.model, dv, r)
     LinearAlgebra.lmul!(-1, dv)
+
+    adiabatic_derivative = Calculators.get_adiabatic_derivative(sim.calculator, r)
     @inbounds for i in mobileatoms(sim)
         for j in dofs(sim)
             for k in state
                 # Contribution to the force from each occupied state `k`
-                dv[j,i] -= sim.calculator.adiabatic_derivative[j,i][k, k]
+                dv[j,i] -= adiabatic_derivative[j,i][k, k]
             end
         end
     end
@@ -129,7 +137,12 @@ end
 
 function propagate_wavefunction!(σfinal, σ, v, sim::Simulation{<:AdiabaticIESH}, dt)
     propagator = get_quantum_propagator(sim, v, dt)
-    mul!(σfinal, propagator, σ)
+
+    tmp1 = sim.method.tmp_matrix_complex_rect1
+    tmp2 = sim.method.tmp_matrix_complex_rect2
+    copy!(tmp1, σ)
+    mul!(tmp2, propagator, tmp1)
+    copy!(σfinal, tmp2)
 end
 
 function get_quantum_propagator(sim::Simulation{<:AdiabaticIESH}, v, dt)
@@ -147,7 +160,7 @@ function get_quantum_propagator(sim::Simulation{<:AdiabaticIESH}, v, dt)
         end
     end
 
-    eigs = LinearAlgebra.eigen(Hermitian(prop))
+    eigs = LinearAlgebra.eigen!(Hermitian(prop))
     fill!(prop, zero(eltype(prop)))
     @inbounds for (i, I) in zip(eachindex(eigs.values), diagind(prop))
         prop[I] = exp(-1im * eigs.values[i] * dt)
@@ -177,7 +190,7 @@ function evaluate_hopping_probability!(sim::Simulation{<:AbstractIESH}, u, dt, r
 
     compute_overlap!(sim, S, ψ, sim.method.state)
 
-    det_current = det(S)
+    det_current = FastDeterminant.det!(S, sim.method.tmp_vector_int)
     Akk = abs2(det_current)
     prefactor = 2dt / real(Akk)
 
