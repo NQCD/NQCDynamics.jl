@@ -1,3 +1,5 @@
+using NQCDynamics: nbeads
+using RingPolymerArrays: eachbead
 
 function NQCDynamics.RingPolymerSimulation{DiabaticMDEF}(atoms::Atoms, model::Model, n_beads::Integer;
     friction_method, kwargs...
@@ -49,4 +51,19 @@ function evaluate_friction!(Λ::AbstractArray{T,3}, sim::RingPolymerSimulation{<
         end
     end
     return Λ
+end
+
+function DynamicsUtils.classical_potential_energy(sim::RingPolymerSimulation{<:DiabaticMDEF}, r::AbstractArray{T,3}) where {T}
+    eigen = Calculators.get_eigen(sim.calculator, r)
+    μ = NQCModels.fermilevel(sim.calculator.model)
+    β = 1 / get_temperature(sim)
+
+    potential = zero(T)
+    for (i, r_bead) in enumerate(eachbead(r))
+        potential += NQCModels.state_independent_potential(sim.calculator.model, r_bead)
+        for ϵ in eigen[i].values
+            potential += ϵ * fermi(ϵ, μ, β)
+        end
+    end
+    return potential
 end

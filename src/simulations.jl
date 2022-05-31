@@ -79,16 +79,16 @@ end
 Base.size(sim::Simulation) = (ndofs(sim), natoms(sim))
 Base.size(sim::RingPolymerSimulation) = (ndofs(sim), natoms(sim), RingPolymers.nbeads(sim))
 
-function get_temperature(sim::Simulation, t::Real=0)
+function get_temperature(sim::AbstractSimulation, t::Real=0)
     t = auconvert(u"fs", t)
     get_temperature(sim.temperature, t)
 end
-function get_temperature(sim::RingPolymerSimulation, t::Real=0)
-    t = auconvert(u"fs", t)
-    get_temperature(sim.temperature, t) * length(sim.beads)
-end
 get_temperature(temperature::Number, t=0) = austrip(temperature)
 get_temperature(temperature::Function, t=0) = austrip(temperature(t))
+
+function get_ring_polymer_temperature(sim::RingPolymerSimulation, t::Real=0)
+    return get_temperature(sim, t) * nbeads(sim)
+end
 
 function Base.show(io::IO, sim::Simulation{M}) where {M}
     print(io, "Simulation{$M}:\n  ", sim.atoms, "\n  ", sim.calculator.model)

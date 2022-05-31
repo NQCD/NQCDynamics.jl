@@ -37,8 +37,8 @@ end
 Evaluates friction tensor
 """
 function friction!(g, r, sim::AbstractSimulation{<:AbstractMDEF}, t)
-    Calculators.evaluate_friction!(sim.calculator, r)
-    g .= sim.calculator.friction ./ sim.method.mass_scaling
+    friction = Calculators.get_friction(sim.calculator, r)
+    g .= friction ./ sim.method.mass_scaling
 end
 
 function DynamicsMethods.create_problem(u0, tspan::Tuple, sim::AbstractSimulation{<:AbstractMDEF})
