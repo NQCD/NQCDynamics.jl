@@ -48,7 +48,7 @@ UnitfulRecipes = "42071c24-d89e-48dd-8a24-8a12d9b8861f"
 [compat]
 AdvancedHMC = "0.3"
 AdvancedMH = "0.6"
-ComponentArrays = "0.11"
+ComponentArrays = "0.11, 0.12"
 DEDataArrays = "0.2"
 DiffEqBase = "6"
 DiffEqCallbacks = "2.16"
