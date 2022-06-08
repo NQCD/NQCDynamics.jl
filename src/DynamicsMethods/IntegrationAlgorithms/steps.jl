@@ -109,7 +109,7 @@ function step_O!(friction::LangevinCache, integrator, v::RingPolymerArray, r::Ri
     @unpack W, p, dt, sqdt = integrator
     @unpack c1, c2, sqrtmass, σ = friction
 
-    @.. σ = sqrt(get_ring_polymer_temperature(p, t)) * sqrtmass
+    @.. σ = sqrt(get_temperature(p, t)) * sqrtmass
 
     for i in axes(r, 3)
         for j in RingPolymerArrays.quantumindices(v)
