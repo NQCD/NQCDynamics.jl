@@ -20,6 +20,7 @@ end
 if GROUP == "All" || GROUP == "Dynamics"
     @time @safetestset "DynamicsUtils Tests" begin include("Dynamics/DynamicsUtils.jl") end
     @time @safetestset "Classical Tests" begin include("Dynamics/classical.jl") end
+    @time @safetestset "BCB Tests" begin include("Dynamics/algorithms/bcb.jl") end
     @time @safetestset "Langevin Tests" begin include("Dynamics/langevin.jl") end
     @time @safetestset "MDEF BAOAB Tests" begin include("Dynamics/mdef_baoab.jl") end
     @time @safetestset "MDEF Tests" begin include("Dynamics/mdef.jl") end
