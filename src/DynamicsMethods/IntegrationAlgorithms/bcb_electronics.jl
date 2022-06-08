@@ -1,7 +1,5 @@
 using RingPolymerArrays: RingPolymerArrays
 
-struct BCBwithTsit5 <: OrdinaryDiffEq.OrdinaryDiffEqAlgorithm end
-
 OrdinaryDiffEq.isfsal(::BCBwithTsit5) = false
 
 mutable struct BCBwithTsit5Cache{uType,rType,vType,rateType,uEltypeNoUnits,T} <: OrdinaryDiffEq.OrdinaryDiffEqMutableCache
@@ -91,6 +89,3 @@ end
     integrator.destats.nf += 6
 
 end
-
-DynamicsMethods.select_algorithm(::RingPolymerSimulation{<:DynamicsMethods.SurfaceHoppingMethods.SurfaceHopping}) = BCBwithTsit5()
-DynamicsMethods.select_algorithm(::RingPolymerSimulation{<:DynamicsMethods.EhrenfestMethods.AbstractEhrenfest}) = BCBwithTsit5()

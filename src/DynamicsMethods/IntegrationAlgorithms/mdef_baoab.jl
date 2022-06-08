@@ -2,15 +2,10 @@ using UnPack: @unpack
 using MuladdMacro: @muladd
 using DiffEqBase: DiffEqBase
 using FastBroadcast: @..
-using StochasticDiffEq: StochasticDiffEq
 using LinearAlgebra: LAPACK, diagm, diag, mul!, diagind
 using RecursiveArrayTools: ArrayPartition
 
 using NQCDynamics: get_temperature
-
-export MDEF_BAOAB
-
-struct MDEF_BAOAB <: StochasticDiffEq.StochasticDiffEqAlgorithm end
 
 StochasticDiffEq.alg_compatible(::DiffEqBase.AbstractSDEProblem,::MDEF_BAOAB) = true
 
@@ -124,38 +119,3 @@ end
     integrator.f.f1(k,dutmp,u.x[2],p,t+dt)
     step_B!(u.x[1], dutmp, half*dt, k)
 end
-
-step_B!(v2, v1, dt, k) = @.. v2 = v1 + dt*k
-step_A!(r2, r1, dt, v)  = @.. r2 = r1 + dt*v
-
-function step_O!(cache, integrator)
-    @unpack t, dt, W, p, sqdt = integrator
-    @unpack dutmp, flatdutmp, tmp1, tmp2, gtmp, noise, half, c1, c2 = cache
-
-    Λ = gtmp
-    σ = sqrt(get_temperature(p, t+dt*half)) ./ sqrt.(repeat(p.atoms.masses; inner=ndofs(p)))
-
-    @.. noise = σ*W.dW[:] / sqdt
-
-    γ, c = LAPACK.syev!('V', 'U', Λ) # symmetric eigen
-    clamp!(γ, 0, Inf)
-    for (j,i) in enumerate(diagind(c1))
-        c1[i] = exp(-γ[j]*dt)
-        c2[i] = sqrt(1 - c1[i]^2)
-    end
-
-    # equivalent to: flatdutmp .= c*c1*c'dutmp[:] + c*c2*c'noise
-    copyto!(flatdutmp, dutmp)
-    mul!(tmp1, transpose(c), flatdutmp)
-    mul!(tmp2, c1, tmp1)
-    mul!(flatdutmp, c, tmp2)
-    
-    mul!(tmp1, transpose(c), noise)
-    mul!(tmp2, c2, tmp1)
-    mul!(tmp1, c, tmp2)
-
-    @.. flatdutmp += tmp1
-    copyto!(dutmp, flatdutmp)
-end
-
-DynamicsMethods.select_algorithm(::Simulation{<:DynamicsMethods.ClassicalMethods.AbstractMDEF}) = MDEF_BAOAB()

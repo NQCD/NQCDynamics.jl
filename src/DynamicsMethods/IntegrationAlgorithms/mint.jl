@@ -2,22 +2,10 @@
 using UnPack: @unpack
 using MuladdMacro: @muladd
 using StaticArrays: SMatrix
-using OrdinaryDiffEq: OrdinaryDiffEq
 using LinearAlgebra: Hermitian, tr, Eigen, dot
 
 using NQCDynamics.DynamicsMethods: MappingVariableMethods
 using NQCModels: nstates, NQCModels
-
-"""
-    MInt <: OrdinaryDiffEq.OrdinaryDiffEqAlgorithm
-
-Second order symplectic momentum integral algorithm.
-
-# Reference
-
-[J. Chem. Phys. 148, 102326 (2018)](https://doi.org/10.1063/1.5005557)
-"""
-struct MInt <: OrdinaryDiffEq.OrdinaryDiffEqAlgorithm end
 
 OrdinaryDiffEq.isfsal(::MInt) = false
 
@@ -187,5 +175,3 @@ function get_mapping_nuclear_force(q::AbstractVector, p::AbstractVector,
     force -= 2dot(q, tmp_vec)
     return force / 2
 end
-
-DynamicsMethods.select_algorithm(::Simulation{<:MappingVariableMethods.SpinMappingW}) = MInt()

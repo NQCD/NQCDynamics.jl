@@ -2,22 +2,10 @@
 using UnPack: @unpack
 using MuladdMacro: @muladd
 using StaticArrays: SMatrix
-using OrdinaryDiffEq: OrdinaryDiffEq
 using LinearAlgebra: Hermitian, tr
 
 using NQCDynamics.DynamicsMethods: MappingVariableMethods
 using NQCModels: nstates
-
-"""
-    RingPolymerMInt <: OrdinaryDiffEq.OrdinaryDiffEqAlgorithm
-
-Second order symplectic momentum integral algorithm applied to NRPMD.
-
-# Reference
-
-[J. Chem. Phys. 148, 102326 (2018)](https://doi.org/10.1063/1.5005557)
-"""
-struct RingPolymerMInt <: OrdinaryDiffEq.OrdinaryDiffEqAlgorithm end
 
 OrdinaryDiffEq.isfsal(::RingPolymerMInt) = false
 
@@ -88,15 +76,6 @@ function OrdinaryDiffEq.initialize!(_, ::RingPolymerMIntCache) end
 
 end
 
-function step_C!(v::AbstractArray{T,3}, r::AbstractArray{T,3}, cayley::Vector{<:AbstractMatrix}) where {T}
-    for I in CartesianIndices(v)
-        rtmp = cayley[I[3]][1,1] * r[I] + cayley[I[3]][1,2] * v[I]
-        vtmp = cayley[I[3]][2,1] * r[I] + cayley[I[3]][2,2] * v[I]
-        r[I] = rtmp
-        v[I] = vtmp
-    end
-end
-
 function propagate_mapping_variables!(calc, u, dt)
     for i=1:length(calc.eigen)
         V̄ = tr(calc.potential[i]) / nstates(calc.model)
@@ -149,6 +128,3 @@ function get_mapping_nuclear_force(q::AbstractVector, p::AbstractVector,
                            E::AbstractMatrix, F::AbstractMatrix)
     return 0.5 * (q'*E*q + p'*E*p) - q'*F*p
 end
-
-DynamicsMethods.select_algorithm(::RingPolymerSimulation{<:MappingVariableMethods.NRPMD}) = RingPolymerMInt()
-DynamicsMethods.select_algorithm(::RingPolymerSimulation{<:MappingVariableMethods.eCMM}) = RingPolymerMInt()
