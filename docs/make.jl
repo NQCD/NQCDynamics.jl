@@ -50,6 +50,7 @@ end
             find_all_files("dynamicssimulations/dynamicsmethods")
         ]
         "Examples" => find_all_files("examples")
+        "integration_algorithms.md"
         "Developer documentation" => find_all_files("devdocs")
         "API" => Any[
             "NQCBase" => find_all_files("api/NQCBase")
