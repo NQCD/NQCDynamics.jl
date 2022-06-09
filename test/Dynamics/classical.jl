@@ -37,3 +37,25 @@ end
     sol = run_trajectory(u0, (0.0, 1000.0), sim; dt=0.1, output=(:hamiltonian))
     @test sol.hamiltonian[1] ≈ sol.hamiltonian[end] rtol=1e-2
 end
+
+@testset "Fermion model classical adiabatic dynamics" begin
+    model = WideBandBath(ErpenbeckThoss(;Γ=0.1u"eV"), bandmin=-5u"eV", bandmax=5u"eV", step=0.2u"eV")
+    sim = Simulation{Classical}(atoms, model; temperature=300u"K")
+    v = rand(VelocityBoltzmann(300u"K", atoms.masses, size(sim)))
+    r = [model.model.morse.x₀;;]
+    u0 = DynamicsVariables(sim, v, r)
+    sol = run_trajectory(u0, (0.0, 900.0u"fs"), sim; dt=1u"fs", output=(:hamiltonian, :position))
+    @test sol.hamiltonian[1] ≈ sol.hamiltonian[end] rtol=1e-2
+end
+
+@testset "Fermion model ring polymer adiabatic dynamics" begin
+    model = WideBandBath(ErpenbeckThoss(;Γ=0.1u"eV"), bandmin=-5u"eV", bandmax=5u"eV", step=0.2u"eV")
+    n_beads = 10
+    sim = RingPolymerSimulation{Classical}(atoms, model, n_beads; temperature=300u"K")
+    v = VelocityBoltzmann(n_beads*300u"K", atoms.masses, size(sim)[1:2])
+    r = model.model.morse.x₀
+    d = DynamicalDistribution(v, r, size(sim))
+    u0 = rand(d)
+    sol = run_trajectory(u0, (0.0, 900.0u"fs"), sim; dt=1u"fs", output=(:hamiltonian, :position))
+    @test sol.hamiltonian[1] ≈ sol.hamiltonian[end] rtol=1e-2
+end

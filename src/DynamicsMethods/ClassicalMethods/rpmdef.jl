@@ -11,7 +11,7 @@ function NQCDynamics.RingPolymerSimulation{DiabaticMDEF}(atoms::Atoms, model::Mo
     )
 end
 
-function acceleration!(dv, v, r, sim::RingPolymerSimulation{<:DiabaticMDEF}, t)
+function acceleration!(dv, v, r, sim::RingPolymerSimulation{<:Union{DiabaticMDEF,Classical},<:Calculators.RingPolymerLargeDiabaticCalculator}, t)
 
     adiabatic_derivative = Calculators.get_adiabatic_derivative(sim.calculator, r)
     eigen = Calculators.get_eigen(sim.calculator, r)
@@ -53,7 +53,10 @@ function evaluate_friction!(Λ::AbstractArray{T,3}, sim::RingPolymerSimulation{<
     return Λ
 end
 
-function DynamicsUtils.classical_potential_energy(sim::RingPolymerSimulation{<:DiabaticMDEF}, r::AbstractArray{T,3}) where {T}
+function DynamicsUtils.classical_potential_energy(
+    sim::RingPolymerSimulation{<:Union{Classical,DiabaticMDEF},<:Calculators.RingPolymerLargeDiabaticCalculator},
+    r::AbstractArray{T,3}
+) where {T}
     eigen = Calculators.get_eigen(sim.calculator, r)
     μ = NQCModels.fermilevel(sim.calculator.model)
     β = 1 / get_temperature(sim)
