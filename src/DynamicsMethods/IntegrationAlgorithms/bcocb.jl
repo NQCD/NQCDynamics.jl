@@ -5,10 +5,6 @@ using LinearAlgebra: Diagonal
 using NQCDynamics: RingPolymers, ndofs
 using RingPolymerArrays: RingPolymerArray
 
-export BCOCB
-
-struct BCOCB <: StochasticDiffEq.StochasticDiffEqAlgorithm end
-
 StochasticDiffEq.alg_compatible(prob::DiffEqBase.AbstractSDEProblem, alg::BCOCB) = true
 
 struct BCOCBCache{U,A,K,uEltypeNoUnits,F} <: StochasticDiffEq.StochasticDiffEqMutableCache
@@ -121,78 +117,3 @@ end
     integrator.f.f1(k,vtmp,u.x[2],p,t+dt)
     step_B!(u.x[1], vtmp, half*dt, k)
 end
-
-function step_C!(v::RingPolymerArray, r::RingPolymerArray, cayley::Vector{<:Matrix})
-    for i in axes(r, 3)
-        for j in RingPolymerArrays.quantumindices(v)
-            for k in axes(r, 1)
-                rtmp = cayley[i][1,1] * r[k,j,i] + cayley[i][1,2] * v[k,j,i]
-                vtmp = cayley[i][2,1] * r[k,j,i] + cayley[i][2,2] * v[k,j,i]
-                r[k,j,i] = rtmp
-                v[k,j,i] = vtmp
-            end
-        end
-    end
-
-    for j in v.classical_atoms
-        for k in axes(r, 1)
-            rtmp = cayley[1][1,1] * r[k,j,1] + cayley[1][1,2] * v[k,j,1]
-            vtmp = cayley[1][2,1] * r[k,j,1] + cayley[1][2,2] * v[k,j,1]
-            r[k,j,1] = rtmp
-            v[k,j,1] = vtmp
-        end
-    end
-end
-
-function step_O!(friction::MDEFCache, integrator, v, r, t)
-    @unpack W, p, dt, sqdt = integrator
-    @unpack flatvtmp, tmp1, tmp2, gtmp, noise, c1, c2, sqrtmass, σ = friction
-
-    integrator.g(gtmp,r,p,t)
-    Λ = gtmp
-    @.. σ = sqrt(get_temperature(p, t)) * sqrtmass
-
-    @views for i in axes(r, 3)
-        @.. noise = σ * W.dW[:,:,i][:] / sqdt
-
-        γ, c = LAPACK.syev!('V', 'U', Λ[:,:,i]) # symmetric eigen
-        clamp!(γ, 0, Inf)
-        for (j,i) in enumerate(diagind(c1))
-            c1[i] = exp(-γ[j]*dt)
-            c2[i] = sqrt(1 - c1[i]^2)
-        end
-
-        copyto!(flatvtmp, v[:,:,i])
-        mul!(tmp1, transpose(c), flatvtmp)
-        mul!(tmp2, c1, tmp1)
-        mul!(flatvtmp, c, tmp2)
-        
-        mul!(tmp1, transpose(c), noise)
-        mul!(tmp2, c2, tmp1)
-        mul!(tmp1, c, tmp2)
-
-        @.. flatvtmp += tmp1
-        copyto!(v[:,:,i], flatvtmp)
-    end
-
-end
-
-function step_O!(friction::LangevinCache, integrator, v::RingPolymerArray, r::RingPolymerArray, t)
-    @unpack W, p, dt, sqdt = integrator
-    @unpack c1, c2, sqrtmass, σ = friction
-
-    @.. σ = sqrt(get_temperature(p, t)) * sqrtmass
-
-    for i in axes(r, 3)
-        for j in RingPolymerArrays.quantumindices(v)
-            @. v[:,j,i] = c1[i] * v[:,j,i] + c2[i] * σ[:,j] * W.dW[:,j,i] / sqdt
-        end
-    end
-
-    for j in v.classical_atoms
-        @. v[:,j,1] = c1[1] * v[:,j,1] + c2[1] * σ[:,j] * W.dW[:,j,1] / sqdt
-    end
-end
-
-DynamicsMethods.select_algorithm(::RingPolymerSimulation{<:DynamicsMethods.ClassicalMethods.AbstractMDEF}) = BCOCB()
-DynamicsMethods.select_algorithm(::RingPolymerSimulation{<:DynamicsMethods.ClassicalMethods.ThermalLangevin}) = BCOCB()

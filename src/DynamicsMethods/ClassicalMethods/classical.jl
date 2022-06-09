@@ -74,8 +74,8 @@ function DynamicsMethods.create_problem(u0, tspan::Tuple, sim::Simulation{<:Clas
         DynamicsUtils.get_velocities(u0), DynamicsUtils.get_positions(u0), tspan, sim)
 end
 
-function DynamicsMethods.create_problem(u0, tspan::Tuple, sim::RingPolymerSimulation{<:Classical})
-    OrdinaryDiffEq.DynamicalODEProblem(ring_polymer_acceleration!, DynamicsUtils.velocity!,
+function DynamicsMethods.create_problem(u0, tspan::Tuple, sim::RingPolymerSimulation{Classical})
+    OrdinaryDiffEq.DynamicalODEProblem(acceleration!, DynamicsUtils.velocity!,
         DynamicsUtils.get_velocities(u0), DynamicsUtils.get_positions(u0), tspan, sim)
 end
 
