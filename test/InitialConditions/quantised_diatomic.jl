@@ -218,5 +218,11 @@ end
 
 @testset "generate_configurations 1D" begin
     sim = Simulation(Atoms(2000), Morse())
-    r, v = QuantisedDiatomic.generate_1D_vibrations(Morse(), 1000.0, 0; samples=100)
+
+    @testset "forward and backward: ν = $quantum_number" for quantum_number in (0, 1, 2)
+        r, v = QuantisedDiatomic.generate_1D_vibrations(Morse(), 100.0, quantum_number; samples=100)
+        ν = QuantisedDiatomic.quantise_1D_vibration.(Morse(), 100.0, r, v)
+        @test all(ν .== quantum_number)
+    end
+
 end
