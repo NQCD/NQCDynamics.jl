@@ -285,6 +285,38 @@ function quantise_diatomic(sim::Simulation, v::Matrix, r::Matrix;
     return round(Int, ν), J
 end
 
+function quantise_1D_vibration(model::AdiabaticModel, μ::Real, r::Real, v::Real;
+    bond_lengths=0.5:0.01:5.0, reset_timer=false, show_timer=false
+)
+    reset_timer && TimerOutputs.reset_timer!(TIMER)
+
+    environment = EvaluationEnvironment([1], (1,1), zeros(1,0), 0.0, [1.0])
+
+    kinetic_energy = μ * v^2 / 2
+    potential_energy = calculate_diatomic_energy(r, model, environment)
+    E = kinetic_energy + potential_energy
+    J = 0
+
+    binding_curve = calculate_binding_curve(bond_lengths, model, environment)
+
+    V = EffectivePotential(μ, J, binding_curve)
+
+    r₁, r₂ = @timeit TIMER "Finding bounds" find_integral_bounds(E, V)
+
+    function nᵣ(E, r₁, r₂)
+        kernel(r) = sqrt_avoid_negatives(E - V(r))
+        integral, _ = QuadGK.quadgk(kernel, r₁, r₂; maxevals=100)
+        return sqrt(2μ)/π * integral - 1/2
+    end
+
+    ν = @timeit TIMER "Calculating ν" nᵣ(E, r₁, r₂)
+
+    TimerOutputs.complement!(TIMER)
+    show_timer && show(TIMER)
+
+    return round(Int, ν)
+end
+
 subtract_centre_of_mass(x, m) = x .- centre_of_mass(x, m)
 @views centre_of_mass(x, m) = (x[:,1].*m[1] .+ x[:,2].*m[2]) ./ (m[1]+m[2])
 reduced_mass(atoms::Atoms) = reduced_mass(atoms.masses)
