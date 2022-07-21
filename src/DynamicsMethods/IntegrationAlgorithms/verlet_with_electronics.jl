@@ -77,7 +77,7 @@ function OrdinaryDiffEq.alg_cache(alg::VerletwithElectronics2,u,rate_prototype,:
     vtmp = zero(DynamicsUtils.get_velocities(u))
     k = zero(DynamicsUtils.get_positions(rate_prototype))
 
-    electronic_problem = DynamicsMethods.SurfaceHoppingMethods.ElectronicODEProblem(Array(DynamicsUtils.get_quantum_subsystem(u)[:,1]), (0.0, dt), nstates(p))
+    electronic_problem = DynamicsMethods.ElectronicODEProblem(Array(DynamicsUtils.get_quantum_subsystem(u)[:,1]), (0.0, dt), nstates(p))
     electronic_integrator = SciMLBase.init(electronic_problem, alg.electronic_algorithm; save_on=false, save_everystep=false, alg.kwargs...)
 
     VerletwithElectronics2Cache(u, uprev, tmp, vtmp, k, electronic_integrator)
@@ -107,8 +107,9 @@ end
     acceleration!(k, vtmp, rfinal, p, t, p.method.state)
     step_B!(vfinal, vtmp, dt/2, k)
 
-    update_parameters!(electronic_integrator.p, sim.calculator, vfinal, rfinal)
-    DynamicsMethods.SurfaceHoppingMethods.update_operator!(electronic_integrator.f.f, electronic_integrator.p)
+    d = Calculators.get_nonadiabatic_coupling(sim.calculator, rfinal)
+    vals = Calculators.get_eigen(sim.calculator, rfinal).values
+    DynamicsMethods.update_parameters!(electronic_integrator.p, vals, d, vfinal, t+dt)
 
     for i in axes(get_quantum_subsystem(u), 2)
         c = view(get_quantum_subsystem(u), :, i)
@@ -117,17 +118,6 @@ end
         get_quantum_subsystem(u)[:,i] .= electronic_integrator.u
     end
 
-end
-
-"""
-    Update electronic parameters with current position and velocity
-"""
-function update_parameters!(p::DynamicsMethods.SurfaceHoppingMethods.ElectronicParameters, calculator, v, r)
-    eigen = Calculators.get_eigen(calculator, r)
-    DynamicsMethods.SurfaceHoppingMethods.set_eigenvalues!(p, eigen.values)
-
-    nonadiabatic_coupling = Calculators.get_nonadiabatic_coupling(calculator, r)
-    DynamicsMethods.SurfaceHoppingMethods.set_dynamical_coupling!(p, nonadiabatic_coupling, v)
 end
 
 DynamicsMethods.select_algorithm(::Simulation{<:DynamicsMethods.SurfaceHoppingMethods.AbstractIESH}) = VerletwithElectronics()
