@@ -1,15 +1,16 @@
 using NQCDynamics
 using Test
-using OrdinaryDiffEq: Tsit5, solve, LinearExponential, update_coefficients!
-using LinearAlgebra: norm, diagind
+using OrdinaryDiffEq: solve, MagnusGL4
+using LinearAlgebra: norm
 
 nstates = 100
-tspan = (0.0, 10.0)
+tspan = (0.0, 100.0)
 c0 = zeros(ComplexF64, nstates)
 c0[1] = 1
 
-function prepare_parameters!(p::DynamicsMethods.SurfaceHoppingMethods.ElectronicParameters)
-    DynamicsMethods.SurfaceHoppingMethods.set_eigenvalues!(p, rand(nstates))
+@testset "Norm preservation" begin
+    prob = DynamicsMethods.ElectronicODEProblem(c0, tspan, nstates)
+
     A = randn(nstates, nstates)
     A = (A * A')
     for i=1:nstates
@@ -18,12 +19,12 @@ function prepare_parameters!(p::DynamicsMethods.SurfaceHoppingMethods.Electronic
             A[j,i] *= -1
         end
     end
-    DynamicsMethods.SurfaceHoppingMethods.set_dynamical_coupling!(p, A)
-end
 
-@testset "Norm preservation" begin
-    prob = DynamicsMethods.SurfaceHoppingMethods.ElectronicODEProblem(c0, tspan, nstates)
-    prepare_parameters!(prob.p)
-    sol = solve(prob, LinearExponential(), dt=2.0)
+    DynamicsMethods.update_parameters!(prob.p, rand(nstates),
+        [A for i=1:3, j=1:3],
+        rand(3,3),
+        tspan[2]
+    )
+    sol = solve(prob, MagnusGL4(krylov=true), dt=2.0)
     @test all(isapprox.(norm.(sol.u), 1))
 end

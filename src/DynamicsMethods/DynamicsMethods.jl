@@ -76,6 +76,8 @@ Refer to the `run_dynamics` docstring for more information.
 """
 ))
 
+include("electronic_dynamics.jl")
+
 include("ClassicalMethods/ClassicalMethods.jl")
 @reexport using .ClassicalMethods
 

@@ -83,6 +83,5 @@ include("fssh.jl")
 include("iesh.jl")
 include("iesh_diabatic.jl")
 include("rpsh.jl")
-include("electronic_dynamics.jl")
 
 end # module
