@@ -31,6 +31,15 @@ model = NQCModels.Free()
     @test NQCDynamics.get_temperature(sim, 1) isa Real
 end
 
+@testset "get_ring_polymer_temperature" begin
+    sim = RingPolymerSimulation(atoms, model, 10; temperature=10u"K")
+    @test NQCDynamics.get_ring_polymer_temperature(sim) isa Real
+    sim = RingPolymerSimulation(atoms, model, 10; temperature=x->10u"K")
+    @test NQCDynamics.get_ring_polymer_temperature(sim) isa Real
+    sim = RingPolymerSimulation(atoms, model, 10; temperature=10)
+    @test NQCDynamics.get_ring_polymer_temperature(sim, 1) isa Real
+end
+
 @testset "nfunctions and size" begin
     sim = Simulation(atoms, model)
     @test natoms(sim) == 2

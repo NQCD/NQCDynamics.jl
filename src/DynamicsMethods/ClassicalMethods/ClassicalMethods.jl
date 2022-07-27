@@ -20,8 +20,11 @@ include("langevin.jl")
 export Langevin, ThermalLangevin
 include("mdef.jl")
 export MDEF
+include("diabatic_mdef.jl")
+export DiabaticMDEF
+include("rpmdef.jl")
 
-const ClassicalMethodUnion = Union{Classical, Langevin, ThermalLangevin, MDEF}
+const ClassicalMethodUnion = Union{Classical, Langevin, ThermalLangevin, MDEF, DiabaticMDEF}
 
 function DynamicsUtils.classical_hamiltonian(sim::AbstractSimulation{<:ClassicalMethodUnion}, u)
     kinetic = DynamicsUtils.classical_kinetic_energy(sim, DynamicsUtils.get_velocities(u))

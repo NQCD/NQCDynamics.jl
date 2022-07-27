@@ -24,6 +24,7 @@ if GROUP == "All" || GROUP == "Dynamics"
     @time @safetestset "Langevin Tests" begin include("Dynamics/langevin.jl") end
     @time @safetestset "MDEF BAOAB Tests" begin include("Dynamics/mdef_baoab.jl") end
     @time @safetestset "MDEF Tests" begin include("Dynamics/mdef.jl") end
+    @time @safetestset "DiabaticMDEF Tests" begin include("Dynamics/diabatic_mdef.jl") end
     @time @safetestset "RPMDEF Tests" begin include("Dynamics/rpmdef.jl") end
     @time @safetestset "BCBwithTsit5 Tests" begin include("Dynamics/bcbwithtsit5.jl") end
     @time @safetestset "FSSH Tests" begin include("Dynamics/fssh.jl") end

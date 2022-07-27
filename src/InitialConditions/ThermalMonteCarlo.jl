@@ -15,6 +15,7 @@ using NQCDynamics:
     Simulation,
     RingPolymerSimulation,
     get_temperature,
+    get_ring_polymer_temperature,
     DynamicsUtils,
     RingPolymers,
     Calculators,
@@ -82,7 +83,7 @@ function get_deriv_function(sim::Simulation)
 end
 
 function get_density_function(sim::RingPolymerSimulation)
-    temperature = get_temperature(sim)
+    temperature = get_ring_polymer_temperature(sim)
     function density(r)
         r_local = reshape(copy(r), size(sim))
         RingPolymerArrays.transform_from_normal_modes!(r_local, sim.beads.transformation)
@@ -146,7 +147,7 @@ function RingPolymerProposal(sim::RingPolymerSimulation, σ, move_ratio, interna
         else
             for j in range(sim.atoms)
                 if j in sim.beads.quantum_atoms
-                    Δ = sqrt(get_temperature(sim) / (sim.atoms.masses[j] * ωₖ[i]^2))
+                    Δ = sqrt(get_ring_polymer_temperature(sim) / (sim.atoms.masses[j] * ωₖ[i]^2))
                     distribution = Normal(0, Δ)
                 else
                     distribution = Dirac(0)

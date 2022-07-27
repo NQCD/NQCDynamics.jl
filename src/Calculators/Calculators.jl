@@ -19,7 +19,7 @@ using LinearAlgebra: LinearAlgebra, Hermitian, I, Eigen, tr
 using StaticArrays: SMatrix, SVector
 using RingPolymerArrays: get_centroid!
 
-using NQCModels: NQCModels, Model, nstates
+using NQCModels: NQCModels, Model, nstates, mobileatoms, dofs
 using NQCModels.AdiabaticModels: AdiabaticModel
 using NQCModels.DiabaticModels: DiabaticModel, DiabaticFrictionModel
 using NQCModels.FrictionModels: AdiabaticFrictionModel
@@ -46,6 +46,7 @@ NQCModels.nelectrons(calc::AbstractCalculator) = NQCModels.nelectrons(calc.model
 NQCModels.eachelectron(calc::AbstractCalculator) = NQCModels.eachelectron(calc.model)
 NQCModels.mobileatoms(calc::AbstractCalculator) = NQCModels.mobileatoms(calc.model, size(calc.derivative, 2))
 NQCModels.dofs(calc::AbstractCalculator) = NQCModels.dofs(calc.model)
+beads(calc) = Base.OneTo(length(calc.potential))
 
 Base.eltype(::AbstractCalculator{T}) where {T} = T
 
@@ -519,6 +520,7 @@ end
 
 include("friction.jl")
 include("large_diabatic.jl")
+include("ring_polymer_large_diabatic.jl")
 
 """
 Evaluates all electronic properties for the current position `r`.

@@ -2,7 +2,6 @@ using Test
 using NQCDynamics
 using Unitful
 using UnitfulAtomic
-using RecursiveArrayTools: ArrayPartition
 using LinearAlgebra: diag
 using ComponentArrays
 

@@ -1,6 +1,4 @@
 
-using NQCDynamics.Calculators: DiabaticFrictionCalculator
-
 abstract type AbstractMDEF <: DynamicsMethods.Method end
 
 """
@@ -34,26 +32,13 @@ function NQCDynamics.RingPolymerSimulation{MDEF}(atoms::Atoms, model::Model, n_b
 end
 
 """
-    acceleration!(dv, v, r, sim::Simulation{MDEF,<:DiabaticFrictionCalculator}, t)
-
-Sets acceleration due to ground state force when using a `DiabaticFrictionModel`.
-"""
-function acceleration!(dv, v, r, sim::Simulation{MDEF,<:DiabaticFrictionCalculator}, t)
-    Calculators.update_electronics!(sim.calculator, r)
-    for I in eachindex(dv)
-        dv[I] = -sim.calculator.adiabatic_derivative[I][1,1]
-    end
-    DynamicsUtils.divide_by_mass!(dv, sim.atoms.masse)
-end
-
-"""
     friction!(g, r, sim, t)
 
 Evaluates friction tensor
 """
 function friction!(g, r, sim::AbstractSimulation{<:AbstractMDEF}, t)
-    Calculators.evaluate_friction!(sim.calculator, r)
-    g .= sim.calculator.friction ./ sim.method.mass_scaling
+    friction = Calculators.get_friction(sim.calculator, r)
+    g .= friction ./ sim.method.mass_scaling
 end
 
 function DynamicsMethods.create_problem(u0, tspan::Tuple, sim::AbstractSimulation{<:AbstractMDEF})

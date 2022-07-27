@@ -17,7 +17,7 @@ using NQCDynamics:
     natoms,
     nbeads,
     masses,
-    get_temperature
+    get_ring_polymer_temperature
 
 using StatsBase: mean
 using ComponentArrays: ComponentVector
@@ -90,7 +90,7 @@ function kinetic_energy(sim::RingPolymerSimulation, r::AbstractArray{T,3}) where
 
     Calculators.evaluate_derivative!(sim.calculator, r)
 
-    kinetic = ndofs(sim) * natoms(sim) * get_temperature(sim)
+    kinetic = ndofs(sim) * natoms(sim) * get_ring_polymer_temperature(sim)
 
     for I in CartesianIndices(r)
         kinetic += (r[I] - centroid[I[1], I[2]]) * sim.calculator.derivative[I] 

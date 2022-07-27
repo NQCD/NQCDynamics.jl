@@ -112,7 +112,7 @@ function run_trajectory(u0, tspan::Tuple, sim::AbstractSimulation;
     @info "Performing a single trajectory."
     stats = @timed DiffEqBase.solve(problem, algorithm; stripped_kwargs...)
     @info "Finished after $(stats.time) seconds."
-    @debug "Integration algorithm: $(stats.value.alg)"
+    @debug "Simulation details" algorithm=stats.value.alg defunction=problem.f
     out = [(;zip(output, val)...) for val in vals.saveval]
     TypedTables.Table(t=vals.t, out)
 end

@@ -1,7 +1,9 @@
 
 using NQCModels.DiabaticModels: LargeDiabaticModel
 
-struct LargeDiabaticCalculator{T,M} <: AbstractDiabaticCalculator{T,M}
+abstract type AbstractLargeDiabaticCalculators{T,M} <: AbstractDiabaticCalculator{T,M} end
+
+struct LargeDiabaticCalculator{T,M} <: AbstractLargeDiabaticCalculators{T,M}
     model::M
     potential::DependentField{Hermitian{T,Matrix{T}},Matrix{T}}
     derivative::DependentField{Matrix{Hermitian{T,Matrix{T}}},Matrix{T}}
@@ -48,13 +50,13 @@ function Calculator(model::LargeDiabaticModel, atoms::Integer, T::Type=Float64)
     LargeDiabaticCalculator{T}(model, atoms)
 end
 
-function evaluate_potential!(calc::Union{LargeDiabaticCalculator,DiabaticFrictionCalculator}, r)
+function evaluate_potential!(calc::LargeDiabaticCalculator, r)
     calc.stats[:potential] += 1
     NQCModels.potential!(calc.model, calc.potential, r)
     return nothing
 end
 
-function evaluate_eigen!(calc::Union{LargeDiabaticCalculator,DiabaticFrictionCalculator}, r)
+function evaluate_eigen!(calc::LargeDiabaticCalculator, r)
     calc.stats[:eigen] += 1
     potential = get_potential(calc, r)
     eig = LinearAlgebra.eigen(potential)
@@ -71,7 +73,7 @@ function correct_phase!(eig::LinearAlgebra.Eigen, old_eigenvectors::AbstractMatr
     end
 end
 
-function evaluate_adiabatic_derivative!(calc::Union{LargeDiabaticCalculator,DiabaticFrictionCalculator}, r)
+function evaluate_adiabatic_derivative!(calc::LargeDiabaticCalculator, r)
     calc.stats[:adiabatic_derivative] += 1
     eigen = get_eigen(calc, r)
     derivative = get_derivative(calc, r)
@@ -83,7 +85,7 @@ function evaluate_adiabatic_derivative!(calc::Union{LargeDiabaticCalculator,Diab
     end
 end
 
-function evaluate_nonadiabatic_coupling!(calc::Union{LargeDiabaticCalculator,DiabaticFrictionCalculator}, r)
+function evaluate_nonadiabatic_coupling!(calc::LargeDiabaticCalculator, r)
     calc.stats[:nonadiabatic_coupling] += 1
     eigen = get_eigen(calc, r)
     adiabatic_derivative = get_adiabatic_derivative(calc, r)
