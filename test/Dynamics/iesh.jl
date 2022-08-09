@@ -12,7 +12,7 @@ kT = 9.5e-4
 M = 30 # number of bath states
 Γ = 6.4e-3
 W = 6Γ / 2 # bandwidth  parameter
-model = MiaoSubotnik(M=M, W=W, Γ=Γ)
+model = AndersonHolstein(MiaoSubotnik(;Γ), TrapezoidalRule(M, -W, W))
 atoms = Atoms(2000)
 r = randn(1,1)
 v = randn(1,1)
