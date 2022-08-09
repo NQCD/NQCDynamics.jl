@@ -276,14 +276,18 @@ function Estimators.diabatic_population(sim::Simulation{<:AdiabaticIESH}, u)
     eigen = Calculators.get_eigen(sim.calculator, DynamicsUtils.get_positions(u))
     U = eigen.vectors
 
-    ψ = DynamicsUtils.get_quantum_subsystem(u)
-    diabatic_ψ = zero(ψ)
-    @views for i in eachelectron(sim) # each electron
-        diabatic_ψ[:,i] .= U*ψ[:,i]
+    σ = zeros(NQCModels.nstates(sim), NQCModels.nstates(sim))
+    population = zeros(NQCModels.nstates(sim))
+    for i in eachelectron(sim)
+        c = view(DynamicsUtils.get_quantum_subsystem(u).re, :, i)
+        σ .= c*c'
+        for j in u.state
+            σ[j,j] = 1
+        end
+        population += diag(U * σ * U')
     end
-    diabatic_population = sum(abs2, diabatic_ψ, dims=2)
-
-    return diabatic_population
+    
+    return population / NQCModels.nelectrons(sim)
 end
 
 function Estimators.adiabatic_population(sim::Simulation{<:AdiabaticIESH}, u)
