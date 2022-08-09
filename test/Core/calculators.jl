@@ -11,7 +11,7 @@ using RingPolymerArrays: RingPolymerArrays
     model = NQCModels.Free()
     @test Calculators.Calculator(model, 1, Float64) isa Calculators.AdiabaticCalculator
     @test Calculators.Calculator(model, 1, 2, Float64) isa Calculators.RingPolymerAdiabaticCalculator
-    model = NQCModels.MiaoSubotnik()
+    model = NQCModels.AndersonHolstein(MiaoSubotnik(;Γ=1.0), TrapezoidalRule(10, -1.0, 1.0))
     @test Calculators.Calculator(model, 1, Float64) isa Calculators.LargeDiabaticCalculator
 end
 
@@ -250,7 +250,7 @@ end
 end
 
 @testset "LargeDiabaticCalculator" begin
-    model = NQCModels.MiaoSubotnik()
+    model = NQCModels.AndersonHolstein(MiaoSubotnik(;Γ=1.0), TrapezoidalRule(40, -1.0, 1.0))
     calc = Calculators.LargeDiabaticCalculator{Float64}(model, 1) 
     r = rand(1,1)
 
@@ -271,7 +271,7 @@ end
 end
 
 @testset "RingPolymerLargeDiabaticCalculator" begin
-    model = NQCModels.MiaoSubotnik()
+    model = NQCModels.AndersonHolstein(MiaoSubotnik(;Γ=1.0), TrapezoidalRule(40, -1.0, 1.0))
     calc = Calculators.RingPolymerLargeDiabaticCalculator{Float64}(model, 1, 10) 
     r = rand(1, 1, 10)
 
