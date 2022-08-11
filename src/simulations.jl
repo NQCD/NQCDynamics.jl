@@ -65,6 +65,7 @@ NQCModels.nelectrons(sim::AbstractSimulation) = NQCModels.nelectrons(sim.calcula
 NQCModels.eachelectron(sim::AbstractSimulation) = NQCModels.eachelectron(sim.calculator)
 NQCModels.mobileatoms(sim::AbstractSimulation) = NQCModels.mobileatoms(sim.calculator)
 NQCModels.dofs(sim::AbstractSimulation) = NQCModels.dofs(sim.calculator)
+NQCModels.fermilevel(sim::AbstractSimulation) = NQCModels.fermilevel(sim.calculator)
 
 NQCModels.ndofs(sim::AbstractSimulation) = NQCModels.ndofs(sim.calculator.model)
 natoms(sim::AbstractSimulation) = length(sim.atoms)

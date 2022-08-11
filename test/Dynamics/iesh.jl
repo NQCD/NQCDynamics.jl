@@ -7,12 +7,16 @@ using NQCDynamics: DynamicsMethods, DynamicsUtils, Calculators
 using NQCDynamics.DynamicsMethods: SurfaceHoppingMethods
 using OrdinaryDiffEq
 using ComponentArrays
+using Unitful, UnitfulAtomic
 
 kT = 9.5e-4
 M = 30 # number of bath states
 Γ = 6.4e-3
 W = 6Γ / 2 # bandwidth  parameter
-model = AndersonHolstein(MiaoSubotnik(;Γ), TrapezoidalRule(M, -W, W))
+
+basemodel = MiaoSubotnik(;Γ)
+bath = TrapezoidalRule(M, -W, W)
+model = AndersonHolstein(basemodel, bath)
 atoms = Atoms(2000)
 r = randn(1,1)
 v = randn(1,1)
@@ -22,6 +26,34 @@ sim = Simulation{AdiabaticIESH}(atoms, model)
 u = DynamicsVariables(sim, v, r)
 sim.method.state .= u.state
 SurfaceHoppingMethods.set_unoccupied_states!(sim)
+
+@testset "DynamicsVariables" begin
+    model = AndersonHolstein(basemodel, bath; fermi_level=0.0u"eV")
+    sim = Simulation{AdiabaticIESH}(atoms, model)
+    distribution = NQCDistributions.FermiDiracState(0.0u"eV", 0u"K")
+    u = DynamicsVariables(sim, v, r, distribution)
+    @test u.state == 1:n_electrons
+
+    model = AndersonHolstein(basemodel, bath; fermi_level=0.1u"eV")
+    sim = Simulation{AdiabaticIESH}(atoms, model)
+    distribution = NQCDistributions.FermiDiracState(0.0u"eV", 300u"K")
+    @test_throws ErrorException DynamicsVariables(sim, v, r, distribution)
+
+    model = AndersonHolstein(basemodel, bath; fermi_level=0.1u"eV")
+    sim = Simulation{AdiabaticIESH}(atoms, model)
+    distribution = NQCDistributions.FermiDiracState(0.1u"eV", 300u"K")
+    avg = zeros(nstates(model))
+    samples = 1000
+    for i=1:samples
+        u = DynamicsVariables(sim, v, r, distribution)
+        avg[u.state] .+= 1
+    end
+    avg ./= samples
+    eigs = Calculators.get_eigen(sim.calculator, r)
+    occupations = NQCDistributions.fermi.(eigs.values, distribution.fermi_level, distribution.β)       
+
+    @test avg ≈ occupations atol=0.2
+end
 
 @testset "set_unoccupied_states! $method" for method in (:AdiabaticIESH, :DiabaticIESH)
     sim = Simulation{AdiabaticIESH}(atoms, model)

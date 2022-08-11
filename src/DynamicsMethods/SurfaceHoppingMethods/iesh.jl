@@ -3,6 +3,7 @@ using Unitful, UnitfulAtomic
 using MuladdMacro: @muladd
 using NQCDynamics: FastDeterminant
 using NQCModels: eachelectron, eachstate, mobileatoms, dofs
+using NQCDistributions: FermiDiracState
 
 export AdiabaticIESH
 
@@ -72,6 +73,40 @@ function DynamicsMethods.DynamicsVariables(sim::Simulation{<:AdiabaticIESH}, v, 
         ψ[i,i] = 1
     end
     state = collect(eachelectron(sim))
+
+    SurfaceHoppingVariables(ComponentVector(v=v, r=r, σreal=ψ, σimag=zero(ψ)), state)
+end
+
+function DynamicsMethods.DynamicsVariables(sim::Simulation{<:AdiabaticIESH}, v, r, electronic::FermiDiracState)
+    ef_model = NQCModels.fermilevel(sim)
+    ef_distribution = electronic.fermi_level
+    ef_model ≈ ef_distribution || throw(error(
+        """
+        Fermi level of model and distribution do not match:
+            Distribution: $(ef_distribution)
+            Model: $(ef_model)
+        Change one of them to make them the same.
+        """
+    ))
+
+    eigs = Calculators.get_eigen(sim.calculator, r)
+
+    state = collect(eachelectron(sim))
+    for _ in 1:(NQCModels.nstates(sim) * NQCModels.nelectrons(sim))
+        current_index = rand(eachindex(state))
+        i = state[current_index] # Pick random occupied state
+        j = rand(setdiff(1:NQCModels.nstates(sim), state)) # Pick random unoccupied state
+        prob = exp(-electronic.β * (eigs.values[j] - eigs.values[i])) # Calculate Boltzmann factor
+        if prob > rand()
+            state[current_index] = j # Set unoccupied state to occupied
+        end
+    end
+    sort!(state)
+
+    ψ = zeros(NQCModels.nstates(sim), NQCModels.nelectrons(sim))
+    for (i, j) in enumerate(state)
+        ψ[j,i] = 1
+    end
 
     SurfaceHoppingVariables(ComponentVector(v=v, r=r, σreal=ψ, σimag=zero(ψ)), state)
 end
