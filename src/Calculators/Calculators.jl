@@ -47,6 +47,7 @@ NQCModels.eachelectron(calc::AbstractCalculator) = NQCModels.eachelectron(calc.m
 NQCModels.mobileatoms(calc::AbstractCalculator) = NQCModels.mobileatoms(calc.model, size(calc.derivative, 2))
 NQCModels.dofs(calc::AbstractCalculator) = NQCModels.dofs(calc.model)
 beads(calc) = Base.OneTo(length(calc.potential))
+NQCModels.fermilevel(calc::AbstractCalculator) = NQCModels.fermilevel(calc.model)
 
 Base.eltype(::AbstractCalculator{T}) where {T} = T
 
