@@ -43,7 +43,7 @@ SurfaceHoppingMethods.set_unoccupied_states!(sim)
     sim = Simulation{AdiabaticIESH}(atoms, model)
     distribution = NQCDistributions.FermiDiracState(0.1u"eV", 300u"K")
     avg = zeros(nstates(model))
-    samples = 1000
+    samples = 5000
     for i=1:samples
         u = DynamicsVariables(sim, v, r, distribution)
         avg[u.state] .+= 1
