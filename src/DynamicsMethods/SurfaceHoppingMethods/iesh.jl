@@ -1,9 +1,10 @@
-using LinearAlgebra: mul!, det, Hermitian
+using LinearAlgebra: mul!, det, Hermitian, diagm
 using Unitful, UnitfulAtomic
 using MuladdMacro: @muladd
 using NQCDynamics: FastDeterminant
 using NQCModels: eachelectron, eachstate, mobileatoms, dofs
-using NQCDistributions: FermiDiracState
+using NQCDistributions: FermiDiracState, Adiabatic, Diabatic
+using StatsBase: sample, Weights
 
 export AdiabaticIESH
 
@@ -77,7 +78,7 @@ function DynamicsMethods.DynamicsVariables(sim::Simulation{<:AdiabaticIESH}, v, 
     SurfaceHoppingVariables(ComponentVector(v=v, r=r, σreal=ψ, σimag=zero(ψ)), state)
 end
 
-function DynamicsMethods.DynamicsVariables(sim::Simulation{<:AdiabaticIESH}, v, r, electronic::FermiDiracState)
+function DynamicsMethods.DynamicsVariables(sim::Simulation{<:AdiabaticIESH}, v, r, electronic::FermiDiracState{Adiabatic})
     ef_model = NQCModels.fermilevel(sim)
     ef_distribution = electronic.fermi_level
     ef_model ≈ ef_distribution || throw(error(
@@ -91,17 +92,8 @@ function DynamicsMethods.DynamicsVariables(sim::Simulation{<:AdiabaticIESH}, v, 
 
     eigs = Calculators.get_eigen(sim.calculator, r)
 
-    state = collect(eachelectron(sim))
-    for _ in 1:(NQCModels.nstates(sim) * NQCModels.nelectrons(sim))
-        current_index = rand(eachindex(state))
-        i = state[current_index] # Pick random occupied state
-        j = rand(setdiff(1:NQCModels.nstates(sim), state)) # Pick random unoccupied state
-        prob = exp(-electronic.β * (eigs.values[j] - eigs.values[i])) # Calculate Boltzmann factor
-        if prob > rand()
-            state[current_index] = j # Set unoccupied state to occupied
-        end
-    end
-    sort!(state)
+    available_states = get_available_states(electronic.available_states, NQCModels.nstates(sim))
+    state = sample_fermi_dirac_distribution(eigs.values, NQCModels.nelectrons(sim), available_states, electronic.β)
 
     ψ = zeros(NQCModels.nstates(sim), NQCModels.nelectrons(sim))
     for (i, j) in enumerate(state)
@@ -111,11 +103,81 @@ function DynamicsMethods.DynamicsVariables(sim::Simulation{<:AdiabaticIESH}, v, 
     SurfaceHoppingVariables(ComponentVector(v=v, r=r, σreal=ψ, σimag=zero(ψ)), state)
 end
 
+function sample_fermi_dirac_distribution(energies, nelectrons, available_states, β)
+    nstates = length(available_states)
+    state = collect(Iterators.take(available_states, nelectrons))
+    for _ in 1:(nstates * nelectrons)
+        current_index = rand(eachindex(state))
+        i = state[current_index] # Pick random occupied state
+        j = rand(setdiff(available_states, state)) # Pick random unoccupied state
+        prob = exp(-β * (energies[j] - energies[i])) # Calculate Boltzmann factor
+        if prob > rand()
+            state[current_index] = j # Set unoccupied state to occupied
+        end
+    end
+    sort!(state)
+    return state
+end
+
 function DynamicsMethods.create_problem(u0, tspan, sim::AbstractSimulation{<:AbstractIESH})
     set_state!(sim.method, u0.state)
     set_unoccupied_states!(sim)
     OrdinaryDiffEq.ODEProblem(DynamicsMethods.motion!, u0, tspan, sim;
         callback=DynamicsMethods.get_callbacks(sim))
+end
+
+get_available_states(::Colon, nstates::Integer) = 1:nstates
+function get_available_states(available_states::AbstractVector, nstates::Integer)
+    maximum(available_states) > nstates && throw(DomainError(available, "There are only $nstates in the system."))
+    return available_states
+end
+
+function DynamicsMethods.DynamicsVariables(sim::Simulation{<:AdiabaticIESH}, v, r, electronic::FermiDiracState{Diabatic})
+    ef_model = NQCModels.fermilevel(sim)
+    ef_distribution = electronic.fermi_level
+    ef_model ≈ ef_distribution || throw(error(
+        """
+        Fermi level of model and distribution do not match:
+            Distribution: $(ef_distribution)
+            Model: $(ef_model)
+        Change one of them to make them the same.
+        """
+    ))
+
+    available_states = get_available_states(electronic.available_states, NQCModels.nstates(sim))
+
+    potential = Calculators.get_potential(sim.calculator, r)
+    energies = @view potential[diagind(potential)]
+
+    available_states = get_available_states(electronic.available_states, NQCModels.nstates(sim))
+    diabatic_state = sample_fermi_dirac_distribution(energies, NQCModels.nelectrons(sim), available_states, electronic.β)
+
+    U = DynamicsUtils.evaluate_transformation(sim.calculator, r)
+
+    ψ = zeros(NQCModels.nstates(sim), NQCModels.nelectrons(sim))
+    adiabatic_state = zeros(Int, NQCModels.nelectrons(sim))
+
+    for i in eachindex(adiabatic_state)
+        diabatic_population = zeros(NQCModels.nstates(sim))
+        diabatic_population[diabatic_state[i]] = 1
+        adiabatic_density = U' * diagm(diabatic_population) * U
+        adiabatic_population = diag(adiabatic_density)
+
+        while true
+            s = sample(Weights(adiabatic_population))
+            if !(s in adiabatic_state)
+                adiabatic_state[i] = s
+                break
+            end
+        end
+
+        adiabatic_coefficients = adiabatic_density[:,1] ./ sqrt(adiabatic_population[1])
+        ψ[:,i] .= adiabatic_coefficients
+    end
+
+    sort!(adiabatic_state)
+
+    SurfaceHoppingVariables(ComponentVector(v=v, r=r, σreal=ψ, σimag=zero(ψ)), adiabatic_state)
 end
 
 """
@@ -233,20 +295,21 @@ function evaluate_hopping_probability!(sim::Simulation{<:AbstractIESH}, u, dt, r
 
     evaluate_v_dot_d!(sim, v, d)
 
-    if estimate_maximum_probability(sim, dt) < random
-        return nothing # Do not evaluate probability if maximum estimate too low
-    end
+    estimate = estimate_maximum_probability(sim, prefactor)
+    estimate < random && return # Do not evaluate probability if maximum estimate too low
 
     @inbounds for n in eachelectron(sim)
         for m in unoccupied_states(sim)
             copy!(proposed_state, sim.method.state)
             proposed_state[n] = m
             Akj = calculate_Akj(sim, S, ψ, det_current, proposed_state)
-            @muladd prob[m,n] = prob[m,n] + prefactor * real(Akj) * sim.method.v_dot_d[m,n]
+            prob[m,n] = prefactor * real(Akj) * sim.method.v_dot_d[m,n]
         end
     end
 
     clamp!(prob, 0, 1) # Restrict probabilities between 0 and 1
+
+    @assert maximum(prob) < estimate # Ensure estimate ALWAYS overestimates
 
     return nothing
 end
@@ -266,8 +329,8 @@ function evaluate_v_dot_d!(sim::Simulation{<:AbstractIESH}, v, d)
     end
 end
 
-function estimate_maximum_probability(sim::Simulation{<:AbstractIESH}, dt)
-    return sum(sim.method.v_dot_d) * 2dt
+function estimate_maximum_probability(sim::Simulation{<:AbstractIESH}, prefactor)
+    return sum(abs, sim.method.v_dot_d) * prefactor
 end
 
 "Equation 17 in Shenvi, Roy, Tully 2009. Uses equations 19 and 20."
@@ -308,28 +371,42 @@ function select_new_state(sim::AbstractSimulation{<:AbstractIESH}, u, random)::V
 end
 
 function Estimators.diabatic_population(sim::Simulation{<:AdiabaticIESH}, u)
-    eigen = Calculators.get_eigen(sim.calculator, DynamicsUtils.get_positions(u))
-    U = eigen.vectors
+    ψ = DynamicsUtils.get_quantum_subsystem(u).re
 
-    σ = zeros(NQCModels.nstates(sim), NQCModels.nstates(sim))
-    population = zeros(NQCModels.nstates(sim))
-    for i in eachelectron(sim)
-        c = view(DynamicsUtils.get_quantum_subsystem(u).re, :, i)
-        σ .= c*c'
-        for j in u.state
-            σ[j,j] = 1
-        end
-        population += diag(U * σ * U')
+    eigen = Calculators.get_eigen(sim.calculator, DynamicsUtils.get_positions(u))
+    transformation = eigen.vectors
+
+    return iesh_diabatic_population(ψ, transformation, u.state)
+end
+
+"""
+Calculate the diabatic population in J. Chem. Theory Comput. 2022, 18, 4615−4626.
+Eqs. 12, 13 and 14 describe the steps to calculat it though the code is written to use matrix operations
+instead of summations to calculate the result.
+"""
+function iesh_diabatic_population(ψ::AbstractMatrix, transformation::AbstractMatrix, discrete_occupations::AbstractVector)
+    nstates = size(ψ, 1)
+    nelectrons = size(ψ, 2)
+
+    population = zeros(nstates)
+    single_electron_density_matrix = zeros(nstates, nstates)
+    for i in 1:nelectrons
+        c = view(ψ, :, i) # Single electron wavefunction coefficients
+
+        mul!(single_electron_density_matrix, c, c')
+        single_electron_density_matrix[diagind(single_electron_density_matrix)] .= 0
+
+        occupied_state = discrete_occupations[i]
+        single_electron_density_matrix[occupied_state, occupied_state] = 1
+
+        population += diag(transformation * single_electron_density_matrix * transformation')
     end
-    
-    return population / NQCModels.nelectrons(sim)
+    return population
 end
 
 function Estimators.adiabatic_population(sim::Simulation{<:AdiabaticIESH}, u)
     population = zeros(NQCModels.nstates(sim.calculator.model))
-    for i in eachelectron(sim)
-        population .+= abs2.(DynamicsUtils.get_quantum_subsystem(u)[:,i])
-    end
+    population[u.state] .= 1
     return population
 end
 

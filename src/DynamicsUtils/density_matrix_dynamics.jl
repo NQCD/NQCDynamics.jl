@@ -5,7 +5,7 @@ using NQCDynamics: RingPolymers
 using NQCModels: nstates
 using RingPolymerArrays: get_centroid
 using NQCDistributions: ElectronicDistribution, Adiabatic, Diabatic, density_matrix
-using ..Calculators: AbstractDiabaticCalculator, DiabaticCalculator, RingPolymerDiabaticCalculator
+using ..Calculators: AbstractDiabaticCalculator, DiabaticCalculator, LargeDiabaticCalculator, RingPolymerDiabaticCalculator
 
 function set_quantum_derivative! end
 
@@ -73,7 +73,7 @@ function transform_density!(
     return density
 end
 
-function evaluate_transformation(calculator::DiabaticCalculator, r)
+function evaluate_transformation(calculator::Union{DiabaticCalculator, LargeDiabaticCalculator}, r)
     eigs =  Calculators.get_eigen(calculator, r)
     return eigs.vectors
 end
