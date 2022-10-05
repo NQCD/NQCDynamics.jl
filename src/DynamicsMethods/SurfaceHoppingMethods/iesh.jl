@@ -309,7 +309,10 @@ function evaluate_hopping_probability!(sim::Simulation{<:AbstractIESH}, u, dt, r
 
     clamp!(prob, 0, 1) # Restrict probabilities between 0 and 1
 
-    @assert maximum(prob) < estimate # Ensure estimate ALWAYS overestimates
+    maximum_probability = maximum(prob)
+    maximum_probability > 0.8 && @warn "Hopping probability is large, consider reducing the time step" maximum_probability
+
+    @assert maximum_probability < estimate # Ensure estimate ALWAYS overestimates
 
     return nothing
 end
