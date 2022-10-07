@@ -163,12 +163,5 @@ end
     @time traj2 = run_trajectory(u, tspan, sim; algorithm=Tsit5(), saveat=tspan[1]:dt:tspan[2], output, reltol=1e-6, abstol=1e-6)
     @time traj3 = run_trajectory(u, tspan, sim; dt, algorithm=DynamicsMethods.IntegrationAlgorithms.VerletwithElectronics2(MagnusMidpoint(krylov=false), dt=dt/5), output)
 
-    @test traj1.position ≈ traj2.position
-    @test traj3.position ≈ traj2.position
-
-    @test traj1.velocity ≈ traj2.velocity
-    @test traj3.velocity ≈ traj2.velocity
-
-    @test traj1.quantum_subsystem ≈ traj2.quantum_subsystem rtol=1e-1
-    @test traj3.quantum_subsystem ≈ traj2.quantum_subsystem rtol=1e-2
+    # We cannot compare these when hopping is happening since the trajectories will be different. 
 end

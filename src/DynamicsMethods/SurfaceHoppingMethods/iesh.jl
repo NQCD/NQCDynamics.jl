@@ -5,6 +5,7 @@ using NQCDynamics: FastDeterminant
 using NQCModels: eachelectron, eachstate, mobileatoms, dofs
 using NQCDistributions: FermiDiracState, Adiabatic, Diabatic
 using StatsBase: sample, Weights
+using FastLapackInterface: FastLapackInterface
 
 export AdiabaticIESH
 
@@ -33,7 +34,7 @@ struct AdiabaticIESH{T} <: AbstractIESH
     tmp_matrix_complex_square2::Matrix{Complex{T}}
     tmp_matrix_complex_rect1::Matrix{Complex{T}}
     tmp_matrix_complex_rect2::Matrix{Complex{T}}
-    tmp_vector_int::Vector{Int}
+    LUws::FastLapackInterface.LUWs
     v_dot_d::Matrix{T}
     unoccupied::Vector{Int}
     function AdiabaticIESH{T}(states::Integer, n_electrons::Integer, rescaling::Symbol) where {T}
@@ -49,14 +50,14 @@ struct AdiabaticIESH{T} <: AbstractIESH
         tmp_matrix_complex_square2 = zeros(Complex{T}, states, states)
         tmp_matrix_complex_rect1 = zeros(Complex{T}, states, n_electrons)
         tmp_matrix_complex_rect2 = zeros(Complex{T}, states, n_electrons)
-        tmp_vector_int = zeros(Int, n_electrons)
+        LUws = FastLapackInterface.LUWs(n_electrons)
         v_dot_d = zeros(T, states, n_electrons)
         unoccupied = zeros(Int, states - n_electrons)
 
         new{T}(hopping_probability, state, new_state, proposed_state, overlap, tmp, rescaling, quantum_propagator,
             tmp_matrix_complex_square1, tmp_matrix_complex_square2,
             tmp_matrix_complex_rect1, tmp_matrix_complex_rect2,
-            tmp_vector_int, v_dot_d, unoccupied
+            LUws, v_dot_d, unoccupied
         )
     end
 end
@@ -287,7 +288,7 @@ function evaluate_hopping_probability!(sim::Simulation{<:AbstractIESH}, u, dt, r
 
     compute_overlap!(sim, S, ψ, sim.method.state)
 
-    det_current = FastDeterminant.det!(S, sim.method.tmp_vector_int)
+    det_current = FastDeterminant.det!(S, sim.method.LUws)
     Akk = abs2(det_current)
     prefactor = 2dt / real(Akk)
 
@@ -339,7 +340,7 @@ end
 "Equation 17 in Shenvi, Roy, Tully 2009. Uses equations 19 and 20."
 function calculate_Akj(sim::Simulation{<:AbstractIESH}, S::AbstractMatrix, ψ::AbstractMatrix, detS::Number, new_state::Vector)
     compute_overlap!(sim, S, ψ, new_state)
-    det_new = FastDeterminant.det!(S, sim.method.tmp_vector_int)
+    det_new = FastDeterminant.det!(S, sim.method.LUws)
 
     return detS*conj(det_new)
 end
