@@ -27,6 +27,7 @@ include("Estimators.jl")
 export Estimators
 
 include("DynamicsOutputs.jl")
+@reexport using .DynamicsOutputs
 
 include("TimeCorrelationFunctions.jl")
 export TimeCorrelationFunctions

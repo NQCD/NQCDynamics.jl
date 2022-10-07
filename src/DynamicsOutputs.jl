@@ -13,6 +13,7 @@ using RecursiveArrayTools: ArrayPartition
 using DiffEqCallbacks: SavedValues, SavingCallback
 using ComponentArrays: ComponentVector
 using RingPolymerArrays: get_centroid
+using Dictionaries: Dictionary
 
 using NQCModels: NQCModels
 using NQCDynamics:
@@ -25,37 +26,26 @@ using ..DynamicsUtils:
     get_velocities,
     get_quantum_subsystem
 
-struct EnsembleSaver{N,F,S<:AbstractSimulation}
-    function_names::NTuple{N, Symbol}
-    output_functions::F
-    sim::S
-end
-
-function EnsembleSaver(function_names::NTuple{N, Symbol}, sim) where {N}
-    output_functions = tuple([getfield(DynamicsOutputs, f) for f in function_names]...)
-    EnsembleSaver(function_names, output_functions, sim)
-end
-
-function output_template(output::EnsembleSaver, savepoints, u0)
-    sol = (t=savepoints, u=[u0 for _ in savepoints])
-    out = output(sol, 0)[1]
-    for i in eachindex(out)
-        for j in eachindex(out[i])
-            out[i][j] = zero(out[i][j])
-        end
-    end
-    return out
+struct EnsembleSaver{F<:Tuple}
+    functions::F
 end
 
 function (output::EnsembleSaver)(sol, _)
-    out = [Any[] for _ in 1:length(sol.t)]
-    for (i, (t, u)) in enumerate(zip(sol.t, sol.u))
-        sizehint!(out[i], length(output.function_names)+1)
-        push!(out[i], t)
-        evaluate_output!(out[i], u, t, output.sim, output.output_functions...)
-    end
-    return (out, false)
+    out = Dictionary{Symbol,Any}([:Time], [sol.t])
+    return (evaluate_output_functions!(out, sol, output.functions...), false)
 end
+
+function evaluate_output_functions!(out::Dictionary, sol, f::F, fs...) where {F}
+    if f isa Function
+        name = nameof(f)
+    else
+        name = nameof(typeof(f))
+    end
+
+    insert!(out, name, f(sol))
+    return evaluate_output_functions!(out, sol, fs...)
+end
+evaluate_output_functions!(out::Dictionary, sol) = out
 
 """
     create_saving_callback(quantities::NTuple{N, Symbol}; saveat=[]) where {N}
@@ -123,17 +113,23 @@ export population
 export adiabatic_population
 export friction
 
+export VelocityOutput
+export PositionOutput
+export HamiltonianOutput
+
 "Get the force"
 force(u, t, sim) = -copy(sim.calculator.derivative)
 
 "Get the velocity"
 velocity(u, t, sim) = copy(get_velocities(u))
+VelocityOutput(sol) = [copy(get_velocities(u)) for u in sol.u]
 
 "Get the velocity of the ring polymer centroid"
 centroid_velocity(u, t, sim) = get_centroid(get_velocities(u))
 
 "Get the position"
 position(u, t, sim) = copy(get_positions(u))
+PositionOutput(sol) = [copy(get_positions(u)) for u in sol.u]
 
 "Get the position of the ring polymer centroid"
 centroid_position(u, t, sim) = get_centroid(get_positions(u))
@@ -143,6 +139,7 @@ potential(u, t, sim) = DynamicsUtils.classical_potential_energy(sim, u)
 
 "Evaluate the classical Hamiltonian"
 hamiltonian(u, t, sim) = DynamicsUtils.classical_hamiltonian(sim, u)
+HamiltonianOutput(sol) = [DynamicsUtils.classical_hamiltonian(sol.prob.p, u) for u in sol.u]
 
 "Evaluate the classical kinetic energy"
 kinetic(u, t, sim) = DynamicsUtils.classical_kinetic_energy(sim, get_velocities(u))

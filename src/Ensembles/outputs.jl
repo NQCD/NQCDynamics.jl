@@ -17,7 +17,7 @@ Output the end point of each trajectory.
 """
 struct OutputFinal end
 
-(::OutputFinal)(sol, i) = (last(sol.u), false)
+(::OutputFinal)(sol) = last(sol.u)
 
 """
 Output a 1 if the molecule has dissociated, 0 otherwise.
@@ -64,7 +64,7 @@ struct OutputStateResolvedScattering1D{S}
     sim::S
     type::Symbol
 end
-function (output::OutputStateResolvedScattering1D)(sol, i)
+function (output::OutputStateResolvedScattering1D)(sol)
     final = last(sol.u) # get final configuration from trajectory
     if output.type == :adiabatic
         populations = Estimators.adiabatic_population(output.sim, final)
@@ -84,5 +84,5 @@ function (output::OutputStateResolvedScattering1D)(sol, i)
     else # If final position left of 0 then we count as reflection
         output.reflection .= populations
     end
-    return (output, false)
+    return output
 end

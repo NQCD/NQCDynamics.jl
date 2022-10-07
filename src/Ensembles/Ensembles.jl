@@ -9,7 +9,6 @@ module Ensembles
 
 using SciMLBase: SciMLBase, EnsembleProblem, solve
 using RecursiveArrayTools: ArrayPartition
-using TypedTables: TypedTables
 
 using NQCBase: NQCBase
 using NQCDynamics:
@@ -26,6 +25,11 @@ export run_ensemble
 include("selections.jl")
 include("outputs.jl")
 include("reductions.jl")
+
+export SumReduction
+export MeanReduction
+export AppendReduction
+export FileReduction
 
 """
     run_ensemble(sim::AbstractSimulation, tspan, distribution;
@@ -59,83 +63,37 @@ to the `solve` function.
 """
 function run_ensemble(
     sim::AbstractSimulation, tspan, distribution;
+    output,
     selection::Union{Nothing,AbstractVector}=nothing,
-    output=SciMLBase.DEFAULT_OUTPUT_FUNC,
-    reduction::Symbol=:append,
-    ensemble_algorithm=SciMLBase.EnsembleThreads(),
+    reduction=AppendReduction(),
+    ensemble_algorithm=SciMLBase.EnsembleSerial(),
     algorithm=DynamicsMethods.select_algorithm(sim),
-    saveat=[],
     trajectories=1,
-    u_init=nothing,
     kwargs...
 )
 
+    if !(output isa Tuple)
+        output = (output,)
+    end
+
     kwargs = NQCBase.austrip_kwargs(;kwargs...)
     trajectories = convert(Int, trajectories)
-    saveat = austrip.(saveat)
     tspan = austrip.(tspan)
-    (output isa Symbol) && (output = (output,))
-    reduction = Reduction(reduction)
-
-    ensemble_problem = EnsembleProblem(sim, tspan, distribution, selection, output, reduction, u_init, saveat, trajectories, kwargs)
-
-    @info "Performing $trajectories trajectories."
-    stats = @timed solve(ensemble_problem, algorithm, ensemble_algorithm; saveat, trajectories, kwargs...)
-    @info "Finished after $(stats.time) seconds."
-
-    return extract_output(stats, output, reduction, trajectories)
-end
-
-function SciMLBase.EnsembleProblem(sim::AbstractSimulation, tspan, distribution, selection, output, reduction, u_init, saveat, trajectories, kwargs)
 
     prob_func = Selection(distribution, selection)
 
-    problem = create_problem(sim, distribution, tspan)
-    output_func = Output(output, sim)
-    if output_func isa DynamicsOutputs.EnsembleSaver
-        u_init = get_u_init(reduction, saveat, kwargs, tspan, problem.u0, output_func)
-    end
-
-    return EnsembleProblem(problem; prob_func, output_func, reduction, u_init)
-end
-
-Output(output::Tuple, sim) = DynamicsOutputs.EnsembleSaver(output, sim)
-Output(output, _) = output
-
-function create_problem(sim::AbstractSimulation, distribution, tspan)
     u0 = sample_distribution(sim, distribution)
-    return DynamicsMethods.create_problem(u0, tspan, sim)
-end
+    problem = DynamicsMethods.create_problem(u0, tspan, sim)
 
-function extract_output(stats, output, reduction, trajectories)
-    sol = stats.value
+    output_func = DynamicsOutputs.EnsembleSaver(output)
 
-    if output isa Tuple
-        process_output(reduction, sol, output, trajectories)
-    else
-        return sol.u
-    end
-end
+    ensemble_problem = EnsembleProblem(problem; prob_func, output_func, reduction)
 
-function process_output(::AppendReduction, sol, output, trajectories)
-    return [generate_table(output, s) for s in sol.u]
-end
+    @info "Performing $trajectories trajectories."
+    stats = @timed solve(ensemble_problem, algorithm, ensemble_algorithm; trajectories, kwargs...)
+    @info "Finished after $(stats.time) seconds."
 
-function process_output(::SumReduction, sol, output, trajectories)
-    for i in eachindex(sol.u)
-        sol.u[i][1] /= trajectories
-    end
-    return generate_table(output, sol.u)
-end
-
-function process_output(::MeanReduction, sol, output, trajectories)
-    return generate_table(output, sol.u)
-end
-
-function generate_table(output, u)
-    output = (:t, output...)
-    out = [(;zip(output, quantity)...) for quantity in u]
-    return TypedTables.Table(out)
+    return stats.value.u
 end
 
 end # module
