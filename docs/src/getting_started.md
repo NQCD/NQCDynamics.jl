@@ -219,7 +219,7 @@ z = DynamicsVariables(sim, randn(size(sim)), randn(size(sim)))
 nothing # hide
 ```
 
-Now, we can finally run the trajectory using the `run_trajectory` function.
+Now, we can finally run the trajectory using the `run_dynamics` function.
 This takes three positional arguments: the dynamics variables `z`, the time span
 we want to solve for `tspan`, and the simulation parameters `sim`.
 For classical dynamics we also provide a timestep `dt` since we're using the
@@ -228,7 +228,7 @@ For classical dynamics we also provide a timestep `dt` since we're using the
 !!! note "Integration algorithms"
 
     Each method will default to an appropriate integration algorithm though it is possible
-    to specify via a keyword argument to [`run_trajectory`](@ref) if an alternative
+    to specify via a keyword argument to [`run_dynamics`](@ref) if an alternative
     algorithm is preferred.
     Refer to the [dynamics documentation](@ref dynamicssimulations) for more information.
 
@@ -238,33 +238,32 @@ A list of the available quantities can be found [here](@ref DynamicsOutputs).
 
 !!! tip "Output format"
 
-    `run_trajectory` returns a `Table` from `TypedTables.jl` that has columns containing
-    the time and the output quantities saved at each time.
-    By default, it outputs the value of the dynamics variables into the field `u`.
+    `run_dynamics` returns a `Dictionary` from `Dictionaries.jl` that has entries containing
+    the time and the output quantities saved at each time step.
 
 ```@example classical
 tspan = (0.0, 50.0)
-solution = run_trajectory(z, (0.0, 50.0), sim;
-                                   dt=0.1, output=(:position, :velocity))
+solution = run_dynamics(sim, (0.0, 50.0), z;
+                                   dt=0.1, output=(OutputPosition, OutputVelocity))
 ```
 
 Here you can see the output table with columns for the time and the output quantities
 we specified.
 These can be accessed directly as shown here:
 ```@repl classical
-solution.t
-solution.position
+solution[:Time]
+solution[:OutputPosition]
 ```
 
 As with the models, we provide custom plotting recipes to quickly visualise the results
 before performing further analysis by manually accessing the fields of the solution table.
 To use these recipes, simply provide the solution to the `plot` function from `Plots.jl`
 and give the name of the output quantity as the second argument.
-This will only work if this quantity was specified in `run_trajectory`.
+This will only work if this quantity was specified in `run_dynamics`.
 ```@example classical
 using Plots # hide
-plot(solution, :position)
-plot!(solution, :velocity)
+plot(solution, :OutputPosition)
+plot!(solution, :OutputVelocity)
 ```
 
 ### Ensemble simulations

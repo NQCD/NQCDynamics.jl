@@ -118,7 +118,7 @@ value of `x` has been set to 0.5.
 sim = Simulation(Atoms(1), Free(), MyMethod(2.0))
 u = DynamicsVariables(sim, rand(1,1), rand(1,1), [0.5])
 
-sol = run_trajectory(u, (0.0, 10.0), sim, output=(:position, :velocity, :u))
+sol = run_dynamics(sim, (0.0, 10.0), u, output=(OutputPosition, OutputVelocity, OutputDynamicsVariables))
 ```
 
 !!! note
@@ -133,19 +133,19 @@ To visualise the result we can plot each of the quantities from the output table
 ```@example mymethod
 using Plots
 
-plot(sol, :position, label="Position")
-plot!(sol, :velocity, label="Velocity")
-plot!(sol, :u, label="u", legend=true)
+plot(sol, :OutputPosition, label="Position")
+plot!(sol, :OutputVelocity, label="Velocity")
+plot!(sol, :OutputDynamicsVariables, label="Dynamics variables", legend=true)
 ylabel!("Value(t)")
 ```
 
 !!! note 
 
     The additional `x` parameter that we created cannot be accessed in the output tuple
-    by name as with `position` and `velocity` since it is not a standard quantity.
-    Instead, we request `u` which contains all of the dynamical variables.
-    In the plot, two of the lines labelled `u` overlap the position and velocity result.
-    The unique line labelled `u` is the `x` variable.
+    with a pre-existing function as with `position` and `velocity` since it is not a standard quantity.
+    Instead, we request `OutputDynamicsVariables` which contains all of the dynamical variables.
+    In the plot, two of the lines labelled `DynamicsVariables` overlap the position and velocity result.
+    The unique line labelled `Dynamics variables` is the `x` variable.
     When implementing your method, if you want to add new output quantities you should do
     this inside the [`DynamicsOutputs`](@ref NQCDynamics.DynamicsOutputs) submodule.
 

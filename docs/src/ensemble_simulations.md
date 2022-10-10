@@ -7,18 +7,18 @@ procedure introduced in the [Getting started](@ref) section.
 However, by using the methods introduced on this page it is possible to run many trajectories
 at once, using parallelism and computing ensemble observables automatically.
 
-The key function for performing ensemble simulations is [`run_ensemble`](@ref).
+The key function for performing ensemble simulations is [`run_dynamics`](@ref).
 
 ```@docs
-run_ensemble
+run_dynamics
 ```
 
-From the function signature displayed above it should be possible to identify the similarities to the [`run_trajectory`](@ref) function.
+From the function signature displayed above it should be possible to identify the similarities to the [`run_dynamics`](@ref) function.
 The `sim` and `tspan` positional arguments are the same, but the initial [`DynamicsVariables`](@ref) have been replaced by a distribution.
 These distributions are defined such that they can be sampled to provide initial conditions for each trajectory.
 The [Storing and sampling distributions](@ref) page details the format this distribution must take.
 
-The output may take two distinct forms: the tuple structure familiar from [`run_trajectory`](@ref) `output=(:position, :velocity, :hamiltonian)`
+The output may take two distinct forms: the tuple structure familiar from [`run_dynamics`](@ref) `output=(:position, :velocity, :hamiltonian)`
 or a function as described in the [DifferentialEquations.jl](https://diffeq.sciml.ai/stable/features/ensemble/#Performing-an-Ensemble-Simulation) documentation.
 These options allow access to the common output quantities defined in the [`DynamicsOutputs`](@ref NQCDynamics.DynamicsOutputs) module
 along with specific customised output.
@@ -32,7 +32,7 @@ To use these, you must first add `using DiffEqBase` to your script.
 
 ## Example
 
-To demonstrate usage of [`run_ensemble`](@ref), let's investigate different ways to calculate the time-dependent population
+To demonstrate usage of [`run_dynamics`](@ref), let's investigate different ways to calculate the time-dependent population
 with [FSSH](@ref fssh-dynamics).
 
 First, we set up our system using one of Tully's simple models ([Tully1990](@cite)).
@@ -65,9 +65,9 @@ The electronic variables will be sampled such that the initial population is con
 to the second state by `PureState(2)`.
 
 The final step before running the dynamics is to decide how to output the results.
-The simplest option is to use the built-in tuple format familiar from [`run_trajectory`](@ref).
+The simplest option is to use the built-in tuple format familiar from [`run_dynamics`](@ref).
 ```@example ensemble
-ensemble = run_ensemble(sim, (0.0, 3000.0), product_distribution;
+ensemble = run_dynamics(sim, (0.0, 3000.0), product_distribution;
     trajectories=20, output=:population)
 nothing # hide
 ```
@@ -75,7 +75,7 @@ This is equivalent to performing single trajectories in a loop and manually re-s
 However, here we have been able to do this more concisely, using internal mechanisms for sampling from the `product_distribution`.
 
 The output of this function is a vector containing the output from each trajectory.
-Each entry is equivalent to the output from a call to [`run_trajectory`](@ref) and 
+Each entry is equivalent to the output from a call to [`run_dynamics`](@ref) and 
 can be plotted by iterating through `ensemble`.
 ```@example ensemble
 using Plots
@@ -91,7 +91,7 @@ To approximate the exact quantum dynamics for this model, the average over all t
 Instead of manually averaging the result, we can use `reduction=:mean` or `reduction=:sum`
 which will reduce the data accordingly before outputting the result:
 ```@example ensemble
-ensemble = run_ensemble(sim, (0.0, 3000.0), product_distribution;
+ensemble = run_dynamics(sim, (0.0, 3000.0), product_distribution;
     trajectories=20, output=:population, reduction=:mean, saveat=0.0:10.0:3000.0)
 plot(ensemble, :population)
 ```
@@ -121,7 +121,7 @@ function output_function(sol, i)
     return (output, false)
 end
 
-ensemble = run_ensemble(sim, (0.0, 3000.0), product_distribution;
+ensemble = run_dynamics(sim, (0.0, 3000.0), product_distribution;
     trajectories=20, output=output_function, reduction=:mean, u_init=zeros(2,div(3000, 50)+1), saveat=50.0)
 ```
 This function provides us the same output as above, but here we have defined it

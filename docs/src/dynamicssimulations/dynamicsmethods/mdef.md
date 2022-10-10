@@ -51,8 +51,8 @@ a function of time.
 ```@example mdef
 using Plots
 
-solution = run_trajectory(z, (0.0, 100u"fs"), sim, dt=0.1u"fs", output=(:hamiltonian))
-plot(solution, :hamiltonian)
+solution = run_dynamics(sim, (0.0, 100u"fs"), z, dt=0.1u"fs", output=OutputTotalEnergy)
+plot(solution, :OutputTotalEnergy)
 ```
 
 !!! note
@@ -81,9 +81,9 @@ Now we can re-simulate, replacing the fixed temperature with the function we hav
 
 ```@example mdef
 sim = Simulation{MDEF}(atoms, model; temperature=temperature_function)
-solution = run_trajectory(z, (0.0, 100u"fs"), sim, dt=0.1u"fs",
-    output=(:hamiltonian, :position, :velocity))
-plot(solution, :hamiltonian)
+solution = run_dynamics(sim, (0.0, 100u"fs"), z, dt=0.1u"fs",
+    output=OutputTotalEnergy)
+plot(solution, :OutputTotalEnergy)
 ```
 
 This time we see a peak in the energy in the middle of the simulation which coincides

@@ -25,7 +25,7 @@ using .DynamicsUtils:
 using ..InitialConditions: QuantisedDiatomic
 
 """
-    OutputVelocity(sol)
+    OutputVelocity(sol, i)
 
 Output the velocity at each timestep during the trajectory.
 """
@@ -81,7 +81,7 @@ OutputKineticEnergy(sol, i) = DynamicsUtils.classical_kinetic_energy.(sol.prob.p
 export OutputKineticEnergy
 
 """
-    OutputDynamicsVariables(sol)
+    OutputDynamicsVariables(sol, i)
 
 Output all of the dynamics variables at each timestep during the trajectory.
 """
@@ -147,7 +147,7 @@ export OutputTotalDiabaticPopulation
 
 Output the adiabatic population at each timestep during the trajectory.
 """
-OutputAdiabaticPopulation(sol) = Estimators.adiabatic_population.(sol.prob.p, sol.u)
+OutputAdiabaticPopulation(sol, i) = Estimators.adiabatic_population.(sol.prob.p, sol.u)
 export OutputAdiabaticPopulation
 
 """

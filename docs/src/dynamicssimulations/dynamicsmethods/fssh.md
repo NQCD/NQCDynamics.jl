@@ -91,16 +91,16 @@ whether we want this state to be `Adiabatic()` or `Diabatic()`.
 The type of state can be important when considering the ordering of the states.
 The adiabatic states are always arranged from lowest to highest energy, whereas the diabatic
 states will be ordered as defined in the model.
-You can inspect the fields of `u` to ensure the initilisation has proceeded as you intend.
+You can inspect the fields of `u` to ensure the initialisation has proceeded as you intend.
 ```@example fssh
 u = DynamicsVariables(sim, [20/2000;;], [-10.;;], PureState(1, Adiabatic()))
 ```
 
 Finally, the trajectory can be run by passing all the parameters we have set up so far.
-Here, we request both the discrete `:state` output which is equal to ``s(t)`` and 
-`:population`, which gives us the population of each diabatic state along the trajectory.
+Here, we request both the `OutputDiscreteState` output which is equal to ``s(t)`` and 
+`OutputDiabaticPopulation`, which gives us the population of each diabatic state along the trajectory.
 ```@example fssh
-traj = run_trajectory(u, (0.0, 2000.0), sim, output=(:state, :population))
+traj = run_dynamics(sim, (0.0, 2000.0), u, output=(OutputDiscreteState, OutputDiabaticPopulation))
 ```
 
 Now we can plot ``s(t)`` throughout the trajectory. The FSSH algorithm attempts to minimise
@@ -108,14 +108,14 @@ the total number of hops; in the limit of infinite hops the result would tend to
 mean-field (Ehrenfest) result, which is what FSSH attempts to avoid.
 ```@example fssh
 using Plots
-plot(traj, :state)
+plot(traj, :OutputDiscreteState)
 ```
 
 Similarly, we can plot the diabatic populations. Since FSSH is performed in the adiabatic
 representation, even in the case of few hops, the diabatic populations can look dramatically
 different depending on the complexity of the model Hamiltonian. 
 ```@example fssh
-plot(traj, :population)
+plot(traj, :OutputDiabaticPopulation)
 ```
 
 [Another example is available](@ref examples-tully-model-two) where we use FSSH and other
