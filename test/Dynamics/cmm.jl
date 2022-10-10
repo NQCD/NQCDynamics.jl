@@ -29,16 +29,18 @@ u1 = DynamicsVariables(sim1, v, r, PureState(1))
 test_motion!(sim, u)
 test_motion!(sim1, u1)
 
-sol = run_trajectory(u, (0, 100.0), sim; output=(:hamiltonian, :position, :u), reltol=1e-10, abstol=1e-10)
-@test sol.hamiltonian[1] ≈ sol.hamiltonian[end] rtol=1e-3
-qmap = [u.qmap for u in sol.u]
-pmap = [u.pmap for u in sol.u]
+sol = run_dynamics(sim, (0, 100.0), u; output=(OutputTotalEnergy, OutputPosition, OutputDynamicsVariables), reltol=1e-10, abstol=1e-10)
+@test sol[:OutputTotalEnergy][1] ≈ sol[:OutputTotalEnergy][end] rtol=1e-3
+qmap = [u.qmap for u in sol[:OutputDynamicsVariables]]
+pmap = [u.pmap for u in sol[:OutputDynamicsVariables]]
 total_population = sum.(DynamicsMethods.MappingVariableMethods.mapping_kernel.(qmap, pmap, sim.method.γ))
 @test all(isapprox.(total_population, 1, rtol=1e-3))
 
-sol = run_trajectory(u1, (0, 100.0), sim1; output=(:hamiltonian, :position, :u), reltol=1e-10, abstol=1e-10)
-@test sol.hamiltonian[1] ≈ sol.hamiltonian[end] rtol=1e-3
-total_population = sum.(DynamicsMethods.MappingVariableMethods.mapping_kernel.(qmap, pmap, sim.method.γ))
+sol = run_dynamics(sim1, (0, 100.0), u1; output=(OutputTotalEnergy, OutputPosition, OutputDynamicsVariables), reltol=1e-10, abstol=1e-10)
+@test sol[:OutputTotalEnergy][1] ≈ sol[:OutputTotalEnergy][end] rtol=1e-3
+qmap = [u.qmap for u in sol[:OutputDynamicsVariables]]
+pmap = [u.pmap for u in sol[:OutputDynamicsVariables]]
+total_population = sum.(DynamicsMethods.MappingVariableMethods.mapping_kernel.(qmap, pmap, sim1.method.γ))
 @test all(isapprox.(total_population, 1, rtol=1e-3))
 
 @testset "generate_random_points_on_nsphere" begin

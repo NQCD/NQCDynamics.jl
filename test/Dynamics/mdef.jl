@@ -20,11 +20,11 @@ du = zero(u)
     @test all(diag(gtmp) .≈ 1.0)
 end
 
-sol = run_trajectory(u, (0.0, 100.0), sim; dt=1)
-@test sol.u[1] ≈ u
+sol = run_dynamics(sim, (0.0, 100.0), u; output=OutputDynamicsVariables, dt=1)
+@test sol[:OutputDynamicsVariables][1] ≈ u
 
 f(t) = 100u"K"*exp(-ustrip(t))
 model = CompositeFrictionModel(Harmonic(), RandomFriction(1))
 sim = Simulation{MDEF}(atoms, model; temperature=f)
-sol = run_trajectory(u, (0.0, 100.0), sim; dt=1)
+sol = run_dynamics(sim, (0.0, 100.0), u; output=OutputDynamicsVariables, dt=1)
  

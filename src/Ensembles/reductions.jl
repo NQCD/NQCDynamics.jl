@@ -1,6 +1,4 @@
 using StatsBase: mean
-using NQCDynamics: TimeCorrelationFunctions, DynamicsOutputs
-using .TimeCorrelationFunctions: TimeCorrelationFunction
 using HDF5: HDF5
 using Dictionaries: Dictionary
 

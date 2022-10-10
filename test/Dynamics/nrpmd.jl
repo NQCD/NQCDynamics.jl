@@ -52,14 +52,14 @@ end
 
 algs = (DynamicsMethods.IntegrationAlgorithms.RingPolymerMInt(), Tsit5())
 @testset "Energy conservation $alg" for alg in algs
-    sol = run_trajectory(u, (0, 10.0), sim; output=(:hamiltonian, :population), dt=1e-2, algorithm=alg, abstol=1e-8, reltol=1e-8)
-    @test sol.hamiltonian[1] ≈ sol.hamiltonian[end] rtol=1e-2
+    sol = run_dynamics(sim, (0, 10.0), u; output=OutputTotalEnergy, dt=1e-2, algorithm=alg, abstol=1e-8, reltol=1e-8)
+    @test sol[:OutputTotalEnergy][1] ≈ sol[:OutputTotalEnergy][end] rtol=1e-2
 end
 
 @testset "Algorithm comparison" begin
-    sol = run_trajectory(u, (0, 10.0), sim; dt=1e-2, algorithm=DynamicsMethods.IntegrationAlgorithms.RingPolymerMInt())
-    sol1 = run_trajectory(u, (0, 10.0), sim; algorithm=Tsit5(), reltol=1e-10, abstol=1e-10, saveat=sol.t)
-    @test sol.u ≈ sol1.u rtol=1e-2
+    sol = run_dynamics(sim, (0, 10.0), u; output=OutputDynamicsVariables, dt=1e-2, algorithm=DynamicsMethods.IntegrationAlgorithms.RingPolymerMInt())
+    sol1 = run_dynamics(sim, (0, 10.0), u; output=OutputDynamicsVariables, algorithm=Tsit5(), reltol=1e-10, abstol=1e-10, saveat=sol[:Time])
+    @test sol[:OutputDynamicsVariables] ≈ sol1[:OutputDynamicsVariables] rtol=1e-2
 end
 
 @testset "MInt algorithm convergence" begin

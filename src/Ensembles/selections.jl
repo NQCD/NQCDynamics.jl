@@ -1,6 +1,4 @@
-using DiffEqBase: CallbackSet
 
-using NQCDynamics: InitialConditions, DynamicsOutputs
 using NQCDistributions: DynamicalDistribution, ProductDistribution
 
 abstract type AbstractSelection end
@@ -22,13 +20,17 @@ struct RandomSelection{D} <: AbstractSelection
     distribution::D
 end
 
-function Selection(distribution, selection::AbstractVector)
-    @info "Sampling the provided distribution in the range $selection." 
+function Selection(distribution, selection::AbstractVector, trajectories)
+    if trajectories > 1
+        @info "Sampling the provided distribution in the range $selection." 
+    end
     OrderedSelection(distribution, selection)
 end
 
-function Selection(distribution, ::Any)
-    @info "Sampling randomly from provided distribution." 
+function Selection(distribution, ::Any, trajectories)
+    if trajectories > 1
+        @info "Sampling randomly from provided distribution." 
+    end
     RandomSelection(distribution)
 end
 
@@ -62,4 +64,6 @@ function sample_distribution(sim::AbstractSimulation, distribution::ProductDistr
     u = rand(distribution.nuclear)
     DynamicsMethods.DynamicsVariables(sim, u.v, u.r, distribution.electronic)
 end
+
+sample_distribution(::AbstractSimulation, distribution) = copy(distribution)
 

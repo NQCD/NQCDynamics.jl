@@ -38,12 +38,12 @@ end
 @testset "Simulation{DiabaticMDEF}" begin
     sim = Simulation{DiabaticMDEF}(atoms, model; temperature=T, friction_method=ClassicalMethods.WideBandExact(model.ρ))
     u = DynamicsVariables(sim, rand(1,1), rand(1,1))
-    run_trajectory(u, (0.0, 1.0), sim; dt=0.1)
+    run_dynamics(sim, (0.0, 1.0), u; dt=0.1, output=OutputDynamicsVariables)
 end
 
 @testset "RingPolymerSimulation{DiabaticMDEF}" begin
     n_beads = 10
     sim = RingPolymerSimulation{DiabaticMDEF}(atoms, model, n_beads; temperature=T, friction_method=ClassicalMethods.WideBandExact(model.ρ))
     u = DynamicsVariables(sim, rand(1,1,n_beads), rand(1,1,n_beads))
-    run_trajectory(u, (0.0, 1.0), sim; dt=0.1)
+    run_dynamics(sim, (0.0, 1.0), u; dt=0.1, output=OutputDynamicsVariables)
 end

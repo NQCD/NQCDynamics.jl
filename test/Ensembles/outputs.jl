@@ -3,31 +3,29 @@ using Test
 using ComponentArrays: ComponentVector
 
 @testset "OutputFinal" begin
-    output = Ensembles.OutputFinal()
+    output = OutputFinal
     sol = ComponentVector(u=1:10)
-    @test output(sol, 1) == (10, false)
+    @test output(sol, 1) == 10
 end
 
 @testset "OutputDissociation" begin
-    output = Ensembles.OutputDissociation(1.0, (1, 2))
+    output = OutputDissociation(1.0, (1, 2))
     r = [1 0; 0 0; 0 0]
     v = zeros(3, 2)
     u = ComponentVector(v=v, r=r)
     sol = ComponentVector(u=[u])
-    @test output(sol, 1) == (0, false)
+    @test output(sol, 1) == 0
     r = [2 0; 0 0; 0 0]
     u = ComponentVector(v=v, r=r)
     sol = ComponentVector(u=[u])
-    @test output(sol, 1) == (1, false)
-    @test Ensembles.output_template(output, u) == 0
+    @test output(sol, 1) == 1
 end
 
 @testset "OutputQuantisedDiatomic" begin
     sim = Simulation(Atoms(1), Harmonic())
-    output = Ensembles.OutputQuantisedDiatomic(sim; height=1, normal_vector = [1, 1, 1])
-    output = Ensembles.OutputQuantisedDiatomic(sim)
+    output = OutputQuantisedDiatomic(sim; height=1, normal_vector = [1, 1, 1])
+    output = OutputQuantisedDiatomic(sim)
     u = DynamicsVariables(sim, hcat(1), hcat(1))
-    @test Ensembles.output_template(output, u) == (0, 0)
 end
 
 @testset "PopulationCorrelationFunction" begin
@@ -36,8 +34,8 @@ end
         sim = Simulation{Ehrenfest}(Atoms(2000), TullyModelTwo())
         output = TimeCorrelationFunctions.PopulationCorrelationFunction(sim, Adiabatic())
         u = DynamicsVariables(sim, hcat(20/2000), hcat(-5), PureState(1, Adiabatic()))
-        sol = run_trajectory(u, (0, 1000.0), sim)
-        out, cont = output(sol, 1)
+        sol = run_dynamics(sim, (0, 1000.0), u; output)
+        out = sol[:PopulationCorrelationFunction]
         @test out[1][1,1] ≈ 1
         @test out[1][2,2] ≈ 0
         @test [o[1,2] for o in out] ≈ [1 - o[1,1] for o in out]
@@ -47,8 +45,8 @@ end
         sim = Simulation{FSSH}(Atoms(2000), TullyModelTwo())
         output = TimeCorrelationFunctions.PopulationCorrelationFunction(sim, Adiabatic())
         u = DynamicsVariables(sim, hcat(20/2000), hcat(-5), PureState(1, Adiabatic()))
-        sol = run_trajectory(u, (0, 1000.0), sim)
-        out, cont = output(sol, 1)
+        sol = run_dynamics(sim, (0, 1000.0), u; output)
+        out = sol[:PopulationCorrelationFunction]
         @test out[1][1,1] ≈ 1
         @test out[1][2,2] ≈ 0
         @test [o[1,2] for o in out] ≈ [1 - o[1,1] for o in out]
@@ -58,8 +56,8 @@ end
         sim = Simulation{eCMM}(Atoms(2000), TullyModelTwo())
         output = TimeCorrelationFunctions.PopulationCorrelationFunction(sim, Diabatic())
         u = DynamicsVariables(sim, hcat(20/2000), hcat(-5), PureState(1, Diabatic()))
-        sol = run_trajectory(u, (0, 1000.0), sim)
-        out, cont = output(sol, 1)
+        sol = run_dynamics(sim, (0, 1000.0), u; output)
+        out = sol[:PopulationCorrelationFunction]
     end
     
 end

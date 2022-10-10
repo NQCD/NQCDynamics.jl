@@ -7,29 +7,51 @@ from an initial distribution.
 """
 module Ensembles
 
-using SciMLBase: SciMLBase, EnsembleProblem, solve
-using RecursiveArrayTools: ArrayPartition
+using SciMLBase: SciMLBase
+using Dictionaries: Dictionary
+using UnitfulAtomic: austrip
 
 using NQCBase: NQCBase
 using NQCDynamics:
     AbstractSimulation,
-    Simulation,
-    RingPolymerSimulation,
-    DynamicsUtils,
-    DynamicsMethods,
-    DynamicsOutputs
-using RingPolymerArrays: RingPolymerArray
+    DynamicsMethods
 
-export run_ensemble
+export run_dynamics
 
 include("selections.jl")
-include("outputs.jl")
-include("reductions.jl")
 
+include("reductions.jl")
 export SumReduction
 export MeanReduction
 export AppendReduction
 export FileReduction
+
+"""
+    EnsembleSaver{F<:Tuple}
+
+Store a tuple of functions with the signature `f(sol)` where `sol` is a DiffEq solution object.
+`EnsembleSaver` will evaluate each of these functions and return the result in a `Dictionary`.
+"""
+struct EnsembleSaver{F<:Tuple}
+    functions::F
+end
+
+function (output::EnsembleSaver)(sol, i)
+    out = Dictionary{Symbol,Any}([:Time], [sol.t])
+    return (evaluate_output_functions!(out, sol, i, output.functions...), false)
+end
+
+function evaluate_output_functions!(out::Dictionary, sol, i, f::F, fs...) where {F}
+    if f isa Function
+        name = nameof(f)
+    else
+        name = nameof(typeof(f))
+    end
+
+    insert!(out, name, f(sol, i))
+    return evaluate_output_functions!(out, sol, i, fs...)
+end
+evaluate_output_functions!(out::Dictionary, sol, i) = out
 
 """
     run_ensemble(sim::AbstractSimulation, tspan, distribution;
@@ -61,7 +83,7 @@ functions to modify the output and how it is reduced across trajectories.
 This function wraps the EnsembleProblem from DifferentialEquations and passes the `kwargs`
 to the `solve` function.
 """
-function run_ensemble(
+function run_dynamics(
     sim::AbstractSimulation, tspan, distribution;
     output,
     selection::Union{Nothing,AbstractVector}=nothing,
@@ -80,20 +102,36 @@ function run_ensemble(
     trajectories = convert(Int, trajectories)
     tspan = austrip.(tspan)
 
-    prob_func = Selection(distribution, selection)
+    prob_func = Selection(distribution, selection, trajectories)
 
     u0 = sample_distribution(sim, distribution)
     problem = DynamicsMethods.create_problem(u0, tspan, sim)
 
-    output_func = DynamicsOutputs.EnsembleSaver(output)
+    output_func = EnsembleSaver(output)
 
-    ensemble_problem = EnsembleProblem(problem; prob_func, output_func, reduction)
+    ensemble_problem = SciMLBase.EnsembleProblem(problem; prob_func, output_func, reduction)
 
-    @info "Performing $trajectories trajectories."
-    stats = @timed solve(ensemble_problem, algorithm, ensemble_algorithm; trajectories, kwargs...)
+    if trajectories == 1
+        @info "Performing 1 trajectory."
+    else
+        @info "Performing $trajectories trajectories."
+    end
+
+    stats = @timed SciMLBase.solve(ensemble_problem, algorithm, ensemble_algorithm; trajectories, kwargs...)
     @info "Finished after $(stats.time) seconds."
 
-    return stats.value.u
+    if trajectories == 1
+        return stats.value.u[1]
+    else
+        return stats.value.u
+    end
 end
+
+run_ensemble(args...; kwargs...) = throw(error("""
+`run_ensemble` has been replaced, use `run_dynamics` instead.
+`run_dynamics` unifies single trajectory and ensemble simulations into one function.
+Refer to the `run_dynamics` docstring for more information.
+"""
+))
 
 end # module
