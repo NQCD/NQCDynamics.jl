@@ -23,10 +23,10 @@ Firstly, we can prepare the parts that will be the same for every ensemble:
 ```@example tullymodeltwo
 using ComponentArrays: ComponentVector
 
-output = Ensembles.OutputStateResolvedScattering1D(sim, :adiabatic)
+output = OutputStateResolvedScattering1D(sim, :adiabatic)
 ```
 Here, we are using the
-[`OutputStateResolvedScattering1D`](@ref Ensembles.OutputStateResolvedScattering1D)
+[`OutputStateResolvedScattering1D`](@ref OutputStateResolvedScattering1D)
 along with the [`MeanReduction`](@ref Ensembles.MeanReduction) which will give us
 the average scattering outcome from the entire ensemble.
 Each trajectory outputs the scattering outcome along with its final adiabatic state, and the reduction
@@ -35,7 +35,7 @@ computes the average over all trajectories.
 Next, we can choose how many trajectories we want to perform for each ensemble, and
 choose the range of momentum values:
 ```@example tullymodeltwo
-ntraj = 500
+trajectories = 500
 momenta = 9:2:50
 ```
 
@@ -60,12 +60,11 @@ for k in momenta # Iterate through each momentum value
     tspan = (0, 2abs(r)/v)
     distribution = DynamicalDistribution(v, -5, size(sim)) * PureState(1, Adiabatic())
 
-    out = run_ensemble(sim, tspan, distribution;
-        trajectories=ntraj, output=output, reduction=:mean,
-        u_init=ComponentVector(reflection=zeros(2), transmission=zeros(2))
+    out = run_dynamics(sim, tspan, distribution;
+        saveat=tspan[end], trajectories, output, reduction=MeanReduction()
     )
 
-    push!(result, out)
+    push!(result, out[:OutputStateResolvedScattering1D])
 end
 
 result

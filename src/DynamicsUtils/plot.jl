@@ -8,7 +8,7 @@ RecipesBase.@recipe function f(dict::Dictionary, quantity::Symbol)
     for i in eachindex(dict[quantity][1])
         RecipesBase.@series begin
             legend --> :false
-            dict[:Time], [value[i] for value in table[quantity]]
+            dict[:Time], [value[i] for value in dict[quantity]]
         end
     end
 end

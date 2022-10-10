@@ -23,10 +23,6 @@ and demonstrates how they can be combined into a product distribution.
 
 ### DynamicalDistribution
 
-```@docs
-DynamicalDistribution
-```
-
 When handling distributions for the nuclear degrees of freedom,
 the [`DynamicalDistribution`](@ref) type can be used to store initial velocities and positions:
 ```@setup distribution

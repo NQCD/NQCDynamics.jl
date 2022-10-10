@@ -98,13 +98,13 @@ as simple as possible.
 Let's find the expectation for the potential energy during our simulation.
 This is the potential energy of the final configuration in the simulation:
 ```@repl langevin
-Estimators.potential_energy(sim, traj.position[end])
+Estimators.potential_energy(sim, traj[:OutputPosition][end])
 ```
 We could evaluate this for every configuration and average it manually.
 Fortunately however, we have the [`@estimate`](@ref Estimators.@estimate) macro that
 will do this for us:
 ```@repl langevin
-Estimators.@estimate potential_energy(sim, traj.position)
+Estimators.@estimate potential_energy(sim, traj[:OutputPosition])
 ```
 
 !!! tip
@@ -118,7 +118,7 @@ Estimators.@estimate potential_energy(sim, traj.position)
 
 Similarly, we can evaluate the kinetic energy expectation with:
 ```@repl langevin
-Estimators.@estimate kinetic_energy(sim, traj.velocity)
+Estimators.@estimate kinetic_energy(sim, traj[:OutputVelocity])
 ```
 Again, this takes a similar value since the total energy is evenly split between the kinetic
 and potential for a classical harmonic system.

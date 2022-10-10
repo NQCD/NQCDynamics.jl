@@ -58,10 +58,10 @@ Now let's run an ensemble of trajectories that sample from this distribution.
 For the output we will receive the diabatic population at intervals of `t=50`
 and it will be averaged over all trajectories by the `:mean` keyword.
 ```@example rpsh
-solution = run_ensemble(sim, (0.0, 3000.0), distribution;
+solution = run_dynamics(sim, (0.0, 3000.0), distribution;
     saveat=50, trajectories=5e2, dt=1,
     output=TimeCorrelationFunctions.PopulationCorrelationFunction(sim, Diabatic()),
-    reduction=:mean, u_init=[zeros(3,3) for i=1:length(0:50:3000)])
+    reduction=MeanReduction())
 ```
 
 !!! note
@@ -77,9 +77,9 @@ A discussion on this topic is available from [landry2013](@cite).
 ```@example rpsh
 using Plots
 
-plot(0:50:3000, [p[1,1] for p in solution], label="State 1")
-plot!(0:50:3000, [p[1,2] for p in solution], label="State 2")
-plot!(0:50:3000, [p[1,3] for p in solution], label="State 3")
+plot(0:50:3000, [p[1,1] for p in solution[:PopulationCorrelationFunction]], label="State 1")
+plot!(0:50:3000, [p[1,2] for p in solution[:PopulationCorrelationFunction]], label="State 2")
+plot!(0:50:3000, [p[1,3] for p in solution[:PopulationCorrelationFunction]], label="State 3")
 xlabel!("Time /a.u.")
 ylabel!("Population")
 ```

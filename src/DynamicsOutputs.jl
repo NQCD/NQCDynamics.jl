@@ -232,6 +232,6 @@ function (output::OutputStateResolvedScattering1D)(sol, i)
     end
     return output
 end
-export OutputStateResolvedScattering
+export OutputStateResolvedScattering1D
 
 end # module

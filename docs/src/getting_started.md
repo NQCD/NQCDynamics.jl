@@ -220,8 +220,8 @@ nothing # hide
 ```
 
 Now, we can finally run the trajectory using the `run_dynamics` function.
-This takes three positional arguments: the dynamics variables `z`, the time span
-we want to solve for `tspan`, and the simulation parameters `sim`.
+This takes three positional arguments: the simulation parameters `sim,  the time span
+we want to solve for `tspan`, and the dynamics variables `z`.
 For classical dynamics we also provide a timestep `dt` since we're using the
 `VelocityVerlet` algorithm by default.
 
@@ -247,8 +247,7 @@ solution = run_dynamics(sim, (0.0, 50.0), z;
                                    dt=0.1, output=(OutputPosition, OutputVelocity))
 ```
 
-Here you can see the output table with columns for the time and the output quantities
-we specified.
+Here you can see the output containing the time steps and the output quantities we specified.
 These can be accessed directly as shown here:
 ```@repl classical
 solution[:Time]
@@ -268,12 +267,10 @@ plot!(solution, :OutputVelocity)
 
 ### Ensemble simulations
 
-So we have solved a single trajectory? That's pretty cool but wouldn't it be great
-if we could do a whole bunch at once? Well, fortunately we can thanks to the
-[`Ensembles`](@ref) module. 
-This provides [`run_ensemble`](@ref) which can be used to perform many trajectories in parallel.
-To learn more and see some examples, refer to the
-[Ensemble simulations](@ref ensembles) section.
+We have shown how to perform a single trajectory, but usually we are interested in performing many
+and calculating observables using statistical methods.
+Running more trajectories is as simple as providing the `trajectories` keyword to `run_dynamics`,
+but we'll go through this in more detail in the [Ensemble simulations section.](@ref ensembles)
 
 ### What's next?
 

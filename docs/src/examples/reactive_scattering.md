@@ -119,12 +119,12 @@ model = LDFAModel(model, "../assets/friction/test.cube", atoms, friction_atoms=[
 ```
 
 Now we can pass all the variables defined so far to the `Simulation` and run multiple
-trajectories using [`run_ensemble`](@ref).
+trajectories using [`run_dynamics`](@ref).
 
 ```@example h2scatter
 sim = Simulation{MDEF}(atoms, model, cell=cell, temperature=300u"K")
-ensemble = run_ensemble(sim, tspan, distribution;selection=1:20,
-    dt=0.1u"fs", output=:position, trajectories=20, callback=terminate)
+ensemble = run_dynamics(sim, tspan, distribution;selection=1:20,
+    dt=0.1u"fs", output=OutputPosition, trajectories=20, callback=terminate)
 ```
 
 ## MDEF with neural network friction 
@@ -138,8 +138,8 @@ This can be used by simply using the model directly, without wrapping it with th
 ```@example h2scatter
 model = H2AgModel()
 sim = Simulation{MDEF}(atoms, model, cell=cell, temperature=300u"K")
-ensemble = run_ensemble(sim, tspan, distribution;selection=1:20,
-    dt=0.1u"fs", output=:position, trajectories=20, callback=terminate)
+ensemble = run_dynamics(sim, tspan, distribution;selection=1:20,
+    dt=0.1u"fs", output=OutputPosition, trajectories=20, callback=terminate)
 ```
 
 ## Visualisation

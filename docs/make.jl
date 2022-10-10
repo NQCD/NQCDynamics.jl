@@ -20,7 +20,7 @@ end
     bib,
     sitename = "NQCDynamics.jl",
     modules = [NQCDynamics, NQCDistributions, NQCModels, NQCBase, CubeLDFAModel],
-    strict = false,
+    strict = true,
     format = Documenter.HTML(
         prettyurls = get(ENV, "CI", nothing) == "true",
         canonical = "https://nqcd.github.io/NQCDynamics.jl/stable/",
