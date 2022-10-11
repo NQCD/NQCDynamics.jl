@@ -31,16 +31,18 @@ u1 = DynamicsVariables(sim1, v, r, PureState(1))
 test_motion!(sim, u)
 test_motion!(sim1, u1)
 
-sol = run_trajectory(u, (0, 100.0), sim; output=(:hamiltonian, :position, :u), dt=0.01)
-@test sol.hamiltonian[1] ≈ sol.hamiltonian[end] rtol=1e-3
-qmap = [u.qmap for u in sol.u]
-pmap = [u.pmap for u in sol.u]
+sol = run_dynamics(sim, (0, 100.0), u; output=(OutputTotalEnergy, OutputMappingPosition, OutputMappingMomentum), dt=0.01)
+@test sol[:OutputTotalEnergy][1] ≈ sol[:OutputTotalEnergy][end] rtol=1e-3
+qmap = sol[:OutputMappingPosition]
+pmap = sol[:OutputMappingMomentum]
 total_population = sum.(DynamicsMethods.MappingVariableMethods.mapping_kernel.(qmap, pmap, sim.method.γ))
 @test all(isapprox.(total_population, 1, rtol=1e-2))
 
-sol = run_trajectory(u1, (0, 100.0), sim1; output=(:hamiltonian, :position, :u), dt=0.01)
-@test sol.hamiltonian[1] ≈ sol.hamiltonian[end] rtol=1e-3
-total_population = sum.(DynamicsMethods.MappingVariableMethods.mapping_kernel.(qmap, pmap, sim.method.γ))
+sol = run_dynamics(sim1, (0, 100.0), u1; output=(OutputTotalEnergy, OutputMappingPosition, OutputMappingMomentum), dt=0.01)
+@test sol[:OutputTotalEnergy][1] ≈ sol[:OutputTotalEnergy][end] rtol=1e-3
+qmap = sol[:OutputMappingPosition]
+pmap = sol[:OutputMappingMomentum]
+total_population = sum.(DynamicsMethods.MappingVariableMethods.mapping_kernel.(qmap, pmap, sim1.method.γ))
 @test all(isapprox.(total_population, 1, rtol=1e-2))
 
 @testset "Population correlation" begin
@@ -64,10 +66,10 @@ total_population = sum.(DynamicsMethods.MappingVariableMethods.mapping_kernel.(q
 end
 
 @testset "Algorithm comparison" begin
-    sol = run_trajectory(u, (0, 10.0), sim; dt=1e-2, algorithm=DynamicsMethods.IntegrationAlgorithms.RingPolymerMInt())
-    sol1 = run_trajectory(u, (0, 10.0), sim; algorithm=Tsit5(), reltol=1e-10, abstol=1e-10, saveat=sol.t)
-    @test sol.u ≈ sol1.u rtol=1e-2
-    sol = run_trajectory(u, (0, 10.0), sim1; dt=1e-2, algorithm=DynamicsMethods.IntegrationAlgorithms.RingPolymerMInt())
-    sol1 = run_trajectory(u, (0, 10.0), sim1; algorithm=Tsit5(), reltol=1e-10, abstol=1e-10, saveat=sol.t)
-    @test sol.u ≈ sol1.u rtol=1e-2
+    sol = run_dynamics(sim, (0, 10.0), u; output=OutputDynamicsVariables, dt=1e-2, algorithm=DynamicsMethods.IntegrationAlgorithms.RingPolymerMInt())
+    sol1 = run_dynamics(sim, (0, 10.0), u; output=OutputDynamicsVariables, algorithm=Tsit5(), reltol=1e-10, abstol=1e-10, saveat=sol[:Time])
+    @test sol[:OutputDynamicsVariables] ≈ sol1[:OutputDynamicsVariables] rtol=1e-2
+    sol = run_dynamics(sim1, (0, 10.0), u; output=OutputDynamicsVariables, dt=1e-2, algorithm=DynamicsMethods.IntegrationAlgorithms.RingPolymerMInt())
+    sol1 = run_dynamics(sim1, (0, 10.0), u; output=OutputDynamicsVariables, algorithm=Tsit5(), reltol=1e-10, abstol=1e-10, saveat=sol[:Time])
+    @test sol[:OutputDynamicsVariables] ≈ sol1[:OutputDynamicsVariables] rtol=1e-2
 end

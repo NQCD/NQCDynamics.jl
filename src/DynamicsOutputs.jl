@@ -2,177 +2,236 @@
 """
     DynamicsOutputs
 
-Infrastructure for saving quantities during trajectories.
-
-Defines all available options that can be used within the `output` tuple along with
-the functions that perform the saving operation.
+Defines a set of functions that can be used to calculate outputs for dynamics simulations.
 """
 module DynamicsOutputs
 
-using RecursiveArrayTools: ArrayPartition
-using DiffEqCallbacks: SavedValues, SavingCallback
-using ComponentArrays: ComponentVector
 using RingPolymerArrays: get_centroid
+using UnitfulAtomic: austrip
+using LinearAlgebra: norm
+using ComponentArrays: ComponentVector
 
-using NQCModels: NQCModels
 using NQCDynamics:
     Estimators,
-    DynamicsUtils,
-    AbstractSimulation
+    DynamicsUtils
 
-using ..DynamicsUtils:
+using NQCModels: NQCModels
+
+using .DynamicsUtils:
     get_positions,
     get_velocities,
     get_quantum_subsystem
 
-struct EnsembleSaver{N,F,S<:AbstractSimulation}
-    function_names::NTuple{N, Symbol}
-    output_functions::F
-    sim::S
-end
-
-function EnsembleSaver(function_names::NTuple{N, Symbol}, sim) where {N}
-    output_functions = tuple([getfield(DynamicsOutputs, f) for f in function_names]...)
-    EnsembleSaver(function_names, output_functions, sim)
-end
-
-function output_template(output::EnsembleSaver, savepoints, u0)
-    sol = (t=savepoints, u=[u0 for _ in savepoints])
-    out = output(sol, 0)[1]
-    for i in eachindex(out)
-        for j in eachindex(out[i])
-            out[i][j] = zero(out[i][j])
-        end
-    end
-    return out
-end
-
-function (output::EnsembleSaver)(sol, _)
-    out = [Any[] for _ in 1:length(sol.t)]
-    for (i, (t, u)) in enumerate(zip(sol.t, sol.u))
-        sizehint!(out[i], length(output.function_names)+1)
-        push!(out[i], t)
-        evaluate_output!(out[i], u, t, output.sim, output.output_functions...)
-    end
-    return (out, false)
-end
+using ..InitialConditions: QuantisedDiatomic
 
 """
-    create_saving_callback(quantities::NTuple{N, Symbol}; saveat=[]) where {N}
+    OutputVelocity(sol, i)
 
-Get the `SavingCallback` that will populate `saved_values` with the result obtained
-by evaluating the functions provided in `function_names`.
+Output the velocity at each timestep during the trajectory.
 """
-function create_saving_callback(function_names::NTuple{N, Symbol}; saveat=[]) where {N}
-    saved_values = SavedValues(Float64, Vector{Any})
-    saving_function = OutputSaver(function_names)
-    SavingCallback(saving_function, saved_values; saveat=saveat), saved_values
-end
-
-struct OutputSaver{N,F}
-    function_names::NTuple{N, Symbol}
-    output_functions::F
-end
+OutputVelocity(sol, i) = [copy(get_velocities(u)) for u in sol.u]
+export OutputVelocity
 
 """
-    OutputSaver(function_names::NTuple{N, Symbol}) where {N}
+    OutputCentroidVelocity(sol, i)
 
-Used to obtain the outputs for all functions given in `function_names`.
+Output the velocity of the ring polymer centroid at each timestep during the trajectory. 
 """
-function OutputSaver(function_names::NTuple{N, Symbol}) where {N}
-    output_functions = tuple([getfield(DynamicsOutputs, f) for f in function_names]...)
-    OutputSaver(function_names, output_functions)
-end
+OutputCentroidVelocity(sol, i) = [get_centroid(get_velocities(u)) for u in sol.u]
+export OutputCentroidVelocity
 
 """
-    (output::OutputSaver)(u, t, integrator)
+    OutputPosition(sol, i)
 
-Evaluates every function listed in `output.function_names` and returns all the results.
+Output the position at each timestep during the trajectory.
 """
-function (output::OutputSaver)(u, t, integrator)
-    out = Any[]
-    sizehint!(out, length(output.function_names))
-    evaluate_output!(out, u, t, integrator.p, output.output_functions...)
-    return out
-end
+OutputPosition(sol, i) = [copy(get_positions(u)) for u in sol.u]
+export OutputPosition
 
 """
-Used to recursively evaluate every function for the [`OutputSaver`](@ref). 
+    OutputCentroidPosition(sol, i)
 
-See here for a description of why it is written like this: 
-https://stackoverflow.com/questions/55840333/type-stability-for-lists-of-closures
+Output the position of the ring polymer centroid at each timestep during the trajectory.
 """
-function evaluate_output!(out, u, t, sim, f::F, output_functions...) where {F}
-    push!(out, f(u, t, sim))
-    return evaluate_output!(out, u, t, sim, output_functions...)
-end
-evaluate_output!(out, u, t, sim) = out
-
-export force
-export velocity
-export position
-export centroid_position
-export potential
-export hamiltonian
-export kinetic
-export u
-export quantum_subsystem
-export state
-export noise
-export population
-export adiabatic_population
-export friction
-
-"Get the force"
-force(u, t, sim) = -copy(sim.calculator.derivative)
-
-"Get the velocity"
-velocity(u, t, sim) = copy(get_velocities(u))
-
-"Get the velocity of the ring polymer centroid"
-centroid_velocity(u, t, sim) = get_centroid(get_velocities(u))
-
-"Get the position"
-position(u, t, sim) = copy(get_positions(u))
-
-"Get the position of the ring polymer centroid"
-centroid_position(u, t, sim) = get_centroid(get_positions(u))
-
-"Evaluate the potential from the model"
-potential(u, t, sim) = DynamicsUtils.classical_potential_energy(sim, u)
-
-"Evaluate the classical Hamiltonian"
-hamiltonian(u, t, sim) = DynamicsUtils.classical_hamiltonian(sim, u)
-
-"Evaluate the classical kinetic energy"
-kinetic(u, t, sim) = DynamicsUtils.classical_kinetic_energy(sim, get_velocities(u))
-
-"Get all the dynamics variables. This is the default"
-u(u, t, sim) = copy(u)
-u(u::ArrayPartition, t, sim) = ComponentVector(v=copy(get_velocities(u)), r=copy(get_positions(u)))
+OutputCentroidPosition(sol, i) = [get_centroid(get_position(u)) for u in sol.u]
+export OutputCentroidPosition
 
 """
-Get the quantum subsystem of the dynamics variables.
-Requires that `DynamicsUtils.get_quantum_subsystem` is implemented for your chosen method.
-"""
-quantum_subsystem(u, t, sim) = copy(get_quantum_subsystem(u))
+    OutputPotentialEnergy(sol, i)
 
-mapping_position(u, t, sim) = copy(DynamicsUtils.get_mapping_positions(u))
-mapping_momentum(u, t, sim) = copy(DynamicsUtils.get_mapping_momenta(u))
+Output the adiabatic potential energy at each timestep during the trajectory.
+"""
+OutputPotentialEnergy(sol, i) = DynamicsUtils.classical_potential_energy.(sol.prob.p, sol.u)
+export OutputPotentialEnergy
 
 """
-Get the currently occupied state from the dynamics variables.
+    OutputTotalEnergy(sol, i)
+
+Evaluate the classical Hamiltonian at each timestep during the trajectory.
+"""
+OutputTotalEnergy(sol, i) = DynamicsUtils.classical_hamiltonian.(sol.prob.p, sol.u)
+export OutputTotalEnergy
+
+"""
+    OutputKineticEnergy(sol, i)
+
+Evaluate the classical kinetic energy at each timestep during the trajectory.
+"""
+OutputKineticEnergy(sol, i) = DynamicsUtils.classical_kinetic_energy.(sol.prob.p, sol.u)
+export OutputKineticEnergy
+
+"""
+    OutputDynamicsVariables(sol, i)
+
+Output all of the dynamics variables at each timestep during the trajectory.
+"""
+OutputDynamicsVariables(sol, i) = copy.(sol.u)
+export OutputDynamicsVariables
+
+"""
+    OutputQuantumSubsystem(sol, i)
+
+Output the quantum subsystem at each timestep during the trajectory.
+Usually this will refer to a wavefunction or density matrix but will depend on the particular dynamics method.
+"""
+OutputQuantumSubsystem(sol, i) = [copy(get_quantum_subsystem(u)) for u in sol.u]
+export OutputQuantumSubsystem
+
+"""
+    OutputMappingPosition(sol, i)
+
+Output the position mapping variables at each timestep during the trajectory.
+"""
+OutputMappingPosition(sol, i) = [copy(DynamicsUtils.get_mapping_positions(u)) for u in sol.u]
+export OutputMappingPosition
+
+"""
+    OutputMappingMomentum(sol, i)
+
+Output the momentum mapping variable at each timestep during the trajectory.
+"""
+OutputMappingMomentum(sol, i) = [copy(DynamicsUtils.get_mapping_momenta(u)) for u in sol.u]
+export OutputMappingMomentum
+
+"""
+    OutputDiscreteState(sol, i)
+
+Output the discrete state variable at each timestep during the trajectory.
+This is used for surface hopping simulations and returns the variable that determines the currently occupied adiabatic state.
+
 Requires that the dynamics variable has a field `state`.
-Currently this is for surface hopping methods only.
-Use [`population`](@ref) or [`adiabatic_population`](@ref) for most other methods.
+
+Use [`OutputDiabaticPopulation`](@ref) or [`OutputAdiabaticPopulation`](@ref) to get the population estimators.
 """
-state(u, t, sim) = copy(u.state)
+OutputDiscreteState(sol, i) = [copy(u.state) for u in sol.u]
+export OutputDiscreteState
 
-"Evaluate the diabatic population"
-population(u, t, sim) = Estimators.diabatic_population(sim, u)
-total_population(u, t, sim) = sum(Estimators.diabatic_population(sim, u))
+"""
+    OutputDiabaticPopulation(sol, i)
 
-"Evaluate the adiabatic population"
-adiabatic_population(u, t, sim) = Estimators.adiabatic_population(sim, u)
+Output the diabatic population at each timestep during the trajectory.
+"""
+OutputDiabaticPopulation(sol, i) = Estimators.diabatic_population.(sol.prob.p, sol.u)
+export OutputDiabaticPopulation
+
+"""
+    OutputTotalDiabaticPopulation(sol, i)
+
+Output the total diabatic population at eah timestep during the trajectory.
+"""
+OutputTotalDiabaticPopulation(sol, i) = sum.(Estimators.diabatic_population(sol.prob.p, sol.u))
+export OutputTotalDiabaticPopulation
+
+"""
+    OutputAdiabaticPopulation(sol, i)
+
+Output the adiabatic population at each timestep during the trajectory.
+"""
+OutputAdiabaticPopulation(sol, i) = Estimators.adiabatic_population.(sol.prob.p, sol.u)
+export OutputAdiabaticPopulation
+
+"""
+    OutputTotalAdiabaticPopulation(sol, i)
+
+Output the total adiabatic population at each timestep during the trajectory.
+"""
+OutputTotalAdiabaticPopulation(sol, i) = sum.(Estimators.adiabatic_population.(sol.prob.p, sol.u))
+export OutputTotalAdiabaticPopulation
+
+"""
+Output the end point of each trajectory.
+"""
+OutputFinal(sol, i) = last(sol.u)
+export OutputFinal
+
+"""
+Output a 1 if the molecule has dissociated, 0 otherwise.
+"""
+struct OutputDissociation{T}
+    "The maximum distance at which the two atoms can be considered bonded."
+    distance::T
+    "The indices of the two atoms in the molecule of interest."
+    atom_indices::Tuple{Int,Int}
+    OutputDissociation(distance, atom_indices) = new{typeof(distance)}(austrip(distance), atom_indices)
+end
+export OutputDissociation
+
+function (output::OutputDissociation)(sol, i)
+    R = DynamicsUtils.get_positions(last(sol.u))
+    dissociated = norm(R[:,output.atom_indices[1]] .- R[:,output.atom_indices[2]]) > output.distance
+    return dissociated ? 1 : 0
+end
+
+"""
+Output the vibrational and rotational quantum numbers of the final image.
+"""
+struct OutputQuantisedDiatomic{S,H,V}
+    sim::S
+    height::H
+    normal_vector::V
+end
+OutputQuantisedDiatomic(sim; height=10, normal_vector=[0, 0, 1]) = OutputQuantisedDiatomic(sim, height, normal_vector)
+export OutputQuantisedDiatomic
+
+function (output::OutputQuantisedDiatomic)(sol, i)
+    final = last(sol.u) 
+    ν, J = QuantisedDiatomic.quantise_diatomic(output.sim,
+        DynamicsUtils.get_velocities(final), DynamicsUtils.get_positions(final);
+        height=output.height, normal_vector=output.normal_vector)
+    return (ν, J)
+end
+
+"""
+Output a `ComponentVector` with fields `reflection` and `transmission` containing
+the probability of the outcome.
+Each index in the arrays refers to the adiabatic state.
+"""
+struct OutputStateResolvedScattering1D{S}
+    sim::S
+    type::Symbol
+end
+function (output::OutputStateResolvedScattering1D)(sol, i)
+    final = last(sol.u) # get final configuration from trajectory
+    if output.type == :adiabatic
+        populations = Estimators.adiabatic_population(output.sim, final)
+    elseif output.type == :diabatic
+        populations = Estimators.diabatic_population(output.sim, final)
+    else
+        throw(ArgumentError("$(output.type) not recognised.
+            Only `:diabatic` or `:adiabatic` accepted."))
+    end
+    output = ComponentVector(
+        reflection=zeros(NQCModels.nstates(output.sim)),
+        transmission=zeros(NQCModels.nstates(output.sim))
+    )
+    x = DynamicsUtils.get_positions(final)[1]
+    if x > 0 # If final position past 0 then we count as transmission 
+        output.transmission .= populations
+    else # If final position left of 0 then we count as reflection
+        output.reflection .= populations
+    end
+    return output
+end
+export OutputStateResolvedScattering1D
 
 end # module

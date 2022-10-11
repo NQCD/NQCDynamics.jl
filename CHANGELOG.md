@@ -1,5 +1,11 @@
 # NQCDynamics.jl changelog
 
+## Version `v0.12.0`
+
+- ![BREAKING][badge-breaking] Merged `run_trajectory` and `run_ensemble` into `run_dynamics` [#286][github-286]
+- ![BREAKING][badge-enhancement] Output from `run_dynamics` is a `Dictionary` from `Dictionaries.jl` [#286][github-286]
+- ![enhancement][badge-enhancement] `FileReduction(filename)` allows for output to be stored in HDF5 format [#286][github-286]
+
 ## Version `v0.11.0`
 
 - ![Maintenance][badge-maintenance] Moved `NonadiabaticDistributions` to [NQCDistributions.jl]() [#275][github-275]
@@ -7,6 +13,7 @@
 - ![BREAKING][badge-breaking] `SingleState`, `ElectronicPopulation` renamed to `PureState`, `MixedState` [#275][github-275]
 - ![enhancement][badge-enhancement] Created changelog!
 
+[github-286]: ]https://github.com/NQCD/NQCDynamics.jl/pull/286
 [github-275]: https://github.com/NQCD/NQCDynamics.jl/pull/275
 
 [badge-breaking]: https://img.shields.io/badge/BREAKING-red.svg

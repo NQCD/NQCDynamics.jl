@@ -227,6 +227,6 @@ end
 function DynamicsUtils.classical_hamiltonian(sim::Simulation{<:FSSH}, u)
     kinetic = DynamicsUtils.classical_kinetic_energy(sim, DynamicsUtils.get_velocities(u))
     eigs = Calculators.get_eigen(sim.calculator, DynamicsUtils.get_positions(u))
-    potential = eigs.values[sim.method.state]
+    potential = eigs.values[u.state]
     return kinetic + potential
 end

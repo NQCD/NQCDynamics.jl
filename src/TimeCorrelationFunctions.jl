@@ -36,7 +36,7 @@ function (correlation::TimeCorrelationFunction)(sol, _)
         correlate!(out[i], normalisation, initial_value, final_value, correlation)
     end
 
-    return (out, false)
+    return out
 end
 
 evaluate_normalisation(sim::AbstractSimulation, correlation::TimeCorrelationFunction) = 1

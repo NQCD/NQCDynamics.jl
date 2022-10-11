@@ -70,19 +70,19 @@ outputted and have selected a timestep `dt`.
 Since the default algorithm is a fixed timestep algorithm an error will be thrown if a
 timestep is not provided.
 ```@example langevin
-traj = run_trajectory(u, (0.0, 2000.0), sim; output=(:position, :velocity), dt=0.1)
+traj = run_dynamics(sim, (0.0, 2000.0), u; output=(OutputPosition, OutputVelocity), dt=0.1)
 ```
 
 Here, we plot the positions of our two atoms throughout the simulation.
 ```@example langevin
 using Plots
-plot(traj, :position, label=["Hydrogen" "Carbon"], legend=true)
+plot(traj, :OutputPosition, label=["Hydrogen" "Carbon"], legend=true)
 ```
 
 We next plot the velocities. Notice how the carbon atom with its heavier mass has a smaller
 magnitude throughout.
 ```@example langevin
-plot(traj, :velocity, label=["Hydrogen" "Carbon"], legend=true)
+plot(traj, :OutputVelocity, label=["Hydrogen" "Carbon"], legend=true)
 ```
 
 Using the configurations from the Langevin simulation we can obtain expectation values along
@@ -98,13 +98,13 @@ as simple as possible.
 Let's find the expectation for the potential energy during our simulation.
 This is the potential energy of the final configuration in the simulation:
 ```@repl langevin
-Estimators.potential_energy(sim, traj.position[end])
+Estimators.potential_energy(sim, traj[:OutputPosition][end])
 ```
 We could evaluate this for every configuration and average it manually.
 Fortunately however, we have the [`@estimate`](@ref Estimators.@estimate) macro that
 will do this for us:
 ```@repl langevin
-Estimators.@estimate potential_energy(sim, traj.position)
+Estimators.@estimate potential_energy(sim, traj[:OutputPosition])
 ```
 
 !!! tip
@@ -118,7 +118,7 @@ Estimators.@estimate potential_energy(sim, traj.position)
 
 Similarly, we can evaluate the kinetic energy expectation with:
 ```@repl langevin
-Estimators.@estimate kinetic_energy(sim, traj.velocity)
+Estimators.@estimate kinetic_energy(sim, traj[:OutputVelocity])
 ```
 Again, this takes a similar value since the total energy is evenly split between the kinetic
 and potential for a classical harmonic system.

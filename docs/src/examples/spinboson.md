@@ -54,20 +54,19 @@ ehrenfest = Simulation{Ehrenfest}(atoms, model)
 
 saveat = 0:0.1:20
 output = TimeCorrelationFunctions.PopulationCorrelationFunction(fssh, Diabatic())
-u_init = [zeros(2,2) for i=1:length(saveat)]
-ensemble_fssh = run_ensemble(fssh, (0.0, 20.0), distribution;
-    saveat=saveat, trajectories=100, output, reduction=:mean, u_init=copy(u_init))
+ensemble_fssh = run_dynamics(fssh, (0.0, 20.0), distribution;
+    saveat=saveat, trajectories=100, output, reduction=MeanReduction())
 output = TimeCorrelationFunctions.PopulationCorrelationFunction(ehrenfest, Diabatic())
-ensemble_ehrenfest = run_ensemble(ehrenfest, (0.0, 20.0), distribution;
-    saveat=saveat, trajectories=100, output, reduction=:mean, u_init=copy(u_init))
+ensemble_ehrenfest = run_dynamics(ehrenfest, (0.0, 20.0), distribution;
+    saveat=saveat, trajectories=100, output, reduction=MeanReduction())
 nothing # hide
 ```
 
 Here, we can see the population difference between the two states.
 ```@example spinboson
 using Plots
-plot(saveat, [p[1,1] - p[1,2] for p in ensemble_fssh], label="FSSH")
-plot!(saveat, [p[1,1] - p[1,2] for p in ensemble_ehrenfest], label="Ehrenfest")
+plot(saveat, [p[1,1] - p[1,2] for p in ensemble_fssh[:PopulationCorrelationFunction]], label="FSSH")
+plot!(saveat, [p[1,1] - p[1,2] for p in ensemble_ehrenfest[:PopulationCorrelationFunction]], label="Ehrenfest")
 xlabel!("Time /a.u.")
 ylabel!("Population difference")
 ```

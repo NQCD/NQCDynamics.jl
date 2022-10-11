@@ -1,14 +1,14 @@
-using RecipesBase
-using TypedTables: Table
+using RecipesBase: RecipesBase
+using Dictionaries: Dictionary
 
-@recipe function f(table::Table, quantity::Symbol)
+RecipesBase.@recipe function f(dict::Dictionary, quantity::Symbol)
     xguide --> "t"
     yguide --> String(quantity)
 
-    for i in eachindex(eval(:($table.$quantity[1])))
-        @series begin
+    for i in eachindex(dict[quantity][1])
+        RecipesBase.@series begin
             legend --> :false
-            table.t, eval(:([value[$i] for value in $table.$quantity]))
+            dict[:Time], [value[i] for value in dict[quantity]]
         end
     end
 end

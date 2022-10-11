@@ -26,8 +26,6 @@ export DynamicsUtils
 include("Estimators.jl")
 export Estimators
 
-include("DynamicsOutputs.jl")
-
 include("TimeCorrelationFunctions.jl")
 export TimeCorrelationFunctions
 
@@ -40,5 +38,8 @@ export InitialConditions
 include("Ensembles/Ensembles.jl")
 export Ensembles
 @reexport using .Ensembles
+
+include("DynamicsOutputs.jl")
+@reexport using .DynamicsOutputs
 
 end # module

@@ -97,14 +97,14 @@ atoms = Atoms(2)
         @test ΔKE ≈ -ΔE rtol=1e-3 # Test for energy conservation
     end
 
-    @testset "run_trajectory" begin
+    @testset "run_dynamics" begin
         atoms = Atoms(2000)
         sim = Simulation{FSSH}(atoms, NQCModels.TullyModelTwo())
         v = hcat(100 / 2000)
         r = hcat(-10.0)
         u = DynamicsVariables(sim, v, r, PureState(1, Adiabatic()))
-        solution = run_trajectory(u, (0.0, 500.0), sim, output=(:hamiltonian, :state), reltol=1e-6)
-        @test solution.hamiltonian[1] ≈ solution.hamiltonian[end] rtol=1e-2
+        solution = run_dynamics(sim, (0.0, 500.0), u, output=OutputTotalEnergy, reltol=1e-6)
+        @test solution[:OutputTotalEnergy][1] ≈ solution[:OutputTotalEnergy][end] rtol=1e-2
     end
 end
 
@@ -163,18 +163,18 @@ end
         @test ΔKE ≈ -sum(ΔE) rtol=1e-3 # Test for energy conservation
     end
 
-    @testset "run_trajectory" begin
+    @testset "run_dynamics" begin
         atoms = Atoms(2000)
         sim = RingPolymerSimulation{FSSH}(atoms, TullyModelTwo(), 5; temperature=0.01)
         v = fill(100 / 2000, size(sim))
         r = fill(-10.0, size(sim)) .+ randn(1,1,5)
         u = DynamicsVariables(sim, v, r, PureState(1, Adiabatic()))
         seed!(1)
-        solution = run_trajectory(u, (0.0, 1000.0), sim, output=(:hamiltonian), dt=0.1)
+        solution = run_dynamics(sim, (0.0, 1000.0), u, output=OutputTotalEnergy, dt=0.1)
         seed!(1)
-        solution2 = run_trajectory(u, (0.0, 1000.0), sim, output=(:hamiltonian), algorithm=Tsit5(), abstol=1e-10, reltol=1e-10, saveat=0:0.1:1000.0)
+        solution2 = run_dynamics(sim, (0.0, 1000.0), u, output=OutputTotalEnergy, algorithm=Tsit5(), abstol=1e-10, reltol=1e-10, saveat=0:0.1:1000.0)
         # Ring polymer Hamiltonian is not strictly conserved during hoppping
-        @test solution.hamiltonian[1] ≈ solution.hamiltonian[end] rtol=1e-2
+        @test solution[:OutputTotalEnergy][1] ≈ solution[:OutputTotalEnergy][end] rtol=1e-2
     end
 
 end

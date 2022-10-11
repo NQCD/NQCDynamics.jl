@@ -1,7 +1,6 @@
 using NQCDynamics
 using Test
 using RecursiveArrayTools: ArrayPartition
-using ComponentArrays: ComponentVector
 
 atoms = Atoms([:H])
 model = NQCModels.Harmonic()
@@ -13,30 +12,34 @@ distribution = DynamicalDistribution(positions, velocities, (1, 1))
 u0 = rand(distribution)
 tspan = (0.0, 10.0)
 
-@testset "run_ensemble" for reduction in (:append, :sum, :mean)
-    out = run_ensemble(sim, tspan, distribution; reduction,
-        output=(:position, :velocity, :hamiltonian), dt=1, trajectories=10)
-    if (reduction === :sum) || (reduction === :mean)
-        @test out.t == 0.0:10.0
-        @test out.position isa Vector{<:AbstractMatrix}
-        @test out.velocity isa Vector{<:AbstractMatrix}
-        @test out.hamiltonian isa Vector{<:Number}
-    else
-        @test all(x -> x == 0.0:10.0, (traj.t for traj in out))
-        @test all(x -> x isa Vector{<:AbstractMatrix}, (traj.position for traj in out))
-        @test all(x -> x isa Vector{<:AbstractMatrix}, (traj.velocity for traj in out))
-        @test all(x -> x isa Vector{<:Number}, (traj.hamiltonian for traj in out))
+@testset "run_dynamics" for reduction in (
+    AppendReduction(), MeanReduction(), SumReduction(), FileReduction("test.h5")
+)
+    out = run_dynamics(sim, tspan, distribution; reduction,
+        output=(OutputPosition, OutputVelocity, OutputTotalEnergy), dt=1, trajectories=10)
+    if (reduction isa MeanReduction) || (reduction isa SumReduction)
+        reduction isa SumReduction && @test out[:Time] == 0.0:10.0:100.0
+        reduction isa MeanReduction && @test out[:Time] == 0.0:10.0
+        @test out[:OutputPosition] isa Vector{<:AbstractMatrix}
+        @test out[:OutputVelocity] isa Vector{<:AbstractMatrix}
+        @test out[:OutputTotalEnergy] isa Vector{<:Number}
+    elseif (reduction isa AppendReduction)
+        @test all(x -> x == 0.0:10.0, (traj[:Time] for traj in out))
+        @test all(x -> x isa Vector{<:AbstractMatrix}, (traj[:OutputPosition] for traj in out))
+        @test all(x -> x isa Vector{<:AbstractMatrix}, (traj[:OutputVelocity] for traj in out))
+        @test all(x -> x isa Vector{<:Number}, (traj[:OutputTotalEnergy] for traj in out))
     end
 end
 
-@testset "run_ensemble" begin
-    out = run_ensemble(sim, tspan, distribution;
-        output=Ensembles.OutputFinal(), dt=1, trajectories=10, reduction=:append)
-    @test out isa Vector{<:ArrayPartition}
+@testset "run_dynamics" begin
+    out = run_dynamics(sim, tspan, distribution;
+        output=OutputFinal, dt=1, trajectories=10, reduction=AppendReduction())
+    final = [o[:OutputFinal] for o in out]
+    @test final isa Vector{<:ArrayPartition}
 end
 
-@testset "run_ensemble, reduction=$reduction" for reduction ∈ (:sum, :mean)
-    out = run_ensemble(sim, tspan, distribution;
-        output=Ensembles.OutputFinal(), dt=1, trajectories=10, reduction=reduction, u_init=u0)
-    @test out isa ComponentVector
+@testset "run_dynamics, reduction=$reduction" for reduction ∈ (SumReduction(), MeanReduction())
+    out = run_dynamics(sim, tspan, distribution;
+        output=OutputFinal, dt=1, trajectories=10, reduction=reduction)
+    @test out[:OutputFinal] isa ArrayPartition
 end

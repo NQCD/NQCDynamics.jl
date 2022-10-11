@@ -74,7 +74,7 @@ Now we can run the simulation, for which we use the time interval 0.0 to 500.0 a
 step of `dt = 2.5`:
 ```@example rpmd
 dt = 2.5
-traj = run_trajectory(u, (0.0, 500.0), sim; output=(:position), dt=dt)
+traj = run_dynamics(sim, (0.0, 500.0), u; output=OutputPosition, dt=dt)
 nothing # hide
 ```
 
@@ -87,7 +87,7 @@ to its two neighbours.
 ```@example rpmd
 using CairoMakie
 
-rs = traj.position
+rs = traj[:OutputPosition]
 
 index = Observable(1)
 xs = @lift(rs[$index][1,1,:])
@@ -100,7 +100,7 @@ lines!(close_loop_x, close_loop_y)
 xlims!(-3, 3)
 ylims!(-3, 3)
 
-timestamps = 1:length(traj.position)
+timestamps = 1:length(traj[:OutputPosition])
 filepath = "../../assets/figures/rpmd.mp4" # hide
 record(fig, filepath, timestamps;
         framerate = 30) do i

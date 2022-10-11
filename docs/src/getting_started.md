@@ -219,16 +219,16 @@ z = DynamicsVariables(sim, randn(size(sim)), randn(size(sim)))
 nothing # hide
 ```
 
-Now, we can finally run the trajectory using the `run_trajectory` function.
-This takes three positional arguments: the dynamics variables `z`, the time span
-we want to solve for `tspan`, and the simulation parameters `sim`.
+Now, we can finally run the trajectory using the `run_dynamics` function.
+This takes three positional arguments: the simulation parameters `sim,  the time span
+we want to solve for `tspan`, and the dynamics variables `z`.
 For classical dynamics we also provide a timestep `dt` since we're using the
 `VelocityVerlet` algorithm by default.
 
 !!! note "Integration algorithms"
 
     Each method will default to an appropriate integration algorithm though it is possible
-    to specify via a keyword argument to [`run_trajectory`](@ref) if an alternative
+    to specify via a keyword argument to [`run_dynamics`](@ref) if an alternative
     algorithm is preferred.
     Refer to the [dynamics documentation](@ref dynamicssimulations) for more information.
 
@@ -238,43 +238,39 @@ A list of the available quantities can be found [here](@ref DynamicsOutputs).
 
 !!! tip "Output format"
 
-    `run_trajectory` returns a `Table` from `TypedTables.jl` that has columns containing
-    the time and the output quantities saved at each time.
-    By default, it outputs the value of the dynamics variables into the field `u`.
+    `run_dynamics` returns a `Dictionary` from `Dictionaries.jl` that has entries containing
+    the time and the output quantities saved at each time step.
 
 ```@example classical
 tspan = (0.0, 50.0)
-solution = run_trajectory(z, (0.0, 50.0), sim;
-                                   dt=0.1, output=(:position, :velocity))
+solution = run_dynamics(sim, (0.0, 50.0), z;
+                                   dt=0.1, output=(OutputPosition, OutputVelocity))
 ```
 
-Here you can see the output table with columns for the time and the output quantities
-we specified.
+Here you can see the output containing the time steps and the output quantities we specified.
 These can be accessed directly as shown here:
 ```@repl classical
-solution.t
-solution.position
+solution[:Time]
+solution[:OutputPosition]
 ```
 
 As with the models, we provide custom plotting recipes to quickly visualise the results
 before performing further analysis by manually accessing the fields of the solution table.
 To use these recipes, simply provide the solution to the `plot` function from `Plots.jl`
 and give the name of the output quantity as the second argument.
-This will only work if this quantity was specified in `run_trajectory`.
+This will only work if this quantity was specified in `run_dynamics`.
 ```@example classical
 using Plots # hide
-plot(solution, :position)
-plot!(solution, :velocity)
+plot(solution, :OutputPosition)
+plot!(solution, :OutputVelocity)
 ```
 
 ### Ensemble simulations
 
-So we have solved a single trajectory? That's pretty cool but wouldn't it be great
-if we could do a whole bunch at once? Well, fortunately we can thanks to the
-[`Ensembles`](@ref) module. 
-This provides [`run_ensemble`](@ref) which can be used to perform many trajectories in parallel.
-To learn more and see some examples, refer to the
-[Ensemble simulations](@ref ensembles) section.
+We have shown how to perform a single trajectory, but usually we are interested in performing many
+and calculating observables using statistical methods.
+Running more trajectories is as simple as providing the `trajectories` keyword to `run_dynamics`,
+but we'll go through this in more detail in the [Ensemble simulations section.](@ref ensembles)
 
 ### What's next?
 

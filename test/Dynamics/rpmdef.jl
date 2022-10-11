@@ -57,7 +57,7 @@ end
     v = RingPolymerArray(zeros(size(sim)))
     r = RingPolymerArray(zeros(size(sim)))
 
-    sol = run_trajectory(ArrayPartition(v,r), (0.0, 1e4), sim; dt=1, output=(:kinetic))
+    sol = run_dynamics(sim, (0.0, 1e4), ArrayPartition(v,r); dt=1, output=OutputKineticEnergy)
     # @test mean(sol.kinetic) ≈ austrip(100u"K") * length(sim.beads) rtol=5e-1
 end
 
@@ -69,5 +69,5 @@ end
     v = RingPolymerArray(zeros(size(sim)))
     r = RingPolymerArray(zeros(size(sim)))
 
-    sol = run_trajectory(ArrayPartition(v,r), (0.0, 1e2), sim; dt=1, output=(:kinetic))
+    sol = run_dynamics(sim, (0.0, 1e2), ArrayPartition(v,r); dt=1, output=OutputKineticEnergy)
 end

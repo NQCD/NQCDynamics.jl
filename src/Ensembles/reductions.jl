@@ -1,14 +1,32 @@
 using StatsBase: mean
-using NQCDynamics: TimeCorrelationFunctions, DynamicsOutputs
-using .TimeCorrelationFunctions: TimeCorrelationFunction
+using HDF5: HDF5
+using Dictionaries: Dictionary
 
 """
 Sum the outputs from each trajectory.
 """
-struct SumReduction end
+mutable struct SumReduction
+    initialised::Bool
+    SumReduction() = new(false)
+end
 function (reduction::SumReduction)(u, batch, I)
+    if !reduction.initialised
+        u = get_initial_u(batch)
+        reduction.initialised = true
+    end
     sum_outputs!(u, batch)
     return (u, false)
+end
+
+function get_initial_u(batch)
+    template = first(batch)
+    return Dictionary(keys(template), [zero.(t) for t in template])
+end
+
+function sum_outputs!(u, batch)
+    for b in batch
+        u .+= b
+    end
 end
 
 """
@@ -16,9 +34,15 @@ Average the outputs over all trajectories.
 """
 mutable struct MeanReduction
     counter::Int
+    initialised::Bool
+    MeanReduction() = new(0, false)
 end
 
 function (reduction::MeanReduction)(u, batch, I)
+    if !reduction.initialised
+        u = get_initial_u(batch)
+        reduction.initialised = true
+    end
     u .*= reduction.counter
     reduction.counter += length(batch)
     sum_outputs!(u, batch)
@@ -26,71 +50,41 @@ function (reduction::MeanReduction)(u, batch, I)
     return (u, false)
 end
 
-function sum_outputs!(u, batch)
-    for i=1:length(batch)
-        if size(batch[i]) != size(u)
-            @warn "DimensionMismatch encountered when reducing outputs. \
-                Discarding trajectory. Check `u_init` matches the output size."
-        else
-            u .+= batch[i]
-        end
-    end
-end
-
 struct AppendReduction end
 (::AppendReduction)(u,data,I) = (append!(u,data), false)
 
-"""
-    Reduction(reduction::Symbol)
+struct FileReduction
+    filename::String
 
-Converts reduction keyword into function that performs reduction.
-
-* `:discard` is used internally when using callbacks to save outputs instead.
-"""
-function Reduction(reduction::Symbol)
-    if reduction === :mean
-        return MeanReduction(0)
-    elseif reduction === :sum
-        return SumReduction()
-    elseif reduction === :append
-        return AppendReduction()
-    else
-        throw(ArgumentError("`reduction` $reduction not recognised."))
-    end
-end
-
-function get_u_init(::Union{MeanReduction, SumReduction}, saveat, stripped_kwargs, tspan, u0, output::TimeCorrelationFunction)
-    savepoints = get_savepoints(saveat, stripped_kwargs, tspan)
-    u_init = [TimeCorrelationFunctions.correlation_template(output) for _ ∈ savepoints]
-    return u_init
-end
-
-function get_u_init(::Union{MeanReduction, SumReduction}, saveat, stripped_kwargs, tspan, u0, output::DynamicsOutputs.EnsembleSaver)
-    savepoints = get_savepoints(saveat, stripped_kwargs, tspan)
-    u_init = DynamicsOutputs.output_template(output, savepoints, u0)
-    return u_init
-end
-
-function get_u_init(::Union{MeanReduction, SumReduction}, saveat, stripped_kwargs, tspan, u0, output)
-    return output_template(output, u0)
-end
-
-function get_u_init(::AppendReduction, saveat, stripped_kwargs, tspan, u0, output)
-    return nothing
-end
-
-function get_savepoints(saveat, stripped_kwargs, tspan)
-    if saveat != []
-        if saveat isa Number
-            savepoints = tspan[1]:saveat:tspan[2]
+    function FileReduction(filename::String)
+        splitname = splitext(filename)
+        ext = splitname[2]
+        if (ext == ".h5") || (ext == ".hdf5")
+            return new(filename)
         else
-            savepoints = saveat
+            filename = splitname[1] * ".h5"
+            return new(filename)
         end
-    elseif haskey(stripped_kwargs, :dt)
-        dt = stripped_kwargs[:dt]
-        savepoints = tspan[1]:dt:tspan[2]
-    else
-        throw(ArgumentError("Make sure to pass either `saveat` or `dt` as keyword arguments
-            to compute average/sum over many trajectories."))
     end
+end
+
+function (reduction::FileReduction)(u, batch, I)
+    HDF5.h5open(reduction.filename, "w") do file
+        for (i, trajectory_id) in enumerate(I)
+            trajectory_group = HDF5.create_group(file, "trajectory_$(trajectory_id)")
+            trajectory = batch[i]
+            for k in keys(trajectory)
+                value = trajectory[k]
+                if (value isa Array{<:Number}) || (value isa Number)
+                    trajectory_group[string(k)] = trajectory[k]
+                elseif (value isa Vector{<:Array})
+                    output = cat(value...; dims=3)
+                    trajectory_group[string(k)] = output
+                else
+                    throw(error("Cannot convert output type to HDF5 format"))
+                end
+            end
+        end
+    end
+    return ("Output written to $(reduction.filename).", false)
 end

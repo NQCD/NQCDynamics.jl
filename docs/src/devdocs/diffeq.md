@@ -14,7 +14,7 @@ This page details some of the features from DifferentialEquations.jl that we hav
 us to introduce extra code during the dynamics without needing to meddle with the
 integration code directly.
 On the developer side, [Callbacks] is the mechanism used for the saving in the
-[`run_trajectory`](@ref) function and the surface hopping procedure during FSSH.
+[`run_dynamics`](@ref) function and the surface hopping procedure during FSSH.
 The user can also write their own callbacks and give these to any of the dynamics functions
 to manipulate the progress of the dynamics or introduce their own saving mechanism.
 
@@ -36,20 +36,20 @@ sim = Simulation(atoms, model; cell=cell)
 
 z = DynamicsVariables(sim, hcat(1.0), zeros(1,1))
 
-solution = run_trajectory(z, (0.0, 300), sim; dt=0.1, output=:position)
-plot(solution, :position, label="No callbacks", legend=true)
+solution = run_dynamics(sim, (0.0, 300), z; dt=0.1, output=OutputPosition)
+plot(solution, :OutputPosition, label="No callbacks", legend=true)
 ```
 
 Now we can introduce callbacks and observe the difference:
 ```@example callbacks
-solution = run_trajectory(z, (0.0, 300), sim; callback=DynamicsUtils.CellBoundaryCallback(), dt=0.1, output=:position)
-plot!(solution, :position, label="Cell boundary" )
+solution = run_dynamics(sim, (0.0, 300), z; callback=DynamicsUtils.CellBoundaryCallback(), dt=0.1, output=OutputPosition)
+plot!(solution, :OutputPosition, label="Cell boundary" )
 
 using DiffEqBase: CallbackSet
 terminate(u, t, integrator) = t > 100
 callbacks = CallbackSet(DynamicsUtils.CellBoundaryCallback(), DynamicsUtils.TerminatingCallback(terminate))
-solution = run_trajectory(z, (0.0, 300), sim; callback=callbacks, dt=0.1, output=:position)
-plot!(solution, :position, label="Cell + termination")
+solution = run_dynamics(sim, (0.0, 300), z; callback=callbacks, dt=0.1, output=OutputPosition)
+plot!(solution, :OutputPosition, label="Cell + termination")
 ```
 See how the callbacks have altered the dynamics? The atom no longer leaves
 the simulation cell, and the termination caused the simulation to exit early. 

@@ -54,35 +54,35 @@ The output of this function takes the place of the `u` argument seen throughout
 [DifferentialEquations](https://diffeq.sciml.ai/stable/).
 
 With both the [`Simulation`](@ref) and [`DynamicsVariables`](@ref) in hand,
-the central function is [`run_trajectory`](@ref) which allows us to perform a single dynamics trajectory.
-[`run_trajectory`](@ref) takes the simulation parameters `sim` and the initial conditions `u0`, along with a time span `tspan`
+the central function is [`run_dynamics`](@ref) which allows us to perform a single dynamics trajectory.
+[`run_dynamics`](@ref) takes the simulation parameters `sim` and the initial conditions `u0`, along with a time span `tspan`
 that the trajectory will cover.
 
 ```@example dynamics
 tspan = (0.0, 2000.0)
-run_trajectory(u0, tspan, sim)
+run_dynamics(sim, tspan, u0; output=OutputDynamicsVariables)
 ```
 
-By default, we can see that the output contains both `t` and `u`. These are the time and dynamics variables
-respectively.
-By passing a `Tuple` to the `output` keyword argument we can ask for specific quantities.
+The output is a dictionary containing entries for `:Time` and our requested output quantity. 
+Output is a required keyword and the code will error unless at least one quantity is specified.
+By passing a `Tuple` to the `output` keyword argument we can ask for multiple quantities.
 
 ```@example dynamics
-out = run_trajectory(u0, tspan, sim; output=(:position, :adiabatic_population))
+out = run_dynamics(sim, tspan, u0; output=(OutputPosition, OutputAdiabaticPopulation))
 ```
 The quantities that are available are listed [here](@ref NQCDynamics).
-Adding more quantities requires that a new function is defined inside the [`DynamicsOutputs`](@ref NQCDynamics.DynamicsOutputs) module
-that has the same set of parameters as the existing quantities.
+More quantities can be added by defining new functions with the signature `f(sol, i)`.
+The first argument is the `DifferentialEquations.jl` solution object and the second is the trajectory index.
 
-This time we can see that the output contains only the quantities that we asked for.
+This time we can see that the output contains the two quantities that we asked for.
 
 ```@example dynamics
 using Plots
-plot(out, :position)
+plot(out, :OutputPosition)
 ```
 
 ```@example dynamics
-plot(out, :adiabatic_population)
+plot(out, :OutputAdiabaticPopulation)
 ```
 
 !!! note

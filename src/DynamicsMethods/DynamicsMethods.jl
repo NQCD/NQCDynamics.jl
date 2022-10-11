@@ -17,14 +17,12 @@ provided by `DifferentialEquations.jl`.
 module DynamicsMethods
 
 using DiffEqBase: DiffEqBase
-using TypedTables: TypedTables
 using UnitfulAtomic: austrip
 using Reexport: @reexport
 using OrdinaryDiffEq: OrdinaryDiffEq
 using ComponentArrays: ComponentVector
 
-using NQCDynamics: AbstractSimulation, Simulation, RingPolymerSimulation,
-    DynamicsOutputs
+using NQCDynamics: AbstractSimulation, Simulation, RingPolymerSimulation
 using NQCBase: austrip_kwargs
 
 export DynamicsVariables
@@ -71,51 +69,12 @@ classical dynamics.
 """
 DynamicsVariables(::AbstractSimulation, v, r) = ComponentVector(v=v, r=r)
 
+run_trajectory(args...; kwargs...) = throw(error("""
+`run_trajectory` has been replaced, use `run_dynamics` instead.
+`run_dynamics` unifies single trajectory and ensemble simulations into one function.
+Refer to the `run_dynamics` docstring for more information.
 """
-    run_trajectory(u0, tspan::Tuple, sim::AbstractSimulation;
-                   output=(:u,), saveat=[], algorithm=select_algorithm(sim), kwargs...)
-
-Solve a single trajectory starting from `u0` with a timespan `tspan`
-for the simulation `sim`.
-
-# Keyword arguments
-
-`output` specifies the quantities that should be saved during the dynamics simulation.
-The options for this keyword are any of the functions found in
-`src/DynamicsMethods/output.jl`.
-
-The rest of the keywords are the usual arguments for the `solve` function from
-`DifferentialEquations.jl`.
-It is possible to use `Unitful` quantities for any of the arguments since these are
-automatically converted to atomic units internally.
-
-# Output
-
-The function returns a `Table` from `TypedTables.jl` with columns for time `t` and
-every quantity specified in the `output` tuple.
-"""
-function run_trajectory(u0, tspan::Tuple, sim::AbstractSimulation;
-        output=(:u,), saveat=[], callback=nothing, algorithm=select_algorithm(sim),
-        kwargs...)
-
-    if !(output isa Tuple)
-        output = (output,)
-    end
-
-    problem = create_problem(u0, austrip.(tspan), sim)
-
-    saving_callback, vals = DynamicsOutputs.create_saving_callback(output; saveat=austrip.(saveat))
-    callback_set = DiffEqBase.CallbackSet(callback, saving_callback, get_callbacks(sim))
-    problem = DiffEqBase.remake(problem, callback=callback_set)
-
-    stripped_kwargs = austrip_kwargs(;kwargs...)
-    @info "Performing a single trajectory."
-    stats = @timed DiffEqBase.solve(problem, algorithm; stripped_kwargs...)
-    @info "Finished after $(stats.time) seconds."
-    @debug "Simulation details" algorithm=stats.value.alg defunction=problem.f
-    out = [(;zip(output, val)...) for val in vals.saveval]
-    TypedTables.Table(t=vals.t, out)
-end
+))
 
 include("ClassicalMethods/ClassicalMethods.jl")
 @reexport using .ClassicalMethods
