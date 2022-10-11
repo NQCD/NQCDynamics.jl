@@ -1,6 +1,6 @@
 
-# NumericUtils
+# Numerical utilities
 
 ```@autodocs
-Modules=[NQCDynamics.NumericUtils]
+Modules=[NQCDynamics.FastDeterminant]
 ```
