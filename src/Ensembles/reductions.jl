@@ -69,7 +69,7 @@ struct FileReduction
 end
 
 function (reduction::FileReduction)(u, batch, I)
-    HDF5.h5open(reduction.filename, "w") do file
+    HDF5.h5open(reduction.filename, "cw") do file
         for (i, trajectory_id) in enumerate(I)
             trajectory_group = HDF5.create_group(file, "trajectory_$(trajectory_id)")
             trajectory = batch[i]
