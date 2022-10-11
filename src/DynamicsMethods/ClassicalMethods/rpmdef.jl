@@ -43,11 +43,11 @@ function evaluate_friction!(Λ::AbstractArray{T,3}, sim::RingPolymerSimulation{<
         if sim.method.friction_method isa WideBandExact
             potential = Calculators.get_potential(sim.calculator, r)
             derivative = Calculators.get_derivative(sim.calculator, r)
-            fill_friction_tensor!(Λ[:,:,i], sim.method.friction_method, potential[i], derivative[:,:,i], r[:,:,i], μ, β)
+            fill_friction_tensor!(Λ[:,:,i], sim.method.friction_method, potential[i], derivative[:,:,i], r[:,:,i], μ)
         else
             ∂H = Calculators.get_adiabatic_derivative(sim.calculator, r)
             eigen = Calculators.get_eigen(sim.calculator, r)
-            fill_friction_tensor!(Λ[:,:,i], sim.method.friction_method, ∂H[:,:,i], eigen[i], r[:,:,i], μ, β)
+            fill_friction_tensor!(Λ[:,:,i], sim.method.friction_method, ∂H[:,:,i], eigen[i], r[:,:,i], μ)
         end
     end
     return Λ

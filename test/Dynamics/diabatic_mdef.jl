@@ -21,13 +21,13 @@ model = WideBandBath(thossmodel; step=ΔE, bandmin=-fld(nstates,2)*ΔE, bandmax=
     end
 
     σ = 20ΔE
-    sim = Simulation{DiabaticMDEF}(atoms, model; temperature=T, friction_method=ClassicalMethods.DirectQuadrature(model.ρ))
+    sim = Simulation{DiabaticMDEF}(atoms, model; temperature=T, friction_method=ClassicalMethods.DirectQuadrature(model.ρ, 1/T))
     friction_dq = fric.(x, sim)
-    sim = Simulation{DiabaticMDEF}(atoms, model; temperature=T, friction_method=ClassicalMethods.WideBandExact(model.ρ))
+    sim = Simulation{DiabaticMDEF}(atoms, model; temperature=T, friction_method=ClassicalMethods.WideBandExact(model.ρ, 1/T))
     friction_wb = fric.(x, sim)
-    sim = Simulation{DiabaticMDEF}(atoms, model; temperature=T, friction_method=ClassicalMethods.GaussianBroadening(σ))
+    sim = Simulation{DiabaticMDEF}(atoms, model; temperature=T, friction_method=ClassicalMethods.GaussianBroadening(σ, 1/T))
     friction_gb = fric.(x, sim)
-    sim = Simulation{DiabaticMDEF}(atoms, model; temperature=T, friction_method=ClassicalMethods.OffDiagonalGaussianBroadening(σ))
+    sim = Simulation{DiabaticMDEF}(atoms, model; temperature=T, friction_method=ClassicalMethods.OffDiagonalGaussianBroadening(σ, 1/T))
     friction_ongb = fric.(x, sim)
 
     @test friction_dq ≈ friction_wb rtol=1e-1
@@ -36,14 +36,14 @@ model = WideBandBath(thossmodel; step=ΔE, bandmin=-fld(nstates,2)*ΔE, bandmax=
 end
 
 @testset "Simulation{DiabaticMDEF}" begin
-    sim = Simulation{DiabaticMDEF}(atoms, model; temperature=T, friction_method=ClassicalMethods.WideBandExact(model.ρ))
+    sim = Simulation{DiabaticMDEF}(atoms, model; temperature=T, friction_method=ClassicalMethods.WideBandExact(model.ρ, 1/T))
     u = DynamicsVariables(sim, rand(1,1), rand(1,1))
     run_dynamics(sim, (0.0, 1.0), u; dt=0.1, output=OutputDynamicsVariables)
 end
 
 @testset "RingPolymerSimulation{DiabaticMDEF}" begin
     n_beads = 10
-    sim = RingPolymerSimulation{DiabaticMDEF}(atoms, model, n_beads; temperature=T, friction_method=ClassicalMethods.WideBandExact(model.ρ))
+    sim = RingPolymerSimulation{DiabaticMDEF}(atoms, model, n_beads; temperature=T, friction_method=ClassicalMethods.WideBandExact(model.ρ, 1/T))
     u = DynamicsVariables(sim, rand(1,1,n_beads), rand(1,1,n_beads))
     run_dynamics(sim, (0.0, 1.0), u; dt=0.1, output=OutputDynamicsVariables)
 end
