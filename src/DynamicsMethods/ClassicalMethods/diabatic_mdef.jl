@@ -59,30 +59,30 @@ gauss(x, σ) = exp(-0.5 * x^2 / σ^2) / (σ*sqrt(2π))
 gauss(x, friction_method::FrictionEvaluationMethod) = gauss(x, friction_method.σ)
 
 function evaluate_friction!(Λ::AbstractMatrix, sim::Simulation{<:DiabaticMDEF}, r::AbstractMatrix, t::Real)
-    β = 1/get_temperature(sim, t)
     μ = NQCModels.fermilevel(sim.calculator.model)
     if sim.method.friction_method isa WideBandExact
         potential = Calculators.get_potential(sim.calculator, r)
         derivative = Calculators.get_derivative(sim.calculator, r)
-        fill_friction_tensor!(Λ, sim.method.friction_method, potential, derivative, r, μ, β)
+        fill_friction_tensor!(Λ, sim.method.friction_method, potential, derivative, r, μ)
     else
         ∂H = Calculators.get_adiabatic_derivative(sim.calculator, r)
         eigen = Calculators.get_eigen(sim.calculator, r)
-        fill_friction_tensor!(Λ, sim.method.friction_method, ∂H, eigen, r, μ, β)
+        fill_friction_tensor!(Λ, sim.method.friction_method, ∂H, eigen, r, μ)
     end
     return Λ
 end
 
-function fill_friction_tensor!(Λ, friction_method::FrictionEvaluationMethod, ∂H, eigen, r, μ, β)
+function fill_friction_tensor!(Λ, friction_method::FrictionEvaluationMethod, ∂H, eigen, r, μ)
     for I in eachindex(r)
         for J in eachindex(r)
-            Λ[J,I] = friction_method(∂H[J], ∂H[I], eigen.values, μ, β)
+            Λ[J,I] = friction_method(∂H[J], ∂H[I], eigen.values, μ, friction_method.β)
         end
     end
 end
 
 struct GaussianBroadening{T} <: FrictionEvaluationMethod 
     σ::T
+    β::T
 end
 function (friction_method::GaussianBroadening)(∂Hᵢ, ∂Hⱼ, eigenvalues, μ, β)
     out = zero(eltype(eigenvalues))
@@ -99,6 +99,7 @@ end
 
 struct OffDiagonalGaussianBroadening{T} <: FrictionEvaluationMethod
     σ::T
+    β::T
 end
 function (friction_method::OffDiagonalGaussianBroadening)(∂Hᵢ, ∂Hⱼ, eigenvalues, μ, β)
     out = zero(eltype(eigenvalues))
@@ -120,6 +121,7 @@ end
 
 struct DirectQuadrature{T} <: FrictionEvaluationMethod
     ρ::T    
+    β::T
 end
 function (friction_method::DirectQuadrature)(∂Hᵢ, ∂Hⱼ, eigenvalues, μ, β)
     out = zero(eltype(eigenvalues))
@@ -132,6 +134,7 @@ end
 
 struct WideBandExact{T} <: FrictionEvaluationMethod
     ρ::T
+    β::T
 end
 function (friction_method::WideBandExact)(potential, ∂potentialᵢ, ∂potentialⱼ, μ, β)
     h = potential[1,1]
@@ -151,10 +154,10 @@ function (friction_method::WideBandExact)(potential, ∂potentialᵢ, ∂potenti
     return integral
 end
 
-function fill_friction_tensor!(Λ, friction_method::WideBandExact, potential, derivative, r, μ, β)
+function fill_friction_tensor!(Λ, friction_method::WideBandExact, potential, derivative, r, μ)
     for I in eachindex(r)
         for J in eachindex(r)
-            Λ[J,I] = friction_method(potential, derivative[J], derivative[I], μ, β)
+            Λ[J,I] = friction_method(potential, derivative[J], derivative[I], μ, friction_method.β)
         end
     end
 end
