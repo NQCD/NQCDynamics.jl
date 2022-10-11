@@ -158,10 +158,10 @@ end
     u = DynamicsVariables(sim, randn(1,1), randn(1,1))
     tspan = (0.0, 100.0)
     dt = 1.0
-    output = (:position, :velocity, :quantum_subsystem, :hamiltonian)
-    @time traj1 = run_trajectory(u, tspan, sim; dt, algorithm=DynamicsMethods.IntegrationAlgorithms.VerletwithElectronics(), output)
-    @time traj2 = run_trajectory(u, tspan, sim; algorithm=Tsit5(), saveat=tspan[1]:dt:tspan[2], output, reltol=1e-6, abstol=1e-6)
-    @time traj3 = run_trajectory(u, tspan, sim; dt, algorithm=DynamicsMethods.IntegrationAlgorithms.VerletwithElectronics2(MagnusMidpoint(krylov=false), dt=dt/5), output)
+    output = (OutputPosition, OutputVelocity, OutputQuantumSubsystem, OutputTotalEnergy)
+    @time traj1 = run_dynamics(sim, tspan, u; dt, algorithm=DynamicsMethods.IntegrationAlgorithms.VerletwithElectronics(), output)
+    @time traj2 = run_dynamics(sim, tspan, u; algorithm=Tsit5(), saveat=tspan[1]:dt:tspan[2], output, reltol=1e-6, abstol=1e-6)
+    @time traj3 = run_dynamics(sim, tspan, u; dt, algorithm=DynamicsMethods.IntegrationAlgorithms.VerletwithElectronics2(MagnusMidpoint(krylov=false), dt=dt/5), output)
 
     # We cannot compare these when hopping is happening since the trajectories will be different. 
 end
