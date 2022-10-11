@@ -8,7 +8,7 @@ using OrdinaryDiffEq
     prob_func(prob, i, repeat) = remake(prob,u0=[rand()])
     output = Ensembles.EnsembleSaver((OutputFinal,))
     ensemble = EnsembleProblem(prob, prob_func=prob_func, output_func=output, reduction=reduction)
-    sol = solve(ensemble, Tsit5(), trajectories=1e3, batch_size=20)
+    sol = solve(ensemble, Tsit5(), trajectories=1e3, batch_size=20, saveat=0.5)
     if reduction isa Ensembles.SumReduction
         @test sol.u[:OutputFinal][1] / 1e3 ≈ 0.5 * exp(1.01) rtol=1e-1
     else
