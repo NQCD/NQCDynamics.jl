@@ -78,7 +78,7 @@ function (reduction::FileReduction)(u, batch, I)
                 if (value isa Array{<:Number}) || (value isa Number)
                     trajectory_group[string(k)] = trajectory[k]
                 elseif (value isa Vector{<:Array})
-                    output = cat(value...; dims=3)
+                    output = reshape(reduce(hcat, value), size(value[1])..., :)
                     trajectory_group[string(k)] = output
                 else
                     throw(error("Cannot convert output type to HDF5 format"))
