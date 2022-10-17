@@ -111,12 +111,24 @@ function run_dynamics(
     end
 
     stats = @timed SciMLBase.solve(ensemble_problem, algorithm, ensemble_algorithm; trajectories, kwargs...)
-    @info "Finished after $(stats.time) seconds."
+    log_simulation_duration(stats.time)
 
     if trajectories == 1
         return stats.value.u[1]
     else
         return stats.value.u
+    end
+end
+
+function log_simulation_duration(duration_seconds)
+    if duration_seconds < 60
+        @info "Finished after $duration_seconds seconds."
+    elseif duration_seconds < 3600
+        duration_minutes = duration_seconds / 60
+        @info "Finished after $duration_minutes minutes."
+    else
+        duration_hours = duration_seconds / 3600
+        @info "Finished after $duration_hours hours."
     end
 end
 
