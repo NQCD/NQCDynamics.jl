@@ -296,15 +296,20 @@ function evaluate_hopping_probability!(sim::Simulation{<:AbstractIESH}, u, dt, r
 
     evaluate_v_dot_d!(sim, v, d)
 
-    estimate = estimate_maximum_probability(sim, prefactor)
-    estimate < random && return # Do not evaluate probability if maximum estimate too low
-
     @inbounds for n in eachelectron(sim)
         for m in unoccupied_states(sim)
+            estimate = prefactor * (1-real(Akk)) * abs(sim.method.v_dot_d[m,n])
+            estimate < random && continue
+
             copy!(proposed_state, sim.method.state)
             proposed_state[n] = m
+
             Akj = calculate_Akj(sim, S, ψ, det_current, proposed_state)
-            prob[m,n] = prefactor * real(Akj) * sim.method.v_dot_d[m,n]
+
+            probability = prefactor * real(Akj) * sim.method.v_dot_d[m,n]
+            prob[m,n] = probability
+
+            @assert probability < estimate # Ensure estimate ALWAYS overestimates
         end
     end
 
@@ -312,8 +317,6 @@ function evaluate_hopping_probability!(sim::Simulation{<:AbstractIESH}, u, dt, r
 
     maximum_probability = maximum(prob)
     maximum_probability > 0.8 && @warn "Hopping probability is large, consider reducing the time step" maximum_probability
-
-    @assert maximum_probability < estimate # Ensure estimate ALWAYS overestimates
 
     return nothing
 end
@@ -331,10 +334,6 @@ function evaluate_v_dot_d!(sim::Simulation{<:AbstractIESH}, v, d)
             end
         end
     end
-end
-
-function estimate_maximum_probability(sim::Simulation{<:AbstractIESH}, prefactor)
-    return sum(abs, sim.method.v_dot_d) * prefactor
 end
 
 "Equation 17 in Shenvi, Roy, Tully 2009. Uses equations 19 and 20."
