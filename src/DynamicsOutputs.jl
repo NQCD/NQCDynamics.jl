@@ -165,6 +165,20 @@ OutputFinal(sol, i) = last(sol.u)
 export OutputFinal
 
 """
+Output the total number of surface hops during the trajectory
+"""
+function OutputSurfaceHops(sol, i)::Int
+    nhops = 0
+    for i in 1:length(sol.u)-1
+        if sol.u[i].state != sol.u[i+1].state
+            nhops += 1
+        end
+    end
+    return nhops
+end
+export OutputSurfaceHops
+
+"""
 Output a 1 if the molecule has dissociated, 0 otherwise.
 """
 struct OutputDissociation{T}
