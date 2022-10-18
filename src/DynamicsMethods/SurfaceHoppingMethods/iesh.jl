@@ -298,7 +298,7 @@ function evaluate_hopping_probability!(sim::Simulation{<:AbstractIESH}, u, dt, r
 
     @inbounds for n in eachelectron(sim)
         for m in unoccupied_states(sim)
-            estimate = prefactor * (1-real(Akk)) * abs(sim.method.v_dot_d[m,n])
+            estimate = prefactor * abs(sim.method.v_dot_d[m,n]) # real(Akj) is always less than 1
             estimate < random && continue
 
             copy!(proposed_state, sim.method.state)
