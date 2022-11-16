@@ -34,10 +34,15 @@ Store a tuple of functions with the signature `f(sol)` where `sol` is a DiffEq s
 """
 struct EnsembleSaver{F<:Tuple}
     functions::F
+    savetime::Bool
 end
 
 function (output::EnsembleSaver)(sol, i)
-    out = Dictionary{Symbol,Any}([:Time], [sol.t])
+    if savetime
+        out = Dictionary{Symbol,Any}([:Time], [sol.t])
+    else
+        out = Dictionary{Symbol,Any}()
+    end
     return (evaluate_output_functions!(out, sol, i, output.functions...), false)
 end
 
@@ -84,6 +89,7 @@ function run_dynamics(
     ensemble_algorithm=SciMLBase.EnsembleSerial(),
     algorithm=DynamicsMethods.select_algorithm(sim),
     trajectories=1,
+    savetime=true,
     kwargs...
 )
 
@@ -100,7 +106,7 @@ function run_dynamics(
     u0 = sample_distribution(sim, distribution)
     problem = DynamicsMethods.create_problem(u0, tspan, sim)
 
-    output_func = EnsembleSaver(output)
+    output_func = EnsembleSaver(output, savetime)
 
     ensemble_problem = SciMLBase.EnsembleProblem(problem; prob_func, output_func, reduction)
 
