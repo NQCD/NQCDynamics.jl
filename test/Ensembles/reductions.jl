@@ -7,7 +7,7 @@ using HDF5
 @testset "$reduction" for reduction in (MeanReduction(), SumReduction())
     prob = ODEProblem((u,p,t) -> 1.01u, [0.5], (0.0,1.0))
     prob_func(prob, i, repeat) = remake(prob,u0=[rand()])
-    output = Ensembles.EnsembleSaver((OutputFinal,))
+    output = Ensembles.EnsembleSaver((OutputFinal,), true)
     ensemble = EnsembleProblem(prob, prob_func=prob_func, output_func=output, reduction=reduction)
     sol = solve(ensemble, Tsit5(), trajectories=1e3, batch_size=20, saveat=0.5)
     if reduction isa Ensembles.SumReduction
@@ -18,6 +18,7 @@ using HDF5
 end
 
 @testset "FileReduction" begin
+    rm("test.h5", force=true)
     reduction = FileReduction("test.h5")
 
     output = (OutputPosition, OutputTotalEnergy)
