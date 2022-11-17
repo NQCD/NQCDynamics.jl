@@ -38,7 +38,7 @@ struct EnsembleSaver{F<:Tuple}
 end
 
 function (output::EnsembleSaver)(sol, i)
-    if savetime
+    if output.savetime
         out = Dictionary{Symbol,Any}([:Time], [sol.t])
     else
         out = Dictionary{Symbol,Any}()
