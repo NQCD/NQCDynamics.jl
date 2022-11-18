@@ -1,5 +1,9 @@
 # NQCDynamics.jl changelog
 
+## Version `v0.12.1`
+
+- ![enhancement][badge-enhancement] Added Independent Electron Surface Hopping Method [#287][github-287]
+
 ## Version `v0.12.0`
 
 - ![BREAKING][badge-breaking] Merged `run_trajectory` and `run_ensemble` into `run_dynamics` [#286][github-286]
@@ -13,6 +17,7 @@
 - ![BREAKING][badge-breaking] `SingleState`, `ElectronicPopulation` renamed to `PureState`, `MixedState` [#275][github-275]
 - ![enhancement][badge-enhancement] Created changelog!
 
+[github-287]: https://github.com/NQCD/NQCDynamics.jl/pull/287
 [github-286]: https://github.com/NQCD/NQCDynamics.jl/pull/286
 [github-275]: https://github.com/NQCD/NQCDynamics.jl/pull/275
 
