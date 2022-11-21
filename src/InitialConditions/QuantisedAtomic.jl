@@ -1,16 +1,12 @@
 """
     QuantisedAtomic
-
 This is a simplier version of "QuantisedDiatomic.jl", for dealing with an atom rather than a molecule.
 This module exports two user facing functions:
-
 - `generate_configurations`
     Creates a set of velocities and positions for an atom with specified
     translation energy
-
 - `quantise_diatomic`
     Obtains translational energies for an atom with a given set of velocities and positions.
-
 """
 module QuantisedAtomic
 
@@ -58,12 +54,9 @@ Base.broadcastable(p::GenerationParameters) = Ref(p)
 """
     generate_configurations(sim, ν, J; samples=1000, height=10, normal_vector=[0, 0, 1],
         translational_energy=0, direction=[0, 0, -1], position=[0, 0, height])
-
 Generate positions and momenta for given quantum numbers
-
 `translational_energy`, `direction` and `position` specify the kinetic energy in
 a specific direction with the molecule placed with centre of mass at `position`.
-
 Keyword arguments `height` and `normal_vector` become relevant if the potential
 requires specific placement of the molecule.
 These allow the molecule to be placed at a distance `height` in the direction
@@ -104,7 +97,6 @@ end
 
 """
     separate_slab_and_molecule(atom_indices, r)
-
 Get the coordinates of the molecule and slab separately.
 """
 function separate_slab_and_molecule(atom_indices, r)
