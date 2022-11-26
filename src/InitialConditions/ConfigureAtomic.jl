@@ -60,6 +60,7 @@ end
 """
         set_incidence_direction(incidence_angle)
         Converts inputted angle in degrees to incidence direction vector for scattering simulations
+        This only rotates in x directory, may need to randomly rotate in y as well
 """
 function set_incidence_direction(incidence_angle)
 
@@ -69,14 +70,26 @@ function set_incidence_direction(incidence_angle)
     0 cos(theta_i) -sin(theta_i)
     0 sin(theta_i) cos(theta_i)
     ]
-    print(rot_mat)
-    println()
 
     inc_dir = rot_mat * [0, 0, -1]
 
     inc_dir
 end
 
+
+function angle_to_surface_normal(sim::Simulation,v::Matrix;
+    surface_normal=[0, 0, 1],
+    atom_index = [1]
+    )
+
+    v_atom = v[atom_index]
+
+
+
+    θ = atand(norm(cross(v_atom,surface_normal)),dot(v_atom,surface_normal))
+
+    θ
+end
 
 reduced_mass(atoms::Atoms) = reduced_mass(atoms.masses)
 reduced_mass(m::AbstractVector) = m[1]*m[2]/(m[1]+m[2])

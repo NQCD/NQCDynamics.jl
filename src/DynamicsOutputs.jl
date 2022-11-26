@@ -23,6 +23,7 @@ using .DynamicsUtils:
     get_quantum_subsystem
 
 using ..InitialConditions: QuantisedDiatomic
+using ..InitialConditions: ConfigureAtomic
 
 """
     OutputVelocity(sol, i)
@@ -233,5 +234,23 @@ function (output::OutputStateResolvedScattering1D)(sol, i)
     return output
 end
 export OutputStateResolvedScattering1D
+
+
+"""
+Output the projectile angle from the surface normal for the final image.
+"""
+struct OutputScatteringAngle{S,V}
+    sim::S
+    normal_vector::V
+end
+OutputScatteringAngle(sim; normal_vector=[0, 0, 1]) = OutputScatteringAngle(sim, normal_vector)
+export OutputScatteringAngle
+
+function (output::OutputScatteringAngle)(sol, i)
+    final = last(sol.u) 
+    θ = ConfigureAtomic.angle_to_surface_normal(output.sim,
+        DynamicsUtils.get_velocities(final), normal_vector=output.normal_vector)
+    return θ
+end
 
 end # module
