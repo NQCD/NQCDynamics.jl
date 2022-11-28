@@ -198,7 +198,7 @@ function (output::OutputQuantisedDiatomic)(sol, i)
     final = last(sol.u) 
     ν, J = QuantisedDiatomic.quantise_diatomic(output.sim,
         DynamicsUtils.get_velocities(final), DynamicsUtils.get_positions(final);
-        height=output.height, normal_vector=output.normal_vector)
+        height=output.height,surface_normal=output.normal_vector)
     return (ν, J)
 end
 
@@ -249,8 +249,27 @@ export OutputScatteringAngle
 function (output::OutputScatteringAngle)(sol, i)
     final = last(sol.u) 
     θ = ConfigureAtomic.angle_to_surface_normal(output.sim,
-        DynamicsUtils.get_velocities(final), normal_vector=output.normal_vector)
+        DynamicsUtils.get_velocities(final), surface_normal=output.normal_vector)
     return θ
+end
+
+"""
+Output a 1 if the projectile is above a certain z in final image, or 0 otherwise.
+"""
+struct OutputScatteredAtom{T}
+    "The maximum z value that above which the projectile can be considered scattered"
+    z::T
+    "The index of the projectile"
+    atom_index::Int
+    OutputScatteredAtom(z, atom_index) = new{typeof(z)}(austrip(z), atom_index)
+end
+# OutputScatteredAtom(z=10.0 atom_index=1) =  OutputScatteredAtom(z, atom_index)
+export OutputScatteredAtom
+
+function (output::OutputScatteredAtom)(sol, i)
+    R = DynamicsUtils.get_positions(last(sol.u))
+    scattered = R[3,output.atom_index] > output.z
+    return scattered ? 1 : 0
 end
 
 end # module

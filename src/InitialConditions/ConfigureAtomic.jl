@@ -8,7 +8,7 @@ This module exports one user facing function:
 """
 module ConfigureAtomic
 
-using LinearAlgebra: norm, normalize!, nullspace, cross, I
+using LinearAlgebra: norm, normalize!, nullspace, cross, I, dot
 using UnitfulAtomic: austrip
 
 using NQCDynamics: Simulation, Calculators, DynamicsUtils
@@ -16,6 +16,7 @@ using NQCBase: Atoms, PeriodicCell, InfiniteCell
 using NQCModels: NQCModels
 using NQCModels.AdiabaticModels: AdiabaticModel
 using NQCDynamics.InitialConditions: QuantisedDiatomic
+using Distributions: Uniform
 export generate_configurations
 
 
@@ -60,18 +61,30 @@ end
 """
         set_incidence_direction(incidence_angle)
         Converts inputted angle in degrees to incidence direction vector for scattering simulations
-        This only rotates in x directory, may need to randomly rotate in y as well
 """
 function set_incidence_direction(incidence_angle)
 
-    theta_i = deg2rad(incidence_angle)
+    # Rotation in z to get incidence angle
+    θ_i = deg2rad(incidence_angle)
     rot_mat = [
     1 0 0 
-    0 cos(theta_i) -sin(theta_i)
-    0 sin(theta_i) cos(theta_i)
+    0 cos(θ_i) -sin(θ_i)
+    0 sin(θ_i) cos(θ_i)
     ]
 
     inc_dir = rot_mat * [0, 0, -1]
+
+
+
+    # Random rotation in z
+    θ_2 = rand(Uniform(0.,2π),1,1)
+    rot2_mat = [
+    cos(θ_2) -sin(θ_2) 0
+    sin(θ_2) cos(θ_2) 0
+    0 0 1 
+    ]
+    
+    inc_dir = rot2_mat * inc_dir
 
     inc_dir
 end
@@ -82,7 +95,8 @@ function angle_to_surface_normal(sim::Simulation,v::Matrix;
     atom_index = [1]
     )
 
-    v_atom = v[atom_index]
+
+    v_atom = v[:,atom_index][:]
 
 
 
