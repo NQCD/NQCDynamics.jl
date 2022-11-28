@@ -261,7 +261,7 @@ struct OutputScatteredAtom{T}
     z::T
     "The index of the projectile"
     atom_index::Int
-    OutputScatteredAtom(z, atom_index) = new{typeof(z)}(austrip(z), atom_index)
+    OutputScatteredAtom(z, atom_index) = new{typeof(austrip(z))}(austrip(z), atom_index)
 end
 # OutputScatteredAtom(z=10.0 atom_index=1) =  OutputScatteredAtom(z, atom_index)
 export OutputScatteredAtom
