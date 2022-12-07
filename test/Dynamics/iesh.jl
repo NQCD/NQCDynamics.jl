@@ -64,7 +64,7 @@ end
     end
 end
 
-@testset "create_problem $method" begin
+@testset "create_problem" begin
     sim = Simulation{AdiabaticIESH}(atoms, model)
     DynamicsMethods.create_problem(u, (0.0, 1.0), sim)
     @test sim.method.state == 1:15
