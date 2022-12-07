@@ -107,6 +107,7 @@ export CellBoundaryCallback
 export TerminatingCallback
 
 include("density_matrix_dynamics.jl")
+include("wavefunction_dynamics.jl")
 include("plot.jl")
 
 function set_unoccupied_states!(unoccupied::AbstractVector, occupied::AbstractVector)

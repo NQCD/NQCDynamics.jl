@@ -44,5 +44,7 @@ end
 
 include("ehrenfest.jl")
 include("ehrenfest_rpmd.jl")
+include("ehrenfest_na.jl")
+export EhrenfestNA
 
 end # module

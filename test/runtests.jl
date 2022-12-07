@@ -37,6 +37,7 @@ if GROUP == "All" || GROUP == "Dynamics"
     @time @safetestset "SpinMapping Tests" begin include("Dynamics/spin_mapping.jl") end
     @time @safetestset "Cell Boundary Callback Tests" begin include("Dynamics/cell_boundary_callback.jl") end
     @time @safetestset "Ehrenfest Tests" begin include("Dynamics/ehrenfest.jl") end
+    @time @safetestset "NA Ehrenfest Tests" begin include("Dynamics/ehrenfest_na.jl") end
     @time @safetestset "Ensemble Tests" begin include("Ensembles/ensembles.jl") end
     @time @safetestset "Ensemble Selection Tests" begin include("Ensembles/selections.jl") end
     @time @safetestset "Ensemble Reduction Tests" begin include("Ensembles/reductions.jl") end

@@ -4,8 +4,6 @@ using NQCDynamics: Calculators
 using NQCDynamics: DynamicsUtils
 using .DynamicsUtils: acceleration!, get_positions, get_velocities, get_quantum_subsystem
 
-struct VerletwithElectronics <: OrdinaryDiffEq.OrdinaryDiffEqAlgorithm end
-
 OrdinaryDiffEq.isfsal(::VerletwithElectronics) = false
 
 mutable struct VerletwithElectronicsCache{uType,vType,rateType} <: OrdinaryDiffEq.OrdinaryDiffEqMutableCache
@@ -27,7 +25,12 @@ function OrdinaryDiffEq.initialize!(integrator, cache::VerletwithElectronicsCach
     r = DynamicsUtils.get_positions(integrator.u)
     v = DynamicsUtils.get_velocities(integrator.u)
     Calculators.update_electronics!(integrator.p.calculator, r)
-    DynamicsUtils.acceleration!(cache.k, v, r, integrator.p, integrator.t, integrator.p.method.state)
+    if integrator.p.method isa DynamicsMethods.SurfaceHoppingMethods.AbstractIESH
+        DynamicsUtils.acceleration!(cache.k, v, r, integrator.p, integrator.t, integrator.p.method.state)
+    elseif integrator.p.method isa DynamicsMethods.EhrenfestMethods.EhrenfestNA
+        ψ = DynamicsUtils.get_quantum_subsystem(integrator.u)
+        DynamicsUtils.acceleration!(cache.k, v, r, integrator.p, integrator.t, ψ)
+    end
 end
 
 @muladd function OrdinaryDiffEq.perform_step!(integrator, cache::VerletwithElectronicsCache, repeat_step=false)
@@ -46,11 +49,15 @@ end
     step_A!(rfinal, rprev, dt, vtmp)
 
     Calculators.update_electronics!(p.calculator, rfinal)
-    DynamicsUtils.acceleration!(k, vtmp, rfinal, p, t, p.method.state)
+    if integrator.p.method isa DynamicsMethods.SurfaceHoppingMethods.AbstractIESH
+        DynamicsUtils.acceleration!(k, vtmp, rfinal, p, t, p.method.state)
+    elseif integrator.p.method isa DynamicsMethods.EhrenfestMethods.EhrenfestNA
+        DynamicsUtils.acceleration!(k, vtmp, rfinal, p, t, σprev)
+    end
 
     step_B!(vfinal, vtmp, dt/2, k)
 
-    DynamicsMethods.SurfaceHoppingMethods.propagate_wavefunction!(σfinal, σprev, vfinal, p, dt)
+    DynamicsUtils.propagate_wavefunction!(σfinal, σprev, vfinal, p, dt)
 
 end
 
@@ -119,5 +126,3 @@ end
     end
 
 end
-
-DynamicsMethods.select_algorithm(::Simulation{<:DynamicsMethods.SurfaceHoppingMethods.AbstractIESH}) = VerletwithElectronics()
