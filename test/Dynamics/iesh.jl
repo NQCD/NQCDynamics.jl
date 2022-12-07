@@ -55,7 +55,7 @@ SurfaceHoppingMethods.set_unoccupied_states!(sim)
     @test avg ≈ occupations atol=0.2
 end
 
-@testset "set_unoccupied_states! $method" for method in (:AdiabaticIESH, :DiabaticIESH)
+@testset "set_unoccupied_states!" begin
     sim = Simulation{AdiabaticIESH}(atoms, model)
     for (occupied, unoccupied) in zip([1:15, 6:20], [16:31, vcat(1:5, 21:31)])
         sim.method.state .= occupied
@@ -64,8 +64,8 @@ end
     end
 end
 
-@testset "create_problem $method" for method in (:AdiabaticIESH, :DiabaticIESH)
-    sim = Simulation{eval(method)}(atoms, model)
+@testset "create_problem $method" begin
+    sim = Simulation{AdiabaticIESH}(atoms, model)
     DynamicsMethods.create_problem(u, (0.0, 1.0), sim)
     @test sim.method.state == 1:15
     @test sim.method.unoccupied == 16:31
@@ -90,21 +90,6 @@ end
     @test all(S[:,1] .== 1) # Check only first column ones
     @test all(S[:,2:end] .== 0)
 
-    @testset "adiabatic vs diabatic" begin
-        sim = Simulation{DiabaticIESH}(atoms, model)
-        u = DynamicsVariables(sim, v, r)
-        Sdiabatic = zeros(n_electrons, n_electrons)
-        ψ = DynamicsUtils.get_quantum_subsystem(u)
-        SurfaceHoppingMethods.compute_overlap!(sim, Sdiabatic, ψ, u.state)
-
-        sim = Simulation{AdiabaticIESH}(atoms, model)
-        u = DynamicsVariables(sim, v, r)
-        Sadiabatic = zeros(n_electrons, n_electrons)
-        ψ = DynamicsUtils.get_quantum_subsystem(u)
-        SurfaceHoppingMethods.compute_overlap!(sim, Sadiabatic, ψ, u.state)
-
-        @test Sdiabatic ≈ Sadiabatic
-    end
 end
 
 @testset "calculate_Akj" begin

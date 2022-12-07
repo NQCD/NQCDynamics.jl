@@ -81,7 +81,6 @@ end
 include("surface_hopping.jl")
 include("fssh.jl")
 include("iesh.jl")
-include("iesh_diabatic.jl")
 include("rpsh.jl")
 
 end # module
