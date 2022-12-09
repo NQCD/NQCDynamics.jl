@@ -27,10 +27,12 @@ Simulation{Ehrenfest{Float64}}:
 struct Ehrenfest{T} <: AbstractEhrenfest
     density_propagator::Matrix{Complex{T}}
     tmp_complex_matrix::Matrix{Complex{T}}
+    tmp_complex_matrix2::Matrix{Complex{T}}
     function Ehrenfest{T}(n_states::Integer) where {T}
         density_propagator = zeros(T, n_states, n_states)
         tmp_complex_matrix = zeros(Complex{T}, n_states, n_states)
-        new{T}(density_propagator, tmp_complex_matrix)
+        tmp_complex_matrix2 = zeros(Complex{T}, n_states, n_states)
+        new{T}(density_propagator, tmp_complex_matrix, tmp_complex_matrix2)
     end
 end
 
@@ -78,9 +80,7 @@ function Estimators.diabatic_population(sim::AbstractSimulation{<:AbstractEhrenf
     return real.(diag(U * σ * U'))
 end
 
-function DynamicsUtils.classical_hamiltonian(sim::Simulation{<:Ehrenfest}, u)
-    kinetic = DynamicsUtils.classical_kinetic_energy(sim, DynamicsUtils.get_velocities(u))
-
+function DynamicsUtils.classical_potential_energy(sim::Simulation{<:Ehrenfest}, u)
     eigs = Calculators.get_eigen(sim.calculator, DynamicsUtils.get_positions(u))
 
     potential = NQCModels.state_independent_potential(sim.calculator.model, DynamicsUtils.get_positions(u))
@@ -88,6 +88,11 @@ function DynamicsUtils.classical_hamiltonian(sim::Simulation{<:Ehrenfest}, u)
     for i in eachindex(eigs.values)
         potential += real(σ[i,i]) * eigs.values[i]
     end
+    return potential
+end
 
+function DynamicsUtils.classical_hamiltonian(sim::Simulation{<:Ehrenfest}, u)
+    kinetic = DynamicsUtils.classical_kinetic_energy(sim, DynamicsUtils.get_velocities(u))
+    potential = DynamicsUtils.classical_potential_energy(sim, u)
     return kinetic + potential
 end
