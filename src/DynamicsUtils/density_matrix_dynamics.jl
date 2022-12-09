@@ -4,7 +4,7 @@ using LinearAlgebra: diagm, mul!
 using NQCDynamics: RingPolymers
 using NQCModels: nstates
 using RingPolymerArrays: get_centroid
-using NQCDistributions: ElectronicDistribution, Adiabatic, Diabatic, density_matrix
+using NQCDistributions: ElectronicDistribution, Adiabatic, Diabatic, density_matrix, FermiDiracState
 using ..Calculators: AbstractDiabaticCalculator, DiabaticCalculator, LargeDiabaticCalculator, RingPolymerDiabaticCalculator
 
 function set_quantum_derivative! end
@@ -56,7 +56,13 @@ function initialise_adiabatic_density_matrix(
     r
 )
 
-    adiabatic_density = density_matrix(electronics, nstates(calculator))
+    if electronics isa FermiDiracState
+        eigen = Calculators.get_eigen(calculator, r)
+        adiabatic_density = density_matrix(electronics, eigen.values)
+    else
+        adiabatic_density = density_matrix(electronics, nstates(calculator))
+    end
+
     return adiabatic_density
 end
 

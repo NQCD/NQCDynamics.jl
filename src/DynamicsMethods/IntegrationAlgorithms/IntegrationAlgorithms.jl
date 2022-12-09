@@ -16,6 +16,7 @@ using StochasticDiffEq: StochasticDiffEq
 
 struct BCB <: OrdinaryDiffEq.OrdinaryDiffEqAlgorithm end
 struct BCBwithTsit5 <: OrdinaryDiffEq.OrdinaryDiffEqAlgorithm end
+struct BABwithTsit5 <: OrdinaryDiffEq.OrdinaryDiffEqAlgorithm end
 
 """
     RingPolymerMInt <: OrdinaryDiffEq.OrdinaryDiffEqAlgorithm
@@ -53,10 +54,13 @@ DynamicsMethods.select_algorithm(::RingPolymerSimulation{<:DynamicsMethods.Mappi
 DynamicsMethods.select_algorithm(::RingPolymerSimulation{<:DynamicsMethods.MappingVariableMethods.eCMM}) = RingPolymerMInt()
 DynamicsMethods.select_algorithm(::RingPolymerSimulation{DynamicsMethods.ClassicalMethods.Classical}) = BCB()
 DynamicsMethods.select_algorithm(::Simulation{<:DynamicsMethods.SurfaceHoppingMethods.AbstractIESH}) = VerletwithElectronics()
+DynamicsMethods.select_algorithm(::Simulation{<:DynamicsMethods.EhrenfestMethods.Ehrenfest}) = BABwithTsit5()
 DynamicsMethods.select_algorithm(::Simulation{<:DynamicsMethods.EhrenfestMethods.EhrenfestNA}) = VerletwithElectronics()
+DynamicsMethods.select_algorithm(::Simulation{<:DynamicsMethods.EhrenfestMethods.EhrenfestNA2}) = VerletwithElectronics()
 
 export BCB
 export BCBwithTsit5
+export BABwithTsit5
 export RingPolymerMInt
 export MInt
 export MDEF_BAOAB
@@ -67,6 +71,7 @@ include("bcocb.jl")
 include("mint.jl")
 include("ringpolymer_mint.jl")
 include("bcb_electronics.jl")
+include("bab_electronics.jl")
 include("bcb.jl")
 include("steps.jl")
 include("verlet_with_electronics.jl")

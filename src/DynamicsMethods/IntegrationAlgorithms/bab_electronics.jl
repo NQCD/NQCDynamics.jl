@@ -1,19 +1,17 @@
-using RingPolymerArrays: RingPolymerArrays
 
-OrdinaryDiffEq.isfsal(::BCBwithTsit5) = false
+OrdinaryDiffEq.isfsal(::BABwithTsit5) = false
 
-mutable struct BCBwithTsit5Cache{uType,rType,vType,rateType,uEltypeNoUnits,T} <: OrdinaryDiffEq.OrdinaryDiffEqMutableCache
+mutable struct BABwithTsit5Cache{uType,rType,vType,rateType,T} <: OrdinaryDiffEq.OrdinaryDiffEqMutableCache
     u::uType
     uprev::uType
     tmp::uType
     rtmp::rType
     vtmp::vType
     k::rateType
-    cayley::Vector{Matrix{uEltypeNoUnits}}
     tsit5cache::T
 end
 
-function OrdinaryDiffEq.alg_cache(::BCBwithTsit5,u,rate_prototype,::Type{uEltypeNoUnits},::Type{uBottomEltypeNoUnits},::Type{tTypeNoUnits},uprev,uprev2,f,t,dt,reltol,p,calck,inplace::Val{true}) where {uEltypeNoUnits,uBottomEltypeNoUnits,tTypeNoUnits}
+function OrdinaryDiffEq.alg_cache(::BABwithTsit5,u,rate_prototype,::Type{uEltypeNoUnits},::Type{uBottomEltypeNoUnits},::Type{tTypeNoUnits},uprev,uprev2,f,t,dt,reltol,p,calck,inplace::Val{true}) where {uEltypeNoUnits,uBottomEltypeNoUnits,tTypeNoUnits}
     σ = zero(DynamicsUtils.get_quantum_subsystem(u))
     σrate = zero(DynamicsUtils.get_quantum_subsystem(rate_prototype))
     σprev = zero(DynamicsUtils.get_quantum_subsystem(uprev))
@@ -23,11 +21,10 @@ function OrdinaryDiffEq.alg_cache(::BCBwithTsit5,u,rate_prototype,::Type{uEltype
     rtmp = zero(DynamicsUtils.get_positions(u))
     vtmp = zero(DynamicsUtils.get_velocities(u))
     k = zero(DynamicsUtils.get_positions(rate_prototype))
-    cayley = RingPolymers.cayley_propagator(p.beads, dt; half=false)
-    BCBwithTsit5Cache(u, uprev, tmp, rtmp, vtmp, k, cayley, tsit5cache)
+    BABwithTsit5Cache(u, uprev, tmp, rtmp, vtmp, k, tsit5cache)
 end
 
-function OrdinaryDiffEq.initialize!(integrator, cache::BCBwithTsit5Cache)
+function OrdinaryDiffEq.initialize!(integrator, cache::BABwithTsit5Cache)
 
     r = DynamicsUtils.get_positions(integrator.u)
     v = DynamicsUtils.get_velocities(integrator.u)
@@ -40,9 +37,9 @@ function OrdinaryDiffEq.initialize!(integrator, cache::BCBwithTsit5Cache)
     end
 end
 
-@muladd function OrdinaryDiffEq.perform_step!(integrator, cache::BCBwithTsit5Cache, repeat_step=false)
+@muladd function OrdinaryDiffEq.perform_step!(integrator, cache::BABwithTsit5Cache, repeat_step=false)
     @unpack t, dt, uprev, u, p = integrator
-    @unpack k, rtmp, vtmp, cayley = cache
+    @unpack k, rtmp, vtmp = cache
 
     rprev = DynamicsUtils.get_positions(uprev)
     vprev = DynamicsUtils.get_velocities(uprev)
@@ -51,15 +48,11 @@ end
     copyto!(rtmp, rprev)
 
     step_B!(vtmp, vprev, dt/2, k)
-    RingPolymerArrays.transform_to_normal_modes!(rtmp, p.beads.transformation)
-    RingPolymerArrays.transform_to_normal_modes!(vtmp, p.beads.transformation)
-    step_C!(vtmp, rtmp, cayley)
-    RingPolymerArrays.transform_from_normal_modes!(rtmp, p.beads.transformation)
-    RingPolymerArrays.transform_from_normal_modes!(vtmp, p.beads.transformation)
+    step_A!(rtmp, rtmp, dt, vtmp)
 
     Calculators.update_electronics!(p.calculator, rtmp)
     if p.method isa DynamicsMethods.EhrenfestMethods.AbstractEhrenfest
-        DynamicsUtils.acceleration!(k, vtmp, rtmp, p, t, σprev)
+       DynamicsUtils.acceleration!(k, vtmp, rtmp, p, t, σprev)
     elseif p.method isa DynamicsMethods.SurfaceHoppingMethods.SurfaceHopping
         DynamicsUtils.acceleration!(k, vtmp, rtmp, p, t, p.method.state)
     end

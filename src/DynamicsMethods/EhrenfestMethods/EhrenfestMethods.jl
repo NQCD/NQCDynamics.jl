@@ -32,7 +32,7 @@ function DynamicsMethods.motion!(du, u, sim::Simulation{<:AbstractEhrenfest}, t)
 
     DynamicsUtils.velocity!(dr, v, r, sim, t)
     Calculators.update_electronics!(sim.calculator, r)
-    acceleration!(dv, v, r, sim, t, σ)
+    DynamicsUtils.acceleration!(dv, v, r, sim, t, σ)
     DynamicsUtils.set_quantum_derivative!(dσ, v, σ, sim)
 end
 
@@ -46,5 +46,6 @@ include("ehrenfest.jl")
 include("ehrenfest_rpmd.jl")
 include("ehrenfest_na.jl")
 export EhrenfestNA
+export EhrenfestNA2
 
 end # module
