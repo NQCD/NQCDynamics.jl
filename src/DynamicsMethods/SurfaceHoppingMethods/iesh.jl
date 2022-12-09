@@ -93,8 +93,8 @@ function DynamicsMethods.DynamicsVariables(sim::Simulation{<:AdiabaticIESH}, v, 
 
     eigs = Calculators.get_eigen(sim.calculator, r)
 
-    available_states = get_available_states(electronic.available_states, NQCModels.nstates(sim))
-    state = sample_fermi_dirac_distribution(eigs.values, NQCModels.nelectrons(sim), available_states, electronic.β)
+    available_states = DynamicsUtils.get_available_states(electronic.available_states, NQCModels.nstates(sim))
+    state = DynamicsUtils.sample_fermi_dirac_distribution(eigs.values, NQCModels.nelectrons(sim), available_states, electronic.β)
 
     ψ = zeros(NQCModels.nstates(sim), NQCModels.nelectrons(sim))
     for (i, j) in enumerate(state)
@@ -104,33 +104,11 @@ function DynamicsMethods.DynamicsVariables(sim::Simulation{<:AdiabaticIESH}, v, 
     SurfaceHoppingVariables(ComponentVector(v=v, r=r, σreal=ψ, σimag=zero(ψ)), state)
 end
 
-function sample_fermi_dirac_distribution(energies, nelectrons, available_states, β)
-    nstates = length(available_states)
-    state = collect(Iterators.take(available_states, nelectrons))
-    for _ in 1:(nstates * nelectrons)
-        current_index = rand(eachindex(state))
-        i = state[current_index] # Pick random occupied state
-        j = rand(setdiff(available_states, state)) # Pick random unoccupied state
-        prob = exp(-β * (energies[j] - energies[i])) # Calculate Boltzmann factor
-        if prob > rand()
-            state[current_index] = j # Set unoccupied state to occupied
-        end
-    end
-    sort!(state)
-    return state
-end
-
 function DynamicsMethods.create_problem(u0, tspan, sim::AbstractSimulation{<:AbstractIESH})
     set_state!(sim.method, u0.state)
     set_unoccupied_states!(sim)
     OrdinaryDiffEq.ODEProblem(DynamicsMethods.motion!, u0, tspan, sim;
         callback=DynamicsMethods.get_callbacks(sim))
-end
-
-get_available_states(::Colon, nstates::Integer) = 1:nstates
-function get_available_states(available_states::AbstractVector, nstates::Integer)
-    maximum(available_states) > nstates && throw(DomainError(available, "There are only $nstates in the system."))
-    return available_states
 end
 
 function DynamicsMethods.DynamicsVariables(sim::Simulation{<:AdiabaticIESH}, v, r, electronic::FermiDiracState{Diabatic})

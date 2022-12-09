@@ -1,5 +1,7 @@
 using NQCModels: eachelectron, eachstate, mobileatoms, dofs
 using LinearAlgebra: LinearAlgebra
+using NQCDistributions: FermiDiracState, Adiabatic
+using NQCDynamics: get_temperature
 
 struct EhrenfestNA{T} <: AbstractEhrenfest
     tmp::Vector{Complex{T}}
@@ -36,6 +38,31 @@ function DynamicsMethods.DynamicsVariables(sim::Simulation{<:EhrenfestNA}, v, r)
     end
 
     return ComponentVector(v=v, r=r, σreal=ψ, σimag=zero(ψ))
+end
+
+function DynamicsMethods.DynamicsVariables(sim::Simulation{<:EhrenfestNA}, v, r, electronic::FermiDiracState{Adiabatic})
+    ef_model = NQCModels.fermilevel(sim)
+    ef_distribution = electronic.fermi_level
+    ef_model ≈ ef_distribution || throw(error(
+        """
+        Fermi level of model and distribution do not match:
+            Distribution: $(ef_distribution)
+            Model: $(ef_model)
+        Change one of them to make them the same.
+        """
+    ))
+
+    eigs = Calculators.get_eigen(sim.calculator, r)
+
+    available_states = DynamicsUtils.get_available_states(electronic.available_states, NQCModels.nstates(sim))
+    state = DynamicsUtils.sample_fermi_dirac_distribution(eigs.values, NQCModels.nelectrons(sim), available_states, electronic.β)
+
+    ψ = zeros(NQCModels.nstates(sim), NQCModels.nelectrons(sim))
+    for (i, j) in enumerate(state)
+        ψ[j,i] = 1
+    end
+
+    ComponentVector(v=v, r=r, σreal=ψ, σimag=zero(ψ))
 end
 
 function DynamicsUtils.acceleration!(dv, v, r, sim::Simulation{<:EhrenfestNA}, t, ψ)

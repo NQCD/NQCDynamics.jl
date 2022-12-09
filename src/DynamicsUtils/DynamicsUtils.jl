@@ -121,4 +121,29 @@ function set_unoccupied_states!(unoccupied::AbstractVector, occupied::AbstractVe
     end
 end
 
+fermi(ϵ, μ, β) = 1 / (1 + exp(β*(ϵ-μ)))
+
+function sample_fermi_dirac_distribution(energies, nelectrons, available_states, β)
+    nstates = length(available_states)
+    state = collect(Iterators.take(available_states, nelectrons))
+    for _ in 1:(nstates * nelectrons)
+        current_index = rand(eachindex(state))
+        i = state[current_index] # Pick random occupied state
+        j = rand(setdiff(available_states, state)) # Pick random unoccupied state
+        prob = exp(-β * (energies[j] - energies[i])) # Calculate Boltzmann factor
+        if prob > rand()
+            state[current_index] = j # Set unoccupied state to occupied
+        end
+    end
+    sort!(state)
+    return state
+end
+
+get_available_states(::Colon, nstates::Integer) = 1:nstates
+function get_available_states(available_states::AbstractVector, nstates::Integer)
+    maximum(available_states) > nstates && throw(DomainError(available, "There are only $nstates in the system."))
+    return available_states
+end
+
+
 end # module
