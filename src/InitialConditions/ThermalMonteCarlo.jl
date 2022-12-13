@@ -24,7 +24,8 @@ using NQCDynamics:
     ndofs,
     nbeads,
     natoms,
-    masses
+    masses,
+    NQCModels
 
 """
     run_advancedhmc_sampling(sim, r, steps, σ; move_ratio=0.0, internal_ratio=0.0)
@@ -130,6 +131,9 @@ function ClassicalProposal(sim::Simulation, σ, move_ratio)
     proposals = Matrix{UnivariateDistribution}(undef, size(sim))
     for (i, symbol) in enumerate(sim.atoms.types) # Position proposals
         distribution = σ[symbol] == 0 ? Dirac(0) : Normal(0, σ[symbol])
+        if !(i in NQCModels.mobileatoms(sim))
+            distribution = Dirac(0)
+        end
         proposals[:,i] .= distribution
     end
     ClassicalProposal(proposals[:], move_ratio, sim)
