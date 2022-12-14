@@ -36,18 +36,21 @@ function generate_configurations(sim;
     height=10.0,
     surface_normal=[0, 0, 1.0],
     translational_energy=0.0,
-    incidence_angle=0.0,
+    incidence_angle=0.0, # Degrees
     # direction=[0, 0, -1.0],
     atom_index=[1],
     r=zeros(size(sim)))
 
+    θ_i = zeros(samples)
+    θ_i .= incidence_angle
 
-    direction = set_incidence_direction(incidence_angle)
+
+    direction = set_incidence_direction.(θ_i)
 
     _, slab = QuantisedDiatomic.separate_slab_and_molecule(atom_index, r)
     environment = QuantisedDiatomic.EvaluationEnvironment(atom_index, size(sim), slab, austrip(height), surface_normal)
     #surface = SurfaceParameters(sim.atoms.masses, atom_index, slab, austrip(height), surface_normal)
-    generation = QuantisedDiatomic.GenerationParameters(direction, austrip(translational_energy), samples)
+    generation = QuantisedDiatomic.GenerationParameters.(direction, austrip(translational_energy), samples)
 
     # hack - bond is a dummy here (as well as myself)
     # to ensure we get samples amount of configurations (not just one)
@@ -78,11 +81,14 @@ function set_incidence_direction(incidence_angle)
 
     # Random rotation in z
     θ_2 = rand(Uniform(0.,2π),1,1)
+
     rot2_mat = [
     cos(θ_2) -sin(θ_2) 0
     sin(θ_2) cos(θ_2) 0
     0 0 1 
     ]
+
+
     
     inc_dir = rot2_mat * inc_dir
 
