@@ -118,9 +118,7 @@ function Estimators.adiabatic_population(sim::AbstractSimulation{<:EhrenfestNA},
     population = zeros(NQCModels.nstates(sim))
     for electron in eachelectron(sim)
         for m in eachstate(sim)
-            for n in eachstate(sim)
-                population[m] += real(ψ[m,electron] * conj(ψ[n,electron]))
-            end
+            population[m] += abs2(ψ[m,electron])
         end
     end
     return population
