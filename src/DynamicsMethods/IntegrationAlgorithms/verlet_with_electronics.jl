@@ -30,9 +30,6 @@ function OrdinaryDiffEq.initialize!(integrator, cache::VerletwithElectronicsCach
     elseif integrator.p.method isa DynamicsMethods.EhrenfestMethods.EhrenfestNA
         ψ = DynamicsUtils.get_quantum_subsystem(integrator.u)
         DynamicsUtils.acceleration!(cache.k, v, r, integrator.p, integrator.t, ψ)
-    elseif integrator.p.method isa DynamicsMethods.EhrenfestMethods.EhrenfestNA2
-        ψ = DynamicsUtils.get_quantum_subsystem(integrator.u)
-        DynamicsUtils.acceleration!(cache.k, v, r, integrator.p, integrator.t, ψ)
     end
 end
 
@@ -55,8 +52,6 @@ end
     if integrator.p.method isa DynamicsMethods.SurfaceHoppingMethods.AbstractIESH
         DynamicsUtils.acceleration!(k, vtmp, rfinal, p, t, p.method.state)
     elseif integrator.p.method isa DynamicsMethods.EhrenfestMethods.EhrenfestNA
-        DynamicsUtils.acceleration!(k, vtmp, rfinal, p, t, σprev)
-    elseif integrator.p.method isa DynamicsMethods.EhrenfestMethods.EhrenfestNA2
         DynamicsUtils.acceleration!(k, vtmp, rfinal, p, t, σprev)
     end
 

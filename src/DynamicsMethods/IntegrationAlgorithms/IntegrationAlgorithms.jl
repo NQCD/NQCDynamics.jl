@@ -56,7 +56,6 @@ DynamicsMethods.select_algorithm(::RingPolymerSimulation{DynamicsMethods.Classic
 DynamicsMethods.select_algorithm(::Simulation{<:DynamicsMethods.SurfaceHoppingMethods.AbstractIESH}) = VerletwithElectronics()
 DynamicsMethods.select_algorithm(::Simulation{<:DynamicsMethods.EhrenfestMethods.Ehrenfest}) = BABwithTsit5()
 DynamicsMethods.select_algorithm(::Simulation{<:DynamicsMethods.EhrenfestMethods.EhrenfestNA}) = VerletwithElectronics()
-DynamicsMethods.select_algorithm(::Simulation{<:DynamicsMethods.EhrenfestMethods.EhrenfestNA2}) = VerletwithElectronics()
 
 export BCB
 export BCBwithTsit5

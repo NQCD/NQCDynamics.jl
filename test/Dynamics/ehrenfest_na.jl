@@ -16,7 +16,7 @@ r = randn(1,1)
 v = randn(1,1)
 n_electrons = M ÷ 2
 
-@testset "Algorithm comparison: $method" for method in [:EhrenfestNA, :EhrenfestNA2]
+@testset "Algorithm comparison: $method" for method in [:EhrenfestNA]
     sim = Simulation{eval(method)}(atoms, model)
     v = zeros(1,1)
     r = hcat(21.0)
