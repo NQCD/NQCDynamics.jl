@@ -42,9 +42,9 @@ atoms = Atoms(:H)
         r = hcat(-10.0)
         output = (OutputTotalEnergy, OutputKineticEnergy, OutputPotentialEnergy, OutputPosition, OutputVelocity, OutputQuantumSubsystem, OutputAdiabaticPopulation)
 
-        dt = 0.1
+        dt = 2e-3
         u = DynamicsVariables(sim, v, r, PureState(1, Adiabatic()))
-        traj1 = run_dynamics(sim, (0.0, 500.0), u; output, reltol=1e-6, dt)
+        traj1 = run_dynamics(sim, (0.0, 500.0), u; output, dt)
         @test isapprox(var(traj1[:OutputTotalEnergy]), 0; atol=1e-6)
 
         u = DynamicsVariables(sim, v, r, PureState(1, Adiabatic()))
@@ -52,7 +52,7 @@ atoms = Atoms(:H)
         @test isapprox(var(traj2[:OutputTotalEnergy]), 0; atol=1e-6)
 
         @test traj1[:OutputKineticEnergy] ≈ traj2[:OutputKineticEnergy] rtol=1e-3
-        @test traj1[:OutputPotentialEnergy] ≈ traj2[:OutputPotentialEnergy] rtol=1e-3
+        @test traj1[:OutputPotentialEnergy] ≈ traj2[:OutputPotentialEnergy] rtol=1e-1
         @test traj1[:OutputVelocity] ≈ traj2[:OutputVelocity] rtol=1e-3
         @test traj1[:OutputPosition] ≈ traj2[:OutputPosition] rtol=1e-3
         @test traj1[:OutputQuantumSubsystem] ≈ traj2[:OutputQuantumSubsystem] rtol=1e-2
