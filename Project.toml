@@ -46,7 +46,7 @@ UnitfulAtomic = "a7773ee8-282e-5fa2-be4e-bd808c38a91a"
 
 [compat]
 AdvancedHMC = "0.3"
-AdvancedMH = "0.6"
+AdvancedMH = "0.6, 0.7"
 ComponentArrays = "0.11, 0.12, 0.13"
 DEDataArrays = "0.2"
 Dictionaries = "0.3"
