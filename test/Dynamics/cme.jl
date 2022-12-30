@@ -62,7 +62,7 @@ model = TestModel(ħω, Ed, g, Γ)
     v = VelocityBoltzmann(kTinitial, atoms.masses[1])
     distribution = DynamicalDistribution(v, r, (1,1)) * PureState(1, Diabatic())
 
-    output = run_dynamics(sim, (0.0, 200 / Γ), distribution; trajectories=500, output=(OutputKineticEnergy, OutputTotalEnergy, OutputDiscreteState), abstol=1e-8, reltol=1e-8, saveat=2/Γ)
+    output = run_dynamics(sim, (0.0, 200 / Γ), distribution; trajectories=1000, output=(OutputKineticEnergy, OutputTotalEnergy, OutputDiscreteState), abstol=1e-8, reltol=1e-8, saveat=2/Γ)
     avg = mean(o[:OutputKineticEnergy] for o in output) ./ kT
     err = zero(avg)
     for i in eachindex(err)
