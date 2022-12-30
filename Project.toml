@@ -85,6 +85,8 @@ UnitfulAtomic = "1"
 julia = "1.7"
 
 [extras]
+CSV = "336ed68f-0bac-5ca0-87d4-7b16caf5d00b"
+DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
 DiffEqDevTools = "f3b72e0c-5b89-59e1-b016-84e28bfd966d"
 DiffEqNoiseProcess = "77a26b50-5914-5dd7-bc55-306e6241c503"
 FiniteDiff = "6a86dc24-6348-571c-b903-95158fe2bd41"
@@ -98,4 +100,4 @@ Symbolics = "0c5d862f-8b57-4792-8d23-62f2024744c7"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]
-test = ["Test", "SafeTestsets", "DiffEqNoiseProcess", "FiniteDiff", "DiffEqDevTools", "Logging", "PyCall", "JuLIP", "Symbolics", "Statistics", "Plots"]
+test = ["Test", "SafeTestsets", "CSV", "DataFrames", "DiffEqNoiseProcess", "FiniteDiff", "DiffEqDevTools", "Logging", "PyCall", "JuLIP", "Symbolics", "Statistics", "Plots"]

@@ -82,5 +82,7 @@ include("surface_hopping.jl")
 include("fssh.jl")
 include("iesh.jl")
 include("rpsh.jl")
+include("cme.jl")
+export CME
 
 end # module
