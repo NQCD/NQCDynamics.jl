@@ -50,7 +50,7 @@ function evaluate_hopping_probability!(sim::Simulation{<:CME}, u, dt)
     V = Calculators.get_potential(sim.calculator, r)
     ΔV = V[2,2] - V[1,1]
     Γ = 2π * V[2,1]^2
-    f = DynamicsUtils.fermi(ΔV, 0.0, 1/get_temperature(sim))
+    f = DynamicsUtils.fermi(ΔV, NQCModels.fermilevel(sim), 1/get_temperature(sim))
 
     if sim.method.state == 1
         sim.method.hopping_probability = Γ * f * dt
