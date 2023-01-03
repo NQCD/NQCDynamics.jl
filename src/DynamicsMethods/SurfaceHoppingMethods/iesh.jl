@@ -37,7 +37,8 @@ struct AdiabaticIESH{T} <: AbstractIESH
     LUws::FastLapackInterface.LUWs
     v_dot_d::Matrix{T}
     unoccupied::Vector{Int}
-    function AdiabaticIESH{T}(states::Integer, n_electrons::Integer, rescaling::Symbol) where {T}
+    estimate_probability::Bool
+    function AdiabaticIESH{T}(states::Integer, n_electrons::Integer, rescaling::Symbol, estimate_probability::Bool) where {T}
 
         hopping_probability = zeros(Int, states, n_electrons)
         state = zeros(Int, n_electrons)
@@ -57,15 +58,15 @@ struct AdiabaticIESH{T} <: AbstractIESH
         new{T}(hopping_probability, state, new_state, proposed_state, overlap, tmp, rescaling, quantum_propagator,
             tmp_matrix_complex_square1, tmp_matrix_complex_square2,
             tmp_matrix_complex_rect1, tmp_matrix_complex_rect2,
-            LUws, v_dot_d, unoccupied
+            LUws, v_dot_d, unoccupied, estimate_probability
         )
     end
 end
 
 unoccupied_states(sim::Simulation{<:AbstractIESH}) = sim.method.unoccupied
 
-function NQCDynamics.Simulation{IESH_type}(atoms::Atoms{T}, model::Model; rescaling=:standard, kwargs...) where {T,IESH_type<:AbstractIESH}
-    NQCDynamics.Simulation(atoms, model, IESH_type{T}(NQCModels.nstates(model), NQCModels.nelectrons(model), rescaling); kwargs...)
+function NQCDynamics.Simulation{IESH_type}(atoms::Atoms{T}, model::Model; rescaling=:standard, estimate_probability=true, kwargs...) where {T,IESH_type<:AbstractIESH}
+    NQCDynamics.Simulation(atoms, model, IESH_type{T}(NQCModels.nstates(model), NQCModels.nelectrons(model), rescaling, estimate_probability); kwargs...)
 end
 
 function DynamicsMethods.DynamicsVariables(sim::Simulation{<:AdiabaticIESH}, v, r)
@@ -220,8 +221,10 @@ function evaluate_hopping_probability!(sim::Simulation{<:AbstractIESH}, u, dt, r
 
     @inbounds for n in eachelectron(sim)
         for m in unoccupied_states(sim)
-            estimate = prefactor * abs(sim.method.v_dot_d[m,n]) # real(Akj) is always less than 1
-            estimate < random && continue
+            if sim.method.estimate_probability
+                estimate = prefactor * abs(sim.method.v_dot_d[m,n]) # real(Akj) is always less than 1
+                estimate < random && continue
+            end
 
             copy!(proposed_state, sim.method.state)
             proposed_state[n] = m
@@ -231,7 +234,9 @@ function evaluate_hopping_probability!(sim::Simulation{<:AbstractIESH}, u, dt, r
             probability = prefactor * real(Akj) * sim.method.v_dot_d[m,n]
             prob[m,n] = probability
 
-            @assert probability < estimate # Ensure estimate ALWAYS overestimates
+            if sim.method.estimate_probability
+                @assert probability < estimate # Ensure estimate ALWAYS overestimates
+            end
         end
     end
 
