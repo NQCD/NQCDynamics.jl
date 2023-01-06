@@ -213,19 +213,19 @@ function evaluate_hopping_probability!(sim::Simulation{<:AbstractIESH}, u, dt, r
 
     det_current = FastDeterminant.det!(S, sim.method.LUws)
     Akk = abs2(det_current)
-    prefactor = 2dt / real(Akk)
+    prefactor = 2dt / Akk
 
     fill!(prob, zero(eltype(prob)))
 
     evaluate_v_dot_d!(sim, v, d)
 
+    if sim.method.estimate_probability
+        estimate = prefactor * sum(abs, sim.method.v_dot_d) * sqrt(Akk)
+        estimate < random && return
+    end
+
     @inbounds for n in eachelectron(sim)
         for m in unoccupied_states(sim)
-            if sim.method.estimate_probability
-                estimate = prefactor * abs(sim.method.v_dot_d[m,n]) # real(Akj) is always less than 1
-                estimate < random && continue
-            end
-
             copy!(proposed_state, sim.method.state)
             proposed_state[n] = m
 
@@ -233,17 +233,17 @@ function evaluate_hopping_probability!(sim::Simulation{<:AbstractIESH}, u, dt, r
 
             probability = prefactor * real(Akj) * sim.method.v_dot_d[m,n]
             prob[m,n] = probability
-
-            if sim.method.estimate_probability
-                @assert probability < estimate # Ensure estimate ALWAYS overestimates
-            end
         end
     end
 
     clamp!(prob, 0, 1) # Restrict probabilities between 0 and 1
 
-    maximum_probability = maximum(prob)
-    maximum_probability > 0.8 && @warn "Hopping probability is large, consider reducing the time step" maximum_probability
+    maximum_probability = sum(prob)
+    maximum_probability > 1 && @warn "Hopping probability is large, consider reducing the time step" maximum_probability
+
+    if sim.method.estimate_probability
+        @assert maximum_probability < estimate # Ensure estimate ALWAYS overestimates
+    end
 
     return nothing
 end
