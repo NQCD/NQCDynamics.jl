@@ -83,6 +83,6 @@ include("fssh.jl")
 include("iesh.jl")
 include("rpsh.jl")
 include("cme.jl")
-export CME
+export CME, BCME
 
 end # module
