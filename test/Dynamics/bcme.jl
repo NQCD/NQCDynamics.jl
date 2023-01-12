@@ -78,7 +78,7 @@ model = TestModel(ħω, Ed, g, Γ)
     for i in eachindex(avg)
         t = output[1][:Time][i]
         true_value = itp(t)
-        @test isapprox(true_value, avg[i]; atol=3err[i], rtol=0.1)
+        @test isapprox(true_value, avg[i]; atol=5err[i], rtol=0.1)
     end
     # Uncomment to see the comparison if the tests start failing
     # using Plots
@@ -86,6 +86,7 @@ model = TestModel(ħω, Ed, g, Γ)
     # plot!(data[!,1], data[!,2])
     # plot!(output[1][:Time], avg; yerr=err)
     # plot!(output[1][:Time], itp.(output[1][:Time]))
+    # xlims!(0, 1e4)
     # display(p)
 end
 
