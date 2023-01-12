@@ -1,5 +1,14 @@
 # NQCDynamics.jl changelog
 
+## Version `v0.13.0`
+
+- ![enhancement][badge-enhancement] Added BCME method [#290][github-290]
+- ![enhancement][badge-enhancement] Added CME method [#290][github-290]
+- ![enhancement][badge-enhancement] Added Ehrenfest for Newns-Anderson models [#290][github-290]
+- ![BREAKING][badge-breaking] New default algorithm for Ehrenfest [#290][github-290]
+- ![Fix][badge-bugfix] Improved probability estimate for IESH [#290][github-290]
+- ![Maintenance][badge-maintenance] Removed DiabaticIESH [#290][github-290]
+
 ## Version `v0.12.1`
 
 - ![enhancement][badge-enhancement] Added Independent Electron Surface Hopping Method [#287][github-287]
@@ -17,6 +26,7 @@
 - ![BREAKING][badge-breaking] `SingleState`, `ElectronicPopulation` renamed to `PureState`, `MixedState` [#275][github-275]
 - ![enhancement][badge-enhancement] Created changelog!
 
+[github-290]: https://github.com/NQCD/NQCDynamics.jl/pull/290
 [github-287]: https://github.com/NQCD/NQCDynamics.jl/pull/287
 [github-286]: https://github.com/NQCD/NQCDynamics.jl/pull/286
 [github-275]: https://github.com/NQCD/NQCDynamics.jl/pull/275
