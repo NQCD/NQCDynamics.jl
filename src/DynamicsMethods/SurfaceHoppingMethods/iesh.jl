@@ -220,7 +220,7 @@ function evaluate_hopping_probability!(sim::Simulation{<:AbstractIESH}, u, dt, r
     evaluate_v_dot_d!(sim, v, d)
 
     if sim.method.estimate_probability
-        estimate = prefactor * sum(abs, sim.method.v_dot_d) * sqrt(Akk)
+        estimate = prefactor * sum(abs, sim.method.v_dot_d) * (abs(real(det_current)) + abs(imag(det_current)))
         estimate < random && return
     end
 
@@ -242,7 +242,10 @@ function evaluate_hopping_probability!(sim::Simulation{<:AbstractIESH}, u, dt, r
     maximum_probability > 1 && @warn "Hopping probability is large, consider reducing the time step" maximum_probability
 
     if sim.method.estimate_probability
-        @assert maximum_probability < estimate # Ensure estimate ALWAYS overestimates
+        if !(maximum_probability < estimate)
+            @warn "Hopping probability exceeded estimate!" maximum_probability estimate det_current Akk
+            error("The hopping probability should never exceed the estimate.")
+        end
     end
 
     return nothing
