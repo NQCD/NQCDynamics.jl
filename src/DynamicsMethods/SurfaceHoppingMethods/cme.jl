@@ -134,12 +134,17 @@ function DynamicsUtils.acceleration!(dv, v, r, sim::Simulation{<:BCME}, t, state
     μ = NQCModels.fermilevel(sim)
     h = V[2,2] - V[1,1]
     n = evaluate_broadening(h, μ, β, Γ)
+    n2 = evaluate_force_broadening(h, μ, β, Γ)
     f = DynamicsUtils.fermi(h, μ, β)
+
     for I in eachindex(dv, ∂V)
         ∂U0 = ∂V[I][1,1]
+        ∂Γᵢ = 4π * V[2,1] * ∂V[I][2,1]
         ∂U1 = ∂V[I][2,2]
         ∂h = ∂U1 - ∂U0
-        dv[I] = - ∂V[I][state,state] - ∂h*(n - f)
+        F₁ = -∂h*n
+        F₂ = -∂Γᵢ/Γ*n2
+        dv[I] = - ∂V[I][state,state] + f*∂h + F₁ + F₂
     end
     DynamicsUtils.divide_by_mass!(dv, masses(sim))
     return nothing
@@ -159,13 +164,11 @@ function evaluate_broadening(h, μ, β, Γ)
     return integral
 end
 
-function DynamicsUtils.classical_potential_energy(sim::Simulation{<:BCME}, u)
-    V = Calculators.get_potential(sim.calculator, DynamicsUtils.get_positions(u))
-    Γ = 2π * V[2,1]^2
-    β = 1 / get_temperature(sim, t)
-    μ = NQCModels.fermilevel(sim)
-    h = V[2,2] - V[1,1]
-    n = evaluate_broadening(h, μ, β, Γ)
-    f = DynamicsUtils.fermi(h, μ, β)
-    return V[u.state, u.state] + h * (n - f)
+function evaluate_force_broadening(h, μ, β, Γ)
+    A(ϵ) = 1/π * Γ/2 / ((ϵ-h)^2 + (Γ/2)^2)
+    kernel(ϵ) = (ϵ - h) * A(ϵ) * DynamicsUtils.fermi(ϵ, μ, β)
+
+    integral, _ = QuadGK.quadgk(kernel, μ-1000Γ, μ+1000Γ)
+
+    return integral
 end
