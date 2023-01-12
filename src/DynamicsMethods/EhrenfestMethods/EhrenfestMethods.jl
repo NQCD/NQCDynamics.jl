@@ -32,17 +32,24 @@ function DynamicsMethods.motion!(du, u, sim::Simulation{<:AbstractEhrenfest}, t)
 
     DynamicsUtils.velocity!(dr, v, r, sim, t)
     Calculators.update_electronics!(sim.calculator, r)
-    acceleration!(dv, v, r, sim, t, σ)
+    DynamicsUtils.acceleration!(dv, v, r, sim, t, σ)
     DynamicsUtils.set_quantum_derivative!(dσ, v, σ, sim)
 end
 
 function DynamicsUtils.set_quantum_derivative!(dσ, v, σ, sim::AbstractSimulation{<:AbstractEhrenfest})
     V = DynamicsUtils.calculate_density_matrix_propagator!(sim, v)
-    DynamicsUtils.commutator!(dσ, V, σ, sim.method.tmp_complex_matrix)
+
+    tmp1 = sim.method.tmp_complex_matrix
+    tmp2 = sim.method.tmp_complex_matrix2
+    copy!(tmp2, σ) # Copy to complex matrix for faster mul!
+    DynamicsUtils.commutator!(tmp1, V, tmp2)
+    copy!(dσ, tmp1)
     lmul!(-im, dσ)
 end
 
 include("ehrenfest.jl")
 include("ehrenfest_rpmd.jl")
+include("ehrenfest_na.jl")
+export EhrenfestNA
 
 end # module

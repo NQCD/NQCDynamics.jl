@@ -37,7 +37,8 @@ struct AdiabaticIESH{T} <: AbstractIESH
     LUws::FastLapackInterface.LUWs
     v_dot_d::Matrix{T}
     unoccupied::Vector{Int}
-    function AdiabaticIESH{T}(states::Integer, n_electrons::Integer, rescaling::Symbol) where {T}
+    estimate_probability::Bool
+    function AdiabaticIESH{T}(states::Integer, n_electrons::Integer, rescaling::Symbol, estimate_probability::Bool) where {T}
 
         hopping_probability = zeros(Int, states, n_electrons)
         state = zeros(Int, n_electrons)
@@ -57,15 +58,15 @@ struct AdiabaticIESH{T} <: AbstractIESH
         new{T}(hopping_probability, state, new_state, proposed_state, overlap, tmp, rescaling, quantum_propagator,
             tmp_matrix_complex_square1, tmp_matrix_complex_square2,
             tmp_matrix_complex_rect1, tmp_matrix_complex_rect2,
-            LUws, v_dot_d, unoccupied
+            LUws, v_dot_d, unoccupied, estimate_probability
         )
     end
 end
 
 unoccupied_states(sim::Simulation{<:AbstractIESH}) = sim.method.unoccupied
 
-function NQCDynamics.Simulation{IESH_type}(atoms::Atoms{T}, model::Model; rescaling=:standard, kwargs...) where {T,IESH_type<:AbstractIESH}
-    NQCDynamics.Simulation(atoms, model, IESH_type{T}(NQCModels.nstates(model), NQCModels.nelectrons(model), rescaling); kwargs...)
+function NQCDynamics.Simulation{IESH_type}(atoms::Atoms{T}, model::Model; rescaling=:standard, estimate_probability=true, kwargs...) where {T,IESH_type<:AbstractIESH}
+    NQCDynamics.Simulation(atoms, model, IESH_type{T}(NQCModels.nstates(model), NQCModels.nelectrons(model), rescaling, estimate_probability); kwargs...)
 end
 
 function DynamicsMethods.DynamicsVariables(sim::Simulation{<:AdiabaticIESH}, v, r)
@@ -93,8 +94,8 @@ function DynamicsMethods.DynamicsVariables(sim::Simulation{<:AdiabaticIESH}, v, 
 
     eigs = Calculators.get_eigen(sim.calculator, r)
 
-    available_states = get_available_states(electronic.available_states, NQCModels.nstates(sim))
-    state = sample_fermi_dirac_distribution(eigs.values, NQCModels.nelectrons(sim), available_states, electronic.β)
+    available_states = DynamicsUtils.get_available_states(electronic.available_states, NQCModels.nstates(sim))
+    state = DynamicsUtils.sample_fermi_dirac_distribution(eigs.values, NQCModels.nelectrons(sim), available_states, electronic.β)
 
     ψ = zeros(NQCModels.nstates(sim), NQCModels.nelectrons(sim))
     for (i, j) in enumerate(state)
@@ -104,33 +105,11 @@ function DynamicsMethods.DynamicsVariables(sim::Simulation{<:AdiabaticIESH}, v, 
     SurfaceHoppingVariables(ComponentVector(v=v, r=r, σreal=ψ, σimag=zero(ψ)), state)
 end
 
-function sample_fermi_dirac_distribution(energies, nelectrons, available_states, β)
-    nstates = length(available_states)
-    state = collect(Iterators.take(available_states, nelectrons))
-    for _ in 1:(nstates * nelectrons)
-        current_index = rand(eachindex(state))
-        i = state[current_index] # Pick random occupied state
-        j = rand(setdiff(available_states, state)) # Pick random unoccupied state
-        prob = exp(-β * (energies[j] - energies[i])) # Calculate Boltzmann factor
-        if prob > rand()
-            state[current_index] = j # Set unoccupied state to occupied
-        end
-    end
-    sort!(state)
-    return state
-end
-
 function DynamicsMethods.create_problem(u0, tspan, sim::AbstractSimulation{<:AbstractIESH})
     set_state!(sim.method, u0.state)
     set_unoccupied_states!(sim)
     OrdinaryDiffEq.ODEProblem(DynamicsMethods.motion!, u0, tspan, sim;
         callback=DynamicsMethods.get_callbacks(sim))
-end
-
-get_available_states(::Colon, nstates::Integer) = 1:nstates
-function get_available_states(available_states::AbstractVector, nstates::Integer)
-    maximum(available_states) > nstates && throw(DomainError(available, "There are only $nstates in the system."))
-    return available_states
 end
 
 function DynamicsMethods.DynamicsVariables(sim::Simulation{<:AdiabaticIESH}, v, r, electronic::FermiDiracState{Diabatic})
@@ -214,64 +193,8 @@ function DynamicsUtils.set_quantum_derivative!(dσ, v, σ, sim::Simulation{<:Adi
     V = sim.calculator.eigen.values
     d = sim.calculator.nonadiabatic_coupling
     @views for i in eachelectron(sim)
-        set_single_electron_derivative!(dσ[:,i], σ[:,i], V, v, d, sim.method.tmp)
+        DynamicsUtils.set_single_electron_derivative!(dσ[:,i], σ[:,i], V, v, d, sim.method.tmp)
     end
-end
-
-"""
-```math
-\\frac{d c_k}{dt} = -iV_{kk}c_k/\\hbar - \\sum_j v d_{kj} c_j
-```
-"""
-function set_single_electron_derivative!(dc, c, V, v, d, tmp)
-    @. dc = -im*V * c
-    for I in eachindex(v)
-        mul!(tmp, d[I], c)
-        lmul!(v[I], tmp)
-        @. dc -= tmp
-    end
-    return nothing
-end
-
-function propagate_wavefunction!(σfinal, σ, v, sim::Simulation{<:AdiabaticIESH}, dt)
-    propagator = get_quantum_propagator(sim, v, dt)
-
-    tmp1 = sim.method.tmp_matrix_complex_rect1
-    tmp2 = sim.method.tmp_matrix_complex_rect2
-    copy!(tmp1, σ)
-    mul!(tmp2, propagator, tmp1)
-    copy!(σfinal, tmp2)
-end
-
-function get_quantum_propagator(sim::Simulation{<:AdiabaticIESH}, v, dt)
-    prop = sim.method.quantum_propagator
-    eigenvalues = sim.calculator.eigen.values
-    fill!(prop, zero(eltype(prop)))
-    @inbounds for (i, I) in zip(eachindex(eigenvalues), diagind(prop))
-        prop[I] = eigenvalues[i]
-    end
-
-    d = sim.calculator.nonadiabatic_coupling
-    @inbounds for i in NQCModels.mobileatoms(sim)
-        for j in NQCModels.dofs(sim)
-            @. prop -= 1im * d[j,i] * v[j,i]
-        end
-    end
-
-    eigs = LinearAlgebra.eigen!(Hermitian(prop))
-    fill!(prop, zero(eltype(prop)))
-    @inbounds for (i, I) in zip(eachindex(eigs.values), diagind(prop))
-        prop[I] = exp(-1im * eigs.values[i] * dt)
-    end
-
-    tmp1 = sim.method.tmp_matrix_complex_square1
-    tmp2 = sim.method.tmp_matrix_complex_square2
-
-    copy!(tmp1, eigs.vectors) # Copy real->complex for faster mul!
-    mul!(tmp2, prop, tmp1')
-    mul!(prop, tmp1, tmp2)
-
-    return prop
 end
 
 """
@@ -290,17 +213,19 @@ function evaluate_hopping_probability!(sim::Simulation{<:AbstractIESH}, u, dt, r
 
     det_current = FastDeterminant.det!(S, sim.method.LUws)
     Akk = abs2(det_current)
-    prefactor = 2dt / real(Akk)
+    prefactor = 2dt / Akk
 
     fill!(prob, zero(eltype(prob)))
 
     evaluate_v_dot_d!(sim, v, d)
 
+    if sim.method.estimate_probability
+        estimate = prefactor * sum(abs, sim.method.v_dot_d) * (abs(real(det_current)) + abs(imag(det_current)))
+        estimate < random && return
+    end
+
     @inbounds for n in eachelectron(sim)
         for m in unoccupied_states(sim)
-            estimate = prefactor * abs(sim.method.v_dot_d[m,n]) # real(Akj) is always less than 1
-            estimate < random && continue
-
             copy!(proposed_state, sim.method.state)
             proposed_state[n] = m
 
@@ -308,15 +233,20 @@ function evaluate_hopping_probability!(sim::Simulation{<:AbstractIESH}, u, dt, r
 
             probability = prefactor * real(Akj) * sim.method.v_dot_d[m,n]
             prob[m,n] = probability
-
-            @assert probability < estimate # Ensure estimate ALWAYS overestimates
         end
     end
 
     clamp!(prob, 0, 1) # Restrict probabilities between 0 and 1
 
-    maximum_probability = maximum(prob)
-    maximum_probability > 0.8 && @warn "Hopping probability is large, consider reducing the time step" maximum_probability
+    maximum_probability = sum(prob)
+    maximum_probability > 1 && @warn "Hopping probability is large, consider reducing the time step" maximum_probability
+
+    if sim.method.estimate_probability
+        if !(maximum_probability < estimate)
+            @warn "Hopping probability exceeded estimate!" maximum_probability estimate det_current Akk
+            error("The hopping probability should never exceed the estimate.")
+        end
+    end
 
     return nothing
 end

@@ -30,6 +30,8 @@ if GROUP == "All" || GROUP == "Dynamics"
     @time @safetestset "BCBwithTsit5 Tests" begin include("Dynamics/bcbwithtsit5.jl") end
     @time @safetestset "FSSH Tests" begin include("Dynamics/fssh.jl") end
     @time @safetestset "IESH Tests" begin include("Dynamics/iesh.jl") end
+    @time @safetestset "CME Tests" begin include("Dynamics/cme.jl") end
+    @time @safetestset "BCME Tests" begin include("Dynamics/bcme.jl") end
     @time @safetestset "Electronic dynamics Tests" begin include("Dynamics/electronic_dynamics.jl") end
     @time @safetestset "NRPMD Tests" begin include("Dynamics/nrpmd.jl") end
     @time @safetestset "CMM Tests" begin include("Dynamics/cmm.jl") end
@@ -37,6 +39,7 @@ if GROUP == "All" || GROUP == "Dynamics"
     @time @safetestset "SpinMapping Tests" begin include("Dynamics/spin_mapping.jl") end
     @time @safetestset "Cell Boundary Callback Tests" begin include("Dynamics/cell_boundary_callback.jl") end
     @time @safetestset "Ehrenfest Tests" begin include("Dynamics/ehrenfest.jl") end
+    @time @safetestset "NA Ehrenfest Tests" begin include("Dynamics/ehrenfest_na.jl") end
     @time @safetestset "Ensemble Tests" begin include("Ensembles/ensembles.jl") end
     @time @safetestset "Ensemble Selection Tests" begin include("Ensembles/selections.jl") end
     @time @safetestset "Ensemble Reduction Tests" begin include("Ensembles/reductions.jl") end

@@ -35,7 +35,7 @@ In this example we output velocities by specifying `output=OutputVelocity` and s
 n_traj = 5000
 tspan = (0.0, 3000.0)
 solution = run_dynamics(sim, tspan, distribution; 
-    trajectories=n_traj, output=OutputVelocity)
+    trajectories=n_traj, output=OutputVelocity, dt=1.0)
 final_velocities = [r[:OutputVelocity][end] for r in solution]
 momenta = reduce(vcat, final_velocities*atoms.masses[1])
 ```
