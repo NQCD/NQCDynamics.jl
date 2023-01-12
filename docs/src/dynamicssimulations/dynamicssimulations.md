@@ -68,7 +68,7 @@ Output is a required keyword and the code will error unless at least one quantit
 By passing a `Tuple` to the `output` keyword argument we can ask for multiple quantities.
 
 ```@example dynamics
-out = run_dynamics(sim, tspan, u0; output=(OutputPosition, OutputAdiabaticPopulation))
+out = run_dynamics(sim, tspan, u0; output=(OutputPosition, OutputAdiabaticPopulation), dt=1.0)
 ```
 The quantities that are available are listed [here](@ref NQCDynamics).
 More quantities can be added by defining new functions with the signature `f(sol, i)`.
