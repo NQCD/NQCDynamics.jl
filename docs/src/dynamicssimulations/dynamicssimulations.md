@@ -60,7 +60,7 @@ that the trajectory will cover.
 
 ```@example dynamics
 tspan = (0.0, 2000.0)
-run_dynamics(sim, tspan, u0; output=OutputDynamicsVariables)
+run_dynamics(sim, tspan, u0; output=OutputDynamicsVariables, dt=1.0)
 ```
 
 The output is a dictionary containing entries for `:Time` and our requested output quantity. 
