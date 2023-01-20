@@ -37,7 +37,7 @@ function generate_configurations(sim;
     surface_normal=[0, 0, 1.0],
     translational_energy=0.0,
     incidence_angle=0.0, # Degrees
-    # direction=[0, 0, -1.0],
+    azimuthal_angle=0.0,
     atom_index=[1],
     r=zeros(size(sim)))
 
@@ -45,7 +45,11 @@ function generate_configurations(sim;
     θ_i .= incidence_angle
 
 
-    direction = set_incidence_direction.(θ_i)
+    θ_j = zeros(samples)
+    θ_j .= azimuthal_angle
+
+
+    direction = set_incidence_angle.(θ_i,θ_j)
 
     _, slab = QuantisedDiatomic.separate_slab_and_molecule(atom_index, r)
     environment = QuantisedDiatomic.EvaluationEnvironment(atom_index, size(sim), slab, austrip(height), surface_normal)
@@ -65,7 +69,7 @@ end
         set_incidence_direction(incidence_angle)
         Converts inputted angle in degrees to incidence direction vector for scattering simulations
 """
-function set_incidence_direction(incidence_angle)
+function set_incidence_angle(incidence_angle, azimuthal_angle)
 
     # Rotation in z to get incidence angle
     θ_i = deg2rad(incidence_angle)
@@ -77,10 +81,10 @@ function set_incidence_direction(incidence_angle)
 
     inc_dir = rot_mat * [0, 0, -1]
 
-
-
     # Random rotation in z
-    θ_2 = rand(Uniform(0.,2π),1,1)
+    #θ_2 = rand(Uniform(0.,2π),1,1)
+
+    θ_2 = deg2rad(azimuthal_angle) 
 
     rot2_mat = [
     cos(θ_2) -sin(θ_2) 0
