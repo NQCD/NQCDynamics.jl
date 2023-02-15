@@ -4,6 +4,8 @@ using NQCDynamics: DynamicsMethods, Calculators
 using NQCDynamics.DynamicsMethods.EhrenfestMethods
 using OrdinaryDiffEq
 using Statistics: var
+using DataFrames, CSV
+using Interpolations
 
 @test Ehrenfest{Float64}(2) isa Ehrenfest
 atoms = Atoms(:H)
@@ -88,6 +90,37 @@ atoms = Atoms(:H)
         @test traj1[:OutputVelocity] ≈ traj2[:OutputVelocity] rtol=1e-3
         @test traj1[:OutputPosition] ≈ traj2[:OutputPosition] rtol=1e-3
         @test traj1[:OutputQuantumSubsystem] ≈ traj2[:OutputQuantumSubsystem] rtol=1e-2
+    end
+
+    @testset "Spin boson population dynamics" begin
+
+        N = 100
+        atoms = Atoms(fill(1, N))
+        β = 5
+        T = 1 / β
+        density = OhmicSpectralDensity(2.5, 0.09)
+        model = SpinBoson(density, N, 0.0, 1.0)
+
+        position = reshape([PositionHarmonicWigner(ω, β, 1) for ω in model.ωⱼ], 1, :)
+        velocity = reshape([VelocityHarmonicWigner(ω, β, 1) for ω in model.ωⱼ], 1, :)
+        distribution = DynamicalDistribution(velocity, position, (1, 100)) * PureState(1)
+
+        sim = Simulation{Ehrenfest}(atoms, model)
+
+        saveat = 0:0.1:20
+        trajectories = 500
+        output = TimeCorrelationFunctions.PopulationCorrelationFunction(sim, Diabatic())
+        ensemble = run_dynamics(sim, (0.0, 20.0), distribution;
+            saveat, trajectories, output, reduction=MeanReduction(), dt=0.1)
+        result = [p[1,1] - p[1,2] for p in ensemble[:PopulationCorrelationFunction]]
+
+        data = CSV.read(joinpath(@__DIR__, "reference_data", "gao_saller_jctc_2020_fig2b.csv"), DataFrame; header=false)
+        itp = linear_interpolation(data[!,1], data[!,2]; extrapolation_bc=Line())
+        for i in eachindex(result)
+            t = ensemble[:Time][i]
+            true_value = itp(t)
+            @test isapprox(true_value, result[i]; atol=0.2)
+        end
     end
 end
 

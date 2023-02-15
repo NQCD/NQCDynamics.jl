@@ -12,7 +12,9 @@ function set_quantum_derivative! end
 function calculate_density_matrix_propagator!(sim::Simulation, v)
     V = sim.method.density_propagator
     fill!(V, zero(eltype(V)))
-    copy!(V[diagind(V)], sim.calculator.eigen.values)
+    for (i, I) in enumerate(diagind(V))
+        V[I] = sim.calculator.eigen.values[i]
+    end
 
     for I in eachindex(v)
         @. V -= im * v[I] * sim.calculator.nonadiabatic_coupling[I]

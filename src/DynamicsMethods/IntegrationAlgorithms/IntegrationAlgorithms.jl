@@ -11,12 +11,18 @@ using NQCDynamics:
     Calculators,
     natoms, nbeads, ndofs
 
-using OrdinaryDiffEq: OrdinaryDiffEq
+using OrdinaryDiffEq: OrdinaryDiffEq, OrdinaryDiffEqAlgorithm
 using StochasticDiffEq: StochasticDiffEq
 
-struct BCB <: OrdinaryDiffEq.OrdinaryDiffEqAlgorithm end
-struct BCBwithTsit5 <: OrdinaryDiffEq.OrdinaryDiffEqAlgorithm end
-struct BABwithTsit5 <: OrdinaryDiffEq.OrdinaryDiffEqAlgorithm end
+struct BCB <: OrdinaryDiffEqAlgorithm end
+
+struct BCBwithTsit5{T<:OrdinaryDiffEqAlgorithm} <: OrdinaryDiffEqAlgorithm
+    electronic_algorithm::T
+end
+
+struct BABwithTsit5{T<:OrdinaryDiffEqAlgorithm} <: OrdinaryDiffEqAlgorithm
+    electronic_algorithm::T
+end
 
 """
     RingPolymerMInt <: OrdinaryDiffEq.OrdinaryDiffEqAlgorithm
@@ -44,8 +50,8 @@ struct VerletwithElectronics <: OrdinaryDiffEq.OrdinaryDiffEqAlgorithm end
 struct MDEF_BAOAB <: StochasticDiffEq.StochasticDiffEqAlgorithm end
 struct BCOCB <: StochasticDiffEq.StochasticDiffEqAlgorithm end
 
-DynamicsMethods.select_algorithm(::RingPolymerSimulation{<:DynamicsMethods.SurfaceHoppingMethods.SurfaceHopping}) = BCBwithTsit5()
-DynamicsMethods.select_algorithm(::RingPolymerSimulation{<:DynamicsMethods.EhrenfestMethods.AbstractEhrenfest}) = BCBwithTsit5()
+DynamicsMethods.select_algorithm(::RingPolymerSimulation{<:DynamicsMethods.SurfaceHoppingMethods.SurfaceHopping}) = BCBwithTsit5(OrdinaryDiffEq.Tsit5())
+DynamicsMethods.select_algorithm(::RingPolymerSimulation{<:DynamicsMethods.EhrenfestMethods.AbstractEhrenfest}) = BCBwithTsit5(OrdinaryDiffEq.Tsit5())
 DynamicsMethods.select_algorithm(::Simulation{<:DynamicsMethods.ClassicalMethods.AbstractMDEF}) = MDEF_BAOAB()
 DynamicsMethods.select_algorithm(::RingPolymerSimulation{<:DynamicsMethods.ClassicalMethods.AbstractMDEF}) = BCOCB()
 DynamicsMethods.select_algorithm(::RingPolymerSimulation{<:DynamicsMethods.ClassicalMethods.ThermalLangevin}) = BCOCB()
@@ -54,7 +60,7 @@ DynamicsMethods.select_algorithm(::RingPolymerSimulation{<:DynamicsMethods.Mappi
 DynamicsMethods.select_algorithm(::RingPolymerSimulation{<:DynamicsMethods.MappingVariableMethods.eCMM}) = RingPolymerMInt()
 DynamicsMethods.select_algorithm(::RingPolymerSimulation{DynamicsMethods.ClassicalMethods.Classical}) = BCB()
 DynamicsMethods.select_algorithm(::Simulation{<:DynamicsMethods.SurfaceHoppingMethods.AbstractIESH}) = VerletwithElectronics()
-DynamicsMethods.select_algorithm(::Simulation{<:DynamicsMethods.EhrenfestMethods.Ehrenfest}) = BABwithTsit5()
+DynamicsMethods.select_algorithm(::Simulation{<:DynamicsMethods.EhrenfestMethods.Ehrenfest}) = BABwithTsit5(OrdinaryDiffEq.Tsit5())
 DynamicsMethods.select_algorithm(::Simulation{<:DynamicsMethods.EhrenfestMethods.EhrenfestNA}) = VerletwithElectronics()
 
 export BCB
