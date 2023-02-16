@@ -1,6 +1,7 @@
 
 using SciMLBase: ODEProblem, DiffEqArrayOperator
 using LinearAlgebra: rmul!, diagind
+using NQCDynamics: DynamicsUtils
 
 struct ElectronicParameters{T}
     "Product of velocity and nonadiabatic coupling"
@@ -57,6 +58,7 @@ function interpolate_eigenvalues!(output::AbstractVector, buffer::DoubleBuffer, 
     t₁ = buffer.next.t[]
     
     interval_location = (t - t₀) / (t₁ - t₀)
+    isnan(interval_location) && (interval_location = 0)
     for i in eachindex(E₀, E₁)
         output[i] = E₀[i] + (E₁[i]-E₀[i]) * interval_location
     end
@@ -69,6 +71,7 @@ function interpolate_dynamical_coupling!(output::AbstractMatrix, buffer::DoubleB
     t₁ = buffer.next.t[]
     
     interval_location = (t - t₀) / (t₁ - t₀)
+    isnan(interval_location) && (interval_location = 0)
     for i in eachindex(d₀, d₁)
         output[i] = d₀[i] + (d₁[i]-d₀[i]) * interval_location
     end
@@ -88,4 +91,47 @@ function ElectronicODEProblem(c0, tspan, nstates::Integer)
 
     A = DiffEqArrayOperator(zeros(ComplexF64, nstates, nstates); update_func)
     return ODEProblem(A, c0, tspan, buffer)
+end
+
+struct DensityMatrixPropagationParameters{T}
+    buffer::DoubleBuffer{ElectronicParameters{T}}
+    propagator::Matrix{Complex{T}}
+end
+
+function DensityMatrixODEProblem(u0::AbstractMatrix, tspan, nstates::Integer)
+
+    function f!(du, u, p, t)
+        A = p.propagator
+        interpolate_dynamical_coupling!(A, p.buffer, t)
+        rmul!(A, -1im)
+
+        diagonal = @view A[diagind(A)]
+        interpolate_eigenvalues!(diagonal, p.buffer, t)
+
+        DynamicsUtils.commutator!(du, A, u)
+        rmul!(du, -im)
+    end
+
+    electronic_parameters = ElectronicParameters(
+        zeros(eltype(u0), nstates, nstates),
+        zeros(eltype(u0), nstates),
+        Ref(tspan[1])
+    )
+
+    p = DensityMatrixPropagationParameters(
+        DoubleBuffer(electronic_parameters, deepcopy(electronic_parameters)),
+        zeros(eltype(u0), nstates, nstates)
+    )
+
+    return ODEProblem(f!, u0, tspan, p)
+end
+
+function update_parameters!(
+    p::DensityMatrixPropagationParameters,
+    eigenvalues::AbstractVector,
+    nonadiabatic_coupling::AbstractMatrix{<:AbstractMatrix},
+    velocity::AbstractMatrix,
+    t::Real
+)
+    update_parameters!(p.buffer, eigenvalues, nonadiabatic_coupling, velocity, t)
 end

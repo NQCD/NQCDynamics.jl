@@ -37,7 +37,7 @@ function DynamicsMethods.create_problem(u0, tspan::Tuple, sim::Simulation{<:Lang
     StochasticDiffEq.DynamicalSDEProblem(acceleration!, DynamicsUtils.velocity!, friction!,
         DynamicsUtils.get_velocities(u0), DynamicsUtils.get_positions(u0), tspan, sim)
 end
-DynamicsMethods.select_algorithm(sim::AbstractSimulation{<:Langevin}) = StochasticDiffEq.BAOAB(sim.method.γ)
+DynamicsMethods.select_algorithm(sim::AbstractSimulation{<:Langevin}) = StochasticDiffEq.BAOAB(;gamma=sim.method.γ)
 
 function friction!(du, r, sim::AbstractSimulation{<:Langevin}, t)
     du .= sim.method.σ
