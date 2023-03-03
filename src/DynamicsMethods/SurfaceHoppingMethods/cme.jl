@@ -112,18 +112,19 @@ mutable struct BCME{T} <: ClassicalMasterEquation
     hopping_probability::T
     state::Int
     new_state::Int
+    bandwidth::T
 end
 
-function BCME{T}(nstates::Integer) where {T}
+function BCME{T}(nstates::Integer, bandwidth) where {T}
     nstates == 2 || error("BCME only works with two states at the moment.")
     hopping_probability = zero(T)
     state = 0
     new_state = 0
-    return BCME(hopping_probability, state, new_state)
+    return BCME(hopping_probability, state, new_state, bandwidth)
 end
 
-function Simulation{BCME}(atoms::Atoms{T}, model; kwargs...) where {T}
-    Simulation(atoms, model, BCME{T}(NQCModels.nstates(model)); kwargs...)
+function Simulation{BCME}(atoms::Atoms{T}, model; bandwidth, kwargs...) where {T}
+    Simulation(atoms, model, BCME{T}(NQCModels.nstates(model), bandwidth); kwargs...)
 end
 
 function DynamicsUtils.acceleration!(dv, v, r, sim::Simulation{<:BCME}, t, state)
@@ -133,8 +134,8 @@ function DynamicsUtils.acceleration!(dv, v, r, sim::Simulation{<:BCME}, t, state
     β = 1 / get_temperature(sim, t)
     μ = NQCModels.fermilevel(sim)
     h = V[2,2] - V[1,1]
-    n = evaluate_broadening(h, μ, β, Γ)
-    n2 = evaluate_force_broadening(h, μ, β, Γ)
+    n = evaluate_broadening(h, μ, β, Γ, sim.method.bandwidth)
+    n2 = evaluate_force_broadening(h, μ, β, Γ, sim.method.bandwidth)
     f = DynamicsUtils.fermi(h, μ, β)
 
     for I in eachindex(dv, ∂V)
@@ -155,20 +156,20 @@ end
 
 Evaluate the convolution of the Fermi function with a Lorentzian.
 """
-function evaluate_broadening(h, μ, β, Γ)
+function evaluate_broadening(h, μ, β, Γ, bandwidth)
     A(ϵ) = 1/π * Γ/2 / ((ϵ-h)^2 + (Γ/2)^2)
     kernel(ϵ) = A(ϵ) * DynamicsUtils.fermi(ϵ, μ, β)
 
-    integral, _ = QuadGK.quadgk(kernel, -Inf, Inf)
+    integral, _ = QuadGK.quadgk(kernel, μ-bandwidth/2, μ+bandwidth/2)
 
     return integral
 end
 
-function evaluate_force_broadening(h, μ, β, Γ)
+function evaluate_force_broadening(h, μ, β, Γ, bandwidth)
     A(ϵ) = 1/π * Γ/2 / ((ϵ-h)^2 + (Γ/2)^2)
     kernel(ϵ) = (ϵ - h) * A(ϵ) * DynamicsUtils.fermi(ϵ, μ, β)
 
-    integral, _ = QuadGK.quadgk(kernel, μ-1000Γ, μ+1000Γ)
+    integral, _ = QuadGK.quadgk(kernel, μ-bandwidth/2, μ+bandwidth/2)
 
     return integral
 end
