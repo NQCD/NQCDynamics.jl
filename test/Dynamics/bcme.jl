@@ -52,7 +52,7 @@ end
 model = TestModel(ħω, Ed, g, Γ)
 
 @testset "BCME" begin
-    sim = Simulation{BCME}(atoms, model; temperature=kT)
+    sim = Simulation{BCME}(atoms, model; temperature=kT, bandwidth=100.)
     βω = ħω / kT
     σ = sqrt(1 / βω)
     r = Normal(x1, σ)
