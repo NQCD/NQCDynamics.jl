@@ -47,8 +47,9 @@ function DynamicsMethods.DynamicsVariables(
 end
 
 function DynamicsUtils.acceleration!(dv, v, r, sim::AbstractSimulation{<:FSSH}, t, state)
+    adiabatic_derivative = Calculators.get_adiabatic_derivative(sim.calculator, r)
     for I in eachindex(dv)
-        dv[I] = -sim.calculator.adiabatic_derivative[I][state, state]
+        dv[I] = -adiabatic_derivative[I][state, state]
     end
     DynamicsUtils.divide_by_mass!(dv, masses(sim))
     return nothing
