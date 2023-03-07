@@ -17,7 +17,7 @@ function DynamicsMethods.motion!(du, u, sim::RingPolymerSimulation{<:AbstractEhr
     Calculators.update_electronics!(sim.calculator, r)
     DynamicsUtils.acceleration!(dv, v, r, sim, t, σ)
     DynamicsUtils.apply_interbead_coupling!(dv, r, sim)
-    DynamicsUtils.set_quantum_derivative!(dσ, v, σ, sim)
+    DynamicsUtils.set_quantum_derivative!(dσ, u, sim)
 end
 
 function DynamicsUtils.acceleration!(dv, v, r, sim::RingPolymerSimulation{<:Ehrenfest}, t, σ)

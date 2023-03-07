@@ -11,8 +11,8 @@ function set_single_electron_derivative!(dc, c, V, v, d, tmp)
     return nothing
 end
 
-function propagate_wavefunction!(σfinal, σ, v, sim, dt)
-    propagator = get_quantum_propagator(sim, v, dt)
+function propagate_wavefunction!(σfinal, σ, v, r, sim, dt)
+    propagator = get_quantum_propagator(sim, v, r, dt)
 
     tmp1 = sim.method.tmp_matrix_complex_rect1
     tmp2 = sim.method.tmp_matrix_complex_rect2
@@ -21,15 +21,15 @@ function propagate_wavefunction!(σfinal, σ, v, sim, dt)
     copy!(σfinal, tmp2)
 end
 
-function get_quantum_propagator(sim, v, dt)
+function get_quantum_propagator(sim, v, r, dt)
     prop = sim.method.quantum_propagator
-    eigenvalues = sim.calculator.eigen.values
+    eigenvalues = DynamicsUtils.get_hopping_eigenvalues(sim, r)
     fill!(prop, zero(eltype(prop)))
     @inbounds for (i, I) in zip(eachindex(eigenvalues), diagind(prop))
         prop[I] = eigenvalues[i]
     end
 
-    d = sim.calculator.nonadiabatic_coupling
+    d = DynamicsUtils.get_hopping_nonadiabatic_coupling(sim, r)
     @inbounds for i in NQCModels.mobileatoms(sim)
         for j in NQCModels.dofs(sim)
             @. prop -= 1im * d[j,i] * v[j,i]

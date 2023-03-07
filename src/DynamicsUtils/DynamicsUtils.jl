@@ -60,13 +60,29 @@ function apply_interbead_coupling!(dr::AbstractArray{T,3}, r::AbstractArray{T,3}
     return nothing
 end
 
-function classical_hamiltonian(sim, u) end
+function classical_hamiltonian(sim::Simulation, u)
+    kinetic = classical_kinetic_energy(sim, u)
+    potential = classical_potential_energy(sim, u)
+    return kinetic + potential
+end
+
+function classical_hamiltonian(sim::RingPolymerSimulation, u)
+    spring = classical_spring_energy(sim, u)
+    kinetic = classical_kinetic_energy(sim, u)
+    potential = classical_potential_energy(sim, u)
+    return spring + kinetic + potential
+end
+
+function classical_spring_energy(sim::RingPolymerSimulation, u)
+    r = get_positions(u)
+    return RingPolymers.get_spring_energy(sim.beads, sim.atoms.masses, r)
+end
 
 function classical_kinetic_energy(sim::AbstractSimulation, u)
     classical_kinetic_energy(sim,  DynamicsUtils.get_velocities(u))
 end
 
-function classical_kinetic_energy(sim::Simulation, v::AbstractMatrix)
+function classical_kinetic_energy(sim::AbstractSimulation, v::AbstractMatrix)
     kinetic = zero(eltype(v))
     for i in axes(v, 2)
         for j in axes(v, 1)
@@ -100,6 +116,10 @@ function classical_potential_energy(sim::RingPolymerSimulation, r::AbstractArray
     V = Calculators.get_potential(sim.calculator, r)
     sum(V) + RingPolymers.get_spring_energy(sim.beads, masses(sim), r)
 end
+
+function get_hopping_eigenvalues end
+function get_hopping_nonadiabatic_coupling end
+function get_hopping_velocity end
 
 include("dynamics_variables.jl")
 include("callbacks.jl")

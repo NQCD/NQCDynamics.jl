@@ -30,7 +30,7 @@ function NQCDynamics.Simulation{EhrenfestNA}(atoms::Atoms{T}, model::Model; kwar
     NQCDynamics.Simulation(atoms, model, EhrenfestNA{T}(NQCModels.nstates(model), NQCModels.nelectrons(model)); kwargs...)
 end
 
-function DynamicsMethods.DynamicsVariables(sim::Simulation{<:EhrenfestNA}, v, r)
+function DynamicsMethods.DynamicsVariables(sim::AbstractSimulation{<:EhrenfestNA}, v, r)
     ψ = zeros(NQCModels.nstates(sim), NQCModels.nelectrons(sim))
     
     for i in eachelectron(sim)
@@ -86,9 +86,12 @@ function DynamicsUtils.acceleration!(dv, v, r, sim::Simulation{<:EhrenfestNA}, t
     return nothing
 end
 
-function DynamicsUtils.set_quantum_derivative!(dσ, v, σ, sim::Simulation{<:EhrenfestNA})
-    V = sim.calculator.eigen.values
-    d = sim.calculator.nonadiabatic_coupling
+function DynamicsUtils.set_quantum_derivative!(dσ, u, sim::AbstractSimulation{<:EhrenfestNA})
+    v = DynamicsUtils.get_hopping_velocity(sim, DynamicsUtils.get_velocities(u))
+    σ = DynamicsUtils.get_quantum_subsystem(u)
+    r = DynamicsUtils.get_positions(u)
+    V = DynamicsUtils.get_hopping_eigenvalues(sim, r)
+    d = DynamicsUtils.get_hopping_nonadiabatic_coupling(sim, r)
     @views for i in eachelectron(sim)
         DynamicsUtils.set_single_electron_derivative!(dσ[:,i], σ[:,i], V, v, d, sim.method.tmp)
     end
@@ -107,7 +110,7 @@ function DynamicsUtils.classical_potential_energy(sim::Simulation{<:EhrenfestNA}
     return potential
 end
 
-function DynamicsUtils.classical_hamiltonian(sim::Simulation{<:EhrenfestNA}, u)
+function DynamicsUtils.classical_hamiltonian(sim::AbstractSimulation{<:EhrenfestNA}, u)
     kinetic = DynamicsUtils.classical_kinetic_energy(sim, DynamicsUtils.get_velocities(u))
     potential = DynamicsUtils.classical_potential_energy(sim, u)
     return kinetic + potential

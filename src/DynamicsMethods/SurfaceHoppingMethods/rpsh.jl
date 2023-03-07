@@ -24,19 +24,19 @@ function DynamicsMethods.motion!(du, u, sim::RingPolymerSimulation{<:SurfaceHopp
     Calculators.update_electronics!(sim.calculator, r)
     DynamicsUtils.acceleration!(dv, v, r, sim, t, sim.method.state)
     DynamicsUtils.apply_interbead_coupling!(dv, r, sim)
-    DynamicsUtils.set_quantum_derivative!(dσ, v, σ, sim)
+    DynamicsUtils.set_quantum_derivative!(dσ, u, sim)
 end
 
-function get_hopping_nonadiabatic_coupling(sim::RingPolymerSimulation{<:FSSH})
-    sim.calculator.centroid_nonadiabatic_coupling
+function DynamicsUtils.get_hopping_nonadiabatic_coupling(sim::RingPolymerSimulation, r::AbstractArray{T,3}) where {T}
+    return Calculators.get_centroid_nonadiabatic_coupling(sim.calculator, r)
 end
 
-function get_hopping_velocity(::RingPolymerSimulation{<:FSSH}, u)
-    get_centroid(DynamicsUtils.get_velocities(u))
+function DynamicsUtils.get_hopping_velocity(::RingPolymerSimulation, v::AbstractArray{T,3}) where {T}
+    return get_centroid(v)
 end
 
-function get_hopping_eigenvalues(sim::RingPolymerSimulation{<:FSSH})
-    sim.calculator.centroid_eigen.values
+function DynamicsUtils.get_hopping_eigenvalues(sim::RingPolymerSimulation, r::AbstractArray{T,3}) where {T}
+    return Calculators.get_centroid_eigen(sim.calculator, r).values
 end
 
 function perform_rescaling!(
