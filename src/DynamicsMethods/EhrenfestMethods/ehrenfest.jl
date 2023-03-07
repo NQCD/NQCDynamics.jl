@@ -90,9 +90,3 @@ function DynamicsUtils.classical_potential_energy(sim::Simulation{<:Ehrenfest}, 
     end
     return potential
 end
-
-function DynamicsUtils.classical_hamiltonian(sim::Simulation{<:Ehrenfest}, u)
-    kinetic = DynamicsUtils.classical_kinetic_energy(sim, DynamicsUtils.get_velocities(u))
-    potential = DynamicsUtils.classical_potential_energy(sim, u)
-    return kinetic + potential
-end

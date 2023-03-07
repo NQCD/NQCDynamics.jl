@@ -42,15 +42,10 @@ function DynamicsUtils.acceleration!(dv, v, r, sim::RingPolymerSimulation{<:Ehre
     return nothing
 end
 
-function DynamicsUtils.classical_hamiltonian(sim::RingPolymerSimulation{<:Ehrenfest}, u)
-    v = DynamicsUtils.get_velocities(u)
+function DynamicsUtils.classical_potential_energy(sim::RingPolymerSimulation{<:Ehrenfest}, u)
     r = DynamicsUtils.get_positions(u)
-    kinetic = DynamicsUtils.classical_kinetic_energy(sim, v)
-    spring = RingPolymers.get_spring_energy(sim.beads, sim.atoms.masses, r)
-
     all_eigs = Calculators.get_eigen(sim.calculator, r)
     population = Estimators.adiabatic_population(sim, u)
     potential = sum(dot(population, eigs.values) for eigs in all_eigs)
-
-    return kinetic + potential + spring
+    return potential
 end

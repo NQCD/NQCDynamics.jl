@@ -74,7 +74,10 @@ function classical_hamiltonian(sim::RingPolymerSimulation, u)
 end
 
 function classical_spring_energy(sim::RingPolymerSimulation, u)
-    r = get_positions(u)
+    return classical_spring_energy(sim, get_positions(u))
+end
+
+function classical_spring_energy(sim::RingPolymerSimulation, r::AbstractArray{T,3}) where {T}
     return RingPolymers.get_spring_energy(sim.beads, sim.atoms.masses, r)
 end
 
@@ -114,7 +117,7 @@ end
 
 function classical_potential_energy(sim::RingPolymerSimulation, r::AbstractArray{T,3}) where {T}
     V = Calculators.get_potential(sim.calculator, r)
-    sum(V) + RingPolymers.get_spring_energy(sim.beads, masses(sim), r)
+    return sum(V)
 end
 
 function get_hopping_eigenvalues end

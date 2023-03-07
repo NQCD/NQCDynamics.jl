@@ -48,11 +48,8 @@ function perform_rescaling!(
     return nothing
 end
 
-function DynamicsUtils.classical_hamiltonian(sim::RingPolymerSimulation{<:FSSH}, u)
-    kinetic = DynamicsUtils.classical_kinetic_energy(sim, DynamicsUtils.get_velocities(u))
-    spring = RingPolymers.get_spring_energy(sim.beads, sim.atoms.masses, DynamicsUtils.get_positions(u))
-
+function DynamicsUtils.classical_potential_energy(sim::RingPolymerSimulation{<:FSSH}, u)
     all_eigs = Calculators.get_eigen(sim.calculator, DynamicsUtils.get_positions(u))
     potential = sum(eigs.values[u.state] for eigs in all_eigs)
-    return kinetic + spring + potential
+    return potential
 end

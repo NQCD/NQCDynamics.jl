@@ -51,12 +51,6 @@ function rescale_velocity!(::AbstractSimulation{<:ClassicalMasterEquation}, u)::
     return true
 end
 
-function DynamicsUtils.classical_hamiltonian(sim::Simulation{<:ClassicalMasterEquation}, u)
-    kinetic = DynamicsUtils.classical_kinetic_energy(sim, DynamicsUtils.get_velocities(u))
-    potential = DynamicsUtils.classical_potential_energy(sim, u)
-    return kinetic + potential
-end
-
 """
     CME{T} <: ClassicalMasterEquation
 

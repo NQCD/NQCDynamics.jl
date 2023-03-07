@@ -110,12 +110,6 @@ function DynamicsUtils.classical_potential_energy(sim::Simulation{<:EhrenfestNA}
     return potential
 end
 
-function DynamicsUtils.classical_hamiltonian(sim::AbstractSimulation{<:EhrenfestNA}, u)
-    kinetic = DynamicsUtils.classical_kinetic_energy(sim, DynamicsUtils.get_velocities(u))
-    potential = DynamicsUtils.classical_potential_energy(sim, u)
-    return kinetic + potential
-end
-
 function Estimators.adiabatic_population(sim::AbstractSimulation{<:EhrenfestNA}, u)
     ψ = DynamicsUtils.get_quantum_subsystem(u)
     population = zeros(NQCModels.nstates(sim))
