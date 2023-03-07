@@ -119,7 +119,7 @@ end
     DynamicsUtils.get_velocities(integrator.u) .= 2 # Set high momentum to ensure successful hop
     integrator.u.state .= initial_state
     integrator.p.method.new_state .= final_state
-    eigs = SurfaceHoppingMethods.get_hopping_eigenvalues(integrator.p)
+    eigs = DynamicsUtils.get_hopping_eigenvalues(integrator.p, DynamicsUtils.get_positions(integrator.u))
     new_state, old_state = SurfaceHoppingMethods.unpack_states(sim)
     ΔE = SurfaceHoppingMethods.calculate_potential_energy_change(eigs, new_state, old_state)
 
