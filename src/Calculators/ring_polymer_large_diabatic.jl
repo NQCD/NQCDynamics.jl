@@ -131,7 +131,7 @@ function evaluate_centroid_adiabatic_derivative!(calc::RingPolymerLargeDiabaticC
     @inbounds for j in mobileatoms(calc)
         for k in dofs(calc)
             LinearAlgebra.mul!(calc.tmp_mat, derivative[k,j], eigen.vectors)
-            LinearAlgebra.mul!(calc.adiabatic_derivative[k,j], eigen.vectors', calc.tmp_mat)
+            LinearAlgebra.mul!(calc.centroid_adiabatic_derivative[k,j], eigen.vectors', calc.tmp_mat)
         end
     end
     return nothing

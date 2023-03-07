@@ -70,7 +70,7 @@ end
             sim = RingPolymerSimulation(Atoms(rand(natoms)), Harmonic(dofs=DoFs), nbeads; temperature=T)
             R0 = zeros(DoFs, natoms, nbeads)
             chain = ThermalMonteCarlo.run_advancedmh_sampling(sim, R0, 1e4, Dict(:X=>1); move_ratio=0.3, internal_ratio=0.95)
-            energy = DynamicsUtils.classical_potential_energy.(sim, chain)
+            energy = DynamicsUtils.classical_potential_energy.(sim, chain) .+ DynamicsUtils.classical_spring_energy.(sim, chain)
             @test mean(energy) / (DoFs*natoms*nbeads) ≈ nbeads*T/2 rtol=1e-1
         end
     end

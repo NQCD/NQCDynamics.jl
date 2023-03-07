@@ -87,7 +87,10 @@ function get_density_function(sim::RingPolymerSimulation)
     function density(r)
         r_local = reshape(copy(r), size(sim))
         RingPolymerArrays.transform_from_normal_modes!(r_local, sim.beads.transformation)
-        -DynamicsUtils.classical_potential_energy(sim, r_local) / temperature
+        potential = DynamicsUtils.classical_potential_energy(sim, r_local)
+        spring = DynamicsUtils.classical_spring_energy(sim, r_local)
+        total = potential + spring
+        return -total / temperature
     end
 end
 
