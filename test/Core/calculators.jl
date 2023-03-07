@@ -276,6 +276,7 @@ end
     r = rand(1, 1, 10)
 
     Calculators.get_nonadiabatic_coupling(calc, r)
+    Calculators.get_centroid_nonadiabatic_coupling(calc, r)
     @test all(x->x==1, values(calc.stats))
 
     Calculators.evaluate_potential!(calc, r)
