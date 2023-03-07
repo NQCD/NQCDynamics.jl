@@ -15,6 +15,7 @@ using OrdinaryDiffEq: OrdinaryDiffEq, OrdinaryDiffEqAlgorithm
 using StochasticDiffEq: StochasticDiffEq
 
 struct BCB <: OrdinaryDiffEqAlgorithm end
+struct BCBFull <: OrdinaryDiffEqAlgorithm end
 
 struct BCBwithTsit5{T<:OrdinaryDiffEqAlgorithm} <: OrdinaryDiffEqAlgorithm
     electronic_algorithm::T
@@ -66,6 +67,7 @@ DynamicsMethods.select_algorithm(::RingPolymerSimulation{<:DynamicsMethods.Surfa
 DynamicsMethods.select_algorithm(::Simulation{<:DynamicsMethods.EhrenfestMethods.Ehrenfest}) = BABwithTsit5(OrdinaryDiffEq.Tsit5())
 DynamicsMethods.select_algorithm(::Simulation{<:DynamicsMethods.EhrenfestMethods.EhrenfestNA}) = VerletwithElectronics()
 DynamicsMethods.select_algorithm(::RingPolymerSimulation{<:DynamicsMethods.EhrenfestMethods.EhrenfestNA}) = BCBWavefunction()
+DynamicsMethods.select_algorithm(::RingPolymerSimulation{<:DynamicsMethods.SurfaceHoppingMethods.ClassicalMasterEquation}) = BCBFull()
 
 export BCB
 export BCBwithTsit5
@@ -75,6 +77,7 @@ export MInt
 export MDEF_BAOAB
 export BCOCB
 export BCBWavefunction
+export BCBFull
 
 include("mdef_baoab.jl")
 include("bcocb.jl")
@@ -86,5 +89,6 @@ include("bcb.jl")
 include("steps.jl")
 include("verlet_with_electronics.jl")
 include("bcb_wavefunction.jl")
+include("bcb_full.jl")
 
 end # module

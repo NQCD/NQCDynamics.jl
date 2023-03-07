@@ -14,10 +14,10 @@ function DynamicsMethods.motion!(du, u, sim::Simulation{<:ClassicalMasterEquatio
     set_state!(u, sim.method.state) # Make sure the state variables match, 
 
     DynamicsUtils.velocity!(dr, v, r, sim, t) # Set the velocity
-    DynamicsUtils.acceleration!(dv, v, r, sim, t, sim.method.state) # Set the acceleration
+    DynamicsUtils.acceleration!(dv, v, r, sim, t) # Set the acceleration
 end
 
-function DynamicsMethods.DynamicsVariables(::Simulation{<:ClassicalMasterEquation}, v, r, electronic::PureState{Diabatic})
+function DynamicsMethods.DynamicsVariables(::AbstractSimulation{<:ClassicalMasterEquation}, v, r, electronic::PureState{Diabatic})
     return SurfaceHoppingVariables(ComponentVector(v=v, r=r), electronic.state)
 end
 
@@ -35,7 +35,7 @@ function evaluate_hopping_probability!(sim::Simulation{<:ClassicalMasterEquation
     end
 end
     
-function select_new_state(sim::Simulation{<:ClassicalMasterEquation}, u)::Int
+function select_new_state(sim::AbstractSimulation{<:ClassicalMasterEquation}, u)::Int
     random_number = rand()
     if random_number < sim.method.hopping_probability
         if sim.method.state == 1
@@ -47,7 +47,7 @@ function select_new_state(sim::Simulation{<:ClassicalMasterEquation}, u)::Int
     return sim.method.state
 end
 
-function rescale_velocity!(::Simulation{<:ClassicalMasterEquation}, u)::Bool
+function rescale_velocity!(::AbstractSimulation{<:ClassicalMasterEquation}, u)::Bool
     return true
 end
 
@@ -83,9 +83,10 @@ function Simulation{CME}(atoms::Atoms{T}, model; kwargs...) where {T}
     Simulation(atoms, model, CME{T}(NQCModels.nstates(model)); kwargs...)
 end
 
-function DynamicsUtils.acceleration!(dv, v, r, sim::Simulation{<:CME}, t, state)
+function DynamicsUtils.acceleration!(dv, v, r, sim::AbstractSimulation{<:CME}, t)
     derivative = Calculators.get_derivative(sim.calculator, r)
-    for I in eachindex(dv)
+    state = sim.method.state
+    for I in eachindex(dv, derivative)
         dv[I] = -derivative[I][state, state]
     end
     DynamicsUtils.divide_by_mass!(dv, masses(sim))

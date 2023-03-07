@@ -87,5 +87,6 @@ include("rpsh.jl")
 include("rpiesh.jl")
 include("cme.jl")
 export CME, BCME
+include("rpcme.jl")
 
 end # module
