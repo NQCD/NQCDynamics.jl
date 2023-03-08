@@ -67,7 +67,5 @@ end
     @time traj1 = run_dynamics(sim, tspan, u; dt, algorithm=DynamicsMethods.IntegrationAlgorithms.BCBWavefunction(), output)
     @time traj2 = run_dynamics(sim, tspan, u; algorithm=Tsit5(), saveat=tspan[1]:dt:tspan[2], output, reltol=1e-8, abstol=1e-8)
 
-    display(plot(traj1, :OutputTotalEnergy))
-    display(plot(traj2, :OutputTotalEnergy))
     # We cannot compare these when hopping is happening since the trajectories will be different. 
 end

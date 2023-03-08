@@ -23,6 +23,7 @@ end
 
 function get_quantum_propagator(sim, v, r, dt)
     prop = sim.method.quantum_propagator
+    v = DynamicsUtils.get_hopping_velocity(sim, v)
     eigenvalues = DynamicsUtils.get_hopping_eigenvalues(sim, r)
     fill!(prop, zero(eltype(prop)))
     @inbounds for (i, I) in zip(eachindex(eigenvalues), diagind(prop))

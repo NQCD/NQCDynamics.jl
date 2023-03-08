@@ -122,7 +122,8 @@ function Simulation{BCME}(atoms::Atoms{T}, model; bandwidth, kwargs...) where {T
     Simulation(atoms, model, BCME{T}(NQCModels.nstates(model), bandwidth); kwargs...)
 end
 
-function DynamicsUtils.acceleration!(dv, v, r, sim::Simulation{<:BCME}, t, state)
+function DynamicsUtils.acceleration!(dv, v, r, sim::Simulation{<:BCME}, t)
+    state = sim.method.state
     ∂V = Calculators.get_derivative(sim.calculator, r)
     V = Calculators.get_potential(sim.calculator, r)
     Γ = 2π * V[2,1]^2
