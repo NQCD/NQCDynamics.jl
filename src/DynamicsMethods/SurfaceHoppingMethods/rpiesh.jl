@@ -17,20 +17,20 @@ end
 
 function DynamicsUtils.acceleration!(dv, v, r, sim::RingPolymerSimulation{<:AbstractIESH}, t, state)
     fill!(dv, zero(eltype(dv)))
-    NQCModels.state_independent_derivative!(sim.calculator.model, dv, r)
-    LinearAlgebra.lmul!(-1, dv)
 
     adiabatic_derivative = Calculators.get_adiabatic_derivative(sim.calculator, r)
     @inbounds for b in axes(dv,3) 
+        @views NQCModels.state_independent_derivative!(sim.calculator.model, dv[:,:,b], r[:,:,b])
         for i in mobileatoms(sim)
             for j in dofs(sim)
                 for k in state
                     # Contribution to the force from each occupied state `k`
-                    dv[j,i,b] -= adiabatic_derivative[j,i,b][k, k]
+                    dv[j,i,b] += adiabatic_derivative[j,i,b][k, k]
                 end
             end
         end
     end
+    lmul!(-1, dv)
     DynamicsUtils.divide_by_mass!(dv, sim.atoms.masses)
     return nothing
 end

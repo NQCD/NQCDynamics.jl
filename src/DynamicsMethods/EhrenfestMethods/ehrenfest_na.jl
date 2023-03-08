@@ -40,7 +40,7 @@ function DynamicsMethods.DynamicsVariables(sim::AbstractSimulation{<:EhrenfestNA
     return ComponentVector(v=v, r=r, σreal=ψ, σimag=zero(ψ))
 end
 
-function DynamicsMethods.DynamicsVariables(sim::Simulation{<:EhrenfestNA}, v, r, electronic::FermiDiracState{Adiabatic})
+function DynamicsMethods.DynamicsVariables(sim::AbstractSimulation{<:EhrenfestNA}, v, r, electronic::FermiDiracState{Adiabatic})
     ef_model = NQCModels.fermilevel(sim)
     ef_distribution = electronic.fermi_level
     ef_model ≈ ef_distribution || throw(error(
@@ -52,10 +52,10 @@ function DynamicsMethods.DynamicsVariables(sim::Simulation{<:EhrenfestNA}, v, r,
         """
     ))
 
-    eigs = Calculators.get_eigen(sim.calculator, r)
+    eigenvalues = DynamicsUtils.get_hopping_eigenvalues(sim, r)
 
     available_states = DynamicsUtils.get_available_states(electronic.available_states, NQCModels.nstates(sim))
-    state = DynamicsUtils.sample_fermi_dirac_distribution(eigs.values, NQCModels.nelectrons(sim), available_states, electronic.β)
+    state = DynamicsUtils.sample_fermi_dirac_distribution(eigenvalues, NQCModels.nelectrons(sim), available_states, electronic.β)
 
     ψ = zeros(NQCModels.nstates(sim), NQCModels.nelectrons(sim))
     for (i, j) in enumerate(state)

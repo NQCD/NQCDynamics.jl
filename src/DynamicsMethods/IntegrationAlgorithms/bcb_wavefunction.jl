@@ -61,6 +61,6 @@ end
     end
     step_B!(vfinal, vtmp, dt/2, k)
 
-    DynamicsUtils.propagate_wavefunction!(σfinal, σprev, vfinal, rfinal, p, dt)
+    DynamicsUtils.propagate_wavefunction!(σfinal, σprev, vprev, rprev, p, dt)
 
 end

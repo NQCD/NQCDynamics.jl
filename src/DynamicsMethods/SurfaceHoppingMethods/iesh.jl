@@ -347,7 +347,7 @@ function Estimators.adiabatic_population(sim::Simulation{<:AdiabaticIESH}, u)
     return population
 end
 
-unpack_states(sim::Simulation{<:AbstractIESH}) = symdiff(sim.method.new_state, sim.method.state)
+unpack_states(sim::AbstractSimulation{<:AbstractIESH}) = symdiff(sim.method.new_state, sim.method.state)
 
 function DynamicsUtils.classical_potential_energy(sim::Simulation{<:AbstractIESH}, u)
     eigen = Calculators.get_eigen(sim.calculator, DynamicsUtils.get_positions(u))
