@@ -53,3 +53,9 @@ function DynamicsUtils.classical_potential_energy(sim::RingPolymerSimulation{<:F
     potential = sum(eigs.values[u.state] for eigs in all_eigs)
     return potential
 end
+
+function DynamicsUtils.centroid_classical_potential_energy(sim::RingPolymerSimulation{<:FSSH}, u)
+    centroid_eigs = Calculators.get_centroid_eigen(sim.calculator, DynamicsUtils.get_positions(u))
+    potential = centroid_eigs.values[u.state]
+    return potential
+end

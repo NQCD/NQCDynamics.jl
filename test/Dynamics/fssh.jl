@@ -7,6 +7,7 @@ using Random: seed!
 using NQCDynamics: DynamicsMethods, DynamicsUtils, Calculators
 using NQCDynamics.SurfaceHoppingMethods: SurfaceHoppingMethods
 using NQCDynamics.DynamicsUtils: get_positions, get_velocities
+using Unitful
 
 @test SurfaceHoppingMethods.FSSH{Float64}(2, :standard) isa SurfaceHoppingMethods.FSSH
 atoms = Atoms(2)
@@ -66,8 +67,8 @@ atoms = Atoms(2)
     @testset "calculate_potential_energy_change" begin
         integrator.p.calculator.eigen = Eigen(SVector{2}([0.9, -0.3]), SMatrix{2,2}(1, 0, 0.0, 1))
         eigs = DynamicsUtils.get_hopping_eigenvalues(integrator.p, DynamicsUtils.get_positions(integrator.u))
-        @test 1.2 ≈ DynamicsUtils.calculate_potential_energy_change(eigs, 1, 2)
-        @test -1.2 ≈ DynamicsUtils.calculate_potential_energy_change(eigs, 2, 1)
+        @test 1.2 ≈ SurfaceHoppingMethods.calculate_potential_energy_change(eigs, 1, 2)
+        @test -1.2 ≈ SurfaceHoppingMethods.calculate_potential_energy_change(eigs, 2, 1)
     end
 
     @testset "execute_hop!" begin
@@ -109,9 +110,9 @@ atoms = Atoms(2)
 end
 
 @testset "RPSH" begin
-    sim = RingPolymerSimulation{FSSH}(atoms, NQCModels.DoubleWell(), 5)
+    sim = RingPolymerSimulation{FSSH}(atoms, NQCModels.DoubleWell(), 5; temperature=1000u"K")
 
-    r = RingPolymerArray(zeros(size(sim)))
+    r = RingPolymerArray(randn(size(sim)))
     v = RingPolymerArray(randn(size(sim)))
     u = DynamicsVariables(sim, v, r, PureState(1, Adiabatic()))
     sim.method.state = u.state
@@ -146,21 +147,23 @@ end
         eigs = DynamicsUtils.get_hopping_eigenvalues(integrator.p, DynamicsUtils.get_positions(integrator.u))
         ΔE = SurfaceHoppingMethods.calculate_potential_energy_change(eigs, 2, 1)
 
-        KE_initial = DynamicsUtils.classical_kinetic_energy(integrator.p, get_velocities(integrator.u))
-        H_initial = DynamicsUtils.classical_hamiltonian(integrator.p, integrator.u)
-        potential = H_initial - KE_initial
+        KE_initial = DynamicsUtils.centroid_classical_kinetic_energy(integrator.p, integrator.u)
+        V_initial = DynamicsUtils.centroid_classical_potential_energy(integrator.p, integrator.u)
+        H_initial = DynamicsUtils.centroid_classical_hamiltonian(integrator.p, integrator.u)
+
         @test integrator.u.state == 1
-
         SurfaceHoppingMethods.execute_hop!(integrator)
-
-        KE_final = DynamicsUtils.classical_kinetic_energy(integrator.p, get_velocities(integrator.u))
-        H_final = DynamicsUtils.classical_hamiltonian(integrator.p, integrator.u)
-        potential = H_final - KE_final
-
         @test integrator.u.state == 2 # Check state has changed
+
+        KE_final = DynamicsUtils.centroid_classical_kinetic_energy(integrator.p, integrator.u)
+        V_final = DynamicsUtils.centroid_classical_potential_energy(integrator.p, integrator.u)
+        H_final = DynamicsUtils.centroid_classical_hamiltonian(integrator.p, integrator.u)
+
         @test H_initial ≈ H_final # Check ring polymer hamiltonian conserved
-        ΔKE = (KE_final - KE_initial) / length(sim.beads)
-        @test ΔKE ≈ -sum(ΔE) rtol=1e-3 # Test for energy conservation
+        ΔKE = (KE_final - KE_initial)
+        ΔV = (V_final - V_initial)
+        @test ΔKE ≈ -ΔE # Test for energy conservation
+        @test ΔV ≈ -ΔKE
     end
 
     @testset "run_dynamics" begin

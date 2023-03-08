@@ -73,6 +73,21 @@ function classical_hamiltonian(sim::RingPolymerSimulation, u)
     return spring + kinetic + potential
 end
 
+function centroid_classical_hamiltonian(sim::RingPolymerSimulation, u)
+    kinetic = centroid_classical_kinetic_energy(sim, u)
+    potential = centroid_classical_potential_energy(sim, u)
+    return kinetic + potential
+end
+
+function centroid_classical_kinetic_energy(sim::RingPolymerSimulation, u)
+    v = DynamicsUtils.get_velocities(u)
+    centroid_v = get_centroid(v)
+    kinetic = DynamicsUtils.classical_kinetic_energy(masses(sim), centroid_v)
+    return kinetic
+end
+
+function centroid_classical_potential_energy end
+
 function classical_spring_energy(sim::RingPolymerSimulation, u)
     return classical_spring_energy(sim, get_positions(u))
 end
@@ -86,10 +101,14 @@ function classical_kinetic_energy(sim::AbstractSimulation, u)
 end
 
 function classical_kinetic_energy(sim::AbstractSimulation, v::AbstractMatrix)
+    return classical_kinetic_energy(masses(sim), v)
+end
+
+function classical_kinetic_energy(mass::AbstractVector, v::AbstractMatrix)
     kinetic = zero(eltype(v))
     for i in axes(v, 2)
         for j in axes(v, 1)
-            kinetic += masses(sim, i) * v[j,i]^2
+            kinetic += mass[i] * v[j,i]^2
         end
     end
     return kinetic / 2
