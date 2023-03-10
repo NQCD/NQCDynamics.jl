@@ -38,7 +38,8 @@ struct AdiabaticIESH{T} <: AbstractIESH
     v_dot_d::Matrix{T}
     unoccupied::Vector{Int}
     estimate_probability::Bool
-    function AdiabaticIESH{T}(states::Integer, n_electrons::Integer, rescaling::Symbol, estimate_probability::Bool) where {T}
+    disable_hopping::Bool
+    function AdiabaticIESH{T}(states::Integer, n_electrons::Integer, rescaling::Symbol, estimate_probability::Bool, disable_hopping::Bool) where {T}
 
         hopping_probability = zeros(Int, states, n_electrons)
         state = zeros(Int, n_electrons)
@@ -58,15 +59,15 @@ struct AdiabaticIESH{T} <: AbstractIESH
         new{T}(hopping_probability, state, new_state, proposed_state, overlap, tmp, rescaling, quantum_propagator,
             tmp_matrix_complex_square1, tmp_matrix_complex_square2,
             tmp_matrix_complex_rect1, tmp_matrix_complex_rect2,
-            LUws, v_dot_d, unoccupied, estimate_probability
+            LUws, v_dot_d, unoccupied, estimate_probability, disable_hopping
         )
     end
 end
 
 unoccupied_states(sim::AbstractSimulation{<:AbstractIESH}) = sim.method.unoccupied
 
-function NQCDynamics.Simulation{IESH_type}(atoms::Atoms{T}, model::Model; rescaling=:standard, estimate_probability=true, kwargs...) where {T,IESH_type<:AbstractIESH}
-    NQCDynamics.Simulation(atoms, model, IESH_type{T}(NQCModels.nstates(model), NQCModels.nelectrons(model), rescaling, estimate_probability); kwargs...)
+function NQCDynamics.Simulation{IESH_type}(atoms::Atoms{T}, model::Model; rescaling=:standard, estimate_probability=true, disable_hopping=false, kwargs...) where {T,IESH_type<:AbstractIESH}
+    NQCDynamics.Simulation(atoms, model, IESH_type{T}(NQCModels.nstates(model), NQCModels.nelectrons(model), rescaling, estimate_probability, disable_hopping); kwargs...)
 end
 
 function DynamicsMethods.DynamicsVariables(sim::AbstractSimulation{<:AdiabaticIESH}, v, r)
@@ -348,6 +349,7 @@ function Estimators.adiabatic_population(sim::Simulation{<:AdiabaticIESH}, u)
 end
 
 unpack_states(sim::AbstractSimulation{<:AbstractIESH}) = symdiff(sim.method.new_state, sim.method.state)
+ishoppingdisabled(method::AbstractIESH) = method.disable_hopping
 
 function DynamicsUtils.classical_potential_energy(sim::Simulation{<:AbstractIESH}, u)
     eigen = Calculators.get_eigen(sim.calculator, DynamicsUtils.get_positions(u))
@@ -360,6 +362,7 @@ end
 
 function iesh_check_hop!(u, t, integrator)::Bool
     sim = integrator.p
+    ishoppingdisabled(sim.method) && return false
     random = rand()
     evaluate_hopping_probability!(sim, u, OrdinaryDiffEq.get_proposed_dt(integrator), random)
     set_new_state!(sim.method, select_new_state(sim, u, random))
