@@ -103,7 +103,11 @@ end
 @testset "evaluate_hopping_probability!" begin
     Calculators.update_electronics!(sim.calculator, hcat(20.0))
     z = deepcopy(u)
-    rand!(DynamicsUtils.get_quantum_subsystem(z))
+    ψ = DynamicsUtils.get_quantum_subsystem(z)
+    rand!(ψ)
+    @views for i in axes(ψ,2)
+        normalize!(ψ[:,i])
+    end
     SurfaceHoppingMethods.evaluate_hopping_probability!(sim, z, 1.0, rand())
 end
 
