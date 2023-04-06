@@ -84,6 +84,7 @@ function DynamicsMethods.create_problem(u0, tspan, sim::AbstractSimulation{<:Sur
         callback=DynamicsMethods.get_callbacks(sim))
 end
 
+include("decoherence_corrections.jl")
 include("surface_hopping.jl")
 include("fssh.jl")
 include("iesh.jl")

@@ -30,6 +30,7 @@ if GROUP == "All" || GROUP == "Dynamics"
     @time @safetestset "BCBwithTsit5 Tests" begin include("Dynamics/bcbwithtsit5.jl") end
     @time @safetestset "FSSH Tests" begin include("Dynamics/fssh.jl") end
     @time @safetestset "IESH Tests" begin include("Dynamics/iesh.jl") end
+    @time @safetestset "Decoherence Tests" begin include("Dynamics/test_decoherence_corrections.jl") end
     @time @safetestset "RPIESH Tests" begin include("Dynamics/rpiesh.jl") end
     @time @safetestset "CME Tests" begin include("Dynamics/cme.jl") end
     @time @safetestset "BCME Tests" begin include("Dynamics/bcme.jl") end

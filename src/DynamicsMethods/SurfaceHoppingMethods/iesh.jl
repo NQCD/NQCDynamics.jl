@@ -6,6 +6,7 @@ using NQCModels: eachelectron, eachstate, mobileatoms, dofs
 using NQCDistributions: FermiDiracState, Adiabatic, Diabatic
 using StatsBase: sample, Weights
 using FastLapackInterface: FastLapackInterface
+using SciMLBase: SciMLBase
 
 export AdiabaticIESH
 
@@ -21,7 +22,7 @@ Independent electron surface hopping.
 - [Roy, Shenvi, Tully, J. Chem. Phys. 130, 174716 (2009)](https://doi.org/10.1063/1.3122989)
 
 """
-struct AdiabaticIESH{T} <: AbstractIESH
+struct AdiabaticIESH{T,D} <: AbstractIESH
     hopping_probability::Matrix{T}
     state::Vector{Int}
     new_state::Vector{Int}
@@ -39,7 +40,8 @@ struct AdiabaticIESH{T} <: AbstractIESH
     unoccupied::Vector{Int}
     estimate_probability::Bool
     disable_hopping::Bool
-    function AdiabaticIESH{T}(states::Integer, n_electrons::Integer, rescaling::Symbol, estimate_probability::Bool, disable_hopping::Bool) where {T}
+    decoherence::D
+    function AdiabaticIESH{T}(states::Integer, n_electrons::Integer, rescaling::Symbol, estimate_probability::Bool, disable_hopping::Bool, decoherence) where {T}
 
         hopping_probability = zeros(Int, states, n_electrons)
         state = zeros(Int, n_electrons)
@@ -56,7 +58,7 @@ struct AdiabaticIESH{T} <: AbstractIESH
         v_dot_d = zeros(T, states, n_electrons)
         unoccupied = zeros(Int, states - n_electrons)
 
-        new{T}(hopping_probability, state, new_state, proposed_state, overlap, tmp, rescaling, quantum_propagator,
+        new{T,typeof(decoherence)}(hopping_probability, state, new_state, proposed_state, overlap, tmp, rescaling, quantum_propagator,
             tmp_matrix_complex_square1, tmp_matrix_complex_square2,
             tmp_matrix_complex_rect1, tmp_matrix_complex_rect2,
             LUws, v_dot_d, unoccupied, estimate_probability, disable_hopping
@@ -66,8 +68,21 @@ end
 
 unoccupied_states(sim::AbstractSimulation{<:AbstractIESH}) = sim.method.unoccupied
 
-function NQCDynamics.Simulation{IESH_type}(atoms::Atoms{T}, model::Model; rescaling=:standard, estimate_probability=true, disable_hopping=false, kwargs...) where {T,IESH_type<:AbstractIESH}
-    NQCDynamics.Simulation(atoms, model, IESH_type{T}(NQCModels.nstates(model), NQCModels.nelectrons(model), rescaling, estimate_probability, disable_hopping); kwargs...)
+function NQCDynamics.Simulation{IESH_type}(atoms::Atoms{T}, model::Model;
+    rescaling=:standard, estimate_probability=true, disable_hopping=false, decoherence=DecoherenceCorrectionNone(),
+    kwargs...) where {T,IESH_type<:AbstractIESH}
+    NQCDynamics.Simulation(
+        atoms, model,
+        IESH_type{T}(
+            NQCModels.nstates(model),
+            NQCModels.nelectrons(model),
+            rescaling,
+            estimate_probability,
+            disable_hopping,
+            decoherence
+        ); 
+        kwargs...
+    )
 end
 
 function DynamicsMethods.DynamicsVariables(sim::AbstractSimulation{<:AdiabaticIESH}, v, r)
@@ -386,4 +401,30 @@ end
 const IESHCallback = DiffEqBase.DiscreteCallback(iesh_check_hop!, iesh_execute_hop!;
                                                     save_positions=(false, false))
 
-DynamicsMethods.get_callbacks(::AbstractSimulation{<:AbstractIESH}) = IESHCallback
+function DynamicsMethods.get_callbacks(sim::AbstractSimulation{<:AbstractIESH})
+    if sim.method.decoherence isa DecoherenceCorrectionEDC
+        return SciMLBase.CallbackSet(IESHCallback, IESHDecoherenceEDC())
+    else
+        return IESHCallback
+    end
+end
+
+function IESHDecoherenceEDC()
+    return DiffEqBase.DiscreteCallback(
+        (u,t,integrator)->true,
+        iesh_apply_decoherence_correction_edc!;
+        save_positions=(false, false)
+    )
+end
+
+function iesh_apply_decoherence_correction_edc!(integrator)
+    sim = integrator.p
+    dt = OrdinaryDiffEq.get_proposed_dt(integrator)
+    eigen = Calculators.get_eigen(sim.calculator, DynamicsUtils.get_positions(integrator.u))
+    Ekin = DynamicsUtils.classical_kinetic_energy(sim, integrator.u)
+    ψ = DynamicsUtils.get_quantum_subsystem(integrator.u)
+    @views for (i, state) in enumerate(sim.method.state)
+        apply_decoherence_correction!(ψ[:,i], sim.method.decoherence, state, dt, eigen.values, Ekin)
+    end
+end
+

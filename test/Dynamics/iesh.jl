@@ -154,3 +154,20 @@ end
 
     # We cannot compare these when hopping is happening since the trajectories will be different. 
 end
+
+@testset "DecoherenceCorrectionEDC" begin
+    sim = Simulation{AdiabaticIESH}(atoms, model; decoherence=SurfaceHoppingMethods.DecoherenceCorrectionEDC())
+    u = DynamicsVariables(sim, randn(1,1), randn(1,1))
+    tspan = (0.0, 500.0)
+    dt = 1.0
+    traj = run_dynamics(sim, tspan, u; dt, output=(OutputQuantumSubsystem, OutputSurfaceHops))
+    @test traj[:OutputSurfaceHops] > 0 # Ensure some hops occur
+    norms = zeros(length(traj[:Time]))
+    for i in eachindex(norms)
+        ψ = traj[:OutputQuantumSubsystem][i]
+        @views for j in axes(ψ,2)
+            norms[i] += norm(ψ[:,j])
+        end
+    end
+    @test all(i->isapprox(i, n_electrons; rtol=1e-3), norms) # Test that decoherence conserves norm
+end
