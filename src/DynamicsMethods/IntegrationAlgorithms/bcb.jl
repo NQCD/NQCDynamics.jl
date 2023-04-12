@@ -35,8 +35,6 @@ function OrdinaryDiffEq.initialize!(integrator, cache::BCBCache)
     duprev,uprev = integrator.uprev.x
     integrator.f.f1(integrator.k[2].x[1],duprev,uprev,integrator.p,integrator.t)
     OrdinaryDiffEq.verify_f2(integrator.f.f2, integrator.k[2].x[2], duprev, uprev, integrator.p, integrator.t, integrator, cache)
-    integrator.destats.nf += 1
-    integrator.destats.nf2 += 1
 end
 
 @muladd function OrdinaryDiffEq.perform_step!(integrator, cache::BCBCache, repeat_step=false)
@@ -59,7 +57,6 @@ end
     RingPolymerArrays.transform_from_normal_modes!(r, p.beads.transformation)
 
     integrator.f.f1(acceleration, vtmp, r, p, t)
-    integrator.destats.nf += 1
 
     step_B!(v, vtmp, halfdt, acceleration)
 
