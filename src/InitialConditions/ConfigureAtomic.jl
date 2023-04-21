@@ -95,7 +95,6 @@ function set_incidence_angle(incidence_angle, azimuthal_angle)
 
     
     inc_dir = rot2_mat * inc_dir
-
     inc_dir
 end
 
@@ -113,6 +112,39 @@ function angle_to_surface_normal(sim::Simulation,v::Matrix;
     θ = atand(norm(cross(v_atom,surface_normal)),dot(v_atom,surface_normal))
 
     θ
+end
+
+function get_azimuthal_angle(sim::Simulation,v::Matrix;
+    incidence_angle=0.,
+    initial_azimuthal_angle=0.,  
+    atom_index = [1]
+    )
+
+
+    v_atom = v[:,atom_index][:]
+
+    # Rotation in z to get incidence angle
+    θ_i = deg2rad(incidence_angle)
+    rot_mat = [
+    1 0 0 
+    0 cos(θ_i) -sin(θ_i)
+    0 sin(θ_i) cos(θ_i)
+    ]
+
+    inc_dir = rot_mat * [0, 0, -1]
+
+    θ_2 = deg2rad(initial_azimuthal_angle) 
+
+    rot2_mat = [
+    cos(θ_2) -sin(θ_2) 0
+    sin(θ_2) cos(θ_2) 0
+    0 0 1 
+    ]
+    
+    inc_dir = rot2_mat * inc_dir
+
+    θₐ = acos(dot(v_atom[1:2],inc_dir[1:2])/(norm(v_atom[1:2]*norm(inc_dir[1:2])))) * 180/π
+    θₐ
 end
 
 reduced_mass(atoms::Atoms) = reduced_mass(atoms.masses)

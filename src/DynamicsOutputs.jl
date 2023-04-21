@@ -235,22 +235,31 @@ function (output::OutputStateResolvedScattering1D)(sol, i)
 end
 export OutputStateResolvedScattering1D
 
-
 """
-Output the projectile angle from the surface normal for the final image.
+Output the projectile angle from the surface normal and the azimuthal angle for the final image
 """
-struct OutputScatteringAngle{S,V}
+struct OutputScatteringAngle{S,V,T,X}
     sim::S
     normal_vector::V
+    incidence_angle::T
+    initial_azimuthal_angle::X
 end
-OutputScatteringAngle(sim; normal_vector=[0, 0, 1]) = OutputScatteringAngle(sim, normal_vector)
+OutputScatteringAngle(sim; normal_vector=[0, 0, 1], incidence_angle=0., initial_azimuthal_angle=0.) = OutputScatteringAngle(sim, normal_vector, incidence_angle, initial_azimuthal_angle)
 export OutputScatteringAngle
 
 function (output::OutputScatteringAngle)(sol, i)
     final = last(sol.u) 
-    θ = ConfigureAtomic.angle_to_surface_normal(output.sim,
+
+    # Scattering angle
+    θₛ = ConfigureAtomic.angle_to_surface_normal(output.sim,
         DynamicsUtils.get_velocities(final), surface_normal=output.normal_vector)
-    return θ
+
+    # Azimuthal angle
+    θₐ = ConfigureAtomic.get_azimuthal_angle(output.sim,
+    DynamicsUtils.get_velocities(final); incidence_angle=output.incidence_angle, 
+    initial_azimuthal_angle=output.initial_azimuthal_angle) 
+    
+    return [θₛ θₐ]
 end
 
 """
@@ -271,5 +280,18 @@ function (output::OutputScatteredAtom)(sol, i)
     scattered = R[3,output.atom_index] > output.z
     return scattered ? 1 : 0
 end
+
+
+OutputFirstPosition(sol, i) = DynamicsUtils.get_positions(first(sol.u))
+export OutputFirstPosition
+
+OutputFirstVelocity(sol, i) = DynamicsUtils.get_velocities(first(sol.u))
+export OutputFirstVelocity
+
+OutputFinalPosition(sol, i) = DynamicsUtils.get_positions(last(sol.u))
+export OutputFinalPosition
+
+OutputFinalVelocity(sol, i) = DynamicsUtils.get_velocities(last(sol.u))
+export OutputFinalVelocity
 
 end # module

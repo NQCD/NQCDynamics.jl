@@ -1,4 +1,4 @@
-
+using UnitfulAtomic
 abstract type AbstractMDEF <: DynamicsMethods.Method end
 
 """
@@ -39,6 +39,7 @@ Evaluates friction tensor
 function friction!(g, r, sim::AbstractSimulation{<:AbstractMDEF}, t)
     friction = Calculators.get_friction(sim.calculator, r)
     g .= friction ./ sim.method.mass_scaling
+    g
 end
 
 function DynamicsMethods.create_problem(u0, tspan::Tuple, sim::AbstractSimulation{<:AbstractMDEF})
