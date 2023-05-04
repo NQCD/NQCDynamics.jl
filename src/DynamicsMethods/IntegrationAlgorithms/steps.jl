@@ -77,7 +77,7 @@ function step_O!(friction::MDEFCache, integrator, v, r, t)
 
     integrator.g(gtmp,r,p,t)
     Λ = gtmp
-    @.. σ = sqrt(get_temperature(p, t)) * sqrtmass
+    @.. σ = sqrt(get_ring_polymer_temperature(p, t)) * sqrtmass
 
     @views for i in axes(r, 3)
         @.. noise = σ * W.dW[:,:,i][:] / sqdt
