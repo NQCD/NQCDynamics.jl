@@ -31,14 +31,18 @@ function acceleration!(dv, v, r, sim::Simulation{<:Union{DiabaticMDEF,Classical}
     μ = NQCModels.fermilevel(sim.calculator.model)
     β = 1 / get_temperature(sim, t)
 
+    fill!(dv, zero(eltype(dv)))
     NQCModels.state_independent_derivative!(sim.calculator.model, dv, r)
-    LinearAlgebra.lmul!(-1, dv)
     for I in eachindex(dv)
         for i in eachindex(eigen.values)
-            f = fermi(eigen.values[i], μ, β)
-            dv[I] -= adiabatic_derivative[I][i,i] * f
+            ϵ = eigen.values[i]
+            f = fermi(ϵ, μ, β)
+            ∂f∂ϵ = ∂fermi(ϵ, μ, β)
+            ∂ϵ = adiabatic_derivative[I][i,i]
+            dv[I] += ∂ϵ*f + ∂f∂ϵ*∂ϵ*ϵ
         end
     end
+    LinearAlgebra.lmul!(-1, dv)
     DynamicsUtils.divide_by_mass!(dv, masses(sim))
 
     return nothing
