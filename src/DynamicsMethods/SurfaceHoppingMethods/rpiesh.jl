@@ -1,14 +1,16 @@
 using RingPolymerArrays: eachbead
 
 function RingPolymerSimulation{AdiabaticIESH}(atoms::Atoms{T}, model::Model, n_beads::Integer;
-    rescaling=:standard, estimate_probability=true, kwargs...
+    rescaling=:standard, estimate_probability=true, disable_hopping=false, decoherence=DecoherenceCorrectionNone(), kwargs...
 ) where {T}
     RingPolymerSimulation(atoms, model,
         AdiabaticIESH{T}(
             NQCModels.nstates(model),
             NQCModels.nelectrons(model),
             rescaling,
-            estimate_probability
+            estimate_probability,
+            disable_hopping,
+            decoherence
         ),
         n_beads;
         kwargs...
