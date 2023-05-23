@@ -157,7 +157,7 @@ end
 
 @testset "DecoherenceCorrectionEDC" begin
     sim = Simulation{AdiabaticIESH}(atoms, model; decoherence=SurfaceHoppingMethods.DecoherenceCorrectionEDC())
-    u = DynamicsVariables(sim, randn(1,1), randn(1,1))
+    u = DynamicsVariables(sim, 10randn(1,1), randn(1,1))
     tspan = (0.0, 500.0)
     dt = 1.0
     traj = run_dynamics(sim, tspan, u; dt, output=(OutputQuantumSubsystem, OutputSurfaceHops))
