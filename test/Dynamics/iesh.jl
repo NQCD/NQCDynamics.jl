@@ -1,7 +1,6 @@
 using Test
 using NQCDynamics
 using LinearAlgebra
-using Random
 using Distributions
 using NQCDynamics: DynamicsMethods, DynamicsUtils, Calculators
 using NQCDynamics.DynamicsMethods: SurfaceHoppingMethods
@@ -157,9 +156,9 @@ end
 
 @testset "DecoherenceCorrectionEDC" begin
     sim = Simulation{AdiabaticIESH}(atoms, model; decoherence=SurfaceHoppingMethods.DecoherenceCorrectionEDC())
-    u = DynamicsVariables(sim, 50randn(1,1), randn(1,1))
-    tspan = (0.0, 500.0)
-    dt = 1.0
+    u = DynamicsVariables(sim, zeros(1,1), 100randn(1,1))
+    tspan = (0.0, 100000.0)
+    dt = 100.0
     traj = run_dynamics(sim, tspan, u; dt, output=(OutputQuantumSubsystem, OutputSurfaceHops))
     @test traj[:OutputSurfaceHops] > 0 # Ensure some hops occur
     norms = zeros(length(traj[:Time]))
