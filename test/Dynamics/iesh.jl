@@ -1,6 +1,7 @@
 using Test
 using NQCDynamics
 using LinearAlgebra
+using Random: rand!
 using Distributions
 using NQCDynamics: DynamicsMethods, DynamicsUtils, Calculators
 using NQCDynamics.DynamicsMethods: SurfaceHoppingMethods
