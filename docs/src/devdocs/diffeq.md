@@ -36,19 +36,19 @@ sim = Simulation(atoms, model; cell=cell)
 
 z = DynamicsVariables(sim, hcat(1.0), zeros(1,1))
 
-solution = run_dynamics(sim, (0.0, 300), z; dt=0.1, output=OutputPosition)
+solution = run_dynamics(sim, (0.0, 300), z; dt=1.0, output=OutputPosition)
 plot(solution, :OutputPosition, label="No callbacks", legend=true)
 ```
 
 Now we can introduce callbacks and observe the difference:
 ```@example callbacks
-solution = run_dynamics(sim, (0.0, 300), z; callback=DynamicsUtils.CellBoundaryCallback(), dt=0.1, output=OutputPosition)
+solution = run_dynamics(sim, (0.0, 300), z; callback=DynamicsUtils.CellBoundaryCallback(), dt=1.0, output=OutputPosition)
 plot!(solution, :OutputPosition, label="Cell boundary" )
 
 using DiffEqBase: CallbackSet
 terminate(u, t, integrator) = t > 100
 callbacks = CallbackSet(DynamicsUtils.CellBoundaryCallback(), DynamicsUtils.TerminatingCallback(terminate))
-solution = run_dynamics(sim, (0.0, 300), z; callback=callbacks, dt=0.1, output=OutputPosition)
+solution = run_dynamics(sim, (0.0, 300), z; callback=callbacks, dt=1.0, output=OutputPosition)
 plot!(solution, :OutputPosition, label="Cell + termination")
 ```
 See how the callbacks have altered the dynamics? The atom no longer leaves

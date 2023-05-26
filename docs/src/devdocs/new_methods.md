@@ -118,7 +118,7 @@ value of `x` has been set to 0.5.
 sim = Simulation(Atoms(1), Free(), MyMethod(2.0))
 u = DynamicsVariables(sim, rand(1,1), rand(1,1), [0.5])
 
-sol = run_dynamics(sim, (0.0, 10.0), u, output=(OutputPosition, OutputVelocity, OutputDynamicsVariables))
+sol = run_dynamics(sim, (0.0, 5.0), u, output=(OutputPosition, OutputVelocity, OutputDynamicsVariables))
 ```
 
 !!! note

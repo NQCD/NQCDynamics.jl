@@ -59,7 +59,7 @@ For the output we will receive the diabatic population at intervals of `t=50`
 and it will be averaged over all trajectories by the `:mean` keyword.
 ```@example rpsh
 solution = run_dynamics(sim, (0.0, 3000.0), distribution;
-    saveat=50, trajectories=5e2, dt=1,
+    saveat=50, trajectories=50, dt=1,
     output=TimeCorrelationFunctions.PopulationCorrelationFunction(sim, Diabatic()),
     reduction=MeanReduction())
 ```

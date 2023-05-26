@@ -70,12 +70,12 @@ the intial population with the final population at each timestep.
 ```@example threestatemorse
 sim = Simulation{FSSH}(atoms, model)
 fssh_result = run_dynamics(sim, (0.0, 3000.0), distribution;
-    saveat=10, trajectories=1e3,
+    saveat=10, trajectories=50,
     output=TimeCorrelationFunctions.PopulationCorrelationFunction(sim, Diabatic()),
     reduction=MeanReduction(), dt=1.0)
 sim = Simulation{Ehrenfest}(atoms, model)
 ehrenfest_result = run_dynamics(sim, (0.0, 3000.0), distribution;
-    saveat=10, trajectories=1e3,
+    saveat=10, trajectories=50,
     output=TimeCorrelationFunctions.PopulationCorrelationFunction(sim, Diabatic()),
     reduction=MeanReduction(), dt=1.0)
 

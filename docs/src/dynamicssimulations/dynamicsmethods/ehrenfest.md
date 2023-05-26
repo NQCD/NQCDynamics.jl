@@ -32,7 +32,7 @@ distribution = DynamicalDistribution(v, r, size(sim))* PureState(1, Adiabatic())
 To run an ensemble simulation we additionally choose number of trajectories `n_traj` and timespan `tspan` and we pass all the established settings to the `run_dynamics` function.
 In this example we output velocities by specifying `output=OutputVelocity` and store the final values in the `final_velocities` array. Following that, we calculate final momenta.
 ```@example ehrenfest
-n_traj = 5000
+n_traj = 10
 tspan = (0.0, 3000.0)
 solution = run_dynamics(sim, tspan, distribution; 
     trajectories=n_traj, output=OutputVelocity, dt=1.0)

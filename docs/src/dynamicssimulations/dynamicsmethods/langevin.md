@@ -70,7 +70,7 @@ outputted and have selected a timestep `dt`.
 Since the default algorithm is a fixed timestep algorithm an error will be thrown if a
 timestep is not provided.
 ```@example langevin
-traj = run_dynamics(sim, (0.0, 2000.0), u; output=(OutputPosition, OutputVelocity), dt=0.1)
+traj = run_dynamics(sim, (0.0, 2000.0), u; output=(OutputPosition, OutputVelocity), dt=0.5)
 ```
 
 Here, we plot the positions of our two atoms throughout the simulation.
