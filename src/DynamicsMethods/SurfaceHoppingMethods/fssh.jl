@@ -47,8 +47,9 @@ function DynamicsMethods.DynamicsVariables(
 end
 
 function DynamicsUtils.acceleration!(dv, v, r, sim::AbstractSimulation{<:FSSH}, t, state)
+    adiabatic_derivative = Calculators.get_adiabatic_derivative(sim.calculator, r)
     for I in eachindex(dv)
-        dv[I] = -sim.calculator.adiabatic_derivative[I][state, state]
+        dv[I] = -adiabatic_derivative[I][state, state]
     end
     DynamicsUtils.divide_by_mass!(dv, masses(sim))
     return nothing
@@ -65,24 +66,25 @@ Evaluates the probability of hopping from the current state to all other states
 - 'd' is skew-symmetric so here the indices are important.
 """
 function evaluate_hopping_probability!(sim::AbstractSimulation{<:FSSH}, u, dt)
-    v = get_hopping_velocity(sim, u)
+    v = DynamicsUtils.get_hopping_velocity(sim, DynamicsUtils.get_velocities(u))
     σ = DynamicsUtils.get_quantum_subsystem(u)
     s = sim.method.state
-    d = get_hopping_nonadiabatic_coupling(sim)
+    r = DynamicsUtils.get_positions(u)
+    d = DynamicsUtils.get_hopping_nonadiabatic_coupling(sim, r)
 
     fewest_switches_probability!(sim.method.hopping_probability, v, σ, s, d, dt)
 end
 
-function get_hopping_nonadiabatic_coupling(sim::Simulation{<:SurfaceHopping})
-    sim.calculator.nonadiabatic_coupling
+function DynamicsUtils.get_hopping_nonadiabatic_coupling(sim::Simulation, r::AbstractMatrix)
+    return Calculators.get_nonadiabatic_coupling(sim.calculator, r)
 end
 
-function get_hopping_velocity(::Simulation{<:SurfaceHopping}, u)
-    DynamicsUtils.get_velocities(u)
+function DynamicsUtils.get_hopping_velocity(::Simulation, v::AbstractMatrix)
+    return v
 end
 
-function get_hopping_eigenvalues(sim::Simulation{<:SurfaceHopping})
-    sim.calculator.eigen.values
+function DynamicsUtils.get_hopping_eigenvalues(sim::Simulation, r::AbstractMatrix)
+    return Calculators.get_eigen(sim.calculator, r).values
 end
 
 function fewest_switches_probability!(probability, v, σ, s, d, dt)
@@ -138,9 +140,8 @@ function Estimators.adiabatic_population(sim::AbstractSimulation{<:FSSH}, u)
     return population
 end
 
-function DynamicsUtils.classical_hamiltonian(sim::Simulation{<:FSSH}, u)
-    kinetic = DynamicsUtils.classical_kinetic_energy(sim, DynamicsUtils.get_velocities(u))
+function DynamicsUtils.classical_potential_energy(sim::Simulation{<:FSSH}, u)
     eigs = Calculators.get_eigen(sim.calculator, DynamicsUtils.get_positions(u))
     potential = eigs.values[u.state]
-    return kinetic + potential
+    return potential
 end

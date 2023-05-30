@@ -40,6 +40,17 @@ Output the velocity of the ring polymer centroid at each timestep during the tra
 OutputCentroidVelocity(sol, i) = [get_centroid(get_velocities(u)) for u in sol.u]
 export OutputCentroidVelocity
 
+function OutputCentroidKineticEnergy(sol, i)
+    output = zeros(length(sol.u))
+    for i in eachindex(output)
+        u = sol.u[i]
+        centroid = get_centroid(get_velocities(u))
+        output[i] = DynamicsUtils.classical_kinetic_energy(sol.prob.p, centroid)
+    end
+    return output
+end
+export OutputCentroidKineticEnergy
+
 """
     OutputPosition(sol, i)
 
@@ -79,6 +90,9 @@ Evaluate the classical kinetic energy at each timestep during the trajectory.
 """
 OutputKineticEnergy(sol, i) = DynamicsUtils.classical_kinetic_energy.(sol.prob.p, sol.u)
 export OutputKineticEnergy
+
+OutputSpringEnergy(sol, i) = DynamicsUtils.classical_spring_energy.(sol.prob.p, sol.u)
+export OutputSpringEnergy
 
 """
     OutputDynamicsVariables(sol, i)

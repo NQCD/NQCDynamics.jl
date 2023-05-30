@@ -50,17 +50,21 @@ function NQCModels.derivative(model::TestModel, r::Real)
 end
 
 model = TestModel(ħω, Ed, g, Γ)
+n_beads = 4
 
 @testset "BCME" begin
-    sim = Simulation{BCME}(atoms, model; temperature=kT, bandwidth=100.)
+    sim = RingPolymerSimulation{BCME}(atoms, model, n_beads; temperature=kT, bandwidth=100.)
     βω = ħω / kT
     σ = sqrt(1 / βω)
     r = Normal(x1, σ)
 
-    v = VelocityBoltzmann(kT, atoms.masses[1])
-    distribution = DynamicalDistribution(v, r, (1,1)) * PureState(1, Diabatic())
+    r = PositionHarmonicRingPolymer{Float64}(ħω, 1/kT, 1/ħω, (1,1,n_beads); centre=x1)
+    v = VelocityBoltzmann(kT*n_beads, atoms.masses[1])
+    distribution = DynamicalDistribution(v, r, (1,1,n_beads)) * PureState(1, Diabatic())
 
-    output = run_dynamics(sim, (0.0, 10000.0), distribution; trajectories=100, output=(OutputPosition), abstol=1e-12, reltol=1e-12, saveat=100)
+    output = run_dynamics(sim, (0.0, 10000.0), distribution;
+        trajectories=100, output=(OutputPosition), saveat=100, dt=1.0
+    )
     avg = zeros(101)
     for i in eachindex(output)
         for j in eachindex(avg)
@@ -81,12 +85,11 @@ model = TestModel(ħω, Ed, g, Γ)
         @test isapprox(true_value, avg[i]; atol=5err[i], rtol=0.1)
     end
     # Uncomment to see the comparison if the tests start failing
-    # using Plots
-    # p = plot()
-    # plot!(data[!,1], data[!,2])
-    # plot!(output[1][:Time], avg; yerr=err)
-    # plot!(output[1][:Time], itp.(output[1][:Time]))
-    # xlims!(0, 1e4)
-    # display(p)
+    using Plots
+    p = plot()
+    plot!(data[!,1], data[!,2])
+    plot!(output[1][:Time], avg; yerr=err)
+    plot!(output[1][:Time], itp.(output[1][:Time]))
+    xlims!(0, 1e4)
+    display(p)
 end
-

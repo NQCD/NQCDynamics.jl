@@ -58,12 +58,8 @@ function set_mapping_force!(du, u, sim::RingPolymerSimulation{<:eCMM})
     end
 end
 
-function DynamicsUtils.classical_hamiltonian(sim::RingPolymerSimulation{<:eCMM}, u)
+function DynamicsUtils.classical_potential_energy(sim::RingPolymerSimulation{<:eCMM}, u)
     r = DynamicsUtils.get_positions(u)
-    v = DynamicsUtils.get_velocities(u)
-
-    spring = RingPolymers.get_spring_energy(sim.beads, sim.atoms.masses, r)
-    kinetic = DynamicsUtils.classical_kinetic_energy(sim, v)
 
     Calculators.evaluate_potential!(sim.calculator, r)
     potential = zero(eltype(u))
@@ -76,7 +72,7 @@ function DynamicsUtils.classical_hamiltonian(sim::RingPolymerSimulation{<:eCMM},
         potential += 0.5 * (pmap'Vtraceless*pmap + qmap'Vtraceless*qmap) + V̄
     end
 
-    return kinetic + spring + potential
+    return potential
 end
 
 function inverse_mapping_kernel(qmap, pmap, γ, N)

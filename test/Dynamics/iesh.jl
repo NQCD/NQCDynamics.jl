@@ -1,7 +1,7 @@
 using Test
 using NQCDynamics
 using LinearAlgebra
-using Random
+using Random: rand!
 using Distributions
 using NQCDynamics: DynamicsMethods, DynamicsUtils, Calculators
 using NQCDynamics.DynamicsMethods: SurfaceHoppingMethods
@@ -103,7 +103,11 @@ end
 @testset "evaluate_hopping_probability!" begin
     Calculators.update_electronics!(sim.calculator, hcat(20.0))
     z = deepcopy(u)
-    rand!(DynamicsUtils.get_quantum_subsystem(z))
+    ψ = DynamicsUtils.get_quantum_subsystem(z)
+    rand!(ψ)
+    @views for i in axes(ψ,2)
+        normalize!(ψ[:,i])
+    end
     SurfaceHoppingMethods.evaluate_hopping_probability!(sim, z, 1.0, rand())
 end
 
@@ -119,7 +123,7 @@ end
     DynamicsUtils.get_velocities(integrator.u) .= 2 # Set high momentum to ensure successful hop
     integrator.u.state .= initial_state
     integrator.p.method.new_state .= final_state
-    eigs = SurfaceHoppingMethods.get_hopping_eigenvalues(integrator.p)
+    eigs = DynamicsUtils.get_hopping_eigenvalues(integrator.p, DynamicsUtils.get_positions(integrator.u))
     new_state, old_state = SurfaceHoppingMethods.unpack_states(sim)
     ΔE = SurfaceHoppingMethods.calculate_potential_energy_change(eigs, new_state, old_state)
 
@@ -149,4 +153,21 @@ end
     @time traj3 = run_dynamics(sim, tspan, u; dt, algorithm=DynamicsMethods.IntegrationAlgorithms.VerletwithElectronics2(MagnusMidpoint(krylov=false), dt=dt/5), output)
 
     # We cannot compare these when hopping is happening since the trajectories will be different. 
+end
+
+@testset "DecoherenceCorrectionEDC" begin
+    sim = Simulation{AdiabaticIESH}(atoms, model; decoherence=SurfaceHoppingMethods.DecoherenceCorrectionEDC())
+    u = DynamicsVariables(sim, zeros(1,1), 100randn(1,1))
+    tspan = (0.0, 100000.0)
+    dt = 100.0
+    traj = run_dynamics(sim, tspan, u; dt, output=(OutputQuantumSubsystem, OutputSurfaceHops))
+    @test traj[:OutputSurfaceHops] > 0 # Ensure some hops occur
+    norms = zeros(length(traj[:Time]))
+    for i in eachindex(norms)
+        ψ = traj[:OutputQuantumSubsystem][i]
+        @views for j in axes(ψ,2)
+            norms[i] += norm(ψ[:,j])
+        end
+    end
+    @test all(i->isapprox(i, n_electrons; rtol=1e-3), norms) # Test that decoherence conserves norm
 end

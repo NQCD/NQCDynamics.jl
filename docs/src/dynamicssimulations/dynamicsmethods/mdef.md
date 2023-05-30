@@ -51,7 +51,7 @@ a function of time.
 ```@example mdef
 using Plots
 
-solution = run_dynamics(sim, (0.0, 100u"fs"), z, dt=0.1u"fs", output=OutputTotalEnergy)
+solution = run_dynamics(sim, (0.0, 100u"fs"), z, dt=0.5u"fs", output=OutputTotalEnergy)
 plot(solution, :OutputTotalEnergy)
 ```
 
@@ -81,7 +81,7 @@ Now we can re-simulate, replacing the fixed temperature with the function we hav
 
 ```@example mdef
 sim = Simulation{MDEF}(atoms, model; temperature=temperature_function)
-solution = run_dynamics(sim, (0.0, 100u"fs"), z, dt=0.1u"fs",
+solution = run_dynamics(sim, (0.0, 100u"fs"), z, dt=0.5u"fs",
     output=OutputTotalEnergy)
 plot(solution, :OutputTotalEnergy)
 ```

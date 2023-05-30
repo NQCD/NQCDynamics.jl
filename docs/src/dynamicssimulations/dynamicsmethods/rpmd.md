@@ -115,7 +115,7 @@ nothing # hide
 
     We have used Makie's animation features to produce this animation. If you want
     information how Makie works, take a look at the
-    [Makie documentation](https://makie.juliaplots.org/stable/documentation/animation/).
+    [Makie documentation](https://docs.makie.org/stable/documentation/animation/).
 
 Since this package is focused on nonadiabatic dynamics, you won't see much adiabatic RPMD
 elsewhere in the documentation but it's useful to understand how the original adiabatic

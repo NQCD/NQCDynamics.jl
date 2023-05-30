@@ -77,11 +77,8 @@ function set_mapping_force!(du, u, sim::Simulation{<:eCMM})
     lmul!(-1, get_mapping_momenta(du))
 end
 
-function DynamicsUtils.classical_hamiltonian(sim::Simulation{<:eCMM}, u)
+function DynamicsUtils.classical_potential_energy(sim::Simulation{<:eCMM}, u)
     r = DynamicsUtils.get_positions(u)
-    v = DynamicsUtils.get_velocities(u)
-
-    kinetic = DynamicsUtils.classical_kinetic_energy(sim, v)
 
     Calculators.evaluate_potential!(sim.calculator, r)
     V = sim.calculator.potential
@@ -89,8 +86,7 @@ function DynamicsUtils.classical_hamiltonian(sim::Simulation{<:eCMM}, u)
     pmap = get_mapping_momenta(u)
     potential = (pmap'V*pmap + qmap'V*qmap - 2sim.method.γ*tr(V)) / 2
 
-    H = kinetic + potential
-    return H
+    return potential
 end
 
 mapping_kernel(qmap, pmap, γ) = (qmap.^2 .+ pmap.^2)./2 .- γ

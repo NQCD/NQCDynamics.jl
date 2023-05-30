@@ -105,13 +105,10 @@ x = range(-0.5, 4.0, length=200)
 z = range(-0.5, 4.0, length=200)
 
 f = Figure()
-ax = Axis(f[1,1], xlabel="x coordinate", ylabel="z coordinate")
+ax = Axis(f[1,1], xlabel="x coordinate", ylabel="z coordinate", limits=(-0.5, 4.0, -0.5, 4.0))
 
 contour!(ax, x, z, coupling, color=:black, levels=10, label="V12")
 contour!(ax, x, z, v1, color=:blue, levels=0:0.01:0.1, label="V11")
 contour!(ax, x, z, v2, color=:red, levels=0:0.01:0.1, label="V22")
-axislegend(ax)
-xlims!(-0.5, 4.0)
-ylims!(-0.5, 4.0)
 f
 ```

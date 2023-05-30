@@ -63,11 +63,17 @@ function DynamicsMethods.motion!(du, u, sim::Simulation{<:SurfaceHopping}, t)
     DynamicsUtils.velocity!(dr, v, r, sim, t) # Set the velocity
     Calculators.update_electronics!(sim.calculator, r) # Calculate electronic quantities
     DynamicsUtils.acceleration!(dv, v, r, sim, t, sim.method.state) # Set the acceleration
-    DynamicsUtils.set_quantum_derivative!(dσ, v, σ, sim)
+    DynamicsUtils.set_quantum_derivative!(dσ, u, sim)
 end
 
-function DynamicsUtils.set_quantum_derivative!(dσ, v, σ, sim::AbstractSimulation{<:SurfaceHopping})
-    V = DynamicsUtils.calculate_density_matrix_propagator!(sim, v)
+function DynamicsUtils.set_quantum_derivative!(dσ, u, sim::AbstractSimulation{<:SurfaceHopping})
+    v = DynamicsUtils.get_hopping_velocity(sim, DynamicsUtils.get_velocities(u))
+    σ = DynamicsUtils.get_quantum_subsystem(u)
+    r = DynamicsUtils.get_positions(u)
+    eigenvalues = DynamicsUtils.get_hopping_eigenvalues(sim, r)
+    propagator = sim.method.density_propagator
+    d = DynamicsUtils.get_hopping_nonadiabatic_coupling(sim, r)
+    V = DynamicsUtils.calculate_density_matrix_propagator!(propagator, v, d, eigenvalues)
     DynamicsUtils.commutator!(dσ, V, σ)
     lmul!(-im, dσ)
 end
@@ -78,11 +84,14 @@ function DynamicsMethods.create_problem(u0, tspan, sim::AbstractSimulation{<:Sur
         callback=DynamicsMethods.get_callbacks(sim))
 end
 
+include("decoherence_corrections.jl")
 include("surface_hopping.jl")
 include("fssh.jl")
 include("iesh.jl")
 include("rpsh.jl")
+include("rpiesh.jl")
 include("cme.jl")
 export CME, BCME
+include("rpcme.jl")
 
 end # module

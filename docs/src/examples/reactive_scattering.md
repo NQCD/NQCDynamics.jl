@@ -121,7 +121,7 @@ model = LDFAModel(model, "../assets/friction/test.cube", atoms, friction_atoms=[
 Now we can pass all the variables defined so far to the `Simulation` and run multiple
 trajectories using [`run_dynamics`](@ref).
 
-```@example h2scatter
+```julia
 sim = Simulation{MDEF}(atoms, model, cell=cell, temperature=300u"K")
 ensemble = run_dynamics(sim, tspan, distribution;selection=1:20,
     dt=0.1u"fs", output=OutputPosition, trajectories=20, callback=terminate)
@@ -135,7 +135,7 @@ friction tensor trained on *ab initio* data.
 This can be used by simply using the model directly, without wrapping it with the
 [`LDFAModel`](@ref CubeLDFAModel.LDFAModel).
 
-```@example h2scatter
+```julia
 model = H2AgModel()
 sim = Simulation{MDEF}(atoms, model, cell=cell, temperature=300u"K")
 ensemble = run_dynamics(sim, tspan, distribution;selection=1:20,

@@ -18,14 +18,17 @@ function acceleration!(dv, v, r, sim::RingPolymerSimulation{<:Union{DiabaticMDEF
     μ = NQCModels.fermilevel(sim.calculator.model)
     β = 1 / get_temperature(sim, t)
 
-    @views for i in Calculators.beads(sim.calculator)
+    fill!(dv, zero(eltype(dv)))
+    @views for i in axes(dv, 3) # bead
         NQCModels.state_independent_derivative!(sim.calculator.model, dv[:,:,i], r[:,:,i])
-        current_bead_eigen = eigen[i]
-        for j in NQCModels.mobileatoms(sim)
-            for k in NQCModels.dofs(sim)
-                for n in NQCModels.eachstate(sim)
-                    f = fermi(current_bead_eigen.values[n], μ, β)
-                    dv[k,j,i] += adiabatic_derivative[k,j,i][n,n] * f
+        for j in axes(dv, 2) # atom
+            for k in axes(dv, 1) # dof
+                for n in eachindex(eigen[i].values) # state
+                    ϵ = eigen[i].values[n]
+                    f = fermi(ϵ, μ, β)
+                    ∂f∂ϵ = ∂fermi(ϵ, μ, β)
+                    ∂ϵ = adiabatic_derivative[k,j,i][n,n]
+                    dv[k,j,i] += ∂ϵ*f + ∂f∂ϵ*∂ϵ*ϵ
                 end
             end
         end
@@ -62,8 +65,8 @@ function DynamicsUtils.classical_potential_energy(
     β = 1 / get_temperature(sim)
 
     potential = zero(T)
-    for (i, r_bead) in enumerate(eachbead(r))
-        potential += NQCModels.state_independent_potential(sim.calculator.model, r_bead)
+    @views for i in axes(r,3)
+        potential += NQCModels.state_independent_potential(sim.calculator.model, r[:,:,i])
         for ϵ in eigen[i].values
             potential += ϵ * fermi(ϵ, μ, β)
         end

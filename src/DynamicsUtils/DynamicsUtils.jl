@@ -60,17 +60,55 @@ function apply_interbead_coupling!(dr::AbstractArray{T,3}, r::AbstractArray{T,3}
     return nothing
 end
 
-function classical_hamiltonian(sim, u) end
+function classical_hamiltonian(sim::Simulation, u)
+    kinetic = classical_kinetic_energy(sim, u)
+    potential = classical_potential_energy(sim, u)
+    return kinetic + potential
+end
+
+function classical_hamiltonian(sim::RingPolymerSimulation, u)
+    spring = classical_spring_energy(sim, u)
+    kinetic = classical_kinetic_energy(sim, u)
+    potential = classical_potential_energy(sim, u)
+    return spring + kinetic + potential
+end
+
+function centroid_classical_hamiltonian(sim::RingPolymerSimulation, u)
+    kinetic = centroid_classical_kinetic_energy(sim, u)
+    potential = centroid_classical_potential_energy(sim, u)
+    return kinetic + potential
+end
+
+function centroid_classical_kinetic_energy(sim::RingPolymerSimulation, u)
+    v = DynamicsUtils.get_velocities(u)
+    centroid_v = get_centroid(v)
+    kinetic = DynamicsUtils.classical_kinetic_energy(masses(sim), centroid_v)
+    return kinetic
+end
+
+function centroid_classical_potential_energy end
+
+function classical_spring_energy(sim::RingPolymerSimulation, u)
+    return classical_spring_energy(sim, get_positions(u))
+end
+
+function classical_spring_energy(sim::RingPolymerSimulation, r::AbstractArray{T,3}) where {T}
+    return RingPolymers.get_spring_energy(sim.beads, sim.atoms.masses, r)
+end
 
 function classical_kinetic_energy(sim::AbstractSimulation, u)
     classical_kinetic_energy(sim,  DynamicsUtils.get_velocities(u))
 end
 
-function classical_kinetic_energy(sim::Simulation, v::AbstractMatrix)
+function classical_kinetic_energy(sim::AbstractSimulation, v::AbstractMatrix)
+    return classical_kinetic_energy(masses(sim), v)
+end
+
+function classical_kinetic_energy(mass::AbstractVector, v::AbstractMatrix)
     kinetic = zero(eltype(v))
     for i in axes(v, 2)
         for j in axes(v, 1)
-            kinetic += masses(sim, i) * v[j,i]^2
+            kinetic += mass[i] * v[j,i]^2
         end
     end
     return kinetic / 2
@@ -98,8 +136,12 @@ end
 
 function classical_potential_energy(sim::RingPolymerSimulation, r::AbstractArray{T,3}) where {T}
     V = Calculators.get_potential(sim.calculator, r)
-    sum(V) + RingPolymers.get_spring_energy(sim.beads, masses(sim), r)
+    return sum(V)
 end
+
+function get_hopping_eigenvalues end
+function get_hopping_nonadiabatic_coupling end
+function get_hopping_velocity end
 
 include("dynamics_variables.jl")
 include("callbacks.jl")

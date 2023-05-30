@@ -9,28 +9,16 @@ using ..Calculators: AbstractDiabaticCalculator, DiabaticCalculator, LargeDiabat
 
 function set_quantum_derivative! end
 
-function calculate_density_matrix_propagator!(sim::Simulation, v)
-    V = sim.method.density_propagator
-    fill!(V, zero(eltype(V)))
-    for (i, I) in enumerate(diagind(V))
-        V[I] = sim.calculator.eigen.values[i]
+function calculate_density_matrix_propagator!(propagator, v, d, eigenvalues)
+    fill!(propagator, zero(eltype(propagator)))
+    for (i, I) in enumerate(diagind(propagator))
+        propagator[I] = eigenvalues[i]
     end
 
     for I in eachindex(v)
-        @. V -= im * v[I] * sim.calculator.nonadiabatic_coupling[I]
+        @. propagator -= im * v[I] * d[I]
     end
-    return V
-end
-
-function calculate_density_matrix_propagator!(sim::RingPolymerSimulation, v)
-    V = sim.method.density_propagator
-    centroid_v = get_centroid(v)
-
-    V .= diagm(sim.calculator.centroid_eigen.values)
-    for I in eachindex(centroid_v)
-        @. V -= im * centroid_v[I] * sim.calculator.centroid_nonadiabatic_coupling[I]
-    end
-    return V
+    return propagator
 end
 
 """

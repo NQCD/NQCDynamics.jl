@@ -49,7 +49,7 @@ function test_acceleration!(sim)
 end
 
 function test_acceleration!(sim::RingPolymerSimulation)
-    f(x) = DynamicsUtils.classical_potential_energy(sim, x)
+    f(x) = DynamicsUtils.classical_potential_energy(sim, x) + DynamicsUtils.classical_spring_energy(sim, x)
 
     r = get_blank(sim)
     v = get_blank(sim)

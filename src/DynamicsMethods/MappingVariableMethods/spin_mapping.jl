@@ -98,13 +98,6 @@ function set_mapping_force!(du, u, sim::Simulation{<:SpinMappingW})
     return nothing
 end
 
-function DynamicsUtils.classical_hamiltonian(sim::Simulation{<:SpinMappingW}, u)
-    v = DynamicsUtils.get_velocities(u)
-    kinetic = DynamicsUtils.classical_kinetic_energy(sim, v)
-    potential = DynamicsUtils.classical_potential_energy(sim, u)
-    return kinetic + potential
-end
-
 function DynamicsUtils.classical_potential_energy(sim::Simulation{<:SpinMappingW}, u::ComponentVector)
     r = DynamicsUtils.get_positions(u)
     X = get_mapping_positions(u)

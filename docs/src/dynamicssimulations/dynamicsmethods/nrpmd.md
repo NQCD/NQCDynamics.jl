@@ -173,7 +173,7 @@ the figure from the paper we were attempting to reproduce. Nice!
 
 ```@example nrpmd
 ensemble = run_dynamics(sim, (0.0, 30.0), distribution;
-    trajectories=1000, output, reduction=MeanReduction(), dt=0.1)
+    trajectories=100, output, reduction=MeanReduction(), dt=0.1)
 
 plt = lines(0:0.1:30, [p[1,1]-p[2,1] for p in ensemble[:PopulationCorrelationFunction]])
 plt.axis.xlabel = "Time"

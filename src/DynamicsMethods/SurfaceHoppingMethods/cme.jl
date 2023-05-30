@@ -14,10 +14,10 @@ function DynamicsMethods.motion!(du, u, sim::Simulation{<:ClassicalMasterEquatio
     set_state!(u, sim.method.state) # Make sure the state variables match, 
 
     DynamicsUtils.velocity!(dr, v, r, sim, t) # Set the velocity
-    DynamicsUtils.acceleration!(dv, v, r, sim, t, sim.method.state) # Set the acceleration
+    DynamicsUtils.acceleration!(dv, v, r, sim, t) # Set the acceleration
 end
 
-function DynamicsMethods.DynamicsVariables(::Simulation{<:ClassicalMasterEquation}, v, r, electronic::PureState{Diabatic})
+function DynamicsMethods.DynamicsVariables(::AbstractSimulation{<:ClassicalMasterEquation}, v, r, electronic::PureState{Diabatic})
     return SurfaceHoppingVariables(ComponentVector(v=v, r=r), electronic.state)
 end
 
@@ -35,7 +35,7 @@ function evaluate_hopping_probability!(sim::Simulation{<:ClassicalMasterEquation
     end
 end
     
-function select_new_state(sim::Simulation{<:ClassicalMasterEquation}, u)::Int
+function select_new_state(sim::AbstractSimulation{<:ClassicalMasterEquation}, u)::Int
     random_number = rand()
     if random_number < sim.method.hopping_probability
         if sim.method.state == 1
@@ -47,14 +47,8 @@ function select_new_state(sim::Simulation{<:ClassicalMasterEquation}, u)::Int
     return sim.method.state
 end
 
-function rescale_velocity!(::Simulation{<:ClassicalMasterEquation}, u)::Bool
+function rescale_velocity!(::AbstractSimulation{<:ClassicalMasterEquation}, u)::Bool
     return true
-end
-
-function DynamicsUtils.classical_hamiltonian(sim::Simulation{<:ClassicalMasterEquation}, u)
-    kinetic = DynamicsUtils.classical_kinetic_energy(sim, DynamicsUtils.get_velocities(u))
-    potential = DynamicsUtils.classical_potential_energy(sim, u)
-    return kinetic + potential
 end
 
 """
@@ -83,9 +77,10 @@ function Simulation{CME}(atoms::Atoms{T}, model; kwargs...) where {T}
     Simulation(atoms, model, CME{T}(NQCModels.nstates(model)); kwargs...)
 end
 
-function DynamicsUtils.acceleration!(dv, v, r, sim::Simulation{<:CME}, t, state)
+function DynamicsUtils.acceleration!(dv, v, r, sim::AbstractSimulation{<:CME}, t)
     derivative = Calculators.get_derivative(sim.calculator, r)
-    for I in eachindex(dv)
+    state = sim.method.state
+    for I in eachindex(dv, derivative)
         dv[I] = -derivative[I][state, state]
     end
     DynamicsUtils.divide_by_mass!(dv, masses(sim))
@@ -112,29 +107,31 @@ mutable struct BCME{T} <: ClassicalMasterEquation
     hopping_probability::T
     state::Int
     new_state::Int
+    bandwidth::T
 end
 
-function BCME{T}(nstates::Integer) where {T}
+function BCME{T}(nstates::Integer, bandwidth) where {T}
     nstates == 2 || error("BCME only works with two states at the moment.")
     hopping_probability = zero(T)
     state = 0
     new_state = 0
-    return BCME(hopping_probability, state, new_state)
+    return BCME(hopping_probability, state, new_state, bandwidth)
 end
 
-function Simulation{BCME}(atoms::Atoms{T}, model; kwargs...) where {T}
-    Simulation(atoms, model, BCME{T}(NQCModels.nstates(model)); kwargs...)
+function Simulation{BCME}(atoms::Atoms{T}, model; bandwidth, kwargs...) where {T}
+    Simulation(atoms, model, BCME{T}(NQCModels.nstates(model), bandwidth); kwargs...)
 end
 
-function DynamicsUtils.acceleration!(dv, v, r, sim::Simulation{<:BCME}, t, state)
+function DynamicsUtils.acceleration!(dv, v, r, sim::Simulation{<:BCME}, t)
+    state = sim.method.state
     ∂V = Calculators.get_derivative(sim.calculator, r)
     V = Calculators.get_potential(sim.calculator, r)
     Γ = 2π * V[2,1]^2
     β = 1 / get_temperature(sim, t)
     μ = NQCModels.fermilevel(sim)
     h = V[2,2] - V[1,1]
-    n = evaluate_broadening(h, μ, β, Γ)
-    n2 = evaluate_force_broadening(h, μ, β, Γ)
+    n = evaluate_broadening(h, μ, β, Γ, sim.method.bandwidth)
+    n2 = evaluate_force_broadening(h, μ, β, Γ, sim.method.bandwidth)
     f = DynamicsUtils.fermi(h, μ, β)
 
     for I in eachindex(dv, ∂V)
@@ -155,20 +152,20 @@ end
 
 Evaluate the convolution of the Fermi function with a Lorentzian.
 """
-function evaluate_broadening(h, μ, β, Γ)
+function evaluate_broadening(h, μ, β, Γ, bandwidth)
     A(ϵ) = 1/π * Γ/2 / ((ϵ-h)^2 + (Γ/2)^2)
     kernel(ϵ) = A(ϵ) * DynamicsUtils.fermi(ϵ, μ, β)
 
-    integral, _ = QuadGK.quadgk(kernel, -Inf, Inf)
+    integral, _ = QuadGK.quadgk(kernel, μ-bandwidth/2, μ+bandwidth/2)
 
     return integral
 end
 
-function evaluate_force_broadening(h, μ, β, Γ)
+function evaluate_force_broadening(h, μ, β, Γ, bandwidth)
     A(ϵ) = 1/π * Γ/2 / ((ϵ-h)^2 + (Γ/2)^2)
     kernel(ϵ) = (ϵ - h) * A(ϵ) * DynamicsUtils.fermi(ϵ, μ, β)
 
-    integral, _ = QuadGK.quadgk(kernel, μ-1000Γ, μ+1000Γ)
+    integral, _ = QuadGK.quadgk(kernel, μ-bandwidth/2, μ+bandwidth/2)
 
     return integral
 end

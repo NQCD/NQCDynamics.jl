@@ -13,7 +13,7 @@ struct BCOCBCache{U,A,K,uEltypeNoUnits,F} <: StochasticDiffEq.StochasticDiffEqMu
     vtmp::A
     k::K
     cayley::Vector{Matrix{uEltypeNoUnits}}
-    half::uEltypeNoUnits
+    halfdt::uEltypeNoUnits
     friction::F
 end
 
@@ -24,11 +24,11 @@ function StochasticDiffEq.alg_cache(::BCOCB,prob,u,ΔW,ΔZ,p,rate_prototype,nois
     k = zeros(size(rtmp))
 
     cayley = RingPolymers.cayley_propagator(p.beads, dt; half=true)
-    half = uEltypeNoUnits(1//2)
+    halfdt = uEltypeNoUnits(dt / 2)
 
     friction = FrictionCache(p, dt)
 
-    BCOCBCache(tmp, rtmp, vtmp, k, cayley, half, friction)
+    BCOCBCache(tmp, rtmp, vtmp, k, cayley, halfdt, friction)
 end
 
 struct MDEFCache{flatV,G,N,C,M,S}
@@ -83,37 +83,34 @@ function FrictionCache(sim::RingPolymerSimulation{<:DynamicsMethods.ClassicalMet
 end
 
 function StochasticDiffEq.initialize!(integrator, cache::BCOCBCache)
-    @unpack t,uprev,p = integrator
-    v = integrator.uprev.x[1]
-    r = integrator.uprev.x[2]
-
-    integrator.f.f1(cache.k,v,r,p,t)
+    (;t, p) = integrator
+    v, r = integrator.uprev.x
+    integrator.f.f1(cache.k, v, r, p, t)
 end
 
 @muladd function StochasticDiffEq.perform_step!(integrator,cache::BCOCBCache,f=integrator.f)
-    @unpack t,dt,sqdt,uprev,u,p,W = integrator
-    @unpack rtmp, vtmp, k, cayley, half, friction = cache
+    (;t,p) = integrator
+    (;vtmp, cayley, halfdt, friction) = cache
 
-    v1 = uprev.x[1]
-    r1 = uprev.x[2]
+    vprev, rprev = integrator.uprev.x
+    acceleration = cache.k
+    v, r, vtmp = OrdinaryDiffEq.alloc_symp_state(integrator)
 
-    step_B!(vtmp, v1, half*dt, k)
-    @.. rtmp = r1
+    copy!(r, rprev)
 
-    RingPolymerArrays.transform_to_normal_modes!(rtmp, p.beads.transformation)
+    step_B!(vtmp, vprev, halfdt, acceleration)
+
     RingPolymerArrays.transform_to_normal_modes!(vtmp, p.beads.transformation)
+    RingPolymerArrays.transform_to_normal_modes!(r, p.beads.transformation)
 
-    step_C!(vtmp, rtmp, cayley)
+    step_C!(vtmp, r, cayley)
+    step_O!(friction, integrator, vtmp, r, t+halfdt)
+    step_C!(vtmp, r, cayley)
 
-    step_O!(friction, integrator, vtmp, rtmp, t+half*dt)
-
-    step_C!(vtmp, rtmp, cayley)
-
-    RingPolymerArrays.transform_from_normal_modes!(rtmp, p.beads.transformation)
     RingPolymerArrays.transform_from_normal_modes!(vtmp, p.beads.transformation)
+    RingPolymerArrays.transform_from_normal_modes!(r, p.beads.transformation)
 
-    @.. u.x[2] = rtmp
+    integrator.f.f1(acceleration, vtmp, r, p, t)
 
-    integrator.f.f1(k,vtmp,u.x[2],p,t+dt)
-    step_B!(u.x[1], vtmp, half*dt, k)
+    step_B!(v, vtmp, halfdt, acceleration)
 end

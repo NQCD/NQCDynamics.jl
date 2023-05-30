@@ -6,6 +6,7 @@ using NQCModels: eachelectron, eachstate, mobileatoms, dofs
 using NQCDistributions: FermiDiracState, Adiabatic, Diabatic
 using StatsBase: sample, Weights
 using FastLapackInterface: FastLapackInterface
+using SciMLBase: SciMLBase
 
 export AdiabaticIESH
 
@@ -21,7 +22,7 @@ Independent electron surface hopping.
 - [Roy, Shenvi, Tully, J. Chem. Phys. 130, 174716 (2009)](https://doi.org/10.1063/1.3122989)
 
 """
-struct AdiabaticIESH{T} <: AbstractIESH
+struct AdiabaticIESH{T,D} <: AbstractIESH
     hopping_probability::Matrix{T}
     state::Vector{Int}
     new_state::Vector{Int}
@@ -38,7 +39,9 @@ struct AdiabaticIESH{T} <: AbstractIESH
     v_dot_d::Matrix{T}
     unoccupied::Vector{Int}
     estimate_probability::Bool
-    function AdiabaticIESH{T}(states::Integer, n_electrons::Integer, rescaling::Symbol, estimate_probability::Bool) where {T}
+    disable_hopping::Bool
+    decoherence::D
+    function AdiabaticIESH{T}(states::Integer, n_electrons::Integer, rescaling::Symbol, estimate_probability::Bool, disable_hopping::Bool, decoherence) where {T}
 
         hopping_probability = zeros(Int, states, n_electrons)
         state = zeros(Int, n_electrons)
@@ -55,21 +58,34 @@ struct AdiabaticIESH{T} <: AbstractIESH
         v_dot_d = zeros(T, states, n_electrons)
         unoccupied = zeros(Int, states - n_electrons)
 
-        new{T}(hopping_probability, state, new_state, proposed_state, overlap, tmp, rescaling, quantum_propagator,
+        new{T,typeof(decoherence)}(hopping_probability, state, new_state, proposed_state, overlap, tmp, rescaling, quantum_propagator,
             tmp_matrix_complex_square1, tmp_matrix_complex_square2,
             tmp_matrix_complex_rect1, tmp_matrix_complex_rect2,
-            LUws, v_dot_d, unoccupied, estimate_probability
+            LUws, v_dot_d, unoccupied, estimate_probability, disable_hopping
         )
     end
 end
 
-unoccupied_states(sim::Simulation{<:AbstractIESH}) = sim.method.unoccupied
+unoccupied_states(sim::AbstractSimulation{<:AbstractIESH}) = sim.method.unoccupied
 
-function NQCDynamics.Simulation{IESH_type}(atoms::Atoms{T}, model::Model; rescaling=:standard, estimate_probability=true, kwargs...) where {T,IESH_type<:AbstractIESH}
-    NQCDynamics.Simulation(atoms, model, IESH_type{T}(NQCModels.nstates(model), NQCModels.nelectrons(model), rescaling, estimate_probability); kwargs...)
+function NQCDynamics.Simulation{IESH_type}(atoms::Atoms{T}, model::Model;
+    rescaling=:standard, estimate_probability=true, disable_hopping=false, decoherence=DecoherenceCorrectionNone(),
+    kwargs...) where {T,IESH_type<:AbstractIESH}
+    NQCDynamics.Simulation(
+        atoms, model,
+        IESH_type{T}(
+            NQCModels.nstates(model),
+            NQCModels.nelectrons(model),
+            rescaling,
+            estimate_probability,
+            disable_hopping,
+            decoherence
+        ); 
+        kwargs...
+    )
 end
 
-function DynamicsMethods.DynamicsVariables(sim::Simulation{<:AdiabaticIESH}, v, r)
+function DynamicsMethods.DynamicsVariables(sim::AbstractSimulation{<:AdiabaticIESH}, v, r)
     ψ = zeros(NQCModels.nstates(sim), NQCModels.nelectrons(sim))
     
     for i in eachelectron(sim)
@@ -80,7 +96,7 @@ function DynamicsMethods.DynamicsVariables(sim::Simulation{<:AdiabaticIESH}, v, 
     SurfaceHoppingVariables(ComponentVector(v=v, r=r, σreal=ψ, σimag=zero(ψ)), state)
 end
 
-function DynamicsMethods.DynamicsVariables(sim::Simulation{<:AdiabaticIESH}, v, r, electronic::FermiDiracState{Adiabatic})
+function DynamicsMethods.DynamicsVariables(sim::AbstractSimulation{<:AdiabaticIESH}, v, r, electronic::FermiDiracState{Adiabatic})
     ef_model = NQCModels.fermilevel(sim)
     ef_distribution = electronic.fermi_level
     ef_model ≈ ef_distribution || throw(error(
@@ -92,10 +108,10 @@ function DynamicsMethods.DynamicsVariables(sim::Simulation{<:AdiabaticIESH}, v, 
         """
     ))
 
-    eigs = Calculators.get_eigen(sim.calculator, r)
+    eigenvalues = DynamicsUtils.get_hopping_eigenvalues(sim, r)
 
     available_states = DynamicsUtils.get_available_states(electronic.available_states, NQCModels.nstates(sim))
-    state = DynamicsUtils.sample_fermi_dirac_distribution(eigs.values, NQCModels.nelectrons(sim), available_states, electronic.β)
+    state = DynamicsUtils.sample_fermi_dirac_distribution(eigenvalues, NQCModels.nelectrons(sim), available_states, electronic.β)
 
     ψ = zeros(NQCModels.nstates(sim), NQCModels.nelectrons(sim))
     for (i, j) in enumerate(state)
@@ -189,9 +205,12 @@ in the Shenvi, Tully paper (JCP 2009)
 In IESH each electron is independent so we can loop through electrons and set the
 derivative one at a time, in the standard way for FSSH.
 """
-function DynamicsUtils.set_quantum_derivative!(dσ, v, σ, sim::Simulation{<:AdiabaticIESH})
-    V = sim.calculator.eigen.values
-    d = sim.calculator.nonadiabatic_coupling
+function DynamicsUtils.set_quantum_derivative!(dσ, u, sim::AbstractSimulation{<:AdiabaticIESH})
+    v = DynamicsUtils.get_hopping_velocity(sim, DynamicsUtils.get_velocities(u))
+    σ = DynamicsUtils.get_quantum_subsystem(u)
+    r = DynamicsUtils.get_positions(u)
+    V = DynamicsUtils.get_hopping_eigenvalues(sim, r)
+    d = DynamicsUtils.get_hopping_nonadiabatic_coupling(sim, r)
     @views for i in eachelectron(sim)
         DynamicsUtils.set_single_electron_derivative!(dσ[:,i], σ[:,i], V, v, d, sim.method.tmp)
     end
@@ -200,14 +219,15 @@ end
 """
 Hopping probability according to equation 21 in Shenvi, Roy, Tully 2009.
 """
-function evaluate_hopping_probability!(sim::Simulation{<:AbstractIESH}, u, dt, random)
+function evaluate_hopping_probability!(sim::AbstractSimulation{<:AbstractIESH}, u, dt, random)
     ψ = DynamicsUtils.get_quantum_subsystem(u)
-    v = DynamicsUtils.get_velocities(u)
+    v = DynamicsUtils.get_hopping_velocity(sim, DynamicsUtils.get_velocities(u))
 
     S = sim.method.overlap
     proposed_state = sim.method.proposed_state
     prob = sim.method.hopping_probability
-    d = sim.calculator.nonadiabatic_coupling
+    r = DynamicsUtils.get_positions(u)
+    d = DynamicsUtils.get_hopping_nonadiabatic_coupling(sim, r)
 
     compute_overlap!(sim, S, ψ, sim.method.state)
 
@@ -251,7 +271,7 @@ function evaluate_hopping_probability!(sim::Simulation{<:AbstractIESH}, u, dt, r
     return nothing
 end
 
-function evaluate_v_dot_d!(sim::Simulation{<:AbstractIESH}, v, d)
+function evaluate_v_dot_d!(sim::AbstractSimulation{<:AbstractIESH}, v, d)
     v_dot_d = sim.method.v_dot_d
     fill!(v_dot_d, zero(eltype(v_dot_d)))
     @inbounds for i in mobileatoms(sim)
@@ -267,7 +287,7 @@ function evaluate_v_dot_d!(sim::Simulation{<:AbstractIESH}, v, d)
 end
 
 "Equation 17 in Shenvi, Roy, Tully 2009. Uses equations 19 and 20."
-function calculate_Akj(sim::Simulation{<:AbstractIESH}, S::AbstractMatrix, ψ::AbstractMatrix, detS::Number, new_state::Vector)
+function calculate_Akj(sim::AbstractSimulation{<:AbstractIESH}, S::AbstractMatrix, ψ::AbstractMatrix, detS::Number, new_state::Vector)
     compute_overlap!(sim, S, ψ, new_state)
     det_new = FastDeterminant.det!(S, sim.method.LUws)
 
@@ -275,7 +295,7 @@ function calculate_Akj(sim::Simulation{<:AbstractIESH}, S::AbstractMatrix, ψ::A
 end
 
 "Equation 20 in Shenvi, Roy, Tully 2009."
-function compute_overlap!(sim::Simulation{<:AdiabaticIESH}, S::Matrix, ψ, state)
+function compute_overlap!(sim::AbstractSimulation{<:AdiabaticIESH}, S::Matrix, ψ, state)
     @inbounds for i in eachelectron(sim)
         for j in eachelectron(sim)
             S[j,i] = ψ[state[j],i]
@@ -343,7 +363,8 @@ function Estimators.adiabatic_population(sim::Simulation{<:AdiabaticIESH}, u)
     return population
 end
 
-unpack_states(sim::Simulation{<:AbstractIESH}) = symdiff(sim.method.new_state, sim.method.state)
+unpack_states(sim::AbstractSimulation{<:AbstractIESH}) = symdiff(sim.method.new_state, sim.method.state)
+ishoppingdisabled(method::AbstractIESH) = method.disable_hopping
 
 function DynamicsUtils.classical_potential_energy(sim::Simulation{<:AbstractIESH}, u)
     eigen = Calculators.get_eigen(sim.calculator, DynamicsUtils.get_positions(u))
@@ -354,14 +375,9 @@ function DynamicsUtils.classical_potential_energy(sim::Simulation{<:AbstractIESH
     return potential
 end
 
-function DynamicsUtils.classical_hamiltonian(sim::Simulation{<:AbstractIESH}, u)
-    kinetic = DynamicsUtils.classical_kinetic_energy(sim, DynamicsUtils.get_velocities(u))
-    potential = DynamicsUtils.classical_potential_energy(sim, u)
-    return kinetic + potential
-end
-
 function iesh_check_hop!(u, t, integrator)::Bool
     sim = integrator.p
+    ishoppingdisabled(sim.method) && return false
     random = rand()
     evaluate_hopping_probability!(sim, u, OrdinaryDiffEq.get_proposed_dt(integrator), random)
     set_new_state!(sim.method, select_new_state(sim, u, random))
@@ -378,11 +394,37 @@ function iesh_execute_hop!(integrator)
     return nothing
 end
 
-function set_unoccupied_states!(sim::Simulation{<:AbstractIESH})
+function set_unoccupied_states!(sim::AbstractSimulation{<:AbstractIESH})
     DynamicsUtils.set_unoccupied_states!(sim.method.unoccupied, sim.method.state)
 end
 
 const IESHCallback = DiffEqBase.DiscreteCallback(iesh_check_hop!, iesh_execute_hop!;
                                                     save_positions=(false, false))
 
-DynamicsMethods.get_callbacks(::Simulation{<:AbstractIESH}) = IESHCallback
+function DynamicsMethods.get_callbacks(sim::AbstractSimulation{<:AbstractIESH})
+    if sim.method.decoherence isa DecoherenceCorrectionEDC
+        return SciMLBase.CallbackSet(IESHCallback, IESHDecoherenceEDC())
+    else
+        return IESHCallback
+    end
+end
+
+function IESHDecoherenceEDC()
+    return DiffEqBase.DiscreteCallback(
+        (u,t,integrator)->true,
+        iesh_apply_decoherence_correction_edc!;
+        save_positions=(false, false)
+    )
+end
+
+function iesh_apply_decoherence_correction_edc!(integrator)
+    sim = integrator.p
+    dt = OrdinaryDiffEq.get_proposed_dt(integrator)
+    eigen = Calculators.get_eigen(sim.calculator, DynamicsUtils.get_positions(integrator.u))
+    Ekin = DynamicsUtils.classical_kinetic_energy(sim, integrator.u)
+    ψ = DynamicsUtils.get_quantum_subsystem(integrator.u)
+    @views for (i, state) in enumerate(sim.method.state)
+        apply_decoherence_correction!(ψ[:,i], sim.method.decoherence, state, dt, eigen.values, Ekin)
+    end
+end
+

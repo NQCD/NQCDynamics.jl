@@ -53,10 +53,11 @@ function rescale_velocity!(sim::AbstractSimulation{<:SurfaceHopping}, u)::Bool
     sim.method.rescaling === :off && return true
 
     new_state, old_state = unpack_states(sim)
-    velocity = get_hopping_velocity(sim, u)
-    eigs = get_hopping_eigenvalues(sim)
+    velocity = DynamicsUtils.get_hopping_velocity(sim, DynamicsUtils.get_velocities(u))
+    r = DynamicsUtils.get_positions(u)
+    eigs = DynamicsUtils.get_hopping_eigenvalues(sim, r)
     
-    d = extract_nonadiabatic_coupling(get_hopping_nonadiabatic_coupling(sim), new_state, old_state)
+    d = extract_nonadiabatic_coupling(DynamicsUtils.get_hopping_nonadiabatic_coupling(sim, r), new_state, old_state)
     a = calculate_a(sim, d)
     b = calculate_b(d, velocity)
     c = calculate_potential_energy_change(eigs, new_state, old_state)
