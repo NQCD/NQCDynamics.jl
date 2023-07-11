@@ -280,6 +280,7 @@ function quantise_diatomic(sim::Simulation, v::Matrix, r::Matrix;
     end
 
     r, slab = separate_slab_and_molecule(atom_indices, r)
+    v, slab_v = separate_slab_and_molecule(atom_indices, v)
     environment = EvaluationEnvironment(atom_indices, size(sim), slab, austrip(height), surface_normal)
 
     r_com = subtract_centre_of_mass(r, masses(sim)[atom_indices])
