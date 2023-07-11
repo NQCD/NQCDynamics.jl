@@ -265,10 +265,19 @@ Otherwise, be sure to modify these parameters to give the intended behaviour.
 function quantise_diatomic(sim::Simulation, v::Matrix, r::Matrix;
     height=10.0, surface_normal=[0, 0, 1.0], atom_indices=[1, 2],
     show_timer=false, reset_timer=false,
-    bond_lengths=0.5:0.01:5.0
+    bond_lengths=0.5:0.01:5.0, max_translation=1
 )
 
     reset_timer && TimerOutputs.reset_timer!(TIMER)
+
+    if typeof(sim.cell)==PeriodicCell
+        # If the simulation used a `PeriodicCell`, translate `atom_indices` so they are at their minimum distance. (This is necessary if atoms were translated back into the original unit cell)
+        translations=[[i,j,k] for i in -max_translation:max_translation for j in -max_translation:max_translation for k in -max_translation:max_translation]
+        which_translation=argmin([norm(abs.(r[:,atom_indices[1]]-r[:,atom_indices[2]]+sim.cell.vectors*operation)) for operation in translations])
+        # Translate one atom for minimal distance. 
+        r[:,atom_indices[2]].=r[:,atom_indices[2]]+sim.cell.vectors*translations[which_translation]
+        @info "Atom 2 was moved as the simulation uses periodic boundary conditions"
+    end
 
     r, slab = separate_slab_and_molecule(atom_indices, r)
     environment = EvaluationEnvironment(atom_indices, size(sim), slab, austrip(height), surface_normal)
