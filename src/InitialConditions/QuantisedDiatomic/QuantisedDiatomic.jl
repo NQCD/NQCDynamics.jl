@@ -270,7 +270,7 @@ function quantise_diatomic(sim::Simulation, v::Matrix, r::Matrix;
 
     reset_timer && TimerOutputs.reset_timer!(TIMER)
 
-    if typeof(sim.cell)==PeriodicCell
+    if isa(sim.cell,PeriodicCell)
         # If the simulation used a `PeriodicCell`, translate `atom_indices` so they are at their minimum distance. (This is necessary if atoms were translated back into the original unit cell)
         translations=[[i,j,k] for i in -max_translation:max_translation for j in -max_translation:max_translation for k in -max_translation:max_translation]
         which_translation=argmin([norm(abs.(r[:,atom_indices[1]]-r[:,atom_indices[2]]+sim.cell.vectors*operation)) for operation in translations])
