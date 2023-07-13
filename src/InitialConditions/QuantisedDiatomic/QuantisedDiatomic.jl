@@ -265,7 +265,7 @@ Otherwise, be sure to modify these parameters to give the intended behaviour.
 function quantise_diatomic(sim::Simulation, v::Matrix, r::Matrix;
     height=10.0, surface_normal=[0, 0, 1.0], atom_indices=[1, 2],
     show_timer=false, reset_timer=false,
-    bond_lengths=0.5:0.01:5.0, max_translation=1
+    bond_lengths=0.5:0.01:5.0, max_translation=1, debug=false
 )
 
     reset_timer && TimerOutputs.reset_timer!(TIMER)
@@ -275,8 +275,10 @@ function quantise_diatomic(sim::Simulation, v::Matrix, r::Matrix;
         translations=[[i,j,k] for i in -max_translation:max_translation for j in -max_translation:max_translation for k in -max_translation:max_translation]
         which_translation=argmin([norm(abs.(r[:,atom_indices[1]]-r[:,atom_indices[2]]+sim.cell.vectors*operation)) for operation in translations])
         # Translate one atom for minimal distance. 
-        r[:,atom_indices[2]].=r[:,atom_indices[2]]+sim.cell.vectors*translations[which_translation]
-        @info "Atom 2 was moved as the simulation uses periodic boundary conditions"
+        if translations[which_translation]!=[0,0,0]
+            r[:,atom_indices[2]].=r[:,atom_indices[2]]+sim.cell.vectors*translations[which_translation]
+            @info "Using a periodic copy of atom "*string(atom_indices[end])*"  to bring it closer to atom "*string(atom_indices[begin])
+        end
     end
 
     r, slab = separate_slab_and_molecule(atom_indices, r)
@@ -287,7 +289,7 @@ function quantise_diatomic(sim::Simulation, v::Matrix, r::Matrix;
     v_com = subtract_centre_of_mass(v, masses(sim)[atom_indices])
     p_com = v_com .* masses(sim)[atom_indices]'
 
-    k = DynamicsUtils.classical_kinetic_energy(sim, v_com)
+    k = DynamicsUtils.classical_kinetic_energy(masses(sim)[atom_indices], v_com)
     p = calculate_diatomic_energy(bond_length(r_com), sim.calculator.model, environment)
     E = k + p
 
@@ -298,6 +300,10 @@ function quantise_diatomic(sim::Simulation, v::Matrix, r::Matrix;
 
     binding_curve = calculate_binding_curve(bond_lengths, sim.calculator.model, environment)
 
+    if debug
+        println(k,"\n", p,"\n", E,"\n", L,"\n", J)
+    end
+    
     V = EffectivePotential(μ, J, binding_curve)
 
     r₁, r₂ = @timeit TIMER "Finding bounds" find_integral_bounds(E, V)
