@@ -7,7 +7,7 @@ DocMeta.setdocmeta!(NQCDynamics, :DocTestSetup, :(using NQCDynamics); recursive=
 DocMeta.setdocmeta!(NQCModels, :DocTestSetup, :(using NQCModels, Symbolics); recursive=true)
 DocMeta.setdocmeta!(NQCBase, :DocTestSetup, :(using NQCBase); recursive=true)
 
-bib = CitationBibliography(joinpath(@__DIR__, "references.bib"), sorting=:nyt)
+bib = CitationBibliography(joinpath(@__DIR__, "references.bib"))
 
 function find_all_files(directory)
     map(
@@ -18,17 +18,17 @@ end
 
 @time makedocs(
     bib,
-    sitename = "NQCDynamics.jl",
-    modules = [NQCDynamics, NQCDistributions, NQCModels, NQCBase, CubeLDFAModel],
-    strict = true,
-    format = Documenter.HTML(
-        prettyurls = get(ENV, "CI", nothing) == "true",
-        canonical = "https://nqcd.github.io/NQCDynamics.jl/stable/",
-        assets = ["assets/favicon.ico"],
-        ansicolor = true,
-        ),
-    authors = "James Gardner and contributors.",
-    pages = [
+    sitename="NQCDynamics.jl",
+    modules=[NQCDynamics, NQCDistributions, NQCModels, NQCBase, CubeLDFAModel],
+    strict=true,
+    format=Documenter.HTML(
+        prettyurls=get(ENV, "CI", nothing) == "true",
+        canonical="https://nqcd.github.io/NQCDynamics.jl/stable/",
+        assets=["assets/favicon.ico", "assets/citations.css"],
+        ansicolor=true,
+    ),
+    authors="James Gardner and contributors.",
+    pages=[
         "Introduction" => "index.md"
         "Getting started" => "getting_started.md"
         "Atoms" => "atoms.md"
@@ -64,7 +64,7 @@ end
 
 if get(ENV, "CI", nothing) == "true"
     deploydocs(
-        repo = "github.com/NQCD/NQCDynamics.jl",
+        repo="github.com/NQCD/NQCDynamics.jl",
         push_preview=true
     )
 end
