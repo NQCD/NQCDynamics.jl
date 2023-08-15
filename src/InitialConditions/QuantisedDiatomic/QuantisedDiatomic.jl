@@ -317,6 +317,7 @@ function quantise_diatomic(sim::Simulation, v::Matrix, r::Matrix;
     TimerOutputs.complement!(TIMER)
     show_timer && show(TIMER)
 
+    @debug "Found ν=$ν"
     return round(Int, ν), J
 end
 
