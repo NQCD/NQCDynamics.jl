@@ -265,7 +265,7 @@ Otherwise, be sure to modify these parameters to give the intended behaviour.
 function quantise_diatomic(sim::Simulation, v::Matrix, r::Matrix;
     height=10.0, surface_normal=[0, 0, 1.0], atom_indices=[1, 2],
     show_timer=false, reset_timer=false,
-    bond_lengths=0.5:0.01:5.0, max_translation=1, debug=false
+    bond_lengths=0.5:0.01:5.0, max_translation=1
 )
 
     reset_timer && TimerOutputs.reset_timer!(TIMER)
@@ -277,7 +277,7 @@ function quantise_diatomic(sim::Simulation, v::Matrix, r::Matrix;
         # Translate one atom for minimal distance. 
         if translations[which_translation]!=[0,0,0]
             r[:,atom_indices[2]].=r[:,atom_indices[2]]+sim.cell.vectors*translations[which_translation]
-            @info "Using a periodic copy of atom "*string(atom_indices[end])*"  to bring it closer to atom "*string(atom_indices[begin])
+            @debug "Using a periodic copy of atom "*string(atom_indices[end])*"  to bring it closer to atom "*string(atom_indices[begin])
         end
     end
 
@@ -300,10 +300,8 @@ function quantise_diatomic(sim::Simulation, v::Matrix, r::Matrix;
 
     binding_curve = calculate_binding_curve(bond_lengths, sim.calculator.model, environment)
 
-    if debug
-        println(k,"\n", p,"\n", E,"\n", L,"\n", J)
-    end
-    
+    @debug "k=$k\np=$p\nE=$E\nL=$L\nJ=$J\n"
+
     V = EffectivePotential(μ, J, binding_curve)
 
     r₁, r₂ = @timeit TIMER "Finding bounds" find_integral_bounds(E, V)
