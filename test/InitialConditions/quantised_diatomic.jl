@@ -10,8 +10,8 @@ using UnitfulAtomic
     @testset "3D, with slab" begin
         atom_indices = [2, 3]
         r0 = [
-            1 2 3 4 5;
-            6 7 8 9 10;
+            1 2 3 4 5
+            6 7 8 9 10
             11 12 13 14 15
         ]
         molecule, slab = QuantisedDiatomic.separate_slab_and_molecule(atom_indices, r0)
@@ -43,21 +43,21 @@ end
 @testset "calculate_force_constant" begin
     bond_lengths = 0.5:0.01:5.0
     model = NQCModels.DiatomicHarmonic(r₀=2.0)
-    environment = QuantisedDiatomic.EvaluationEnvironment([1, 2], (3, 2), zeros(3,0), 0.0, [0, 0, 1.0])
+    environment = QuantisedDiatomic.EvaluationEnvironment([1, 2], (3, 2), zeros(3, 0), 0.0, [0, 0, 1.0])
     binding_curve = QuantisedDiatomic.calculate_binding_curve(bond_lengths, model, environment)
 
-    @test QuantisedDiatomic.calculate_force_constant(binding_curve) ≈ 1 atol=0.1
+    @test QuantisedDiatomic.calculate_force_constant(binding_curve) ≈ 1 atol = 0.1
 
     model = NQCModels.DiatomicHarmonic(r₀=3.0)
     binding_curve = QuantisedDiatomic.calculate_binding_curve(bond_lengths, model, environment)
-    @test QuantisedDiatomic.calculate_force_constant(binding_curve) ≈ 1 atol=0.1
+    @test QuantisedDiatomic.calculate_force_constant(binding_curve) ≈ 1 atol = 0.1
 end
 
 @testset "subtract_centre_of_mass!" begin
     atoms = Atoms([:O, :O])
     r = rand(3, 2)
     r = QuantisedDiatomic.subtract_centre_of_mass(r, atoms.masses)
-    @test r[:,1] ≈ -r[:,2]
+    @test r[:, 1] ≈ -r[:, 2]
 end
 
 @testset "apply_random_rotation!" begin
@@ -85,8 +85,8 @@ end
     configs = generate_configurations(sim, numbers[1], numbers[2]; samples=10, translational_energy=1u"eV")
     for config in configs
         ν, J = quantise_diatomic(sim, config...)
-        @test ν ≈ numbers[1] rtol=1e-1
-        @test J ≈ numbers[2] rtol=1e-1
+        @test ν ≈ numbers[1] rtol = 1e-1
+        @test J ≈ numbers[2] rtol = 1e-1
     end
 end
 
@@ -109,24 +109,24 @@ end
     sim = Simulation(atoms, model)
 
     masses = [100, 100]
-    r = rand(3, 2) .+ [0 2; 0 2; 0 2]
-    v = rand(3, 2) ./ 100
+    r = randn(3, 2) .+ [0 2; 0 2; 0 2]
+    v = randn(3, 2) ./ 100
     v_before = copy(v)
     e = 10u"eV"
     direction = [0, 0.5, 0.5]
     QuantisedDiatomic.apply_translational_impulse!(v, masses, e, direction)
-    @test v_before[1,:] == v[1,:]
-    @test all(v_before[2:3,:] .< v[2:3,:])
+    @test v_before[1, :] == v[1, :]
+    @test all(v_before[2:3, :] .< v[2:3, :])
 
-    νi, Ji = quantise_diatomic(sim, v, r)
+    νi, Ji = quantise_diatomic(sim, v, r; bond_lengths=0.1:0.01:10.0)
     QuantisedDiatomic.apply_translational_impulse!(v, sim.atoms.masses, 1, rand(3))
-    νf, Jf = quantise_diatomic(sim, v, r)
+    νf, Jf = quantise_diatomic(sim, v, r; bond_lengths=0.1:0.01:10.0)
     @test νi ≈ νf
     @test Ji ≈ Jf
 end
 
 @testset "find_total_energy" begin
-    environment = QuantisedDiatomic.EvaluationEnvironment([1, 2], (3, 2), zeros(3,0), 0.0, [0, 0, 1.0])
+    environment = QuantisedDiatomic.EvaluationEnvironment([1, 2], (3, 2), zeros(3, 0), 0.0, [0, 0, 1.0])
     model = DiatomicHarmonic(r₀=2.0)
     bond_lengths = 0.5:0.01:5.0
     binding_curve = QuantisedDiatomic.calculate_binding_curve(bond_lengths, model, environment)
@@ -138,7 +138,7 @@ end
 end
 
 @testset "find_integral_bounds" begin
-    environment = QuantisedDiatomic.EvaluationEnvironment([1, 2], (3, 2), zeros(3,0), 0.0, [0, 0, 1.0])
+    environment = QuantisedDiatomic.EvaluationEnvironment([1, 2], (3, 2), zeros(3, 0), 0.0, [0, 0, 1.0])
     model = DiatomicHarmonic(r₀=2)
     bond_lengths = 0.5:0.01:5.0
     binding_curve = QuantisedDiatomic.calculate_binding_curve(bond_lengths, model, environment)
@@ -155,7 +155,7 @@ end
 @testset "calculate_binding_curve" begin
     model = Morse()
     bond_lengths = 0.5:0.01:5.0
-    environment = QuantisedDiatomic.EvaluationEnvironment([1], (1, 1), zeros(1,0), 0.0, [0.0])
+    environment = QuantisedDiatomic.EvaluationEnvironment([1], (1, 1), zeros(1, 0), 0.0, [0.0])
     binding_curve = QuantisedDiatomic.calculate_binding_curve(bond_lengths, model, environment)
     @test binding_curve.equilibrium_bond_length ≈ model.x₀
 end
@@ -163,15 +163,15 @@ end
 @testset "calculate_diatomic_energy" begin
     @testset "3D, no slab" begin
         model = DiatomicHarmonic(r₀=2)
-        environment = QuantisedDiatomic.EvaluationEnvironment([1, 2], (3, 2), zeros(3,0), 0.0, [0, 0, 1.0])
-        @test QuantisedDiatomic.calculate_diatomic_energy(2.0, model, environment) ≈ 0.0 atol=1e-3
+        environment = QuantisedDiatomic.EvaluationEnvironment([1, 2], (3, 2), zeros(3, 0), 0.0, [0, 0, 1.0])
+        @test QuantisedDiatomic.calculate_diatomic_energy(2.0, model, environment) ≈ 0.0 atol = 1e-3
         @test QuantisedDiatomic.calculate_diatomic_energy(3.0, model, environment) ≈ 0.5
     end
 
     @testset "1D, no slab" begin
         model = Harmonic(dofs=1)
         bond_length = 1.5
-        environment = QuantisedDiatomic.EvaluationEnvironment([1], (1, 1), zeros(1,0), 0.0, [0.0])
+        environment = QuantisedDiatomic.EvaluationEnvironment([1], (1, 1), zeros(1, 0), 0.0, [0.0])
         @test QuantisedDiatomic.calculate_diatomic_energy(bond_length, model, environment) ≈ bond_length^2 / 2
     end
 end
@@ -180,13 +180,13 @@ end
     bond_length = 4.3
 
     @testset "3D, no slab" begin
-        environment = QuantisedDiatomic.EvaluationEnvironment([1, 2], (3, 4), rand(3,2), 2.0, [0, 0, 1.0])
+        environment = QuantisedDiatomic.EvaluationEnvironment([1, 2], (3, 4), rand(3, 2), 2.0, [0, 0, 1.0])
         r = QuantisedDiatomic.assemble_evaluation_geometry(bond_length, environment)
-        @test norm(r[:,1] .- r[:,2]) == 4.3
+        @test norm(r[:, 1] .- r[:, 2]) == 4.3
     end
 
     @testset "1D, no slab" begin
-        environment = QuantisedDiatomic.EvaluationEnvironment([1], (1, 1), zeros(1,0), 0.0, [0.0])
+        environment = QuantisedDiatomic.EvaluationEnvironment([1], (1, 1), zeros(1, 0), 0.0, [0.0])
         r = QuantisedDiatomic.assemble_evaluation_geometry(bond_length, environment)
         @test r == [4.3;;]
     end
@@ -196,13 +196,13 @@ end
     bond_length = 4.3
 
     @testset "3D, no slab" begin
-        environment = QuantisedDiatomic.EvaluationEnvironment([1, 2], (3, 4), rand(3,2), 2.0, [0, 0, 1.0])
+        environment = QuantisedDiatomic.EvaluationEnvironment([1, 2], (3, 4), rand(3, 2), 2.0, [0, 0, 1.0])
         r = QuantisedDiatomic.build_molecule(bond_length, environment)
-        @test norm(r[:,1] .- r[:,2]) == 4.3
+        @test norm(r[:, 1] .- r[:, 2]) == 4.3
     end
 
     @testset "1D, no slab" begin
-        environment = QuantisedDiatomic.EvaluationEnvironment([1], (1, 1), zeros(0,0), 0.0, [0.0])
+        environment = QuantisedDiatomic.EvaluationEnvironment([1], (1, 1), zeros(0, 0), 0.0, [0.0])
         r = QuantisedDiatomic.build_molecule(bond_length, environment)
         @test r == [4.3;;]
     end

@@ -50,8 +50,8 @@ struct EffectivePotential{T,B,F}
 end
 
 function (effective_potential::EffectivePotential)(r)
-    (;μ, J, binding_curve) = effective_potential
-    rotational = J*(J+1) / (2μ*r^2)
+    (; μ, J, binding_curve) = effective_potential
+    rotational = J * (J + 1) / (2μ * r^2)
 
     potential = binding_curve.fit(r)
     return rotational + potential
@@ -63,7 +63,7 @@ struct RadialMomentum{T,B,F}
 end
 
 function (radial_momentum::RadialMomentum)(r)
-    (;total_energy, V) = radial_momentum
+    (; total_energy, V) = radial_momentum
     return sqrt_avoid_negatives(2V.μ * (total_energy - V(r)))
 end
 
@@ -120,7 +120,7 @@ function generate_1D_vibrations(model::AdiabaticModel, μ::Real, ν::Integer;
 )
 
     J = 0
-    environment = EvaluationEnvironment([1], (1,1), zeros(1,0), 0.0, [1.0])
+    environment = EvaluationEnvironment([1], (1, 1), zeros(1, 0), 0.0, [1.0])
     binding_curve = calculate_binding_curve(bond_lengths, model, environment)
     plot_binding_curve(binding_curve.bond_lengths, binding_curve.potential, binding_curve.fit)
 
@@ -144,7 +144,7 @@ Same as `sqrt` but returns `zero(x)` if `x` is negative.
 Used here just in case the endpoints are a little off.
 """
 function sqrt_avoid_negatives(x)
-    if x < zero(x) 
+    if x < zero(x)
         @warn """
         `sqrt(x)` of negative number attempted: x = $x, returning zero instead.\
         This is acceptable if x is very close to zero. Otherwise something has gone wrong.
@@ -170,27 +170,27 @@ function find_total_energy(V::EffectivePotential, ν)
     function nᵣ(E, r₁, r₂)
         kernel(r) = sqrt_avoid_negatives(E - V(r))
         integral, _ = QuadGK.quadgk(kernel, r₁, r₂; maxevals=100)
-        return sqrt(2μ)/π * integral - 1/2
+        return sqrt(2μ) / π * integral - 1 / 2
     end
 
     "Derivative of the above"
     function ∂nᵣ∂E(E, r₁, r₂)
         kernel(r) = 1 / sqrt_avoid_negatives(E - V(r))
         integral, _ = QuadGK.quadgk(kernel, r₁, r₂; maxevals=100)
-        return sqrt(2μ)/2π * integral
+        return sqrt(2μ) / 2π * integral
     end
 
     "Second derivative of the above"
     function ∂²nᵣ∂E²(E, r₁, r₂)
         kernel(r) = 1 / sqrt_avoid_negatives(E - V(r))^3
         integral, _ = QuadGK.quadgk(kernel, r₁, r₂; maxevals=100)
-        return -sqrt(2μ)/4π * integral
+        return -sqrt(2μ) / 4π * integral
     end
 
     """
     Evaluates the function, gradient and hessian as described in the Optim documentation.
     """
-    function fgh!(F,G,H,x)
+    function fgh!(F, G, H, x)
         E = x[1]
         r₁, r₂ = find_integral_bounds(E, V)
 
@@ -224,6 +224,27 @@ function find_integral_bounds(total_energy::Real, V::EffectivePotential)
     r₀ = V.binding_curve.equilibrium_bond_length
     minimum_bond_length = first(V.binding_curve.bond_lengths)
     maximum_bond_length = last(V.binding_curve.bond_lengths)
+
+    min_energy = energy_difference(minimum_bond_length)
+    mid_energy = energy_difference(r₀)
+    max_energy = energy_difference(maximum_bond_length)
+
+    if min_energy > 0
+        @error "Energy difference at minimum bond length must be negative!" minimum_bond_length min_energy
+        @info "Try reducing the minimum bond length with the `bond_lengths` keyword."
+    end
+
+    if mid_energy < 0
+        @error "Energy difference at equilibrium bond length must be positive!" r₀ mid_energy
+        @info "The current atomic positions and velocities are incompatible with the provided potential. \
+        Is there something wrong with the structure?"
+    end
+
+    if max_energy > 0
+        @error "Energy difference at maximum bond length must be negative!" maximum_bond_length max_energy
+        @info "Try increasing the maximum bond length with the `bond_lengths` keyword."
+    end
+
     r₁ = @timeit TIMER "Lower bound" Roots.find_zero(energy_difference, (minimum_bond_length, r₀))
     r₂ = @timeit TIMER "Upper bound" Roots.find_zero(energy_difference, (r₀, maximum_bond_length))
 
@@ -261,7 +282,7 @@ function quantise_diatomic(sim::Simulation, v::Matrix, r::Matrix;
     E = k + p
 
     L = total_angular_momentum(r_com, p_com)
-    J = round(Int, (sqrt(1+4*L^2) - 1) / 2) # L^2 = J(J+1)ħ^2
+    J = round(Int, (sqrt(1 + 4 * L^2) - 1) / 2) # L^2 = J(J+1)ħ^2
 
     μ = reduced_mass(masses(sim)[atom_indices])
 
@@ -274,7 +295,7 @@ function quantise_diatomic(sim::Simulation, v::Matrix, r::Matrix;
     function nᵣ(E, r₁, r₂)
         kernel(r) = sqrt_avoid_negatives(E - V(r))
         integral, _ = QuadGK.quadgk(kernel, r₁, r₂; maxevals=100)
-        return sqrt(2μ)/π * integral - 1/2
+        return sqrt(2μ) / π * integral - 1 / 2
     end
 
     ν = @timeit TIMER "Calculating ν" nᵣ(E, r₁, r₂)
@@ -290,7 +311,7 @@ function quantise_1D_vibration(model::AdiabaticModel, μ::Real, r::Real, v::Real
 )
     reset_timer && TimerOutputs.reset_timer!(TIMER)
 
-    environment = EvaluationEnvironment([1], (1,1), zeros(1,0), 0.0, [1.0])
+    environment = EvaluationEnvironment([1], (1, 1), zeros(1, 0), 0.0, [1.0])
 
     kinetic_energy = μ * v^2 / 2
     potential_energy = calculate_diatomic_energy(r, model, environment)
@@ -306,7 +327,7 @@ function quantise_1D_vibration(model::AdiabaticModel, μ::Real, r::Real, v::Real
     function nᵣ(E, r₁, r₂)
         kernel(r) = sqrt_avoid_negatives(E - V(r))
         integral, _ = QuadGK.quadgk(kernel, r₁, r₂; maxevals=100)
-        return sqrt(2μ)/π * integral - 1/2
+        return sqrt(2μ) / π * integral - 1 / 2
     end
 
     ν = @timeit TIMER "Calculating ν" nᵣ(E, r₁, r₂)
@@ -318,20 +339,20 @@ function quantise_1D_vibration(model::AdiabaticModel, μ::Real, r::Real, v::Real
 end
 
 subtract_centre_of_mass(x, m) = x .- centre_of_mass(x, m)
-@views centre_of_mass(x, m) = (x[:,1].*m[1] .+ x[:,2].*m[2]) ./ (m[1]+m[2])
+@views centre_of_mass(x, m) = (x[:, 1] .* m[1] .+ x[:, 2] .* m[2]) ./ (m[1] + m[2])
 reduced_mass(atoms::Atoms) = reduced_mass(atoms.masses)
 
 function reduced_mass(m::AbstractVector)
     if length(m) == 1
         return m[1]
     elseif length(m) == 2
-        m[1]*m[2]/(m[1]+m[2])
+        m[1] * m[2] / (m[1] + m[2])
     else
         throw(error("Mass vector of incorrect length."))
     end
 end
 
-@views bond_length(r) = norm(r[:,1] .- r[:,2])
-@views total_angular_momentum(r, p) = norm(cross(r[:,1], p[:,1]) + cross(r[:,2], p[:,2]))
+@views bond_length(r) = norm(r[:, 1] .- r[:, 2])
+@views total_angular_momentum(r, p) = norm(cross(r[:, 1], p[:, 1]) + cross(r[:, 2], p[:, 2]))
 
 end # module

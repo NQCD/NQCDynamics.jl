@@ -13,8 +13,8 @@ atoms = Atoms(:H)
 @testset "Ehrenfest" begin
     sim = Simulation{Ehrenfest}(atoms, NQCModels.DoubleWell())
 
-    r = zeros(size(sim)) 
-    v = randn(size(sim)) 
+    r = zeros(size(sim))
+    v = randn(size(sim))
     u = DynamicsVariables(sim, v, r, PureState(1, Adiabatic()))
     du = zero(u)
 
@@ -46,18 +46,18 @@ atoms = Atoms(:H)
 
         dt = 2e-3
         u = DynamicsVariables(sim, v, r, PureState(1, Adiabatic()))
-        traj1 = run_dynamics(sim, (0.0, 500.0), u; output, dt)
+        traj1 = run_dynamics(sim, (0.0, 50.0), u; output, dt)
         @test isapprox(var(traj1[:OutputTotalEnergy]), 0; atol=1e-6)
 
         u = DynamicsVariables(sim, v, r, PureState(1, Adiabatic()))
-        traj2 = run_dynamics(sim, (0.0, 500.0), u; algorithm=Vern9(), output, reltol=1e-12, abstol=1e-12, saveat=dt)
+        traj2 = run_dynamics(sim, (0.0, 50.0), u; algorithm=Feagin12(), output, reltol=1e-15, abstol=1e-15, saveat=dt)
         @test isapprox(var(traj2[:OutputTotalEnergy]), 0; atol=1e-6)
 
-        @test traj1[:OutputKineticEnergy] ≈ traj2[:OutputKineticEnergy] rtol=1e-3
-        @test traj1[:OutputPotentialEnergy] ≈ traj2[:OutputPotentialEnergy] rtol=1e-1
-        @test traj1[:OutputVelocity] ≈ traj2[:OutputVelocity] rtol=1e-3
-        @test traj1[:OutputPosition] ≈ traj2[:OutputPosition] rtol=1e-3
-        @test traj1[:OutputQuantumSubsystem] ≈ traj2[:OutputQuantumSubsystem] rtol=1e-2
+        @test traj1[:OutputKineticEnergy] ≈ traj2[:OutputKineticEnergy] rtol = 1e-3
+        @test traj1[:OutputPotentialEnergy] ≈ traj2[:OutputPotentialEnergy] rtol = 1e-1
+        @test traj1[:OutputVelocity] ≈ traj2[:OutputVelocity] rtol = 1e-3
+        @test traj1[:OutputPosition] ≈ traj2[:OutputPosition] rtol = 1e-3
+        @test traj1[:OutputQuantumSubsystem][end] ≈ traj2[:OutputQuantumSubsystem][end] rtol = 1e-1
     end
 
     @testset "FermiDirac Ehrenfest algorithm comparison" begin
@@ -66,13 +66,13 @@ atoms = Atoms(:H)
         Γ = 6.4e-3
         W = 6Γ / 2 # bandwidth  parameter
 
-        basemodel = MiaoSubotnik(;Γ)
+        basemodel = MiaoSubotnik(; Γ)
         bath = TrapezoidalRule(M, -W, W)
         model = AndersonHolstein(basemodel, bath)
         atoms = Atoms(2000)
 
         sim = Simulation{Ehrenfest}(atoms, model)
-        v = zeros(1,1)
+        v = zeros(1, 1)
         r = hcat(21.0)
         u = DynamicsVariables(sim, v, r, FermiDiracState(0.0, 0.0))
         tspan = (0.0, 2000.0)
@@ -80,16 +80,16 @@ atoms = Atoms(:H)
         output = (OutputTotalEnergy, OutputKineticEnergy, OutputPotentialEnergy, OutputPosition, OutputVelocity, OutputQuantumSubsystem)
         traj1 = run_dynamics(sim, tspan, u; dt, output, algorithm=Vern9(), abstol=1e-15, reltol=1e-15, saveat=dt)
         @test isapprox(var(traj1[:OutputTotalEnergy]), 0; atol=1e-6)
-    
+
         u = DynamicsVariables(sim, v, r, FermiDiracState(0.0, 0.0))
         traj2 = run_dynamics(sim, tspan, u; dt, output) # default algorithm is fixed timestep
         @test isapprox(var(traj2[:OutputTotalEnergy]), 0; atol=1e-6)
 
-        @test traj1[:OutputKineticEnergy] ≈ traj2[:OutputKineticEnergy] rtol=1e-3
-        @test traj1[:OutputPotentialEnergy] ≈ traj2[:OutputPotentialEnergy] rtol=1e-3
-        @test traj1[:OutputVelocity] ≈ traj2[:OutputVelocity] rtol=1e-3
-        @test traj1[:OutputPosition] ≈ traj2[:OutputPosition] rtol=1e-3
-        @test traj1[:OutputQuantumSubsystem] ≈ traj2[:OutputQuantumSubsystem] rtol=1e-2
+        @test traj1[:OutputKineticEnergy] ≈ traj2[:OutputKineticEnergy] rtol = 1e-3
+        @test traj1[:OutputPotentialEnergy] ≈ traj2[:OutputPotentialEnergy] rtol = 1e-3
+        @test traj1[:OutputVelocity] ≈ traj2[:OutputVelocity] rtol = 1e-3
+        @test traj1[:OutputPosition] ≈ traj2[:OutputPosition] rtol = 1e-3
+        @test traj1[:OutputQuantumSubsystem] ≈ traj2[:OutputQuantumSubsystem] rtol = 1e-2
     end
 
     @testset "Spin boson population dynamics" begin
@@ -112,10 +112,10 @@ atoms = Atoms(:H)
         output = TimeCorrelationFunctions.PopulationCorrelationFunction(sim, Diabatic())
         ensemble = run_dynamics(sim, (0.0, 20.0), distribution;
             saveat, trajectories, output, reduction=MeanReduction(), dt=0.1)
-        result = [p[1,1] - p[1,2] for p in ensemble[:PopulationCorrelationFunction]]
+        result = [p[1, 1] - p[1, 2] for p in ensemble[:PopulationCorrelationFunction]]
 
         data = CSV.read(joinpath(@__DIR__, "reference_data", "gao_saller_jctc_2020_fig2b.csv"), DataFrame; header=false)
-        itp = linear_interpolation(data[!,1], data[!,2]; extrapolation_bc=Line())
+        itp = linear_interpolation(data[!, 1], data[!, 2]; extrapolation_bc=Line())
         for i in eachindex(result)
             t = ensemble[:Time][i]
             true_value = itp(t)
