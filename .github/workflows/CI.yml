@@ -10,14 +10,23 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        group: [Core, InitialConditions, Dynamics]
+        group:
+          - Core
+          - InitialConditions
+          - dynamics_classical
+          - dynamics_mdef
+          - dynamics_surface_hopping
+          - dynamics_cme
+          - dynamics_mapping
+          - dynamics_ehrenfest
+          - dynamics_ensembles
       fail-fast: false
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: julia-actions/setup-julia@latest
 
-      - uses: actions/cache@v1
+      - uses: actions/cache@v3
         env:
           cache-name: cache-artifacts
         with:
@@ -33,6 +42,9 @@ jobs:
       - name: Add JuliaMolSim registry
         run: julia -e 'using Pkg; Pkg.Registry.add(RegistrySpec(url="https://github.com/JuliaMolSim/MolSim"))'
         shell: bash
+      - name: Add ACEregistry
+        run: julia -e 'using Pkg; Pkg.Registry.add(RegistrySpec(url="https://github.com/ACEsuit/ACEregistry"))'
+        shell: bash
 
       - name: Install ase for IO tests
         run: pip3 install ase
@@ -42,6 +54,6 @@ jobs:
         env:
           GROUP: ${{ matrix.group }}
       - uses: julia-actions/julia-processcoverage@v1
-      - uses: codecov/codecov-action@v2
+      - uses: codecov/codecov-action@v3
         with:
           file: lcov.info
