@@ -108,13 +108,14 @@ end
     model = DiatomicHarmonic(r₀=2)
     sim = Simulation(atoms, model)
 
-    masses = [100, 100]
-    r = randn(3, 2) .+ [0 2; 0 2; 0 2]
-    v = randn(3, 2) ./ 100
+    r = [0.0 2.3; 0.0 0.0; 0.0 0.0]
+    v = [1.0 2.0; 3.0 4.0; 5.0 6.0]
+    v[:, 1] ./= sim.atoms.masses[1]
+    v[:, 2] ./= sim.atoms.masses[2]
     v_before = copy(v)
     e = 10u"eV"
     direction = [0, 0.5, 0.5]
-    QuantisedDiatomic.apply_translational_impulse!(v, masses, e, direction)
+    QuantisedDiatomic.apply_translational_impulse!(v, sim.atoms.masses, e, direction)
     @test v_before[1, :] == v[1, :]
     @test all(v_before[2:3, :] .< v[2:3, :])
 
