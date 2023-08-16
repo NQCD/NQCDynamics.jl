@@ -256,7 +256,10 @@ end
         height=10, normal_vector=[0, 0, 1])
 
 Quantise the vibrational and rotational degrees of freedom for the specified
-positions and velocities
+positions and velocities. 
+
+If the potential can be evaluated for the diatomic only, independent of position, 
+supplying a `Simulation` for just the diatomic will speed up evaluation. 
 
 When evaluating the potential, the molecule is moved to `height` in direction `normal_vector`.
 If the potential is independent of centre of mass position, this has no effect.
@@ -284,6 +287,8 @@ function quantise_diatomic(sim::Simulation, v::Matrix, r::Matrix;
     r, slab = separate_slab_and_molecule(atom_indices, r)
     v, slab_v = separate_slab_and_molecule(atom_indices, v)
     environment = EvaluationEnvironment(atom_indices, size(sim), slab, austrip(height), surface_normal)
+
+    @debug "After PBC check and separation from slab, diatomic positions are:\n$(r)"
 
     r_com = subtract_centre_of_mass(r, masses(sim)[atom_indices])
     v_com = subtract_centre_of_mass(v, masses(sim)[atom_indices])
