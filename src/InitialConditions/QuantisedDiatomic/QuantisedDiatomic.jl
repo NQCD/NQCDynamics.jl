@@ -27,7 +27,7 @@ using UnicodePlots: lineplot, lineplot!, DotCanvas, histogram
 using Optim: Optim
 using Roots: Roots
 using TimerOutputs: TimerOutputs, @timeit
-using Interpolations: interpolate, BSpline, Cubic, Line, OnGrid, scale, hessian
+using Interpolations: interpolate, BSpline, Cubic, Line, OnGrid, scale, hessian, knots
 
 using NQCDynamics: Simulation, Calculators, DynamicsUtils, masses
 using NQCBase: Atoms, PeriodicCell, InfiniteCell
