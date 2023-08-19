@@ -26,54 +26,59 @@ auno = [au; no]
 Atoms(auno)
 ```
 
-## [Reading and writing atomic structures](@id reading-and-writing)
+# [Manipulating atomic structures with AtomsBase.jl](@id atoms-base)
 
-When using a complex system however, it is likely more effective to read structures directly
-from a file.
-We provide two ways to do this, either using the 
-[ExtXYZ.jl](https://github.com/libAtoms/ExtXYZ.jl) package which works for xyz files.
-Or instead there is a conversion to and from the `ase.Atoms` type which can be used
-when [PyCall.jl](https://github.com/JuliaPy/PyCall.jl) is loaded.
+[AtomsBase](https://github.com/JuliaMolSim/AtomsBase.jl) provides a convenient format for
+representing atomic geometries, facilitating interoperability between a collection of
+different packages.
 
-First we can use `ase` to build a system and write it to an `.xyz` file.
-```@example atoms
-using PyCall
+When working with NQCDynamics, the most useful packages are [AtomsIO](https://github.com/mfherbst/AtomsIO.jl)
+for reading and writing structures and trajectories, and [ASEconvert](https://github.com/mfherbst/ASEconvert.jl)
+for working with [ASE](https://wiki.fysik.dtu.dk/ase/index.html) from within Julia.
 
-build = pyimport("ase.build")
+## Using ASE with ASEconvert.jl
 
-slab = build.fcc100("Al", size=(2, 2, 3))
-build.add_adsorbate(slab, "Au", 1.7, "hollow")
-slab.center(axis=2, vacuum=4.0)
+This example shows how ASEconvert can be used to build a structure, then convert
+from the ASE format into an AtomsBase compatible system:
 
-slab.write("slab.xyz")
+```@example atomsbase
+using ASEconvert
+
+# Make a silicon supercell using ASE
+atoms_ase = ase.build.bulk("Si") * pytuple((4, 1, 1))
+
+# Convert to an AtomsBase-compatible structure
+atoms_ab = pyconvert(AbstractSystem, atoms_ase)
 ```
 
-Now we can read it in with the [`read_extxyz`](@ref NQCBase.read_extxyz)
-function.
-```@repl atoms
-atoms, positions, cell = read_extxyz("slab.xyz")
-atoms
-positions
-cell
+It is currently not possible to use an AtomsBase system directly with NQCDynamics, but can
+be quickly converted to the correct format:
+
+```@repl atomsbase
+using NQCDynamics
+atoms_nqcd = Atoms(atoms_ab)
+r = Position(atoms_ab)
+v = Velocity(atoms_ab)
+c = Cell(atoms_ab)
 ```
 
-Similarly, we can write the file with
-[`write_extxyz`](@ref NQCBase.write_extxyz):
-```@repl atoms
-write_extxyz("out.xyz", atoms, positions, cell)
-```
-Both of these functions also work with trajectories such that the positions will be a vector
-of configurations, whilst the atoms and cell will remain unchanged.
+## Saving and loading with AtomsIO.jl
 
-If not using `.xyz` files, we can directly use the IO capability of ase to read or the write
-the files.
-This can be done by using the conversions between our data types and the `ase.Atoms` object.
-```@repl atoms
-atoms = Atoms([:H, :H, :C])
-ase_atoms = NQCBase.convert_to_ase_atoms(atoms, rand(3, 3))
-NQCBase.convert_from_ase_atoms(ase_atoms)
+After running a simulation it often desirable to save the trajectory in a standard format for visualization.
+For this, convert the NQCDynamics output into the AtomsBase format,
+then use AtomsIO to write the file in your chosen format.
+
+```@example atomsbase
+using AtomsIO
+
+system = System(atoms_nqcd, r, v, c)
+
+AtomsIO.save_system("Si.xyz", system) # Save a single image
+
+trajectory = Trajectory(atoms_nqcd, [r, r, r, r], [v, v, v, v], c)
+AtomsIO.save_trajectory("Si.xyz", trajectory) # Save a trajectory
 ```
-These conversions work both ways such that you can read any file format using
-ase then convert the `ase.Atoms` object to our types afterwards.
-Then at the end when you are finished, you can convert them back and write your output
-with ase.
+
+AtomsIO also provides `load_system` and `load_trajectory` which can be converted to the
+NQCDynamics format as above to initialize simulations.
+Refer to [AtomsIO](https://mfherbst.github.io/AtomsIO.jl/stable/) for more information.
