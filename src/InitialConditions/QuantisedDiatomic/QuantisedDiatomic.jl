@@ -44,9 +44,9 @@ include("energy_evaluation.jl")
 include("binding_curve.jl")
 include("random_configuration.jl")
 
-struct EffectivePotential{T,B,F}
+struct EffectivePotential{JType,T,B,F}
     μ::T
-    J::Int
+    J::JType
     binding_curve::BindingCurve{T,B,F}
 end
 
@@ -415,7 +415,7 @@ function quantise_diatomic(sim::Simulation, v::Matrix, r::Matrix, binding_curve:
     E = k + p
 
     L = total_angular_momentum(r_com, p_com)
-    J = round(Int, (sqrt(1 + 4 * L^2) - 1) / 2) # L^2 = J(J+1)ħ^2
+    J = (sqrt(1+4*L^2) - 1) / 2 # L^2 = J(J+1)ħ^2
 
     μ = reduced_mass(masses(sim)[atom_indices])
 
@@ -437,7 +437,7 @@ function quantise_diatomic(sim::Simulation, v::Matrix, r::Matrix, binding_curve:
     show_timer && show(TIMER)
 
     @debug "Found ν=$ν"
-    return round(Int, ν), J
+    return round(Int, ν), round(Int, J)
 end
 
 function quantise_1D_vibration(model::AdiabaticModel, μ::Real, r::Real, v::Real;
