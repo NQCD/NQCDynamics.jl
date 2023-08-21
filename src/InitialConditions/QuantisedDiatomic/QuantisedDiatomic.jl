@@ -27,6 +27,7 @@ using UnicodePlots: lineplot, lineplot!, DotCanvas, histogram
 using Optim: Optim
 using Roots: Roots
 using TimerOutputs: TimerOutputs, @timeit
+using ProgressMeter
 using Interpolations: interpolate, BSpline, Cubic, Line, OnGrid, scale, hessian, knots
 
 using NQCDynamics: Simulation, Calculators, DynamicsUtils, masses
@@ -251,12 +252,36 @@ function find_integral_bounds(total_energy::Real, V::EffectivePotential)
     return r₁, r₂
 end
 
+function binding_curve_from_structure(sim::Simulation, v::Matrix, r::Matrix; 
+    bond_lengths=0.5:0.01:5.0, 
+    height=10.0, 
+    surface_normal=[0, 0, 1.0], 
+    atom_indices=[1, 2], 
+    args...
+)
+    # Separate slab from molecule if necessary. 
+    r, slab = separate_slab_and_molecule(atom_indices, r)
+    v, slab_v = separate_slab_and_molecule(atom_indices, v)
+    environment = EvaluationEnvironment(atom_indices, size(sim), slab, austrip(height), surface_normal)
+
+    binding_curve = calculate_binding_curve(bond_lengths, sim.calculator.model, environment)
+    @debug "Finished generating binding curve for the given potential."
+
+    return binding_curve
+end
+
 """
-    quantise_diatomic(sim::Simulation, v::Matrix, r::Matrix;
-        height=10, normal_vector=[0, 0, 1])
+    quantise_diatomic(sim::Simulation, v::Matrix, r::Matrix; 
+    bond_lengths=0.5:0.01:5.0, 
+    height=10.0, 
+    surface_normal=[0, 0, 1.0], 
+    atom_indices=[1, 2], 
+    max_translation=1,
+    show_timer=false, reset_timer=false
+    )
 
 Quantise the vibrational and rotational degrees of freedom for the specified
-positions and velocities. 
+positions and velocities.
 
 If the potential can be evaluated for the diatomic only, independent of position, 
 supplying a `Simulation` for just the diatomic will speed up evaluation. 
@@ -264,11 +289,102 @@ supplying a `Simulation` for just the diatomic will speed up evaluation.
 When evaluating the potential, the molecule is moved to `height` in direction `normal_vector`.
 If the potential is independent of centre of mass position, this has no effect.
 Otherwise, be sure to modify these parameters to give the intended behaviour.
+
+If a `Simulation` with a `PeriodicCell` is supplied, periodic copies of the diatomic atoms 
+will be used if positions are close to cell boundaries. 
+Set `max_translation` to the radius of surrounding unit cells to search. 
+(e.g. 1 if positions are already wrapped around cell boundaries)
 """
-function quantise_diatomic(sim::Simulation, v::Matrix, r::Matrix;
-    height=10.0, surface_normal=[0, 0, 1.0], atom_indices=[1, 2],
+function quantise_diatomic(sim::Simulation, v::Matrix, r::Matrix; 
+    bond_lengths=0.5:0.01:5.0, 
+    height=10.0, 
+    surface_normal=[0, 0, 1.0], 
+    atom_indices=[1, 2], 
+    args...
+)
+    binding_curve=binding_curve_from_structure(sim, v, r; bond_lengths=bond_lengths, height=height, surface_normal=surface_normal, atom_indices=atom_indices)
+    return quantise_diatomic(sim, v, r, binding_curve; height=height, surface_normal=surface_normal, atom_indices=atom_indices, args...)
+end
+
+"""
+    quantise_diatomic(sim::Simulation, v::Vector{Matrix}, r::Vector{Matrix};
+    bond_lengths=0.5:0.01:5.0, 
+    height=10.0, 
+    surface_normal=[0, 0, 1.0], 
+    atom_indices=[1, 2], 
+    show_timer=false, reset_timer=false
+    )
+
+Quantise the vibrational and rotational degrees of freedom of multiple atomic configurations 
+given as a vector of velocity matrices and a vector of position matrices. 
+
+If the potential can be evaluated for the diatomic only, independent of position, 
+supplying a `Simulation` for just the diatomic will speed up evaluation. 
+
+When evaluating the potential, the molecule is moved to `height` in direction `normal_vector`.
+If the potential is independent of centre of mass position, this has no effect.
+Otherwise, be sure to modify these parameters to give the intended behaviour.
+
+If a `Simulation` with a `PeriodicCell` is supplied, periodic copies of the diatomic atoms 
+will be used if positions are close to cell boundaries. 
+Set `max_translation` to the radius of surrounding unit cells to search. 
+(e.g. 1 if positions are already wrapped around cell boundaries)
+
+Specify `show_timer=true` for performance timings of the EBK quantisation process and
+`reset_timer=true` to see timings for each individual quantisation. 
+"""
+function quantise_diatomic(sim::Simulation, v::Vector{<: Matrix{<: Any}}, r::Vector{<: Matrix{<: Any}};
+    bond_lengths=0.5:0.01:5.0, 
+    height=10.0, 
+    surface_normal=[0, 0, 1.0], 
+    atom_indices=[1, 2], 
+    args...
+)
+    # Generate binding curve for all structures
+    binding_curve=binding_curve_from_structure(sim, v[1], r[1]; bond_lengths=bond_lengths, height=height, surface_normal=surface_normal, atom_indices=atom_indices)
+    ν, J=[],[]
+
+    # Quantise all configurations in the given vectors. 
+    @showprogress for index in eachindex(v)
+        try
+            result=quantise_diatomic(sim, v[index], r[index], binding_curve; height=height, surface_normal=surface_normal, atom_indices=atom_indices, args...)
+            push!(ν, result[1])
+            push!(J, result[2])
+        catch e
+            @warn "Quantisation was unsuccessful for configuration at $(index).\nThe final results vectors will show ν=-1 and J=-1 for this configuration.\n The error was: $(e)"
+            push!(ν, -1)
+            push!(J, -1)
+        end
+    end
+    return ν, J
+end
+
+"""
+    quantise_diatomic(sim::Simulation, v::Matrix, r::Matrix, binding_curve::BindingCurve;
     show_timer=false, reset_timer=false,
-    bond_lengths=0.5:0.01:5.0, max_translation=1
+    height=10, normal_vector=[0, 0, 1], atom_indices=[1,2], max_translation=1) 
+    )
+
+Quantise the vibrational and rotational degrees of freedom for the specified
+positions and velocities using the `BindingCurve` specified. 
+A binding curve will be automatically generated if you do not supply one. 
+
+If the potential can be evaluated for the diatomic only, independent of position, 
+supplying a `Simulation` for just the diatomic will speed up evaluation. 
+
+When evaluating the potential, the molecule is moved to `height` in direction `normal_vector`.
+If the potential is independent of centre of mass position, this has no effect.
+Otherwise, be sure to modify these parameters to give the intended behaviour.
+
+If a `Simulation` with a `PeriodicCell` is supplied, periodic copies of the diatomic atoms 
+will be used if positions are close to cell boundaries. 
+Set `max_translation` to the radius of surrounding unit cells to search. 
+(e.g. 1 if positions are already wrapped around cell boundaries)
+"""
+function quantise_diatomic(sim::Simulation, v::Matrix, r::Matrix, binding_curve::BindingCurve;
+    show_timer=false, reset_timer=false,
+    max_translation=1, height=10.0, 
+    surface_normal=[0, 0, 1.0], atom_indices=[1, 2], 
 )
 
     reset_timer && TimerOutputs.reset_timer!(TIMER)
@@ -302,8 +418,6 @@ function quantise_diatomic(sim::Simulation, v::Matrix, r::Matrix;
     J = round(Int, (sqrt(1 + 4 * L^2) - 1) / 2) # L^2 = J(J+1)ħ^2
 
     μ = reduced_mass(masses(sim)[atom_indices])
-
-    binding_curve = calculate_binding_curve(bond_lengths, sim.calculator.model, environment)
 
     @debug "k=$k\np=$p\nE=$E\nL=$L\nJ=$J\n"
 
