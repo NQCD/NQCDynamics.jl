@@ -64,7 +64,7 @@ export OutputPosition
 
 Output the position of the ring polymer centroid at each timestep during the trajectory.
 """
-OutputCentroidPosition(sol, i) = [get_centroid(get_position(u)) for u in sol.u]
+OutputCentroidPosition(sol, i) = [get_centroid(get_positions(u)) for u in sol.u]
 export OutputCentroidPosition
 
 """
