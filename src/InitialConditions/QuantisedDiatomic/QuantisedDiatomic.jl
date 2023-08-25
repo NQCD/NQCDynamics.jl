@@ -58,9 +58,9 @@ function (effective_potential::EffectivePotential)(r)
     return rotational + potential
 end
 
-struct RadialMomentum{T,B,F}
+struct RadialMomentum{JType,T,B,F}
     total_energy::T
-    V::EffectivePotential{T,B,F}
+    V::EffectivePotential{JType,T,B,F}
 end
 
 function (radial_momentum::RadialMomentum)(r)
