@@ -6,6 +6,7 @@ using DiffEqNoiseProcess
 using DiffEqDevTools
 using Random
 using Logging
+# Set up the seed 
 Random.seed!(100)
 
 u0 = zeros(2,2)
