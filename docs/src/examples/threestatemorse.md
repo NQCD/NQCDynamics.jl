@@ -10,28 +10,27 @@ You can see two regions where the diabats cross with non-zero coupling where we 
 to see population transfer.
 ```@example threestatemorse
 using NQCDynamics
-using CairoMakie
+using Plots
 
 x = range(2, 12, length=200)
 model = ThreeStateMorse()
 V = potential.(model, x)
 
-fig = Figure()
-ax = Axis(fig[1,1], xlabel="Nuclear coordinate /a.u.", ylabel="Potential energy /a.u.")
+plot(
+    xlabel="Nuclear coordinate /a.u.",
+    ylabel="Potential energy /a.u.",
+    legend=true,
+    xlims=(2, 12),
+    ylims=(0, 0.06)
+)
 
-lines!(ax, x, [v[1,1] for v in V], label="State 1")
-lines!(ax, x, [v[2,2] for v in V], label="State 2")
-lines!(ax, x, [v[3,3] for v in V], label="State 3")
+plot!(x, [v[1,1] for v in V], label="State 1")
+plot!(x, [v[2,2] for v in V], label="State 2")
+plot!(x, [v[3,3] for v in V], label="State 3")
 
-lines!(ax, x, [v[1,2] for v in V], label="Coupling 12")
-lines!(ax, x, [v[2,3] for v in V], label="Coupling 23")
-lines!(ax, x, [v[1,3] for v in V], label="Coupling 13")
-
-xlims!(2, 12)
-ylims!(0, 0.06)
-axislegend(ax)
-
-fig 
+plot!(x, [v[1,2] for v in V], label="Coupling 12")
+plot!(x, [v[2,3] for v in V], label="Coupling 23")
+plot!(x, [v[1,3] for v in V], label="Coupling 13")
 ```
 
 To this model we can apply any of the methods capable of starting the population on a single
@@ -79,20 +78,25 @@ ehrenfest_result = run_dynamics(sim, (0.0, 3000.0), distribution;
     output=TimeCorrelationFunctions.PopulationCorrelationFunction(sim, Diabatic()),
     reduction=MeanReduction(), dt=1.0)
 
-fig = Figure()
-ax = Axis(fig[1,1], xlabel="Time /a.u.", ylabel="Population")
+plot(
+    xlabel="Time /a.u.",
+    ylabel="Population"
+)
 
 x = 0:10:3000
-lines!(ax, x, [p[1,1] for p in fssh_result[:PopulationCorrelationFunction]], label="FSSH State 1", color=:red)
-lines!(ax, x, [p[1,2] for p in fssh_result[:PopulationCorrelationFunction]], label="FSSH State 2", color=:green)
-lines!(ax, x, [p[1,3] for p in fssh_result[:PopulationCorrelationFunction]], label="FSSH State 3", color=:blue)
+y = [p[1,1] for p in fssh_result[:PopulationCorrelationFunction]]
+plot!(x, y, label="FSSH State 1", color=:red)
+y = [p[1,2] for p in fssh_result[:PopulationCorrelationFunction]]
+plot!(x, y, label="FSSH State 2", color=:green)
+y = [p[1,3] for p in fssh_result[:PopulationCorrelationFunction]]
+plot!(x, y, label="FSSH State 3", color=:blue)
 
-lines!(ax, x, [p[1,1] for p in ehrenfest_result[:PopulationCorrelationFunction]], label="Ehrenfest State 1", color=:red, linestyle=:dash)
-lines!(ax, x, [p[1,2] for p in ehrenfest_result[:PopulationCorrelationFunction]], label="Ehrenfest State 2", color=:green, linestyle=:dash)
-lines!(ax, x, [p[1,3] for p in ehrenfest_result[:PopulationCorrelationFunction]], label="Ehrenfest State 3", color=:blue, linestyle=:dash)
-axislegend(ax)
-
-fig
+y = [p[1,1] for p in ehrenfest_result[:PopulationCorrelationFunction]]
+plot!(x, y, label="Ehrenfest State 1", color=:red, linestyle=:dash)
+y = [p[1,2] for p in ehrenfest_result[:PopulationCorrelationFunction]]
+plot!(x, y, label="Ehrenfest State 2", color=:green, linestyle=:dash)
+y = [p[1,3] for p in ehrenfest_result[:PopulationCorrelationFunction]]
+plot!(x, y, label="Ehrenfest State 3", color=:blue, linestyle=:dash)
 ```
 
 To reduce the build time for the documentation the results here are underconverged but

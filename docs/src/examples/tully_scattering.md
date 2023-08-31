@@ -87,21 +87,20 @@ Since all of the examples run during the documentation build, we use a minimal n
 of trajectories to optimise the build time.
 
 ```@example tullymodeltwo
-using CairoMakie
+using Plots
 
-f = Figure()
-ax = Axis(f[1,1], xlabel="Incident momentum / a.u.", ylabel="Scattering probability")
+plot(
+    xlabel="Incidence momentum / a.u.",
+    ylabel="Scattering probability"
+)
 
 r1 = [r.reflection[1] for r in result]
 t1 = [r.transmission[1] for r in result]
 t2 = [r.transmission[2] for r in result]
 
-scatter!(ax, momenta, r1; label="R1", color=:red)
-scatter!(ax, momenta, t1; label="T1", color=:green)
-scatter!(ax, momenta, t2; label="T2", color=:blue)
-axislegend(ax)
-
-f
+scatter!(momenta, r1; label="R1", color=:red)
+scatter!(momenta, t1; label="T1", color=:green)
+scatter!(momenta, t2; label="T2", color=:blue)
 ```
 
 As in [Shakib2017](@cite), R1, T1, T2 refer to reflection on state 1, transmission on

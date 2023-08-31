@@ -85,38 +85,29 @@ This animation shows the cyclic nature of the ring polymer, and how every bead i
 to its two neighbours.
 
 ```@example rpmd
-using CairoMakie
+using Plots
 
 rs = traj[:OutputPosition]
 
-index = Observable(1)
-xs = @lift(rs[$index][1,1,:])
-ys = @lift(rs[$index][2,1,:])
-close_loop_x = @lift([rs[$index][1,1,end], rs[$index][1,1,begin]])
-close_loop_y = @lift([rs[$index][2,1,end], rs[$index][2,1,begin]])
-fig = scatter(xs, ys, axis = (title = @lift("t = $(round(Int, dt*($index-1)))"),))
-lines!(xs, ys)
-lines!(close_loop_x, close_loop_y)
-xlims!(-3, 3)
-ylims!(-3, 3)
-
 timestamps = 1:length(traj[:OutputPosition])
-filepath = "../../assets/figures/rpmd.mp4" # hide
-record(fig, filepath, timestamps;
-        framerate = 30) do i
-    index[] = i
+@gif for i in timestamps
+    xs = rs[i][1,1,:]
+    ys = rs[i][2,1,:]
+    close_loop_x = [rs[i][1,1,end], rs[i][1,1,begin]]
+    close_loop_y = [rs[i][2,1,end], rs[i][2,1,begin]]
+
+    plot(
+        xlims=(-3, 3),
+        ylims=(-3, 3),
+        legend=false
+    )
+
+    plot!(xs, ys, color=:black)
+    scatter!(xs, ys)
+    plot!(close_loop_x, close_loop_y)
 end
-nothing # hide
 ```
 
-![rpmd fig](../../assets/figures/rpmd.mp4)
-
-!!! note
-
-    We have used Makie's animation features to produce this animation. If you want
-    information how Makie works, take a look at the
-    [Makie documentation](https://docs.makie.org/stable/documentation/animation/).
-
 Since this package is focused on nonadiabatic dynamics, you won't see much adiabatic RPMD
-elsewhere in the documentation but it's useful to understand how the original adiabatic
-version works before moving onto the nonadiabatic extensions.
+elsewhere in the documentation, but it's useful to understand how the original adiabatic
+version works before moving on to the nonadiabatic extensions.

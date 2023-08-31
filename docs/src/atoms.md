@@ -41,7 +41,7 @@ for working with [ASE](https://wiki.fysik.dtu.dk/ase/index.html) from within Jul
 This example shows how ASEconvert can be used to build a structure, then convert
 from the ASE format into an AtomsBase compatible system:
 
-```@example atomsbase
+```julia
 using ASEconvert
 
 # Make a silicon supercell using ASE
@@ -54,7 +54,7 @@ atoms_ab = pyconvert(AbstractSystem, atoms_ase)
 It is currently not possible to use an AtomsBase system directly with NQCDynamics, but can
 be quickly converted to the correct format:
 
-```@repl atomsbase
+```julia
 using NQCDynamics
 atoms_nqcd = Atoms(atoms_ab)
 r = Position(atoms_ab)
@@ -68,7 +68,7 @@ After running a simulation it often desirable to save the trajectory in a standa
 For this, convert the NQCDynamics output into the AtomsBase format,
 then use AtomsIO to write the file in your chosen format.
 
-```@example atomsbase
+```julia
 using AtomsIO
 
 system = System(atoms_nqcd, r, v, c)
@@ -80,5 +80,5 @@ AtomsIO.save_trajectory("Si.xyz", trajectory) # Save a trajectory
 ```
 
 AtomsIO also provides `load_system` and `load_trajectory` which can be converted to the
-NQCDynamics format as above to initialize simulations.
+NQCDynamics format as above to initialise simulations.
 Refer to [AtomsIO](https://mfherbst.github.io/AtomsIO.jl/stable/) for more information.
