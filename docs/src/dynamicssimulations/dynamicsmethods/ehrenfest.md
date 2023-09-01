@@ -40,9 +40,8 @@ final_velocities = [r[:OutputVelocity][end] for r in solution]
 momenta = reduce(vcat, final_velocities*atoms.masses[1])
 ```
 
-Resulting momenta can be plotted by using `StatsPlots` package.
 ```@example ehrenfest
-using StatsPlots
-plot(density(momenta))
+using Plots
+histogram(momenta)
 xlims!(-20,20)
 ```

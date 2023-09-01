@@ -72,24 +72,21 @@ x = hcat([i[1,:] for i in r]...)
 y = hcat([i[2,:] for i in r]...)
 ```
 
-Now we can plot the distribution using [CairoMakie](https://github.com/JuliaPlots/Makie.jl)
+Now we can plot the distribution:
 ```@example ebk
-using CairoMakie
+using Plots
 
-f = Figure()
-ax = Axis(f[1,1], xlabel="x coordinate / bohr", ylabel="y coordinate / bohr")
-ax.aspect = AxisAspect(1)
-hidedecorations!(ax; ticks=false, ticklabels=false, label=false)
+plt = plot(
+    xlabel="x coordinate / bohr",
+    ylabel="y coordinate / bohr",
+    legend=false,
+)
 
 for i=1:nsamples
-    lines!([x[1,i], x[2,i]], [y[1,i], y[2,i]], linewidth=5, color=:black)
+    plot!([x[1,i], x[2,i]], [y[1,i], y[2,i]], linewidth=5, color=:black)
+    scatter!([x[1,i], x[2,i]], [y[1,i], y[2,i]])
 end
-
-colors = rand(nsamples)
-scatter!(x[1,:], y[1,:]; markersize=20, color=colors)
-scatter!(x[2,:], y[2,:]; markersize=20, color=colors)
-
-f
+plt
 ```
 Here we can see that the molecule is randomly distributed within the unit cell.
 Since we have used a harmonic potential, this could have been produced without using the EBK
