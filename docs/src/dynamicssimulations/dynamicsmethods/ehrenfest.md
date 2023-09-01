@@ -42,6 +42,6 @@ momenta = reduce(vcat, final_velocities*atoms.masses[1])
 
 ```@example ehrenfest
 using Plots
-density(momenta)
+histogram(momenta)
 xlims!(-20,20)
 ```

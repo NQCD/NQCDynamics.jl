@@ -81,7 +81,7 @@ r = fill(x1, (1,1))
 Velocities are handled in the same way as positions and the data structures are the same.
 Usually manual initialisation like this will only be necessary for small model systems,
 whereas full dimensional model system will be read from a file instead.
-This is explored in the [`Atoms` documentation](@ref reading-and-writing).
+This is explored in the [`Atoms` documentation](@ref atoms).
 
 !!! tip "Ring polymer simulations?"
 
