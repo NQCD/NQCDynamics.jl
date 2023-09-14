@@ -566,7 +566,7 @@ function energy_distribution_from_quantisation(sim::Simulation, v::Matrix, r::Ma
     E_tot = k + p
 
     # Classical translation energy: m/2*v^2 with center of mass translation. 
-    E_trans = sum(sim.atoms.masses[atom_indices]) * norm(v_com)^2 / 2
+    E_trans = sum(sim.atoms.masses[atom_indices]) * norm(centre_of_mass(v, sim.atoms.masses[atom_indices]))^2 / 2
 
     # Classical rotational energy. 
     I = μ * bond_length(r)^2
@@ -574,8 +574,7 @@ function energy_distribution_from_quantisation(sim::Simulation, v::Matrix, r::Ma
 
     # Harmonic vibrational energy. 
 
-    k = calculate_force_constant(binding_curve)
-    E_vib=(ν + 0.5) * sqrt(norm(NQCModels.derivative(sim.calculator.model, r)[:,atom_indices[end]]) / (bond_length(r)/2)^2 / µ)
+    E_vib=(ν + 0.5) * sqrt(norm(NQCModels.derivative(sim.calculator.model, r)[:,atom_indices[end]]) / (bond_length(r)-binding_curve.equilibrium_bond_length)^2 / µ)
 
     # Difference between classical energies and total diatomic energy from model. 
     E_delta=E_tot-E_trans-E_rot-E_vib
