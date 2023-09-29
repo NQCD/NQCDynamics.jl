@@ -574,12 +574,12 @@ function energy_distribution_from_quantisation(sim::Simulation, v::Matrix, r::Ma
 
     # Harmonic vibrational energy. 
 
-    E_vib=(ν + 0.5) * sqrt(norm(NQCModels.derivative(sim.calculator.model, r)[:,atom_indices[end]]) / (bond_length(r)-binding_curve.equilibrium_bond_length)^2 / µ)
+    E_vib=(ν + 0.5) * sqrt(calculate_force_constant(binding_curve) / µ)
 
     # Difference between classical energies and total diatomic energy from model. 
-    E_delta=E_tot-E_trans-E_rot-E_vib
+    E_delta=E_tot-p-E_trans-E_rot-E_vib
 
-    return E_tot, E_trans, E_rot, E_vib, E_delta
+    return E_tot-p, E_trans, E_rot, E_vib, E_delta
 end
 
 @views bond_length(r) = norm(r[:, 1] .- r[:, 2])
