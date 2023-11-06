@@ -3,6 +3,10 @@ using NQCDynamics
 using NQCDynamics.Calculators
 using LinearAlgebra: tr, Diagonal, eigvecs, eigvals
 using RingPolymerArrays: RingPolymerArrays
+using MKL # A dependency added MKL so all our tests run with MKL anyway
+# For the allocation tests it's important the BLAS/LAPACK backend doesn't change
+
+const MKL_EIGEN_ALLOCATIONS = 54912
 
 @testset "General constructors" begin
     model = NQCModels.DoubleWell()
@@ -265,7 +269,7 @@ end
 
     @test @allocated(Calculators.evaluate_potential!(calc, r)) == 0
     @test @allocated(Calculators.evaluate_derivative!(calc, r)) == 0
-    @test @allocated(Calculators.evaluate_eigen!(calc, r)) == 56896 # nonzero due to eigenroutines
+    @test @allocated(Calculators.evaluate_eigen!(calc, r)) == MKL_EIGEN_ALLOCATIONS # nonzero due to eigenroutines
     @test @allocated(Calculators.evaluate_adiabatic_derivative!(calc, r)) == 0
     @test @allocated(Calculators.evaluate_nonadiabatic_coupling!(calc, r)) == 0
 end
@@ -287,7 +291,7 @@ end
 
     @test @allocated(Calculators.evaluate_potential!(calc, r)) == 0
     @test @allocated(Calculators.evaluate_derivative!(calc, r)) == 0
-    @test @allocated(Calculators.evaluate_eigen!(calc, r)) == 568960 # nonzero due to eigenroutines
+    @test @allocated(Calculators.evaluate_eigen!(calc, r)) == 10*MKL_EIGEN_ALLOCATIONS # nonzero due to eigenroutines
     @test @allocated(Calculators.evaluate_adiabatic_derivative!(calc, r)) == 0
     @test @allocated(Calculators.evaluate_nonadiabatic_coupling!(calc, r)) == 0
 end
