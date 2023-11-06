@@ -1,3 +1,7 @@
+```@setup logging
+@info "Expanding src/examples/reactive_scattering.md..."
+start_time = time()
+```
 # [Reactive scattering from a metal surface](@id example-h2scattering)
 
 Our implementation allows us to simulate vibrational de-excitation probability during reactive scattering events at metal surfaces for any diatomic molecule 
@@ -153,3 +157,7 @@ individual trajectory.
 
 
 
+```@setup logging
+runtime = round(time() - start_time; digits=2)
+@info "...done after $runtime s."
+```

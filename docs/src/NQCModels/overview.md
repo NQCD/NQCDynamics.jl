@@ -1,3 +1,7 @@
+```@setup logging
+@info "Expanding src/NQCModels/overview.md..."
+start_time = time()
+```
 # NQCModels.jl
 
 To perform nonadiabatic molecular dynamics simulations, it is necessary to define
@@ -102,3 +106,7 @@ AbstractTrees.print_tree(Model) # hide
 
     To learn more about NQCModels.jl and learn how to implement new models,
     visit the [developer documentation](@ref devdocs-model).
+```@setup logging
+runtime = round(time() - start_time; digits=2)
+@info "...done after $runtime s."
+```

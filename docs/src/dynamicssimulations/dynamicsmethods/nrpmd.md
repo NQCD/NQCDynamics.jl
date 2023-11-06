@@ -1,3 +1,7 @@
+```@setup logging
+@info "Expanding src/dynamicssimulations/dynamicsmethods/nrpmd.md..."
+start_time = time()
+```
 # [Nonadiabatic ring polymer molecular dynamics (NRPMD)](@id nrpmd-dynamics)
 
 ## Theory
@@ -178,4 +182,8 @@ ensemble = run_dynamics(sim, (0.0, 30.0), distribution;
 plot(0:0.1:30, [p[1,1]-p[2,1] for p in ensemble[:PopulationCorrelationFunction]])
 xlabel!("Time")
 ylabel!("Population difference")
+```
+```@setup logging
+runtime = round(time() - start_time; digits=2)
+@info "...done after $runtime s."
 ```

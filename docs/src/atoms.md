@@ -1,3 +1,7 @@
+```@setup logging
+@info "Expanding src/atoms.md..."
+start_time = time()
+```
 # [Handling Atoms](@id atoms)
 
 This package makes the choice to separate the atomic parameters from their positions and
@@ -82,3 +86,7 @@ AtomsIO.save_trajectory("Si.xyz", trajectory) # Save a trajectory
 AtomsIO also provides `load_system` and `load_trajectory` which can be converted to the
 NQCDynamics format as above to initialise simulations.
 Refer to [AtomsIO](https://mfherbst.github.io/AtomsIO.jl/stable/) for more information.
+```@setup logging
+runtime = round(time() - start_time; digits=2)
+@info "...done after $runtime s."
+```

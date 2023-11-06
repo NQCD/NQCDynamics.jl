@@ -1,3 +1,7 @@
+```@setup logging
+@info "Expanding src/api/NQCDynamics/initialconditions.md..."
+start_time = time()
+```
 
 # InitialConditions
 
@@ -21,4 +25,8 @@ Modules=[NQCDynamics.InitialConditions.QuantisedDiatomic]
 
 ```@autodocs
 Modules=[NQCDynamics.InitialConditions.MetropolisHastings]
+```
+```@setup logging
+runtime = round(time() - start_time; digits=2)
+@info "...done after $runtime s."
 ```
