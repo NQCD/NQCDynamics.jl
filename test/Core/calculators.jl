@@ -4,6 +4,10 @@ using NQCDynamics.Calculators
 using LinearAlgebra: tr, Diagonal, eigvecs, eigvals
 using RingPolymerArrays: RingPolymerArrays
 
+# For the allocation tests check against both backends as we can't be sure which is in use
+const MKL_EIGEN_ALLOCATIONS = 54912
+const OPENBLAS_EIGEN_ALLOCATIONS = 56896
+
 @testset "General constructors" begin
     model = NQCModels.DoubleWell()
     @test Calculators.Calculator(model, 1, Float64) isa Calculators.DiabaticCalculator
@@ -265,7 +269,8 @@ end
 
     @test @allocated(Calculators.evaluate_potential!(calc, r)) == 0
     @test @allocated(Calculators.evaluate_derivative!(calc, r)) == 0
-    @test @allocated(Calculators.evaluate_eigen!(calc, r)) == 56896 # nonzero due to eigenroutines
+    eigen_allocations = @allocated(Calculators.evaluate_eigen!(calc, r))
+    @test (eigen_allocations == MKL_EIGEN_ALLOCATIONS) || (eigen_allocations == OPENBLAS_EIGEN_ALLOCATIONS)
     @test @allocated(Calculators.evaluate_adiabatic_derivative!(calc, r)) == 0
     @test @allocated(Calculators.evaluate_nonadiabatic_coupling!(calc, r)) == 0
 end
@@ -287,7 +292,8 @@ end
 
     @test @allocated(Calculators.evaluate_potential!(calc, r)) == 0
     @test @allocated(Calculators.evaluate_derivative!(calc, r)) == 0
-    @test @allocated(Calculators.evaluate_eigen!(calc, r)) == 568960 # nonzero due to eigenroutines
+    eigen_allocations = @allocated(Calculators.evaluate_eigen!(calc, r)) / 10
+    @test (eigen_allocations == MKL_EIGEN_ALLOCATIONS) || (eigen_allocations == OPENBLAS_EIGEN_ALLOCATIONS)
     @test @allocated(Calculators.evaluate_adiabatic_derivative!(calc, r)) == 0
     @test @allocated(Calculators.evaluate_nonadiabatic_coupling!(calc, r)) == 0
 end
