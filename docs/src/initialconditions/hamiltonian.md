@@ -1,3 +1,7 @@
+```@setup logging
+@info "Expanding src/initialconditions/hamiltonian.md..."
+start_time = time()
+```
 # [Thermal Hamiltonian Monte Carlo](@id hmc-sampling)
 
 Our implementation of Hamiltonian Monte Carlo (HMC) is a light wrapper around the
@@ -38,4 +42,8 @@ with the equipartition theorem:
 ```@repl hmc
 Estimators.@estimate potential_energy(sim, chain)
 austrip(sim.temperature) * 3 * 4 / 2
+```
+```@setup logging
+runtime = round(time() - start_time; digits=2)
+@info "...done after $runtime s."
 ```

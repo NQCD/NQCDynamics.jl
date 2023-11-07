@@ -1,3 +1,7 @@
+```@setup logging
+@info "Expanding src/dynamicssimulations/dynamicsmethods/ehrenfest.md..."
+start_time = time()
+```
 # [Ehrenfest molecular dynamics](@id ehrenfest-dynamics)
 
 The Ehrenfest method is a mixed quantum-classical dynamics method in which the total wavefunction is factorized into slow (nuclear) variables, which are treated classically, and fast ones (electrons) which remain quantum-mechanical. In the Ehrenfest method, nuclei move according to classical mechanics on a potential energy surface given by the expectation value of the electronic Hamiltonian. 
@@ -40,9 +44,12 @@ final_velocities = [r[:OutputVelocity][end] for r in solution]
 momenta = reduce(vcat, final_velocities*atoms.masses[1])
 ```
 
-Resulting momenta can be plotted by using `StatsPlots` package.
 ```@example ehrenfest
-using StatsPlots
-plot(density(momenta))
+using Plots
+histogram(momenta)
 xlims!(-20,20)
+```
+```@setup logging
+runtime = round(time() - start_time; digits=2)
+@info "...done after $runtime s."
 ```

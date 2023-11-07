@@ -1,3 +1,7 @@
+```@setup logging
+@info "Expanding src/dynamicssimulations/dynamicsmethods/langevin.md..."
+start_time = time()
+```
 # [Classical Langevin dynamics](@id langevin-dynamics)
 
 Langevin dynamics can be used to sample the canonical ensemble for a classical system.
@@ -122,3 +126,7 @@ Estimators.@estimate kinetic_energy(sim, traj[:OutputVelocity])
 ```
 Again, this takes a similar value since the total energy is evenly split between the kinetic
 and potential for a classical harmonic system.
+```@setup logging
+runtime = round(time() - start_time; digits=2)
+@info "...done after $runtime s."
+```

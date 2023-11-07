@@ -1,3 +1,7 @@
+```@setup logging
+@info "Expanding src/devdocs/diffeq.md..."
+start_time = time()
+```
 
 # DifferentialEquations.jl integration
 
@@ -56,3 +60,7 @@ the simulation cell, and the termination caused the simulation to exit early.
 
 The callback setup we're using is exactly that provided by DifferentialEquations.jl,
 if you want more details on callbacks, please refer to their [documentation](https://diffeq.sciml.ai/dev/features/callback_functions/#callbacks).
+```@setup logging
+runtime = round(time() - start_time; digits=2)
+@info "...done after $runtime s."
+```

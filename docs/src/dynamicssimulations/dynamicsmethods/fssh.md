@@ -1,3 +1,7 @@
+```@setup logging
+@info "Expanding src/dynamicssimulations/dynamicsmethods/fssh.md..."
+start_time = time()
+```
 # [Fewest-switches surface hopping (FSSH)](@id fssh-dynamics)
 
 Tully's FSSH [Tully1990](@cite) is one of the most popular methods for nonadiabatic
@@ -120,3 +124,7 @@ plot(traj, :OutputDiabaticPopulation)
 
 [Another example is available](@ref examples-tully-model-two) where we use FSSH and other
 methods to reproduce some of the results from [Tully1990](@cite).
+```@setup logging
+runtime = round(time() - start_time; digits=2)
+@info "...done after $runtime s."
+```

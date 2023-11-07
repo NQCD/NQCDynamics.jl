@@ -1,3 +1,7 @@
+```@setup logging
+@info "Expanding src/ensemble_simulations.md..."
+start_time = time()
+```
 # [Ensemble simulations](@id ensembles)
 
 Typically we'll be interested in computing observables based upon the statistics
@@ -123,3 +127,7 @@ Throughout the documentation, ensemble simulations like this one are used to dem
 many of the dynamics methods.
 Now that you have understood the contents of this page, all of the ensemble simulations
 will appear familiar.
+```@setup logging
+runtime = round(time() - start_time; digits=2)
+@info "...done after $runtime s."
+```

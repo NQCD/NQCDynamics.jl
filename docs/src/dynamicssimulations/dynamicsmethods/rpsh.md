@@ -1,3 +1,7 @@
+```@setup logging
+@info "Expanding src/dynamicssimulations/dynamicsmethods/rpsh.md..."
+start_time = time()
+```
 # [Ring polymer surface hopping (RPSH)](@id rpsh-dynamics)
 
 Ring polymer surface hopping was one of the early attempts to extend
@@ -90,3 +94,7 @@ and it is possible that better results could be achieved using a free ring polym
 [Welsch2016](@cite) provides a theoretical description of how nonequilibrium simulations using RPMD
 should be performed. This techniques here should likely be applied to RPSH too.
 
+```@setup logging
+runtime = round(time() - start_time; digits=2)
+@info "...done after $runtime s."
+```
