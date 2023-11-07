@@ -1,3 +1,7 @@
+```@setup logging
+@info "Expanding src/dynamicssimulations/dynamicsmethods/rpmd.md..."
+start_time = time()
+```
 # [Ring polymer molecular dynamics (RPMD)](@id rpmd-dynamics)
 
 Ring polymer molecular dynamics is a quantum dynamics methods that attempts
@@ -111,3 +115,7 @@ end
 Since this package is focused on nonadiabatic dynamics, you won't see much adiabatic RPMD
 elsewhere in the documentation, but it's useful to understand how the original adiabatic
 version works before moving on to the nonadiabatic extensions.
+```@setup logging
+runtime = round(time() - start_time; digits=2)
+@info "...done after $runtime s."
+```

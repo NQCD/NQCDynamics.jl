@@ -1,3 +1,7 @@
+```@setup logging
+@info "Expanding src/NQCModels/neuralnetworkmodels.md..."
+start_time = time()
+```
 # Neural network models
 
 Using the [ASE interface](@ref) we can directly use models trained using
@@ -58,4 +62,8 @@ r = [0 0; 0 0; 0 ustrip(auconvert(0.74u"Å"))]
 
 potential(model, r)
 derivative(model, r)
+```
+```@setup logging
+runtime = round(time() - start_time; digits=2)
+@info "...done after $runtime s."
 ```

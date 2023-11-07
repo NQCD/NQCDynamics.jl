@@ -1,3 +1,7 @@
+```@setup logging
+@info "Expanding src/devdocs/models.md..."
+start_time = time()
+```
 # [Implementing a new model](@id devdocs-model)
 
 [NQCModels.jl](@ref) aims to provide a unified interface for defining model
@@ -49,3 +53,7 @@ For further examples, you can also take a look into the source code of the `NQCM
 package to see how the analytic models have been implemented. 
 If you have any issues or questions about implementing a new model, open up an issue on
 Github and we can work together to resolve the problem. 
+```@setup logging
+runtime = round(time() - start_time; digits=2)
+@info "...done after $runtime s."
+```

@@ -1,3 +1,7 @@
+```@setup logging
+@info "Expanding src/initialconditions/ebk.md..."
+start_time = time()
+```
 # [Semiclassical EBK quantisation](@id ebk-sampling)
 
 In surface science, it is often of interest to investigate how collisions with surfaces
@@ -94,3 +98,7 @@ procedure, but this technique can use any arbitrary potential.
 In the [hydrogen scattering example](@ref example-h2scattering) we build on this example
 and use the sample procedure to perform scattering simulations starting from this
 distribution.
+```@setup logging
+runtime = round(time() - start_time; digits=2)
+@info "...done after $runtime s."
+```

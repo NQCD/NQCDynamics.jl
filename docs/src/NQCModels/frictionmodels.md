@@ -1,3 +1,7 @@
+```@setup logging
+@info "Expanding src/NQCModels/frictionmodels.md..."
+start_time = time()
+```
 # [Electronic friction models](@id models-friction)
 
 To perform [molecular dynamics with electronic friction (MDEF)](@ref mdef-dynamics)
@@ -69,3 +73,7 @@ to obtain the time-dependent perturbation theory friction from the atomic positi
 As with LDFA, one of these models is used in the
 [reactive scattering example](@ref example-h2scattering).
 
+```@setup logging
+runtime = round(time() - start_time; digits=2)
+@info "...done after $runtime s."
+```
