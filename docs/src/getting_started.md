@@ -1,3 +1,7 @@
+```@setup logging
+@info "Expanding src/getting_started.md..."
+start_time = time()
+```
 # Getting started
 
 To get started with the package we can identify the necessary ingredients to
@@ -81,7 +85,7 @@ r = fill(x1, (1,1))
 Velocities are handled in the same way as positions and the data structures are the same.
 Usually manual initialisation like this will only be necessary for small model systems,
 whereas full dimensional model system will be read from a file instead.
-This is explored in the [`Atoms` documentation](@ref reading-and-writing).
+This is explored in the [`Atoms` documentation](@ref atoms).
 
 !!! tip "Ring polymer simulations?"
 
@@ -278,3 +282,7 @@ Now that we've covered the basics of classical dynamics, we're ready to explore 
 world of nonadiabatic dynamics.
 All the dynamics methods follow these patterns and anything you find elsewhere in the
 documentation should now seem relatively familiar.
+```@setup logging
+runtime = round(time() - start_time; digits=2)
+@info "...done after $runtime s."
+```

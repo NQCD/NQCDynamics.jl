@@ -1,9 +1,13 @@
+```@setup logging
+@info "Expanding src/NQCModels/neuralnetworkmodels.md..."
+start_time = time()
+```
 # Neural network models
 
 Using the [ASE interface](@ref) we can directly use models trained using
 [SchNetPack](https://github.com/atomistic-machine-learning/schnetpack).
 
-!!! danger
+!!! warning
 
     The examples on this page do not run during the documentation build due to `schnetpack`
     causing segfaults when installed in the build environment.
@@ -35,7 +39,7 @@ h2.set_calculator(calc)
 ```
 
 We can obtain the energies and forces from `ase` directly in the usual way, converting
-them to atomic units using [UnifulAtomic](https://github.com/sostock/UnitfulAtomic.jl).
+them to atomic units using [UnitfulAtomic](https://github.com/sostock/UnitfulAtomic.jl).
 ```julia-repl
 using Unitful, UnitfulAtomic;
 austrip(h2.get_total_energy() * u"eV")
@@ -58,4 +62,8 @@ r = [0 0; 0 0; 0 ustrip(auconvert(0.74u"Å"))]
 
 potential(model, r)
 derivative(model, r)
+```
+```@setup logging
+runtime = round(time() - start_time; digits=2)
+@info "...done after $runtime s."
 ```

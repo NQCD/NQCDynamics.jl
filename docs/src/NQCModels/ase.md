@@ -1,3 +1,7 @@
+```@setup logging
+@info "Expanding src/NQCModels/ase.md..."
+start_time = time()
+```
 # ASE interface
 
 The easiest way to obtain potentials and forces from established codes is to
@@ -23,12 +27,12 @@ associated calculator to implement the required [`potential`](@ref) and
 First, it is necessary to import `ase` and create the `ase.Atoms` object and attach
 the desired calculator. This works exactly as in Python:
 ```@example ase
-using PyCall
+using PythonCall: pyimport, pylist
+using ASEconvert
 
-ase = pyimport("ase")
 emt = pyimport("ase.calculators.emt")
 
-h2 = ase.Atoms("H2", [(0, 0, 0), (0, 0, 0.74)])
+h2 = ase.Atoms("H2", pylist([(0, 0, 0), (0, 0, 0.74)]))
 h2.calc = emt.EMT()
 nothing # hide
 ```
@@ -53,3 +57,7 @@ derivative(model, rand(3, 2))
     [SchNetPack (SPK)](https://github.com/atomistic-machine-learning/schnetpack) by
     passing their ASE calculator to the `AdiabaticASEModel`.
     Take a look at [Neural network models](@ref) to learn more.
+```@setup logging
+runtime = round(time() - start_time; digits=2)
+@info "...done after $runtime s."
+```

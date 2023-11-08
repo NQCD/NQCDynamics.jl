@@ -1,3 +1,7 @@
+```@setup logging
+@info "Expanding src/NQCDistributions/overview.md..."
+start_time = time()
+```
 # NQCDistributions.jl
 
 # Storing and sampling distributions
@@ -128,3 +132,7 @@ of the distribution is handled separately by each of the different methods.
 
 To learn how to generate configurations to use with the [`DynamicalDistribution`](@ref),
 read on to the next sections about the included sampling methods.
+```@setup logging
+runtime = round(time() - start_time; digits=2)
+@info "...done after $runtime s."
+```

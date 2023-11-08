@@ -1,3 +1,7 @@
+```@setup logging
+@info "Expanding src/examples/tully_scattering.md..."
+start_time = time()
+```
 # [Scattering probabilities for TullyModelTwo](@id examples-tully-model-two)
 
 In this section we aim to reproduce the results of Fig. 5 from [Tully1990](@cite).
@@ -87,21 +91,20 @@ Since all of the examples run during the documentation build, we use a minimal n
 of trajectories to optimise the build time.
 
 ```@example tullymodeltwo
-using CairoMakie
+using Plots
 
-f = Figure()
-ax = Axis(f[1,1], xlabel="Incident momentum / a.u.", ylabel="Scattering probability")
+plot(
+    xlabel="Incidence momentum / a.u.",
+    ylabel="Scattering probability"
+)
 
 r1 = [r.reflection[1] for r in result]
 t1 = [r.transmission[1] for r in result]
 t2 = [r.transmission[2] for r in result]
 
-scatter!(ax, momenta, r1; label="R1", color=:red)
-scatter!(ax, momenta, t1; label="T1", color=:green)
-scatter!(ax, momenta, t2; label="T2", color=:blue)
-axislegend(ax)
-
-f
+scatter!(momenta, r1; label="R1", color=:red)
+scatter!(momenta, t1; label="T1", color=:green)
+scatter!(momenta, t2; label="T2", color=:blue)
 ```
 
 As in [Shakib2017](@cite), R1, T1, T2 refer to reflection on state 1, transmission on
@@ -109,3 +112,7 @@ state 1 and transmission on state 2 respectively.
 For this model, surface hopping is successful in closely approximating the exact quantum
 result, especially at higher momentum values.
 Refer to [Tully1990](@cite) and [Shakib2017](@cite) for a detailed discussion of the results.
+```@setup logging
+runtime = round(time() - start_time; digits=2)
+@info "...done after $runtime s."
+```

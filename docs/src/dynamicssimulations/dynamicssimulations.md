@@ -1,3 +1,7 @@
+```@setup logging
+@info "Expanding src/dynamicssimulations/dynamicssimulations.md..."
+start_time = time()
+```
 # [Introduction](@id dynamicssimulations)
 
 Performing dynamics simulations is at the core of this package's functionality
@@ -92,3 +96,7 @@ plot(out, :OutputAdiabaticPopulation)
 
 All of the dynamics methods work in a similar way. For details on a specific method along with examples,
 please see the method specific page in the sidebar under `Dynamics methods`.
+```@setup logging
+runtime = round(time() - start_time; digits=2)
+@info "...done after $runtime s."
+```

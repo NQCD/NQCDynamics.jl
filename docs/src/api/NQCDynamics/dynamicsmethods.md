@@ -1,3 +1,7 @@
+```@setup logging
+@info "Expanding src/api/NQCDynamics/dynamicsmethods.md..."
+start_time = time()
+```
 
 # DynamicsMethods
 
@@ -33,4 +37,8 @@ Modules=[NQCDynamics.DynamicsMethods.EhrenfestMethods]
 
 ```@autodocs
 Modules=[NQCDynamics.DynamicsMethods.IntegrationAlgorithms]
+```
+```@setup logging
+runtime = round(time() - start_time; digits=2)
+@info "...done after $runtime s."
 ```

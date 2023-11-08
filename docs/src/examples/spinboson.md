@@ -1,3 +1,7 @@
+```@setup logging
+@info "Expanding src/examples/spinboson.md..."
+start_time = time()
+```
 # Ohmic spin-boson nonequilibrium population dynamics
 
 The spin-boson model is widely used as a model for condensed phase quantum dynamics.
@@ -77,3 +81,7 @@ We can see that even with just 100 trajectories, our Ehrenfest result closely ma
 The FSSH is quite clearly underconverged with only 100 trajectories due to the discontinuous
 nature of the individual trajectories.
 Feel free to try this for yourself and see what the converged FSSH result looks like!
+```@setup logging
+runtime = round(time() - start_time; digits=2)
+@info "...done after $runtime s."
+```

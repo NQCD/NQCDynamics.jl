@@ -1,3 +1,7 @@
+```@setup logging
+@info "Expanding src/devdocs/new_methods.md..."
+start_time = time()
+```
 
 # Contributing a new method
 
@@ -162,3 +166,7 @@ The `DifferentialEquations.jl` framework provides a simple interface for adding 
 algorithms, check out the [developer documentation](https://devdocs.sciml.ai/dev/)
 to learn how it works.
 You can also find some examples of custom algorithms in the `DynamicsMethods.IntegrationAlgorithms` module.
+```@setup logging
+runtime = round(time() - start_time; digits=2)
+@info "...done after $runtime s."
+```

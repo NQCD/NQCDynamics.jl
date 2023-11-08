@@ -1,3 +1,7 @@
+```@setup logging
+@info "Expanding src/integration_algorithms.md..."
+start_time = time()
+```
 # Integration algorithms
 
 At the core of NQCDynamics.jl is the DifferentialEquations.jl package that performs all of the dynamics simulations.
@@ -116,3 +120,7 @@ Using this approach, NQCDynamics.jl implements the BAOAB algorithm for tensorial
     The `DynamicalSDEProblem` was originally implemented for performing Langevin thermostatted dynamics simulations using the BAOAB algorithm.
     At the time of writing, BAOAB is the only algorithm implemented in StochasticDiffEq.jl for these problems.
     In future it would be useful to implement further algorithms and allow for more general noise profiles.
+```@setup logging
+runtime = round(time() - start_time; digits=2)
+@info "...done after $runtime s."
+```
