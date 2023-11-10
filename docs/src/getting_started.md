@@ -1,3 +1,7 @@
+```@setup logging
+@info "Expanding src/getting_started.md..."
+start_time = time()
+```
 # Getting started
 
 To get started with the package we can identify the necessary ingredients to
@@ -278,3 +282,7 @@ Now that we've covered the basics of classical dynamics, we're ready to explore 
 world of nonadiabatic dynamics.
 All the dynamics methods follow these patterns and anything you find elsewhere in the
 documentation should now seem relatively familiar.
+```@setup logging
+runtime = round(time() - start_time; digits=2)
+@info "...done after $runtime s."
+```

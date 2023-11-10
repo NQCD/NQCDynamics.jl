@@ -1,3 +1,7 @@
+```@setup logging
+@info "Expanding src/examples/tully_scattering.md..."
+start_time = time()
+```
 # [Scattering probabilities for TullyModelTwo](@id examples-tully-model-two)
 
 In this section we aim to reproduce the results of Fig. 5 from [Tully1990](@cite).
@@ -108,3 +112,7 @@ state 1 and transmission on state 2 respectively.
 For this model, surface hopping is successful in closely approximating the exact quantum
 result, especially at higher momentum values.
 Refer to [Tully1990](@cite) and [Shakib2017](@cite) for a detailed discussion of the results.
+```@setup logging
+runtime = round(time() - start_time; digits=2)
+@info "...done after $runtime s."
+```

@@ -1,3 +1,7 @@
+```@setup logging
+@info "Expanding src/NQCModels/analyticmodels.md..."
+start_time = time()
+```
 # Analytic model library
 
 This page plots many of the analytic models included in `NQCDynamics`.
@@ -92,4 +96,8 @@ z = range(-0.5, 4.0, length=200)
 
 contour(x, z, v1, color=:blue, levels=0:0.01:0.1, label="V11", colorbar=false)
 contour!(x, z, v2, color=:red, levels=0:0.01:0.1, label="V22")
+```
+```@setup logging
+runtime = round(time() - start_time; digits=2)
+@info "...done after $runtime s."
 ```

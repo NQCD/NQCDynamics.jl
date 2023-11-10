@@ -1,3 +1,7 @@
+```@setup logging
+@info "Expanding src/index.md..."
+start_time = time()
+```
 # Introduction
 
 Welcome to the documentation for NQCDynamics, 
@@ -115,3 +119,7 @@ The first page to read is the [Getting started](@ref) section which walks throug
 needed to perform a conventional classical molecular dynamics simulation.
 After this, the reader is free to explore at their leisure since everything else builds directly
 upon sections from the [Getting started](@ref) page.
+```@setup logging
+runtime = round(time() - start_time; digits=2)
+@info "...done after $runtime s."
+```

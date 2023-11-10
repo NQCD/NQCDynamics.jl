@@ -1,3 +1,7 @@
+```@setup logging
+@info "Expanding src/api/NQCDynamics/dynamicsoutputs.md..."
+start_time = time()
+```
 
 # DynamicsOutputs
 
@@ -14,4 +18,8 @@ Private=false
 ```@autodocs
 Modules=[NQCDynamics.DynamicsOutputs]
 Public=false
+```
+```@setup logging
+runtime = round(time() - start_time; digits=2)
+@info "...done after $runtime s."
 ```

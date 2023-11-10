@@ -1,3 +1,7 @@
+```@setup logging
+@info "Expanding src/examples/threestatemorse.md..."
+start_time = time()
+```
 # Time-dependent populations with the ThreeStateMorse model
 
 In this example we investigate the time-dependent populations of the three state
@@ -103,3 +107,7 @@ To reduce the build time for the documentation the results here are underconverg
 already it is clear that both of these methods come close to the exact result shown by [Coronado2001](@cite).
 After performing enough trajectories to converge the population dynamics,
 we would be better able to judge the effectiveness of FSSH and Ehrenfest at reproducing the exact quantum dynamics for this model.
+```@setup logging
+runtime = round(time() - start_time; digits=2)
+@info "...done after $runtime s."
+```

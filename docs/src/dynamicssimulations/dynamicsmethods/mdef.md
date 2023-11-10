@@ -1,3 +1,7 @@
+```@setup logging
+@info "Expanding src/dynamicssimulations/dynamicsmethods/mdef.md..."
+start_time = time()
+```
 # [Molecular dynamics with electronic friction (MDEF)](@id mdef-dynamics)
 
 ## Introduction
@@ -117,3 +121,7 @@ View the [friction models page](@ref models-friction) to learn about how this ca
 
     If you would like to see an example using both LDFA and TDPT during full dimensional
     dynamics, refer to the [reactive scattering example](@ref example-h2scattering).
+```@setup logging
+runtime = round(time() - start_time; digits=2)
+@info "...done after $runtime s."
+```

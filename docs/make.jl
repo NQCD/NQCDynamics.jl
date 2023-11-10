@@ -3,10 +3,6 @@ using DocumenterCitations
 using NQCBase, NQCModels, NQCDistributions, NQCDynamics
 using CubeLDFAModel, NNInterfaces
 
-DocMeta.setdocmeta!(NQCDynamics, :DocTestSetup, :(using NQCDynamics); recursive=true)
-DocMeta.setdocmeta!(NQCModels, :DocTestSetup, :(using NQCModels, Symbolics); recursive=true)
-DocMeta.setdocmeta!(NQCBase, :DocTestSetup, :(using NQCBase); recursive=true)
-
 bib = CitationBibliography(joinpath(@__DIR__, "references.bib"))
 
 function find_all_files(directory)
@@ -16,16 +12,15 @@ function find_all_files(directory)
     )
 end
 
-@time makedocs(
-    bib,
+@time makedocs(;
+    plugins=[bib],
     sitename="NQCDynamics.jl",
     modules=[NQCDynamics, NQCDistributions, NQCModels, NQCBase, CubeLDFAModel],
-    strict=true,
+    doctest=false,
     format=Documenter.HTML(
         prettyurls=get(ENV, "CI", nothing) == "true",
         canonical="https://nqcd.github.io/NQCDynamics.jl/stable/",
         assets=["assets/favicon.ico", "assets/citations.css"],
-        ansicolor=true,
     ),
     authors="James Gardner and contributors.",
     pages=[

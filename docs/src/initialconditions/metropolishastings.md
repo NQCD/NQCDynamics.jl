@@ -1,3 +1,7 @@
+```@setup logging
+@info "Expanding src/initialconditions/metropolishastings.md..."
+start_time = time()
+```
 # [Thermal Metropolis-Hastings Monte Carlo](@id mhmc-sampling)
 
 Metropolis-Hastings Monte Carlo is a popular method for sampling the canonical
@@ -113,3 +117,7 @@ presented in the previous section and `output.R` can be readily passed to provid
 the position distribution.
 The Monte Carlo sampling does not include velocities but these can be readily
 obtained from the Maxwell-Boltzmann distribution.
+```@setup logging
+runtime = round(time() - start_time; digits=2)
+@info "...done after $runtime s."
+```

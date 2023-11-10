@@ -1,3 +1,7 @@
+```@setup logging
+@info "Expanding src/NQCDistributions/overview.md..."
+start_time = time()
+```
 # NQCDistributions.jl
 
 # Storing and sampling distributions
@@ -67,7 +71,7 @@ read on to the next sections about the included sampling methods.
 ### VelocityBoltzmann
 
 When performing equilibrium simulations it is often desirable to initialise trajectories
-when thermal velocities, e.g. in combination with positions obtained from Monte Carlo sampling.
+with thermal velocities, e.g. in combination with positions obtained from Monte Carlo sampling.
 These can be obtained for each atom from a gaussian distribution of the appropriate
 width, or alternatively, using the [`VelocityBoltzmann`](@ref) distribution which simplifies
 the process.
@@ -155,3 +159,8 @@ total_dist.electronic.state # Returns the chosen electronic state.
 
 ```
 
+
+```@setup logging
+runtime = round(time() - start_time; digits=2)
+@info "...done after $runtime s."
+```
