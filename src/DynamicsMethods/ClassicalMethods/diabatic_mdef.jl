@@ -136,11 +136,32 @@ function (friction_method::DirectQuadrature)(∂Hᵢ, ∂Hⱼ, eigenvalues, μ, 
     return out
 end
 
+"""
+WideBandExact is a method to evaulate friction that is exact for a wide band limit.
+
+    The function contains mainly three parts/steps:
+        1.struct type WideBandExact
+        2.compute the integral in the friction kernel
+        3.fill the friction tensor to evaluate_friction!
+
+    Usage: (potential, ∂potentialᵢ, ∂potentialⱼ) should be given
+
+
+    1.friction_method = WideBandExact(ρ, β)
+    
+    2.integral = friction_method(potential, ∂potentialᵢ, ∂potentialⱼ, μ, β)
+
+    3.fill_friction_tensor!(Λ, friction_method::WideBandExact, potential, derivative, r, μ)
+
+    The friction integral details is given in https://doi.org/10.1063/5.0137137 (Eq.33-34)
+
+"""
 struct WideBandExact{T} <: FrictionEvaluationMethod
     ρ::T
     β::T
 end
 function (friction_method::WideBandExact)(potential, ∂potentialᵢ, ∂potentialⱼ, μ, β)
+    # Read reference paper from the details
     h = potential[1,1]
     ∂hᵢ = ∂potentialᵢ[1,1]
     ∂hⱼ = ∂potentialⱼ[1,1]
