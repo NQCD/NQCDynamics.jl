@@ -23,9 +23,7 @@ both nuclear and electronic degrees of freedom.
 This page describes the types that can be used to represent nuclear and electronic distributions
 and demonstrates how they can be combined into a product distribution.
 
-## Nuclear Distributions
-
-### DynamicalDistribution
+## Nuclear Distributions using `DynamicalDistribution`
 
 When handling distributions for the nuclear degrees of freedom,
 the [`DynamicalDistribution`](@ref) type can be used to store initial velocities and positions:
@@ -65,10 +63,15 @@ rand(d)
 This has generated normally distributed positions along with one of the three velocities
 we provided.
 
+### Sampling the nuclear distribution
+
+To learn how to generate configurations to use with the [`DynamicalDistribution`](@ref),
+read on to the next sections about the included sampling methods.
+
 ### VelocityBoltzmann
 
 When performing equilibrium simulations it is often desirable to initialise trajectories
-when thermal velocities.
+with thermal velocities, e.g. in combination with positions obtained from Monte Carlo sampling.
 These can be obtained for each atom from a gaussian distribution of the appropriate
 width, or alternatively, using the [`VelocityBoltzmann`](@ref) distribution which simplifies
 the process.
@@ -107,6 +110,18 @@ rand(dist)
 These can also be given to the [`DynamicalDistribution`](@ref) since they are just
 univariate normal distributions.
 
+### Nuclear distributions for Ring polymer simulations
+The components making up a `DynamicalDistribution` can all be adapted for use in Ring Polymer simulations. 
+
+For samplable components based on nuclear configurations, simply use three-dimensional arrays instead of two-dimensional ones. 
+
+Pre-defined distribution functions such as `VelocityBoltzmann` can be turned into a three-dimensional version using the `RingPolymerWrapper`:
+
+```julia
+velocity = VelocityBoltzmann(300u"K", rand(10), (3, 10))
+velocity_ring_polymer = RingPolymerWrapper(velocity, n_beads, Int[]) # RingPolymerWrapper(Distribution, number of ring-polymer beads, indices of atoms to treat classically)
+```
+
 ## Electronic distributions
 
 For nonadiabatic dynamics, the initial electronic variables must also be sampled.
@@ -128,10 +143,23 @@ MixedState([1, 2], Diabatic())
 These structs contain only the minimal information about the distributions, whereas the sampling
 of the distribution is handled separately by each of the different methods.
 
-## Sampling the nuclear distribution
+## Product distributions - Combining Nuclear and electronic distributions
 
-To learn how to generate configurations to use with the [`DynamicalDistribution`](@ref),
-read on to the next sections about the included sampling methods.
+The initial nuclear and electronic states of a system can be combined in a product distribution, which can be used in place of a purely nuclear distribution for methods considering electronic dynamics.
+
+```julia
+nuclear_dist = DynamicalDistribution(velocity, position, (2, 2))
+electronic_dist = PureState(2, Adiabatic())
+
+total_dist = nuclear_dist * electronic_dist
+
+rand(total_dist.nuclear) # Returns a random nuclear configuration
+
+total_dist.electronic.state # Returns the chosen electronic state. 
+
+```
+
+
 ```@setup logging
 runtime = round(time() - start_time; digits=2)
 @info "...done after $runtime s."
