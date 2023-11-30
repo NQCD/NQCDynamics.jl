@@ -167,7 +167,7 @@ function (friction_method::WideBandExact)(potential, ∂potentialᵢ, ∂potenti
     ∂hⱼ = ∂potentialⱼ[1,1]
 
     ρ = friction_method.ρ
-    Γ = 2π * potential[2,1]^2 * ρ
+    Γ = 2π * potential[2,1]^2 * ρ # hybridization function Γ = 2π * |V|^2 * ρ
     ∂Γ∂potential = sqrt(8π * ρ * Γ)
     ∂Γᵢ = ∂Γ∂potential * ∂potentialᵢ[2,1]
     ∂Γⱼ = ∂Γ∂potential * ∂potentialⱼ[2,1]
