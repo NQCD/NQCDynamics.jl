@@ -14,7 +14,12 @@ end
 function DiabaticMDEF(masses::AbstractVector, DoFs::Integer, friction_method)
     DiabaticMDEF(get_mass_scale_matrix(masses, DoFs), friction_method)
 end
+"""
+    当你在生成 simulation 时，method 选择了 DiabaticMDEF
 
+    电脑会选择跑下面这段代码
+
+"""
 function NQCDynamics.Simulation{DiabaticMDEF}(atoms::Atoms, model::Model;
     friction_method, kwargs...
 )
