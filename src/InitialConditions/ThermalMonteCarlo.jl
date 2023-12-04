@@ -165,7 +165,7 @@ end
 
 function Base.rand(rng::Random.AbstractRNG, p::ClassicalProposal)
   result = map(x -> rand(rng, x), p.proposal)
-  result[Random.randsubseq(eachindex(result), p.move_ratio)] .= 0
+  result[Random.randsubseq(findall(x -> x!=0.0, result), p.move_ratio)] .=0
   return result
 end
 
@@ -174,12 +174,12 @@ function Base.rand(rng::Random.AbstractRNG, p::RingPolymerProposal)
   reshaped_result = reshape(result, size(p.sim))
 
   # Zero some of the centroid moves
-  sequence = Random.randsubseq(CartesianIndices(size(p.sim)[1:2]), p.move_ratio)
+  sequence = Random.randsubseq(findall(x -> x != 0, CartesianIndices(size(p.sim)[1:2])), p.move_ratio)
   reshaped_result[sequence, 1] .= 0
 
   # Zero some of the internal mode moves
   for i = 2:nbeads(p.sim)
-    sequence = Random.randsubseq(CartesianIndices((ndofs(p.sim), natoms(p.sim))), p.internal_ratio)
+    sequence = Random.randsubseq(findall(x -> x != 0, CartesianIndices((ndofs(p.sim), natoms(p.sim)))), p.internal_ratio)
     reshaped_result[sequence, i] .= 0
   end
 
