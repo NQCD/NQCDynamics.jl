@@ -27,7 +27,7 @@ using NQCDynamics:
   masses
 
 """
-    run_advancedhmc_sampling(sim, r, steps, σ; move_ratio=0.0, internal_ratio=0.0)
+    run_advancedmh_sampling(sim, r, steps, σ; move_ratio=0.0, internal_ratio=0.0)
 
 Sample the configuration space for the simulation `sim` starting from `r`.
 
@@ -47,7 +47,8 @@ function run_advancedmh_sampling(
   steps::Real,
   σ::Dict{Symbol,<:Real};
   move_ratio=0.0,
-  internal_ratio=0.0
+  internal_ratio=0.0, 
+  kwargs...
 )
 
   density = get_density_function(sim)
@@ -60,7 +61,7 @@ function run_advancedmh_sampling(
   initial_config = reshape_input(sim, copy(r))
 
   chain = AdvancedMH.sample(density_model, sampler, convert(Int, steps);
-    init_params=initial_config)
+    initial_params=initial_config, kwargs...)
 
   return reshape_output(sim, chain)
 end
