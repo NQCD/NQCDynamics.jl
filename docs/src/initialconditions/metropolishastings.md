@@ -33,14 +33,25 @@ steps = 1e4
 step_size = Dict(:H=>1)
 ```
 
-Now we can run the sampling. The extra keyword argument `move_ratio` is used to specify
+Now we can run the sampling. The extra keyword argument `movement_ratio` is used to specify
 the fraction of the system moved during each Monte Carlo step.
 If we attempt to move the entire system at once, we can expect a very low acceptance ratio,
 whereas is we move only a single atom, the sampling will take much longer.
 You will likely have to experiment with this parameter to achieve optimal sampling.
+
+!!! note
+
+    Keyword arguments relating to how much of the system to sample were recently changed. The existing `move_ratio` and `internal_ratio` arguments are no longer used. 
+    Instead, there are now two options to specify how much of the system to move:
+    `movement_ratio`: Defines which fraction of the system to move. 1 moves the entire system. 
+    `stop_ratio`: Defines which fraction of the system *not* to move. 1 stops the entire system. 
+    `movement_ratio_internal`: Defines which proportion of ring polymer normal modes to perturb. 1 moves the entire system. 
+    `stop_ratio_internal`: Defines which proportion of ring polymer normal modes not to perturb. 1 stops the entire system. 
+ 
+
 ```@example mh
 using NQCDynamics.InitialConditions: ThermalMonteCarlo
-chain = ThermalMonteCarlo.run_advancedmh_sampling(sim, r0, steps, step_size; move_ratio=0.5)
+chain = ThermalMonteCarlo.run_advancedmh_sampling(sim, r0, steps, step_size; movement_ratio=0.5)
 ```
 
 Now that our sampling is complete we can evaluate the potential energy expectation value.
