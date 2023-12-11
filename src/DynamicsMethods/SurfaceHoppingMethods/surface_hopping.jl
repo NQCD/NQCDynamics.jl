@@ -145,7 +145,7 @@ Measures the component of velocity along the nonadiabatic coupling vector and in
 function frustrated_hop_invert_velocity!(
     sim::AbstractSimulation{<:SurfaceHopping}, velocity, d
 )
-    dn = d/norm(d)
+    dn = LinearAlgebra.normalize(d)
     γ = dot(velocity,dn)
     for I in CartesianIndices(dn)
         velocity[I] -= 2γ * dn[I]
