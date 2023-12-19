@@ -54,9 +54,9 @@ function frustrated_hop_invert_velocity!(
     #invert center of mass velocity of ring polymer
     dn = LinearAlgebra.normalize(d)
     vcom = sum(velocity, dims=3) / size(velocity,3)
-    γ = dot(vcom,dn)
+    γ = dot(vcom[:,:,1],dn)
     for I in CartesianIndices(dn)
-        velocity[I,:] -= 2γ * dn[I]
+        velocity[I,:] .-= 2γ * dn[I]
     end
     return nothing
 end
