@@ -72,6 +72,7 @@ function rescale_velocity!(sim::AbstractSimulation{<:SurfaceHopping}, u)::Bool
             # Frustrated hop with insufficient kinetic energy
             # perform inversion of the velocity component along the nonadiabatic coupling vector
             frustrated_hop_invert_velocity!(sim, DynamicsUtils.get_velocities(u), d)
+            return false
         else   
             throw(error("This mode of rescaling is not implemented"))
         end
