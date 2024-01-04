@@ -13,7 +13,8 @@ using ComponentArrays: ComponentVector
 
 using NQCDynamics:
     Estimators,
-    DynamicsUtils
+    DynamicsUtils,
+    Analysis
 
 using NQCModels: NQCModels
 
@@ -23,6 +24,10 @@ using .DynamicsUtils:
     get_quantum_subsystem
 
 using ..InitialConditions: QuantisedDiatomic
+
+using NQCBase
+using PyCall
+using Statistics
 
 """
     OutputVelocity(sol, i)
@@ -90,6 +95,20 @@ Evaluate the classical kinetic energy at each timestep during the trajectory.
 """
 OutputKineticEnergy(sol, i) = DynamicsUtils.classical_kinetic_energy.(sol.prob.p, sol.u)
 export OutputKineticEnergy
+
+"""
+    OutputCentroidKineticEnergy(sol, i)
+
+Evaluate the classical kinetic energy of a subset of the entire system at each save step. 
+
+The subset is defined by `OutputSubsetKineticEnergy(indices)`.
+"""
+struct OutputSubsetKineticEnergy{T}
+    indices::T
+end
+function (output::OutputSubsetKineticEnergy)(sol, i)
+    return map(x->DynamicsUtils.classical_kinetic_energy(sol.prob.p.atoms.masses[output.indices], x[:, output.indices]), [DynamicsUtils.get_velocities(i) for i in sol.u])
+end
 
 OutputSpringEnergy(sol, i) = DynamicsUtils.classical_spring_energy.(sol.prob.p, sol.u)
 export OutputSpringEnergy
@@ -261,5 +280,46 @@ function (output::OutputStateResolvedScattering1D)(sol, i)
     return output
 end
 export OutputStateResolvedScattering1D
+
+"""
+Outputs the desorption angle in degrees (relative to the surface normal) if a desorption event is detected.
+"""
+struct OutputDesorptionAngle
+    indices::Vector{Int}
+    surface_normal::Vector
+    surface_distance_threshold
+end
+OutputDesorptionAngle(indices; surface_normal = [0,0,1], surface_distance_threshold = 5.0u"Å")=OutputDesorptionAngle(indices, surface_normal, surface_distance_threshold)
+
+"""
+    (output::OutputDesorptionAngle)(sol, i)
+
+Outputs the desorption angle in degrees (relative to the surface normal) if a desorption event was detected.
+"""
+function (output::OutputDesorptionAngle)(sol, i)
+    return NQCDynamics.Analysis.Diatomic.get_desorption_angle(sol.u, output.indices, sol.p; surface_normal=output.surface_normal, surface_distance_threshold=output.surface_distance_threshold)
+end
+
+"""
+Like OutputDynamicsVariables, but only saves parts of the trajectory where desorption is occurring.
+
+Use `extra_frames` to save additional steps before the desorption event begins. 
+"""
+struct OutputDesorptionTrajectory
+    indices::Vector{Int}
+    surface_normal::Vector
+    surface_distance_threshold
+    extra_frames::Int
+end
+OutputDesorptionTrajectory(indices; surface_normal = [0,0,1], surface_distance_threshold = 5.0u"Å", extra_frames = 0) = OutputDesorptionTrajectory(indices, surface_normal, surface_distance_threshold, extra_frames)
+"""
+    (output::OutputDesorptionTrajectory)(sol, i)
+
+Only output parts of the trajectory where desorption is occurring.
+"""
+function (output::OutputDesorptionTrajectory)(sol, i)
+    desorption_frame = NQCDynamics.Analysis.Diatomic.get_desorption_frame(sol.u, output.indices, sol.p; surface_distance_threshold=output.surface_distance_threshold, surface_normal=output.surface_normal)
+    return isa(desorption_frame, Int) ? sol.u[desorption_frame-output.extra_frames:end] : nothing
+end
 
 end # module

@@ -41,6 +41,9 @@ include("Ensembles/Ensembles.jl")
 export Ensembles
 @reexport using .Ensembles
 
+include("Analysis/Analysis.jl")
+export Analysis
+
 include("DynamicsOutputs.jl")
 @reexport using .DynamicsOutputs
 
