@@ -2,13 +2,13 @@
 Analysis functions for surface chemistry of diatomic molecules. 
 """
 module Diatomic
-using NQCDynamics: AbstractSimulation, Simulation, get_positions
+using NQCDynamics: AbstractSimulation, Simulation, get_positions, Structure
 using NQCBase
 using Unitful, UnitfulAtomic
 using LinearAlgebra
 
 """
-    get_desorption_frame(trajectory::Vector, diatomic_indices::Vector{Int}, simulation::NQCDynamics.AbstractSimulation;surface_normal::Vector=[0,0,1], surface_distance_threshold=5.0*u"Å")
+    get_desorption_frame(trajectory::Vector, diatomic_indices::Vector{Int}, simulation::AbstractSimulation;surface_normal::Vector=[0,0,1], surface_distance_threshold=5.0*u"Å")
 
 Determines the index in a trajectory where surface desorption begins. 
 
@@ -18,11 +18,11 @@ This is evaluated using two conditions:
 
 2. Desorption begins at the turning point of the centre of mass velocity component along `surface_normal`, indicating overall movement away from the surface. 
 """
-function get_desorption_frame(trajectory::Vector, diatomic_indices::Vector{Int}, simulation::NQCDynamics.AbstractSimulation;surface_normal::Vector = [0,0,1], surface_distance_threshold = 5.0*u"Å")
+function get_desorption_frame(trajectory::Vector, diatomic_indices::Vector{Int}, simulation::AbstractSimulation;surface_normal::Vector = [0,0,1], surface_distance_threshold = 5.0*u"Å")
     # Two criteria: Distance between two atoms (wrt PBC) must be below `distance_threshold` and CoM velocity must be positive wrt surface normal vector. 
     function surface_distance_condition(x)
-        highest_z = max(NQCDynamics.get_positions(x)[3, symdiff(1:end, diatomic_indices)]...)
-        if abs(au_to_ang(NQCBase.Structure.pbc_center_of_mass(x, diatomic_indices..., simulation)[3] - highest_z)) * u"Å" ≥ surface_distance_threshold
+        highest_z = max(get_positions(x)[3, symdiff(1:end, diatomic_indices)]...)
+        if abs(au_to_ang(Structure.pbc_center_of_mass(x, diatomic_indices..., simulation)[3] - highest_z)) * u"Å" ≥ surface_distance_threshold
             @debug "Surface distance condition evaluated true"
             return true
         else
@@ -30,7 +30,7 @@ function get_desorption_frame(trajectory::Vector, diatomic_indices::Vector{Int},
         end
     end
     function com_velocity_condition(x)
-        if dot(NQCBase.Structure.velocity_center_of_mass(x, diatomic_indices..., simulation), normalize(surface_normal)) > 0
+        if dot(Structure.velocity_center_of_mass(x, diatomic_indices..., simulation), normalize(surface_normal)) > 0
             @debug "Normal velocity condition evaluated true"
             return true
         else
@@ -53,7 +53,7 @@ function get_desorption_frame(trajectory::Vector, diatomic_indices::Vector{Int},
     end
 end
 
-function get_desorption_angle(trajectory::Vector, indices::Vector{Int}, simulation::NQCDynamics.AbstractSimulation; surface_normal = [0,0,1],  surface_distance_threshold = 5.0*u"Å")
+function get_desorption_angle(trajectory::Vector, indices::Vector{Int}, simulation::AbstractSimulation; surface_normal = [0,0,1],  surface_distance_threshold = 5.0*u"Å")
     # First determine where the reaction occurred on the surface. 
     desorption_frame = get_desorption_frame(trajectory, indices, simulation;surface_distance_threshold = surface_distance_threshold, surface_normal = surface_normal)
     if isa(desorption_frame, Nothing)
@@ -62,10 +62,10 @@ function get_desorption_angle(trajectory::Vector, indices::Vector{Int}, simulati
     end
     @debug "Desorption frame: $(desorption_frame)"
     # Determine the average centre of mass velocity to decrease error due to vibration and rotation orthogonal to true translational component. 
-    com_velocities = map(x -> NQCBase.Structure.velocity_center_of_mass(x, indices[1], indices[2], simulation), trajectory[desorption_frame:end])
+    com_velocities = map(x -> Structure.velocity_center_of_mass(x, indices[1], indices[2], simulation), trajectory[desorption_frame:end])
     average_velocity = mean(cat(com_velocities...;dims=2);dims=2)
     # Now convert into an angle by arccos((a•b)/(|a|*|b|))
-    return NQCBase.Structure.angle_between(vec(average_velocity), surface_normal)
+    return Structure.angle_between(vec(average_velocity), surface_normal)
 end
 
 # 6✖6 Cartesian to internal coordinate transformation. 
@@ -94,8 +94,8 @@ end
 Builds diatomic Cartesian to internal coordinate transformation matrix as described in the SI of `10.1021/jacsau.0c00066`
 """
 function transform_U(config::Matrix, index1::Int, index2::Int, sim::Simulation)
-    masses = NQCBase.Structure.fractional_mass(sim, index1, index2)
-    config[:,index2] .+= NQCBase.Structure.minimum_distance_translation(config, index1, index2, sim) # PBC wrap positions for correct transformation. 
+    masses = Structure.fractional_mass(sim, index1, index2)
+    config[:,index2] .+= Structure.minimum_distance_translation(config, index1, index2, sim) # PBC wrap positions for correct transformation. 
     r = transform_r(config, index1, index2)
     r1 = transform_r1(config, index1, index2)
     unity = LinearAlgebra.I(3)
