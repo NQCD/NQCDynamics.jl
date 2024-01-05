@@ -25,6 +25,10 @@ include("DynamicsUtils/DynamicsUtils.jl")
 @reexport using .DynamicsUtils: get_positions, get_velocities
 export DynamicsUtils
 
+# Needs Simulation, NQCBase
+include("structure.jl")
+export Structure
+
 include("Estimators.jl")
 export Estimators
 
@@ -41,9 +45,11 @@ include("Ensembles/Ensembles.jl")
 export Ensembles
 @reexport using .Ensembles
 
+# Needs DynamicsUtils, Simulation
 include("Analysis/Analysis.jl")
 export Analysis
 
+# Needs Analysis
 include("DynamicsOutputs.jl")
 @reexport using .DynamicsOutputs
 
