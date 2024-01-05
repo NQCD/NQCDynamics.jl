@@ -2,6 +2,8 @@ module Structure
 
 using NQCDynamics: AbstractSimulation, Simulation, get_positions, get_velocities
 using NQCBase
+using RecursiveArrayTools: ArrayPartition
+using ComponentArrays: ComponentVector
 using LinearAlgebra
 using Unitful
 using UnitfulAtomic
@@ -40,12 +42,8 @@ function reduced_mass(atoms::Atoms, index1::Int, index2::Int)
     return (atoms.masses[index1]*atoms.masses[index2])/sum(atoms.masses[[index1, index2]])
 end
 
-#ToDo NQCDynamics aware version Simulation -> Atoms
-
-
-#ToDo Variant with Simulation -> PeriodicCell
 """
-    minimum_distance_translation(config::Matrix, ind1::Int, ind2::Int, simulation::NQCDynamics.AbstractSimulation)
+    minimum_distance_translation(config::Matrix, ind1::Int, ind2::Int, simulation::AbstractSimulation)
 
 Outputs a translation vector to move config[:,ind2] such that the closest distance between `ind1` and `ind2` is reached. 
 **The search of neighbouring unit cells will expand until the cutoff. If configurations are already subject to a minimum image convention, `cutoff=1` reduces unnecessary overhead. **
@@ -88,8 +86,6 @@ function angle_between(v1::Vector, v2::Vector)
     return rad2deg(acos(dot(v1,v2)/prod(norm, [v1, v2])))
 end
 
-#ToDo Versions for Any --> Matrix
-#ToDo Versions for Simulation --> Cell, Masses
 
 """
     pbc_distance(config::Matrix, ind1::Int, ind2::Int, simulation::NQCDynamics.AbstractSimulation)
@@ -132,11 +128,59 @@ function velocity_center_of_mass(config::Matrix, ind1::Int, ind2::Int, atoms::At
     return center_of_mass(config, ind1, ind2, atoms)
 end
 
-struct OutputSubsetKineticEnergy
-    indices::Vector{Int}
+
+"""
+    distance(config::Any, i1, i2)
+    
+Interatomic distance in Angstrom for DynamicsVariables. 
+"""
+function distance(config::Union{ComponentVector,ArrayPartition}, i1::int_or_index, i2::int_or_index)
+    return distance(pos,i1,i2)
 end
-function (kinetic_energy::OutputSubsetKineticEnergy)(sol, i)
-    return map(x->DynamicsUtils.classical_kinetic_energy(sol.prob.p.atoms.masses[kinetic_energy.indices], x), [DynamicsUtils.get_velocities(i) for i in sol.u])
+
+"""
+    fractional_mass(sim::NQCDynamics.AbstractSimulation, index1::Int, index2::Int)
+
+Returns m1/(m1+m2) and m2/(m1+m2) as a vector. 
+"""
+function fractional_mass(sim::AbstractSimulation, index1::Int, index2::Int)
+    return fractional_mass(sim.atoms,index1,index2)
+end
+
+function reduced_mass(sim::AbstractSimulation, index1::Int, index2::Int)
+    return reduced_mass(sim.atoms,index1,index2)
+end
+
+function minimum_distance_translation(config::Matrix, ind1::Int, ind2::Int, simulation::AbstractSimulation;cutoff::Int=50)
+    return minimum_distance_translation(config,ind1,ind2,simulation.cell;cutoff=cutoff)
+end
+
+function minimum_distance_translation(config::Union{ComponentVector,ArrayPartition}, ind1::Int, ind2::Int, simulation::AbstractSimulation;cutoff::Int=50)
+    return minimum_distance_translation(get_positions(config),ind1,ind2,simulation.cell;cutoff=cutoff)
+end
+
+function pbc_distance(config::Matrix, ind1, ind2, sim::AbstractSimulation; args...)
+    return pbc_distance(config,ind1,ind2,sim.cell; args...)
+end
+
+function pbc_distance(config::Union{ComponentVector,ArrayPartition}, ind1, ind2, sim::AbstractSimulation; args...)
+    return pbc_distance(get_positions(config),ind1,ind2,sim.cell; args...)
+end
+
+function pbc_center_of_mass(config::Matrix, ind1, ind2, sim::AbstractSimulation; args...)
+    return pbc_center_of_mass(config,ind1,ind2,sim.cell, sim.atoms; args...)
+end
+
+function pbc_center_of_mass(config::Union{ComponentVector,ArrayPartition}, ind1, ind2, sim::AbstractSimulation; args...)
+    return pbc_center_of_mass(get_positions(config),ind1,ind2,sim.cell, sim.atoms; args...)
+end
+
+function velocity_center_of_mass(config::Matrix, ind1, ind2, sim::AbstractSimulation)
+    return velocity_center_of_mass(config,ind1,ind2, sim.atoms)
+end
+
+function velocity_center_of_mass(config::Union{ComponentVector,ArrayPartition}, ind1, ind2, sim::AbstractSimulation)
+    return velocity_center_of_mass(get_velocities(config),ind1,ind2, sim.atoms)
 end
 
 

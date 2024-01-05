@@ -7,6 +7,7 @@ Defines a set of functions that can be used to calculate outputs for dynamics si
 module DynamicsOutputs
 
 using RingPolymerArrays: get_centroid
+using Unitful: @u_str
 using UnitfulAtomic: austrip
 using LinearAlgebra: norm
 using ComponentArrays: ComponentVector
@@ -26,7 +27,6 @@ using .DynamicsUtils:
 using ..InitialConditions: QuantisedDiatomic
 
 using NQCBase
-using PyCall
 using Statistics
 
 """
