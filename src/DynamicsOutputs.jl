@@ -109,6 +109,7 @@ end
 function (output::OutputSubsetKineticEnergy)(sol, i)
     return map(x->DynamicsUtils.classical_kinetic_energy(sol.prob.p.atoms.masses[output.indices], x[:, output.indices]), [DynamicsUtils.get_velocities(i) for i in sol.u])
 end
+export OutputSubsetKineticEnergy
 
 OutputSpringEnergy(sol, i) = DynamicsUtils.classical_spring_energy.(sol.prob.p, sol.u)
 export OutputSpringEnergy
@@ -290,6 +291,7 @@ struct OutputDesorptionAngle
     surface_distance_threshold
 end
 OutputDesorptionAngle(indices; surface_normal = [0,0,1], surface_distance_threshold = 5.0u"Å")=OutputDesorptionAngle(indices, surface_normal, surface_distance_threshold)
+export OutputDesorptionAngle
 
 """
     (output::OutputDesorptionAngle)(sol, i)
@@ -321,5 +323,6 @@ function (output::OutputDesorptionTrajectory)(sol, i)
     desorption_frame = NQCDynamics.Analysis.Diatomic.get_desorption_frame(sol.u, output.indices, sol.p; surface_distance_threshold=output.surface_distance_threshold, surface_normal=output.surface_normal)
     return isa(desorption_frame, Int) ? sol.u[desorption_frame-output.extra_frames:end] : nothing
 end
+export OutputDesorptionTrajectory
 
 end # module
