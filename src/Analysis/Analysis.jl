@@ -10,6 +10,6 @@ export Diatomic
 
 # Rebinding of quantise_diatomic under Analysis. 
 using NQCDynamics: InitialConditions
-@reexport using InitialConditions: quantise_diatomic
+@reexport using .InitialConditions: quantise_diatomic
 
 end

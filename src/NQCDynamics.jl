@@ -45,7 +45,7 @@ include("Ensembles/Ensembles.jl")
 export Ensembles
 @reexport using .Ensembles
 
-# Needs DynamicsUtils, Simulation
+# Needs DynamicsUtils, Simulation, InitialConditions
 include("Analysis/Analysis.jl")
 export Analysis
 
