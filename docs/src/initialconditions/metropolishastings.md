@@ -42,10 +42,15 @@ You will likely have to experiment with this parameter to achieve optimal sampli
 !!! note
 
     Keyword arguments relating to how much of the system to sample were recently changed. The existing `move_ratio` and `internal_ratio` arguments are no longer used. 
+
     Instead, there are now two options to specify how much of the system to move:
+
     `movement_ratio`: Defines which fraction of the system to move. 1 moves the entire system. 
+
     `stop_ratio`: Defines which fraction of the system *not* to move. 1 stops the entire system. 
+
     `movement_ratio_internal`: Defines which proportion of ring polymer normal modes to perturb. 1 moves the entire system. 
+
     `stop_ratio_internal`: Defines which proportion of ring polymer normal modes not to perturb. 1 stops the entire system. 
  
 
