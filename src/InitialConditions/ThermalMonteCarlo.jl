@@ -27,7 +27,7 @@ using NQCDynamics:
   masses
 
 """
-    run_advancedmh_sampling(sim, r, steps, σ; movement_ratio=nothing, movement_ratio_internal=nothing)
+    run_advancedmh_sampling(sim, r, steps, σ; movement_ratio=nothing, movement_ratio_internal=nothing, kwargs...)
 
 Sample the configuration space for the simulation `sim` starting from `r`.
 
@@ -39,6 +39,8 @@ step sizes for each species.
 For `movement_ratio = 0`, every degree of freedom is moved at each step, if `movement_ratio = 1`, then nothing will happen. 
 
 If neither arguments are defined, default behaviour is to move one atom (and one ring polymer normal mode) per step on average. 
+
+Further kwargs are passed to `AdvancedMH.sample` to allow for [extra functionality](https://turinglang.org/AbstractMCMC.jl/dev/api/#Common-keyword-arguments).
 """
 function run_advancedmh_sampling(
   sim::AbstractSimulation,
