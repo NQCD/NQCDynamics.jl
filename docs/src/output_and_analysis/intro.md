@@ -24,12 +24,7 @@ ensemble[3][:OutputPosition] # will output the positions at all timesteps in tra
 
 Every output type is a function which can use the [`DynamicsVariables`](@ref) and [`Simulation`](@ref) values of the respective trajectory, allowing you to create custom output types of any kind. See the [developer documentation] for more information on how to implement a custom output type. 
 
-Here is a list of all currently implemented output types:
-
-```@autodocs
-Modules=[NQCDynamics.DynamicsOutputs]
-Private=false
-```
+You can find an overview of all available output types in the [`DynamicsOutputs`](@ref) API. 
 
 ## Analysis functions
 
