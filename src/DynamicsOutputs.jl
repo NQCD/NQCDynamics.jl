@@ -285,10 +285,10 @@ export OutputStateResolvedScattering1D
 """
 Outputs the desorption angle in degrees (relative to the surface normal) if a desorption event is detected.
 """
-struct OutputDesorptionAngle{indices, surface_normal, surface_distance_threshold}
-    indices::Vector{Int}
-    surface_normal::Vector{Float64}
-    surface_distance_threshold
+struct OutputDesorptionAngle{I<:Vector{Int},S<:Vector{Float64},D}
+    indices::I
+    surface_normal::S
+    surface_distance_threshold::D
 end
 """
     OutputDesorptionAngle(indices; surface_normal = [0,0,1], surface_distance_threshold = 5.0u"Å")
@@ -299,7 +299,7 @@ Use `surface_normal` to define the direction "away" from the surface. Most commo
 A desorption is detected if the centre of mass of the molecule defined with `indices` is above `surface_distance_threshold` from the closest surface atom. 
 This is calculated with respect to `surface_normal` and will take into account periodic boundary conditions. 
 """
-OutputDesorptionAngle(indices; surface_normal = [0,0,1], surface_distance_threshold = 5.0u"Å")=OutputDesorptionAngle(indices, convert(Vector{Float64},surface_normal), surface_distance_threshold)
+OutputDesorptionAngle(indices; surface_normal = [0,0,1], surface_distance_threshold = 5.0u"Å") = OutputDesorptionAngle(indices, convert(Vector{Float64},surface_normal), surface_distance_threshold)
 export OutputDesorptionAngle
 
 """
@@ -311,7 +311,7 @@ function (output::OutputDesorptionAngle)(sol, i)
     return NQCDynamics.Analysis.Diatomic.get_desorption_angle(sol.u, output.indices, sol.p; surface_normal=output.surface_normal, surface_distance_threshold=output.surface_distance_threshold)
 end
 
-struct OutputDesorptionTrajectory{I, N, D, F}
+struct OutputDesorptionTrajectory{I<:Vector{Int}, N<:Vector{Float64}, D, F<:Int}
     indices::I
     surface_normal::N
     surface_distance_threshold::D
