@@ -20,6 +20,9 @@ if GROUP == "All" || GROUP == "Core"
     @safetestset "Estimator tests" begin
         include("Core/estimators.jl")
     end
+    @safetestset "Structure Manipulation" begin
+        include("Structure/structure.jl")
+    end
 end
 
 if GROUP == "All" || GROUP == "InitialConditions"
