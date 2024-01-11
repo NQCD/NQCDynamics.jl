@@ -307,9 +307,9 @@ Like OutputDynamicsVariables, but only saves parts of the trajectory where desor
 
 Use `extra_frames` to save additional steps before the desorption event begins. 
 """
-struct OutputDesorptionTrajectory
+struct OutputDesorptionTrajectory{indices, surface_normal, surface_distance_threshold, extra_frames}
     indices::Vector{Int}
-    surface_normal::Vector
+    surface_normal::Vector{Float64}
     surface_distance_threshold
     extra_frames::Int
 end
