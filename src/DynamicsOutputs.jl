@@ -308,7 +308,7 @@ export OutputDesorptionAngle
 Outputs the desorption angle in degrees (relative to the surface normal) if a desorption event was detected.
 """
 function (output::OutputDesorptionAngle)(sol, i)
-    return Analysis.Diatomic.get_desorption_angle(sol.u, output.indices, sol.p; surface_normal=output.surface_normal, surface_distance_threshold=output.surface_distance_threshold)
+    return Analysis.Diatomic.get_desorption_angle(sol.u, output.indices, sol.prob.p; surface_normal=output.surface_normal, surface_distance_threshold=output.surface_distance_threshold)
 end
 
 struct OutputDesorptionTrajectory{I<:Vector{Int}, N<:Vector{Float64}, D, F<:Int}
@@ -336,7 +336,7 @@ OutputDesorptionTrajectory(indices; surface_normal = [0,0,1], surface_distance_t
 Only output parts of the trajectory where desorption is occurring.
 """
 function (output::OutputDesorptionTrajectory)(sol, i)
-    desorption_frame = Analysis.Diatomic.get_desorption_frame(sol.u, output.indices, sol.p; surface_distance_threshold=output.surface_distance_threshold, surface_normal=output.surface_normal)
+    desorption_frame = Analysis.Diatomic.get_desorption_frame(sol.u, output.indices, sol.prob.p; surface_distance_threshold=output.surface_distance_threshold, surface_normal=output.surface_normal)
     return isa(desorption_frame, Int) ? sol.u[desorption_frame-output.extra_frames:end] : nothing
 end
 export OutputDesorptionTrajectory
