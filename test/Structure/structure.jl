@@ -22,6 +22,8 @@ end
     sim=Simulation(atoms, Free(3); cell=cell)
     @test 1.0 == austrip(Structure.pbc_distance(positions, 1,2,sim))
     positions=[0 0; 0 0; 1 9]
-    @test Structure.pbc_center_of_mass(positions, 1, 2, cell) == ([0.0, 0.0, 0.0] || [0.0 ,0.0 ,10.0])
-    @test Structure.pbc_center_of_mass(positions, 1, 2, sim) == ([0.0, 0.0, 0.0] || [0.0 ,0.0 ,10.0])
+    com=Structure.pbc_center_of_mass(positions, 1, 2, cell)
+    @test com == [0.0, 0.0, 0.0] || com == [0.0 ,0.0 ,10.0]
+    com=Structure.pbc_center_of_mass(positions, 1, 2, sim) 
+    @test com == [0.0, 0.0, 0.0] || com == [0.0 ,0.0 ,10.0]
 end
