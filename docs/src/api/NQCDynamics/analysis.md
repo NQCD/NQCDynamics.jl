@@ -7,6 +7,12 @@ start_time = time()
 ```@autodocs
 Modules=[NQCDynamics.Analysis]
 ```
+
+## Diatomic functions
+```@autodocs
+Modules=[NQCDynamics.Analysis.Diatomic]
+```
+
 ```@setup logging
 runtime = round(time() - start_time; digits=2)
 @info "...done after $runtime s."

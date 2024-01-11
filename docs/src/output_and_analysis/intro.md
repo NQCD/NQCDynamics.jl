@@ -24,19 +24,19 @@ ensemble[3][:OutputPosition] # will output the positions at all timesteps in tra
 
 Every output type is a function which can use the [`DynamicsVariables`](@ref) and [`Simulation`](@ref) values of the respective trajectory, allowing you to create custom output types of any kind. See the [developer documentation] for more information on how to implement a custom output type. 
 
-You can find an overview of all available output types in the [`DynamicsOutputs`](@ref) API. 
+You can find an overview of all available output types in the [`DynamicsOutputs`](@ref DynamicsOutputs) API. 
 
 ## Analysis functions
 
 The Analysis submodule in NQCDynamics contains functions commonly used in the analysis of trajectories to make the analysis of existing trajectories easier. 
-Ideally, most observable quantities could be implemented with a combination of [`DynamicsOutputs`](@ref) and `Reduction` types, however we might want to data from existing ensemble simulations where re-running the entire set of trajectories is impractical. 
+Ideally, most observable quantities could be implemented with a combination of [`DynamicsOutputs`](@ref DynamicsOutputs) and `Reduction` types, however we might want to data from existing ensemble simulations where re-running the entire set of trajectories is impractical. 
 
 As a result, most functions in the `Analysis` submodule are also implemented as a `DynamicsOutput`. 
 
 ### Convenient functions for periodic structures
-[NQCDynamics.Structure](@ref) contains several useful functions for periodic structures, such as `pbc_distance, pbc_center_of_mass`. 
+[NQCDynamics.Structure](@ref NQCDynamics.Structure) contains several useful functions for periodic structures, such as `pbc_distance, pbc_center_of_mass`. 
 
 These functions take into account periodic copies of the atoms in question, returning the respective values for the closest set of periodic copies. 
 
 ### Analysis of diatomic molecules
-[NQCDynamics.Analysis.Diatomic](@ref) 
+[NQCDynamics.Analysis.Diatomic](@ref NQCDynamics.Analysis.Diatomic) 
