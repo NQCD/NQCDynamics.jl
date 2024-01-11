@@ -311,11 +311,11 @@ function (output::OutputDesorptionAngle)(sol, i)
     return NQCDynamics.Analysis.Diatomic.get_desorption_angle(sol.u, output.indices, sol.p; surface_normal=output.surface_normal, surface_distance_threshold=output.surface_distance_threshold)
 end
 
-struct OutputDesorptionTrajectory{indices, surface_normal, surface_distance_threshold, extra_frames}
-    indices::Vector{Int}
-    surface_normal::Vector{Float64}
-    surface_distance_threshold
-    extra_frames::Int
+struct OutputDesorptionTrajectory{I, N, D, F}
+    indices::I
+    surface_normal::N
+    surface_distance_threshold::D
+    extra_frames::F
 end
 """
     `OutputDesorptionTrajectory(indices; surface_normal = [0,0,1], surface_distance_threshold = 5.0u"Å", extra_frames = 0)`
