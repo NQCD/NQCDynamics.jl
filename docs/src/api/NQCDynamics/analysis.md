@@ -5,12 +5,7 @@ start_time = time()
 # Analysis
 
 ```@autodocs
-Modules=[NQCDynamics.Analysis]
-```
-
-## Diatomic functions
-```@autodocs
-Modules=[NQCDynamics.Analysis.Diatomic]
+Modules=[NQCDynamics.Analysis, NQCDynamics.Analysis.Diatomic]
 ```
 
 ```@setup logging

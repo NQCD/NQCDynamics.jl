@@ -34,9 +34,9 @@ Ideally, most observable quantities could be implemented with a combination of [
 As a result, most functions in the `Analysis` submodule are also implemented as a `DynamicsOutput`. 
 
 ### Convenient functions for periodic structures
-[NQCDynamics.Structure](@ref NQCDynamics.Structure) contains several useful functions for periodic structures, such as `pbc_distance, pbc_center_of_mass`. 
+[Structure](@ref NQCDynamics.Structure) contains several useful functions for periodic structures, such as `pbc_distance, pbc_center_of_mass`. 
 
 These functions take into account periodic copies of the atoms in question, returning the respective values for the closest set of periodic copies. 
 
 ### Analysis of diatomic molecules
-[NQCDynamics.Analysis.Diatomic](@ref NQCDynamics.Analysis.Diatomic) 
+[NQCDynamics.Analysis.Diatomic](@ref) 

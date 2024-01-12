@@ -12,8 +12,8 @@ int_or_index=Union{Int, CartesianIndex}
 
 """
     distance(config::Matrix, i1, i2)
-    Interatomic distance in Angstrom for a position Matrix. 
-TBW
+
+Interatomic distance in Angstrom for a position Matrix.
 """
 function distance(config::Matrix, i1::int_or_index, i2::int_or_index)
     return au_to_ang(norm(config[:,i1].-config[:,i2]))*u"Å"
@@ -121,8 +121,7 @@ end
 """
     velocity_center_of_mass(config::Matrix, ind1::Int, ind2::Int, simulation::NQCDynamics.AbstractSimulation)
 
-    `sum(m_i*v_i)/sum(m_i)`
-TBW
+`sum(m_i*v_i)/sum(m_i)`
 """
 function velocity_center_of_mass(config::Matrix, ind1::Int, ind2::Int, atoms::Atoms)
     return center_of_mass(config, ind1, ind2, atoms)
