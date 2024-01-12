@@ -24,12 +24,12 @@ ensemble[3][:OutputPosition] # will output the positions at all timesteps in tra
 
 Every output type is a function which can use the [`DynamicsVariables`](@ref) and [`Simulation`](@ref) values of the respective trajectory, allowing you to create custom output types of any kind. See the [developer documentation] for more information on how to implement a custom output type. 
 
-You can find an overview of all available output types in the [`DynamicsOutputs`](@ref DynamicsOutputs) API. 
+You can find an overview of all available output types in the [`DynamicsOutputs`](@ref NQCDynamics.DynamicsOutputs) API. 
 
 ## Analysis functions
 
 The Analysis submodule in NQCDynamics contains functions commonly used in the analysis of trajectories to make the analysis of existing trajectories easier. 
-Ideally, most observable quantities could be implemented with a combination of [`DynamicsOutputs`](@ref DynamicsOutputs) and `Reduction` types, however we might want to data from existing ensemble simulations where re-running the entire set of trajectories is impractical. 
+Ideally, most observable quantities could be implemented with a combination of [`DynamicsOutputs`](@ref NQCDynamics.DynamicsOutputs) and `Reduction` types, however we might want to data from existing ensemble simulations where re-running the entire set of trajectories is impractical. 
 
 As a result, most functions in the `Analysis` submodule are also implemented as a `DynamicsOutput`. 
 
