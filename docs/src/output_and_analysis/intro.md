@@ -28,15 +28,15 @@ You can find an overview of all available output types in the [`DynamicsOutputs`
 
 ## Analysis functions
 
-The Analysis submodule in NQCDynamics contains functions commonly used in the analysis of trajectories to make the analysis of existing trajectories easier. 
+The [Analysis](@ref Analysis) submodule in NQCDynamics contains functions commonly used in the analysis of trajectories to make the analysis of existing trajectories easier. 
 Ideally, most observable quantities could be implemented with a combination of [`DynamicsOutputs`](@ref NQCDynamics.DynamicsOutputs) and `Reduction` types, however we might want to data from existing ensemble simulations where re-running the entire set of trajectories is impractical. 
 
 As a result, most functions in the `Analysis` submodule are also implemented as a `DynamicsOutput`. 
 
 ### Convenient functions for periodic structures
-[Structure](@ref NQCDynamics.Structure) contains several useful functions for periodic structures, such as `pbc_distance, pbc_center_of_mass`. 
+[`NQCDynamics.Structure`](@ref Structure) contains several useful functions for periodic structures, such as `pbc_distance, pbc_center_of_mass`. 
 
 These functions take into account periodic copies of the atoms in question, returning the respective values for the closest set of periodic copies. 
 
 ### Analysis of diatomic molecules
-[NQCDynamics.Analysis.Diatomic](@ref) 
+[`NQCDynamics.Analysis.Diatomic`](@ref Analysis)
