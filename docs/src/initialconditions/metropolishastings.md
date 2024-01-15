@@ -115,7 +115,7 @@ Further explanations of the keyword arguments can be found in the *AbstractMCMC.
 Δ = Dict(:N => 0.1, :O => 0.1)
 R0 = [1.0 0.0; 0.0 0.0; 0.0 0.0]
 samples = 1000
-output = ThermalMonteCarlo.run_advancedmh_sampling(sim, R0, samples, Δ; movement_ratio=0.5, thinning=10, discard_initial=100)
+output = InitialConditions.ThermalMonteCarlo.run_advancedmh_sampling(sim, R0, samples, Δ; movement_ratio=0.5, thinning=10, discard_initial=100)
 nothing # hide
 ```
 
