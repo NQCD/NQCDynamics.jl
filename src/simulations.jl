@@ -3,7 +3,7 @@ using Unitful: @u_str
 using UnitfulAtomic: austrip, auconvert
 
 using .Calculators: AbstractCalculator, Calculator
-using NQCModels: Model
+using NQCModels: Model, Subsystem, CompositeModel
 
 abstract type AbstractSimulation{M} end
 
@@ -27,6 +27,18 @@ dynamics method, temperature and simulation cell.
 function Simulation(atoms::Atoms{T}, model::Model, method::M;
         temperature=0u"K", cell::AbstractCell=InfiniteCell()) where {M,T}
     calc = Calculator(model, length(atoms), T)
+    # If a thermostat is provided, check it covers the whole system. 
+    isa(temperature, Thermostat{Vector{Int}}) ? throw(DomainError(temperature, "Thermostat must apply to all atoms.")) : nothing
+    # If multiple Thermostats are provided, check that each atom only has one thermostat applied to it.
+    if isa(temperature, Vector{<:Thermostat})
+        indices = vcat([thermostat.indices for thermostat in temperature]...)
+        if length(unique(indices)) != length(atoms.masses)
+            throw(DomainError(temperature, "Every atom must have a Thermostat applied to it."))
+        end
+        if length(indices) != length(unique(indices))
+            throw(DomainError(temperature, "Atoms can only have one thermostat applied to them."))
+        end
+    end
     Simulation(temperature, cell, atoms, calc, method)
 end
 
@@ -88,7 +100,7 @@ get_temperature(temperature::Number, t=0) = austrip(temperature)
 get_temperature(temperature::Function, t=0) = austrip(temperature(t))
 
 function get_ring_polymer_temperature(sim::RingPolymerSimulation, t::Real=0)
-    return get_temperature(sim, t) * nbeads(sim)
+    return @. get_temperature(sim, t) * nbeads(sim)
 end
 
 function Base.show(io::IO, sim::Simulation{M}) where {M}
@@ -99,3 +111,46 @@ function Base.show(io::IO, sim::RingPolymerSimulation{M}) where {M}
     print(io, "RingPolymerSimulation{$M}:\n\n  ", sim.atoms, "\n\n  ", sim.calculator.model,
           "\n  with ", length(sim.beads), " beads.")
 end
+
+"""
+A Thermostat is defined by a temperature (either constant or time-dependent) as the atom indices within a structure that it is applied to. 
+
+"""
+struct Thermostat{I}
+    temperature::Function
+    indices::I
+end
+
+function Base.show(io::IO, thermostat::Thermostat)
+    print(io, "Thermostat:\nT(0) = $(get_temperature(thermostat, 0u"fs"))\nApplies to atoms: $(thermostat.indices)\n")
+end
+
+function Thermostat(temperature, indices=:)
+    if isa(indices, UnitRange)
+        indices=collect(indices)
+    elseif isa(indices, Int)
+        indices=[indices]
+    end
+    if !isa(temperature, Function)
+        temperature_function(t)=temperature
+        return Thermostat(temperature_function, indices)
+    else
+        return Thermostat(temperature, indices)
+    end
+end
+
+function Thermostat(temperature, subsystem::NQCModels.Subsystem)
+    Thermostat(temperature, subsystem.indices)
+end
+
+get_temperature(thermostat::Thermostat{<:Any}, t=0u"fs") = austrip(thermostat.temperature(t))
+
+function get_temperature(thermostats::Vector{<:Thermostat}, t=0u"fs")
+    indices=vcat([thermostat.indices for thermostat in thermostats]...)
+    temperature_vector=zeros(Number, length(indices))
+    for thermostat in thermostats
+        temperature_vector[thermostat.indices] .= austrip(thermostat.temperature(t))
+    end
+    return temperature_vector
+end
+

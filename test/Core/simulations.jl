@@ -1,6 +1,6 @@
 using Test
 using NQCDynamics
-using Unitful
+using Unitful, UnitfulAtomic
 
 atoms = Atoms([:C, :H])
 cell = InfiniteCell()
@@ -22,7 +22,25 @@ model = NQCModels.Free()
 @test Simulation{Langevin}(atoms, model) isa Simulation{<:Langevin}
 @test Simulation{FSSH}(atoms, NQCModels.DoubleWell()) isa Simulation{<:FSSH}
 
-@testset "get_temperature" begin
+@testset "Thermostats" begin
+    # Init thermostat with unitful quality
+    thermostat1=Thermostat(10u"K", [1,2])
+    @test NQCDynamics.get_temperature(thermostat1, 0) == NQCDynamics.get_temperature(thermostat1, 100)
+    # Init thermostat with function
+    thermostat2=Thermostat(x->(10+x*u"fs^-1")*u"K", [2,3])
+    @test NQCDynamics.get_temperature(thermostat2) == austrip(10u"K")
+    @test NQCDynamics.get_temperature(thermostat2, 10u"fs") == austrip(20u"K")
+    # Test that thermostats with overlapping indices throw an error
+    @test_throws DomainError Simulation(atoms, model; temperature=[thermostat1, thermostat2])
+    # Test system size / total thermostat size mismatch
+    @test_throws DomainError Simulation(Atoms([:N, :H, :H, :H,]), model; temperature=thermostat1)
+    thermostat3=thermostat2=Thermostat(x->(10+x*u"fs^-1")*u"K", [3,4])
+    # Combined temperature evaluation
+    sim = Simulation(Atoms([:N, :H, :H, :H,]), model; temperature=[thermostat1, thermostat3])
+    @test NQCDynamics.get_temperature(sim, austrip(1u"fs")) == austrip.([10u"K", 10u"K", 11u"K", 11u"K"])
+end
+
+@testset "get_temperature(Simulation)" begin
     sim = Simulation(atoms, model; temperature=10u"K")
     @test NQCDynamics.get_temperature(sim) isa Real
     sim = Simulation(atoms, model; temperature=x->10u"K")

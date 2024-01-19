@@ -17,7 +17,8 @@ include("simulations.jl")
 export Simulation,
        RingPolymerSimulation,
        natoms,
-       masses
+       masses,
+       Thermostat
 
 @reexport using NQCDistributions
 
