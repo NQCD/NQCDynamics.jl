@@ -65,6 +65,12 @@ end
 function Calculator(model::AdiabaticFrictionModel, atoms::Integer, beads::Integer, t::Type{T}) where {T}
     RingPolymerFrictionCalculator{t}(model, atoms, beads)
 end
+function Calculator(model::CompositeModel{<:}, atoms::Integer, t::Type{T}) where {T}
+    if any([!isa(s.model, AdiabaticModel) for s in NQCModels.get_pes_models(model.subsystems)])
+        throw(ArgumentError("Currently, only CompositeModels using AdiabaticModels to supply a PES are supported. "))
+    end
+    FrictionCalculator{t}(model, atoms)
+end
 
 function evaluate_friction!(calc::AbstractFrictionCalculator, R::AbstractMatrix)
     calc.stats[:friction] += 1
