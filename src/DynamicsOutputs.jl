@@ -173,10 +173,22 @@ OutputTotalAdiabaticPopulation(sol, i) = sum.(Estimators.adiabatic_population.(s
 export OutputTotalAdiabaticPopulation
 
 """
-Output the end point of each trajectory.
+Output the end point of each trajectory in DynamicsVariables format. 
 """
 OutputFinal(sol, i) = last(sol.u)
 export OutputFinal
+
+"""
+Output the first point of each trajectory in DynamicsVariables format. (Useful when using distributions for initial conditions.)
+"""
+OutputFirst(sol, i) = first(sol.u)
+export OutputFirst
+
+"""
+Output the temperature(s) at each time step. Useful in case temperature is not constant.
+"""
+OutputTemperature(sol, i) = [get_temperature(sol.prob.p, t) for t in sol.t]
+export OutputTemperature
 
 """
 Output the total number of surface hops during the trajectory
