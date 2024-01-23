@@ -122,7 +122,7 @@ struct Thermostat{I}
 end
 
 function Base.show(io::IO, thermostat::Thermostat)
-    print(io, "Thermostat:\nT(0) = $(get_temperature(thermostat, 0u"fs"))\nApplies to atoms: $(thermostat.indices)\n")
+    print(io, "Thermostat:\n\tT(0) = $(get_temperature(thermostat, 0u"fs"))\n\tApplies to atoms: $(thermostat.indices)\n")
 end
 
 function Thermostat(temperature, indices=:)
