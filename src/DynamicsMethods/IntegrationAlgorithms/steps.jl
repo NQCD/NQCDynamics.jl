@@ -43,9 +43,9 @@ function step_O!(cache, integrator)
     @unpack dutmp, flatdutmp, tmp1, tmp2, gtmp, noise, half, c1, c2 = cache
 
     Λ = gtmp
-    σ = @. $repeat( sqrt(get_temperature(p, t+dt*half) / p.atoms.masses);inner=ndofs(p))
+    σ = repeat( sqrt.(get_temperature(p, t+dt*half) ./ p.atoms.masses);inner=ndofs(p))
 
-    @. noise = σ*W.dW[:] / sqdt
+    @.. noise = σ*W.dW[:] / sqdt
 
     γ, c = LAPACK.syev!('V', 'U', Λ) # symmetric eigen
     clamp!(γ, 0, Inf)
