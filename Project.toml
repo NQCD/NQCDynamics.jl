@@ -1,7 +1,7 @@
 name = "NQCDynamics"
 uuid = "36248dfb-79eb-4f4d-ab9c-e29ea5f33e14"
 authors = ["James <james.gardner1421@gmail.com>"]
-version = "0.13.4"
+version = "0.13.5"
 
 [deps]
 AdvancedHMC = "0bf59076-c3b1-5ca4-86bd-e02cd72cde3d"
@@ -47,7 +47,7 @@ UnitfulAtomic = "a7773ee8-282e-5fa2-be4e-bd808c38a91a"
 
 [compat]
 AdvancedHMC = "0.5, 0.6"
-AdvancedMH = "0.6, 0.7, 0.8"
+AdvancedMH = "0.8"
 ComponentArrays = "0.11, 0.12, 0.13, 0.14, 0.15"
 DEDataArrays = "0.2"
 Dictionaries = "0.3"
