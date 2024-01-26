@@ -13,7 +13,8 @@ using ComponentArrays: ComponentVector
 
 using NQCDynamics:
     Estimators,
-    DynamicsUtils
+    DynamicsUtils,
+    get_temperature
 
 using NQCModels: NQCModels
 
