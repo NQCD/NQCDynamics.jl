@@ -187,7 +187,7 @@ export OutputFirst
 """
 Output the temperature(s) at each time step. Useful in case temperature is not constant.
 """
-OutputTemperature(sol, i) = [NQCDynamics.get_temperature(sol.prob.p, t) for t in sol.t]
+OutputTemperature(sol, i) = [get_temperature(sol.prob.p, t) for t in sol.t]
 export OutputTemperature
 
 """

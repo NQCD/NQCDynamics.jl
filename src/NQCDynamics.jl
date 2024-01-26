@@ -18,7 +18,8 @@ export Simulation,
        RingPolymerSimulation,
        natoms,
        masses,
-       Thermostat
+       Thermostat,
+       get_temperature
 
 @reexport using NQCDistributions
 
