@@ -43,7 +43,7 @@ function get_desorption_frame(trajectory::Vector, diatomic_indices::Vector{Int},
         return nothing
     else
         @debug "Found desorption event in frame $(desorbed_frame)"
-        leaving_surface_frame = findfirst(!com_velocity_condition, reverse(trajectory[1:desorbed_frame]))
+        leaving_surface_frame = findfirst(!com_velocity_condition, reverse(trajectory[1:desorbed_frame-1]))
         if isa(leaving_surface_frame, Nothing)
             @debug "Couldn't find a sub-zero CoM velocity component relative to surface normal."
             return nothing
