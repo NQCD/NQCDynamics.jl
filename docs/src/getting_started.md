@@ -238,7 +238,7 @@ For classical dynamics we also provide a timestep `dt` since we're using the
 
 The final keyword argument `output` is used to specify the quantities we want
 to save during the dynamics.
-A list of the available quantities can be found [here](@ref DynamicsOutputs).
+A list of the available quantities can be found [here](@ref NQCDynamics.DynamicsOutputs).
 
 !!! tip "Output format"
 
