@@ -15,21 +15,21 @@ e = 0.03
 k = sqrt(e*2*atoms.masses[1])
 r = Normal(-5, 1/sqrt(0.25))
 v = k / atoms.masses[1]
-distribution = DynamicalDistribution(v, r, size(sim))* PureState(1, Adiabatic())</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">NQCDistributions.ProductDistribution{NQCDistributions.FixedFill{Float64}, NQCDistributions.UnivariateFill{Distributions.Normal{Float64}}, PureState{Adiabatic}}(DynamicalDistribution{NQCDistributions.FixedFill{Float64}, NQCDistributions.UnivariateFill{Distributions.Normal{Float64}}}(NQCDistributions.FixedFill{Float64}(0.005504818825631803, (1, 1)), NQCDistributions.UnivariateFill{Distributions.Normal{Float64}}(Distributions.Normal{Float64}(μ=-5.0, σ=2.0), (1, 1)), Random.Xoshiro(0x5e7f8c8f34d6a2eb, 0x40e217041913236a, 0x8b1bc3b007f466db, 0xef0f0f128e34bd76, 0x621a0d8d8b473daa)), PureState{Adiabatic}(1, Adiabatic()))</code></pre><p>To run an ensemble simulation we additionally choose number of trajectories <code>n_traj</code> and timespan <code>tspan</code> and we pass all the established settings to the <code>run_dynamics</code> function. In this example we output velocities by specifying <code>output=OutputVelocity</code> and store the final values in the <code>final_velocities</code> array. Following that, we calculate final momenta.</p><pre><code class="language-julia hljs">n_traj = 10
+distribution = DynamicalDistribution(v, r, size(sim))* PureState(1, Adiabatic())</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">NQCDistributions.ProductDistribution{NQCDistributions.FixedFill{Float64}, NQCDistributions.UnivariateFill{Distributions.Normal{Float64}}, PureState{Adiabatic}}(DynamicalDistribution{NQCDistributions.FixedFill{Float64}, NQCDistributions.UnivariateFill{Distributions.Normal{Float64}}}(NQCDistributions.FixedFill{Float64}(0.005504818825631803, (1, 1)), NQCDistributions.UnivariateFill{Distributions.Normal{Float64}}(Distributions.Normal{Float64}(μ=-5.0, σ=2.0), (1, 1)), Random.Xoshiro(0x2f2ab075dd1d36c9, 0xb72c7c6969a1d8c8, 0x54c958456242a750, 0xaaa571e108335dcc, 0xa724fc343eb79645)), PureState{Adiabatic}(1, Adiabatic()))</code></pre><p>To run an ensemble simulation we additionally choose number of trajectories <code>n_traj</code> and timespan <code>tspan</code> and we pass all the established settings to the <code>run_dynamics</code> function. In this example we output velocities by specifying <code>output=OutputVelocity</code> and store the final values in the <code>final_velocities</code> array. Following that, we calculate final momenta.</p><pre><code class="language-julia hljs">n_traj = 10
 tspan = (0.0, 3000.0)
 solution = run_dynamics(sim, tspan, distribution;
     trajectories=n_traj, output=OutputVelocity, dt=1.0)
 final_velocities = [r[:OutputVelocity][end] for r in solution]
 momenta = reduce(vcat, final_velocities*atoms.masses[1])</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">10×1 Matrix{Float64}:
- 9.780254794546886
- 9.780257197774066
- 9.780254797893539
- 9.780542111322687
- 9.780254795416248
- 9.78025959764289
- 9.780262328532427
- 9.676423507339624
- 9.808812756477991
- 9.78025587980565</code></pre><pre><code class="language-julia hljs">using Plots
+ 9.780255178937178
+ 9.780254844316113
+ 9.66815460625237
+ 9.780254947641158
+ 9.78025479511034
+ 9.780254794684469
+ 9.780255955881826
+ 9.780287320556013
+ 9.780254770532997
+ 9.78025556822415</code></pre><pre><code class="language-julia hljs">using Plots
 histogram(momenta)
-xlims!(-20,20)</code></pre><img src="85517686.svg" alt="Example block output"/></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../classical/">« Classical molecular dynamics</a><a class="docs-footer-nextpage" href="../fssh/">Fewest-switches surface hopping (FSSH) »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="auto">Automatic (OS)</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.2.1 on <span class="colophon-date" title="Friday 12 January 2024 10:51">Friday 12 January 2024</span>. Using Julia version 1.10.0.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+xlims!(-20,20)</code></pre><img src="ed2bcafc.svg" alt="Example block output"/></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../classical/">« Classical molecular dynamics</a><a class="docs-footer-nextpage" href="../fssh/">Fewest-switches surface hopping (FSSH) »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="auto">Automatic (OS)</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.2.1 on <span class="colophon-date" title="Tuesday 30 January 2024 17:13">Tuesday 30 January 2024</span>. Using Julia version 1.10.0.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

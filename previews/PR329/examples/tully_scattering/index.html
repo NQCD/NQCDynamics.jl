@@ -36,25 +36,25 @@ for k in momenta # Iterate through each momentum value
 end
 
 result</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">21-element Vector{Any}:
- ComponentVector{Float64}(reflection = [0.0, 0.0], transmission = [1.0, 0.0])
- ComponentVector{Float64}(reflection = [0.01, 0.002], transmission = [0.974, 0.014])
- ComponentVector{Float64}(reflection = [0.0, 0.0], transmission = [0.876, 0.124])
- ComponentVector{Float64}(reflection = [0.0, 0.0], transmission = [0.844, 0.156])
- ComponentVector{Float64}(reflection = [0.0, 0.0], transmission = [0.926, 0.074])
- ComponentVector{Float64}(reflection = [0.0, 0.0], transmission = [0.972, 0.028])
- ComponentVector{Float64}(reflection = [0.0, 0.0], transmission = [0.944, 0.056])
- ComponentVector{Float64}(reflection = [0.0, 0.0], transmission = [0.82, 0.18])
- ComponentVector{Float64}(reflection = [0.0, 0.0], transmission = [0.624, 0.376])
- ComponentVector{Float64}(reflection = [0.0, 0.0], transmission = [0.48, 0.52])
+ ComponentVector{Float64}(reflection = [0.012, 0.0], transmission = [0.988, 0.0])
+ ComponentVector{Float64}(reflection = [0.008, 0.002], transmission = [0.98, 0.01])
+ ComponentVector{Float64}(reflection = [0.0, 0.0], transmission = [0.868, 0.132])
+ ComponentVector{Float64}(reflection = [0.0, 0.0], transmission = [0.866, 0.134])
+ ComponentVector{Float64}(reflection = [0.0, 0.0], transmission = [0.932, 0.068])
+ ComponentVector{Float64}(reflection = [0.0, 0.0], transmission = [0.964, 0.036])
+ ComponentVector{Float64}(reflection = [0.0, 0.0], transmission = [0.966, 0.034])
+ ComponentVector{Float64}(reflection = [0.0, 0.0], transmission = [0.826, 0.174])
+ ComponentVector{Float64}(reflection = [0.0, 0.0], transmission = [0.692, 0.308])
+ ComponentVector{Float64}(reflection = [0.0, 0.0], transmission = [0.482, 0.518])
  ⋮
- ComponentVector{Float64}(reflection = [0.0, 0.0], transmission = [0.334, 0.666])
- ComponentVector{Float64}(reflection = [0.0, 0.0], transmission = [0.388, 0.612])
- ComponentVector{Float64}(reflection = [0.0, 0.0], transmission = [0.502, 0.498])
- ComponentVector{Float64}(reflection = [0.0, 0.0], transmission = [0.624, 0.376])
- ComponentVector{Float64}(reflection = [0.0, 0.0], transmission = [0.786, 0.214])
- ComponentVector{Float64}(reflection = [0.0, 0.0], transmission = [0.888, 0.112])
- ComponentVector{Float64}(reflection = [0.0, 0.0], transmission = [0.93, 0.07])
- ComponentVector{Float64}(reflection = [0.0, 0.0], transmission = [0.988, 0.012])
+ ComponentVector{Float64}(reflection = [0.0, 0.0], transmission = [0.33, 0.67])
+ ComponentVector{Float64}(reflection = [0.0, 0.0], transmission = [0.412, 0.588])
+ ComponentVector{Float64}(reflection = [0.0, 0.0], transmission = [0.498, 0.502])
+ ComponentVector{Float64}(reflection = [0.0, 0.0], transmission = [0.66, 0.34])
+ ComponentVector{Float64}(reflection = [0.0, 0.0], transmission = [0.782, 0.218])
+ ComponentVector{Float64}(reflection = [0.0, 0.0], transmission = [0.894, 0.106])
+ ComponentVector{Float64}(reflection = [0.0, 0.0], transmission = [0.936, 0.064])
+ ComponentVector{Float64}(reflection = [0.0, 0.0], transmission = [0.984, 0.016])
  ComponentVector{Float64}(reflection = [0.0, 0.0], transmission = [1.0, 0.0])</code></pre><div class="admonition is-success"><header class="admonition-header">Adaptive timespan</header><div class="admonition-body"><p>Since the trajectories with larger momentum will exit the scattering region sooner, we scale the timespan to save computational time. Using <code>tspan = (0, 2abs(r)/v)</code> allows enough time such that a particle will be able to travel a total distance of <code>2r</code> at a constant velocity of v. This is sufficient to ensure the particle has left the interaction region. Alternatively, we could <a href="../../devdocs/diffeq/#devdocs-callbacks">define a callback to terminate the simulation early</a>.</p></div></div><p>Now we can plot our simulation results. We format this plot to match Fig. 3 from [<a href="../../references/#Shakib2017">18</a>] which also reproduces Fig. 5 from [<a href="../../references/#Tully1990">1</a>]. We manage to reproduce the FSSH results quite accurately by visual comparison, though a larger number of trajectories would lead to better convergence. Since all of the examples run during the documentation build, we use a minimal number of trajectories to optimise the build time.</p><pre><code class="language-julia hljs">using Plots
 
 plot(
@@ -68,4 +68,4 @@ t2 = [r.transmission[2] for r in result]
 
 scatter!(momenta, r1; label=&quot;R1&quot;, color=:red)
 scatter!(momenta, t1; label=&quot;T1&quot;, color=:green)
-scatter!(momenta, t2; label=&quot;T2&quot;, color=:blue)</code></pre><img src="fbd5acba.svg" alt="Example block output"/><p>As in [<a href="../../references/#Shakib2017">18</a>], R1, T1, T2 refer to reflection on state 1, transmission on state 1 and transmission on state 2 respectively. For this model, surface hopping is successful in closely approximating the exact quantum result, especially at higher momentum values. Refer to [<a href="../../references/#Tully1990">1</a>] and [<a href="../../references/#Shakib2017">18</a>] for a detailed discussion of the results.</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../threestatemorse/">« Time-dependent populations with the ThreeStateMorse model</a><a class="docs-footer-nextpage" href="../../integration_algorithms/">Integration algorithms »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="auto">Automatic (OS)</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.2.1 on <span class="colophon-date" title="Friday 12 January 2024 10:50">Friday 12 January 2024</span>. Using Julia version 1.10.0.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+scatter!(momenta, t2; label=&quot;T2&quot;, color=:blue)</code></pre><img src="0aec0bd2.svg" alt="Example block output"/><p>As in [<a href="../../references/#Shakib2017">18</a>], R1, T1, T2 refer to reflection on state 1, transmission on state 1 and transmission on state 2 respectively. For this model, surface hopping is successful in closely approximating the exact quantum result, especially at higher momentum values. Refer to [<a href="../../references/#Tully1990">1</a>] and [<a href="../../references/#Shakib2017">18</a>] for a detailed discussion of the results.</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../threestatemorse/">« Time-dependent populations with the ThreeStateMorse model</a><a class="docs-footer-nextpage" href="../../integration_algorithms/">Integration algorithms »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="auto">Automatic (OS)</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.2.1 on <span class="colophon-date" title="Tuesday 30 January 2024 17:13">Tuesday 30 January 2024</span>. Using Julia version 1.10.0.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
