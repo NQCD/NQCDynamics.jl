@@ -24,6 +24,7 @@ using .DynamicsUtils:
     get_quantum_subsystem
 
 using ..InitialConditions: QuantisedDiatomic
+using Unitful,UnitfulAtomic
 
 """
     OutputVelocity(sol, i)
@@ -182,13 +183,19 @@ export OutputFinal
 """
 Output the first point of each trajectory in DynamicsVariables format. (Useful when using distributions for initial conditions.)
 """
-OutputFirst(sol, i) = first(sol.u)
-export OutputFirst
+OutputInitial(sol, i) = first(sol.u)
+export OutputInitial
 
 """
 Output the temperature(s) at each time step. Useful in case temperature is not constant.
 """
-OutputTemperature(sol, i) = [get_temperature(sol.prob.p, t) for t in sol.t]
+function OutputTemperature(sol, i)
+    temperature_series=[]
+    for thermostat in sol.prob.p.temperature
+        push!(temperature_series, get_temperature.(thermostat, auconvert.(sol.t)))
+    end
+    return temperature_series
+end
 export OutputTemperature
 
 """
