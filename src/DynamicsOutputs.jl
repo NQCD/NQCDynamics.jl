@@ -186,6 +186,9 @@ Output the first point of each trajectory in DynamicsVariables format. (Useful w
 OutputInitial(sol, i) = first(sol.u)
 export OutputInitial
 
+OutputRetCode(sol, i) = sol.retcode
+export OutputRetCode
+
 """
 Output the temperature(s) at each time step. Useful in case temperature is not constant.
 """
