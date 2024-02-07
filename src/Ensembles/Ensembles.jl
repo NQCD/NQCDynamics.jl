@@ -49,10 +49,8 @@ end
 function evaluate_output_functions!(out::Dictionary, sol, i, f::F, fs...) where {F}
     if f isa Function
         name = nameof(f)
-        @debug "Evaluating output function $(name)."
     else
         name = nameof(typeof(f))
-        @debug "Evaluating output function $(name)."
     end
 
     insert!(out, name, f(sol, i))
