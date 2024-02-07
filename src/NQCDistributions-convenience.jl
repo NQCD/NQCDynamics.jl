@@ -3,6 +3,7 @@ Add-on functions for NQCDistributions to make generating distributions more conv
 
 """
 
+import Distributions
 
 """
     VelocityBoltzmann(temperature, sim::AbstractSimulation; center = zeros(size(sim)))
@@ -10,18 +11,18 @@ Add-on functions for NQCDistributions to make generating distributions more conv
 Generates a VelocityBoltzmann distribution covering an entire Simulation. 
 If `NQCModels.mobileatoms` is modified, velocities for immobile atoms will always be zero. 
 """
-function VelocityBoltzmann(temperature, sim::AbstractSimulation; center = zeros(size(sim)))
-	if mobileatoms(sim)!=size(sim,2)
+function NQCDistributions.VelocityBoltzmann(temperature, sim::AbstractSimulation; center = zeros(Float64, size(sim)))
+	if length(NQCModels.mobileatoms(sim))==size(sim)[2]
 		# Simple case: All atoms should be moving, so give them all Boltzmann distributions. 
-		return VelocityBoltzmann(temperature, sim.atoms.masses, size(sim); center=center)
+		return NQCDistributions.VelocityBoltzmann(temperature, sim.atoms.masses, size(sim); center=center)
 	else
 		# Not all atoms should be moving, so assign Boltzmann distribution only to mobile atoms. 
-		sampleable_array=convert(Matrix{UnivariateDistribution}, hcat([[Dirac(0.0) for i in 1:size(sim)[1]] for j in 1:size(sim)[2]]...))
-		for i in mobileatoms(sim)
-			sampleable_array[:,i].=VelocityBoltzmann(temperature, sim.atoms.masses[i]; center=center[:,i])
+		sampleable_array=convert(Matrix{Distributions.UnivariateDistribution}, hcat([[Distributions.Dirac(center[i,j]) for i in 1:size(sim)[1]] for j in 1:size(sim)[2]]...))
+		for i in NQCModels.mobileatoms(sim)
+			for j in NQCModels.dofs(sim)
+				sampleable_array[j,i]=NQCDistributions.VelocityBoltzmann(temperature, sim.atoms.masses[i]; center=center[j,i])
+			end
 		end
-		return sampleable_array
+		return NQCDistributions.UnivariateArray(sampleable_array)
 	end
 end
-
-export VelocityBoltzmann
