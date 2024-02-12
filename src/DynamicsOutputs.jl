@@ -190,11 +190,7 @@ export OutputInitial
 Output the temperature(s) at each time step. Useful in case temperature is not constant.
 """
 function OutputTemperature(sol, i)
-    temperature_series=[]
-    for thermostat in sol.prob.p.temperature
-        push!(temperature_series, get_temperature.(thermostat, auconvert.(sol.t)))
-    end
-    return temperature_series
+    return get_temperature.(sol.prob.p, auconvert.(sol.t))
 end
 export OutputTemperature
 
