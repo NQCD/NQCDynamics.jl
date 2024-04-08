@@ -23,6 +23,9 @@ if GROUP == "All" || GROUP == "Core"
     @safetestset "Structure Manipulation" begin
         include("Structure/structure.jl")
     end
+    @safetestset "Diatomic Analysis" begin
+        include("Analysis/diatomic.jl")
+    end
 end
 
 if GROUP == "All" || GROUP == "InitialConditions"
