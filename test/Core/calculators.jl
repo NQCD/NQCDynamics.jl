@@ -6,11 +6,8 @@ using RingPolymerArrays: RingPolymerArrays
 
 # For the allocation tests check against both backends as we can't be sure which is in use. 
 const MKL_EIGEN_ALLOCATIONS = 54912
-if VERSION≥v"1.9" # Julia 1.10 has slightly different eigen allocations
-    const OPENBLAS_EIGEN_ALLOCATIONS = 57216
-elseif VERSION≥v"1.8" # I seem to remember this first showed up from 1.8 ---> 1.9
-    const OPENBLAS_EIGEN_ALLOCATIONS = 56896
-end
+# Julia 1.10 has slightly different eigen allocations
+VERSION>v"1.9" ? const OPENBLAS_EIGEN_ALLOCATIONS = 57216 : const OPENBLAS_EIGEN_ALLOCATIONS = 56896
 
 @testset "General constructors" begin
     model = NQCModels.DoubleWell()
