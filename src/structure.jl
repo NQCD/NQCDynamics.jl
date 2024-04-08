@@ -16,7 +16,16 @@ int_or_index=Union{Int, CartesianIndex}
 Interatomic distance in Angstrom for a position Matrix.
 """
 function distance(config::Matrix, i1::int_or_index, i2::int_or_index)
-    return au_to_ang(norm(config[:,i1].-config[:,i2]))*u"Å"
+    return @views au_to_ang(norm(config[:,i1].-config[:,i2]))*u"Å"
+end
+
+"""
+    distance(config::AbstractVector, i1::int_or_index, i2::int_or_index)
+    Interatomic distance in Angstrom for DynamicsVariables. 
+"""
+function distance(config::AbstractVector, i1::int_or_index, i2::int_or_index)
+    @views pos=NQCDynamics.get_positions(config)
+    return au_to_ang(norm(pos[:,i1].-pos[:,i2]))*u"Å"
 end
 
 function distance(v1::Matrix, v2::Matrix)
@@ -128,14 +137,6 @@ function velocity_center_of_mass(config::Matrix, ind1::Int, ind2::Int, atoms::At
 end
 
 
-"""
-    distance(config::Any, i1, i2)
-    
-Interatomic distance in Angstrom for DynamicsVariables. 
-"""
-function distance(config::Union{ComponentVector,ArrayPartition}, i1::int_or_index, i2::int_or_index)
-    return distance(pos,i1,i2)
-end
 
 """
     fractional_mass(sim::NQCDynamics.AbstractSimulation, index1::Int, index2::Int)
