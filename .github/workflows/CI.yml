@@ -12,6 +12,7 @@ jobs:
       matrix:
         group:
           - Core
+          - Analysis
           - InitialConditions
           - dynamics_classical
           - dynamics_mdef
