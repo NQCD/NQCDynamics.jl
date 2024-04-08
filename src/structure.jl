@@ -38,7 +38,7 @@ end
 Returns m1/(m1+m2) and m2/(m1+m2) as a vector. 
 """
 function fractional_mass(atoms::Atoms, index1::int_or_index, index2::int_or_index)
-    return atoms.masses[[index1, index2]]./sum(atoms.masses[[index1, index2]])
+    return @views atoms.masses[[index1, index2]]./sum(atoms.masses[[index1, index2]])
 end
 
 
@@ -48,7 +48,7 @@ end
 Returns the reduced mass of the diatomic in atomic unit. 
 """
 function reduced_mass(atoms::Atoms, index1::Int, index2::Int)
-    return (atoms.masses[index1]*atoms.masses[index2])/sum(atoms.masses[[index1, index2]])
+    return @views (sim.atoms.masses[index1]*sim.atoms.masses[index2])/sum(sim.atoms.masses[[index1, index2]])
 end
 
 """
@@ -62,27 +62,20 @@ function minimum_distance_translation(config::Matrix, ind1::Int, ind2::Int, cell
     if cutoff==0 || isa(cell, InfiniteCell)
         return [0.0,0.0,0.0]
     end
-    translations=[]
+    function generate_translations(order::Int)
+        return Iterators.map(x->[x...],Iterators.product(-order:order, -order:order, -order:order))
+    end
     min_distance=[]
     distance_converged=false
-    search=1
-    while !(distance_converged || search==cutoff+1)
-        translations=Iterators.map(x->[x...],Iterators.product(-search:search, -search:search, -search:search))
-        distances=map(x->norm(config[:,ind2].-config[:,ind1]+cell.vectors*x), translations)
+    cells=1
+    while !(distance_converged || cells==cutoff+1)
+        translations=generate_translations(cells)
+        distances=map(x->norm(view(config, :,ind2)-view(config, :, ind1)+cell.vectors*x), translations)
         push!(min_distance, (min(distances...), argmin(distances)))
-        distance_converged=length(min_distance)>1 ? min_distance[end][1]≈min_distance[end-1][1] : false
-        search+=1
+        @views distance_converged=length(min_distance)>1 ? min_distance[end][1]≈min_distance[end-1][1] : false
+        cells+=1
     end
-    @debug "PBC distance check ended after $(search-1) iterations."
-    if search==cutoff+1
-        @debug "PBC distance check terminated due to cutoff. If you aren't PBC-wrapping positions, check your cutoff is sufficiently high. "
-    end
-    @debug "Translation of choice is $(collect(translations)[min_distance[end][2]])"
-    return cell.vectors*collect(translations)[min_distance[end][2]]
-end
-
-function minimum_distance_translation(config::Matrix, ind1::Int, ind2::Int, cell::InfiniteCell;cutoff::Int=50)
-	config
+    return cell.vectors*collect(generate_translations(cells-1))[min_distance[end][2]]
 end
 
 
@@ -97,15 +90,15 @@ end
 
 
 """
-    pbc_distance(config::Matrix, ind1::Int, ind2::Int, simulation::NQCDynamics.AbstractSimulation)
+    pbc_distance(config::Matrix, ind1::int_or_index, ind2::int_or_index, simulation::NQCDynamics.AbstractSimulation)
 
 **Returns in Angstom, not in Bohr - Check units.**
 
 Calculates the distance between two atoms, including a check if the copy of the second atom in any neighbouring unit cell is closer. 
 This variant is designed for trajectories where cell boundary wrapping has been used. 
 """
-function pbc_distance(config::Matrix, ind1::Int, ind2::Int, cell::PeriodicCell;args...)
-    return auconvert(u"Å",norm(config[:, ind1]-config[:,ind2]-minimum_distance_translation(config, ind1, ind2, cell;args...)))
+function pbc_distance(config::Matrix, ind1::int_or_index, ind2::int_or_index, cell::PeriodicCell;args...)
+    return @views auconvert(u"Å",norm(config[:, ind1]-config[:,ind2]-minimum_distance_translation(config, ind1, ind2, cell;args...)))
 end
 
 """
@@ -115,7 +108,7 @@ Generates center of mass coordinates for two atoms, including a check if the cop
 """
 function pbc_center_of_mass(config::Matrix, ind1::Int, ind2::Int, cell::PeriodicCell, atoms::Atoms;args...)
     pbc_translation=minimum_distance_translation(config, ind1, ind2, cell;args...)
-    return (atoms.masses[ind1]*config[:,ind1]+atoms.masses[ind2]*(config[:,ind2]+pbc_translation))/sum(atoms.masses[[ind1,ind2]])
+    return @views (atoms.masses[ind1]*config[:,ind1]+atoms.masses[ind2]*(config[:,ind2]+pbc_translation))/sum(atoms.masses[[ind1,ind2]])
 end
 
 """
@@ -124,7 +117,7 @@ end
 Generates center of mass coordinates for two atoms. 
 """
 function center_of_mass(config::Matrix, ind1::Int, ind2::Int, atoms::Atoms)
-    return (atoms.masses[ind1]*config[:,ind1]+atoms.masses[ind2]*config[:,ind2])/sum(atoms.masses[[ind1,ind2]])
+    return @views (atoms.masses[ind1]*config[:,ind1]+atoms.masses[ind2]*config[:,ind2])/sum(atoms.masses[[ind1,ind2]])
 end
 
 """
@@ -155,7 +148,7 @@ function minimum_distance_translation(config::Matrix, ind1::Int, ind2::Int, simu
     return minimum_distance_translation(config,ind1,ind2,simulation.cell;cutoff=cutoff)
 end
 
-function minimum_distance_translation(config::Union{ComponentVector,ArrayPartition}, ind1::Int, ind2::Int, simulation::AbstractSimulation;cutoff::Int=50)
+function minimum_distance_translation(config::AbstractVector, ind1::Int, ind2::Int, simulation::AbstractSimulation;cutoff::Int=50)
     return minimum_distance_translation(get_positions(config),ind1,ind2,simulation.cell;cutoff=cutoff)
 end
 
@@ -163,7 +156,7 @@ function pbc_distance(config::Matrix, ind1, ind2, sim::AbstractSimulation; args.
     return pbc_distance(config,ind1,ind2,sim.cell; args...)
 end
 
-function pbc_distance(config::Union{ComponentVector,ArrayPartition}, ind1, ind2, sim::AbstractSimulation; args...)
+function pbc_distance(config::AbstractVector, ind1, ind2, sim::AbstractSimulation; args...)
     return pbc_distance(get_positions(config),ind1,ind2,sim.cell; args...)
 end
 
@@ -171,7 +164,7 @@ function pbc_center_of_mass(config::Matrix, ind1, ind2, sim::AbstractSimulation;
     return pbc_center_of_mass(config,ind1,ind2,sim.cell, sim.atoms; args...)
 end
 
-function pbc_center_of_mass(config::Union{ComponentVector,ArrayPartition}, ind1, ind2, sim::AbstractSimulation; args...)
+function pbc_center_of_mass(config::AbstractVector, ind1, ind2, sim::AbstractSimulation; args...)
     return pbc_center_of_mass(get_positions(config),ind1,ind2,sim.cell, sim.atoms; args...)
 end
 
@@ -179,7 +172,7 @@ function velocity_center_of_mass(config::Matrix, ind1, ind2, sim::AbstractSimula
     return velocity_center_of_mass(config,ind1,ind2, sim.atoms)
 end
 
-function velocity_center_of_mass(config::Union{ComponentVector,ArrayPartition}, ind1, ind2, sim::AbstractSimulation)
+function velocity_center_of_mass(config::AbstractVector, ind1, ind2, sim::AbstractSimulation)
     return velocity_center_of_mass(get_velocities(config),ind1,ind2, sim.atoms)
 end
 
