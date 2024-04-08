@@ -6,7 +6,11 @@ using RingPolymerArrays: RingPolymerArrays
 
 # For the allocation tests check against both backends as we can't be sure which is in use. 
 const MKL_EIGEN_ALLOCATIONS = 54912
-const OPENBLAS_EIGEN_ALLOCATIONS = 56896
+if VERSION≥v"1.9" # Julia 1.10 has slightly different eigen allocations
+    const OPENBLAS_EIGEN_ALLOCATIONS = 57216
+elseif VERSION≥v"1.8" # I seem to remember this first showed up from 1.8 ---> 1.9
+    const OPENBLAS_EIGEN_ALLOCATIONS = 56896
+end
 
 @testset "General constructors" begin
     model = NQCModels.DoubleWell()
@@ -270,7 +274,7 @@ end
     @test @allocated(Calculators.evaluate_potential!(calc, r)) == 0
     @test @allocated(Calculators.evaluate_derivative!(calc, r)) == 0
     eigen_allocations = @allocated(Calculators.evaluate_eigen!(calc, r))
-    @debug "Non-zero allocations test LargeDiabaticCalculator: eigen_allocations returned $(eigen_allocations)"
+    @info "Non-zero allocations test LargeDiabaticCalculator: eigen_allocations returned $(eigen_allocations)"
     @test (eigen_allocations ≤ MKL_EIGEN_ALLOCATIONS) || (eigen_allocations ≤ OPENBLAS_EIGEN_ALLOCATIONS)
     @test @allocated(Calculators.evaluate_adiabatic_derivative!(calc, r)) == 0
     @test @allocated(Calculators.evaluate_nonadiabatic_coupling!(calc, r)) == 0
@@ -294,7 +298,7 @@ end
     @test @allocated(Calculators.evaluate_potential!(calc, r)) == 0
     @test @allocated(Calculators.evaluate_derivative!(calc, r)) == 0
     eigen_allocations = @allocated(Calculators.evaluate_eigen!(calc, r)) / 10
-    @debug "Non-zero allocations test LargeDiabaticCalculator: eigen_allocations returned $(eigen_allocations)"
+    @info "Non-zero allocations test RingPolymerLargeDiabaticCalculator: eigen_allocations returned $(eigen_allocations)"
     @test (eigen_allocations ≤ MKL_EIGEN_ALLOCATIONS) || (eigen_allocations ≤ OPENBLAS_EIGEN_ALLOCATIONS)
     @test @allocated(Calculators.evaluate_adiabatic_derivative!(calc, r)) == 0
     @test @allocated(Calculators.evaluate_nonadiabatic_coupling!(calc, r)) == 0
