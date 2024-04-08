@@ -53,7 +53,7 @@ function get_desorption_frame(trajectory::Vector, diatomic_indices::Vector{Int},
     end
 end
 
-function get_desorption_angle(trajectory::Vector, indices::Vector{Int}, simulation::AbstractSimulation; surface_normal = [0,0,1],  surface_distance_threshold = 5.0*u"Å")
+function get_desorption_angle(trajectory::AbstractVector, indices::Vector{Int}, simulation::AbstractSimulation; surface_normal = [0,0,1],  surface_distance_threshold = 5.0*u"Å")
     # First determine where the reaction occurred on the surface. 
     desorption_frame = get_desorption_frame(trajectory, indices, simulation;surface_distance_threshold = surface_distance_threshold, surface_normal = surface_normal)
     if isa(desorption_frame, Nothing)
@@ -62,8 +62,11 @@ function get_desorption_angle(trajectory::Vector, indices::Vector{Int}, simulati
     end
     @debug "Desorption frame: $(desorption_frame)"
     # Determine the average centre of mass velocity to decrease error due to vibration and rotation orthogonal to true translational component. 
-    com_velocities = map(x -> Structure.velocity_center_of_mass(x, indices[1], indices[2], simulation), trajectory[desorption_frame:end])
-    average_velocity = mean(cat(com_velocities...;dims=2);dims=2)
+    com_velocities = zeros(eltype(trajectory[1]), length(surface_normal), length(trajectory)-desorption_frame)
+    for i in 1:length(trajectory)-desorption_frame
+        com_velocities[:, i] .= velocity_center_of_mass(trajectory[i+desorption_frame], indices[1], indices[2], simulation)
+    end
+    average_velocity=mean(com_velocities;dims=2)
     # Now convert into an angle by arccos((a•b)/(|a|*|b|))
     return Structure.angle_between(vec(average_velocity), surface_normal)
 end
