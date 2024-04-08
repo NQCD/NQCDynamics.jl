@@ -7,6 +7,40 @@ using NQCBase
 using Unitful, UnitfulAtomic
 using LinearAlgebra
 
+# Surface normal projection
+surface_normal_height(x::AbstractVector, surface_normal::AbstractVector=[0,0,1])=norm(x.*normalize(surface_normal))
+
+"""
+    surface_distance_condition(x::AbstractArray, indices::Vector{Int}, simulation::NQCDynamics.AbstractSimulation; surface_distance_threshold=5.0*u"Å")
+
+    Checks that the diatomic molecule is at least `surface_distance_threshold` away from the highest substrate atom in the simulation.
+"""
+function surface_distance_condition(x::AbstractArray, indices::Vector{Int}, simulation::NQCDynamics.AbstractSimulation; surface_distance_threshold=5.0*u"Å")
+        molecule_position=surface_normal_height(pbc_center_of_mass(x, indices..., simulation)) # molecule position wrt surface normal
+        substrate_heights=surface_normal_height.(eachcol(get_positions(x)[:, symdiff(1:length(simulation.atoms.masses), indices)])) # substrate positions along surface normal
+        highest_z=max(substrate_heights[substrate_heights.≤molecule_position]...) # Ignore substrate above molecule. 
+        #? surface_distance_threshold must be < vacuum above surface and > distance between substrate layers. 
+        if au_to_ang(molecule_position-highest_z)*u"Å"≥surface_distance_threshold
+            @debug "Surface distance condition evaluated true."
+            return true
+        else
+            return false
+        end
+end
+
+"""
+    com_velocity_condition(x::AbstractArray, indices::Vector{Int}, simulation::NQCDynamics.AbstractSimulation; surface_normal::AbstractVector=[0,0,1])
+
+    Evaluates true if the centre of mass velocity vector of the diatomic molecule points to the surface.
+"""
+function com_velocity_condition(x::AbstractArray, indices::Vector{Int}, simulation::NQCDynamics.AbstractSimulation; surface_normal::AbstractVector=[0,0,1])
+        if dot(velocity_center_of_mass(x, indices..., simulation), normalize(surface_normal))>0
+            return false
+        else
+            return true
+        end
+end
+
 """
     get_desorption_frame(trajectory::Vector, diatomic_indices::Vector{Int}, simulation::AbstractSimulation;surface_normal::Vector=[0,0,1], surface_distance_threshold=5.0*u"Å")
 
@@ -18,37 +52,20 @@ This is evaluated using two conditions:
 
 2. Desorption begins at the turning point of the centre of mass velocity component along `surface_normal`, indicating overall movement away from the surface. 
 """
-function get_desorption_frame(trajectory::Vector, diatomic_indices::Vector{Int}, simulation::AbstractSimulation;surface_normal::Vector = [0,0,1], surface_distance_threshold = 5.0*u"Å")
-    # Two criteria: Distance between two atoms (wrt PBC) must be below `distance_threshold` and CoM velocity must be positive wrt surface normal vector. 
-    function surface_distance_condition(x)
-        highest_z = max(get_positions(x)[3, symdiff(1:end, diatomic_indices)]...)
-        if abs(au_to_ang(Structure.pbc_center_of_mass(x, diatomic_indices..., simulation)[3] - highest_z)) * u"Å" ≥ surface_distance_threshold
-            @debug "Surface distance condition evaluated true"
-            return true
-        else
-            return false
-        end
-    end
-    function com_velocity_condition(x)
-        if dot(Structure.velocity_center_of_mass(x, diatomic_indices..., simulation), normalize(surface_normal)) > 0
-            @debug "Normal velocity condition evaluated true"
-            return true
-        else
-            return false
-        end
-    end
-    desorbed_frame = findfirst(surface_distance_condition, trajectory)
+function get_desorption_frame(trajectory::AbstractVector, diatomic_indices::Vector{Int}, simulation::AbstractSimulation;surface_normal::Vector = [0,0,1], surface_distance_threshold = 5.0*u"Å")
+    desorbed_frame=findfirst(surface_distance_condition.(trajectory, Ref(indices), Ref(simulation); surface_distance_threshold=surface_distance_threshold))
+    
     if isa(desorbed_frame, Nothing)
-        @debug "No desorption event found. "
+        @debug "No desorption event found."
         return nothing
     else
-        @debug "Found desorption event in frame $(desorbed_frame)"
-        leaving_surface_frame = findfirst(!com_velocity_condition, reverse(trajectory[1:desorbed_frame-1]))
-        if isa(leaving_surface_frame, Nothing)
-            @debug "Couldn't find a sub-zero CoM velocity component relative to surface normal."
+        @debug "Desorption observed in snapshot $(desorbed_frame)"
+        leaving_surface_frame=findlast(com_velocity_condition.(view(trajectory, 1:desorbed_frame), Ref(indices), Ref(simulation); surface_normal=surface_normal)) #ToDo testing views for memory efficiency, need to test time penalty. Also need to test if running on everything and findfirst-ing the Bool array is quicker. 
+        if leaving_surface_frame<0
+            @warn "Desorption event detected, but no direction change detected."
             return nothing
         else
-            return desorbed_frame - leaving_surface_frame
+            return leaving_surface_frame
         end
     end
 end
@@ -71,7 +88,7 @@ function get_desorption_angle(trajectory::AbstractVector, indices::Vector{Int}, 
     return Structure.angle_between(vec(average_velocity), surface_normal)
 end
 
-# 6✖6 Cartesian to internal coordinate transformation. 
+# 6×6 Cartesian to internal coordinate transformation. 
 function transform_to_internal_coordinates(to_transform::Matrix, config::Matrix, index1::Int, index2::Int, sim::Simulation)
     U = transform_U(config, index1, index2, sim) # Generate transformation matrix
     return transpose(U) * to_transform * U
