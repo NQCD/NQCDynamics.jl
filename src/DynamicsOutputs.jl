@@ -97,7 +97,7 @@ OutputKineticEnergy(sol, i) = DynamicsUtils.classical_kinetic_energy.(sol.prob.p
 export OutputKineticEnergy
 
 """
-    OutputCentroidKineticEnergy(sol, i)
+    OutputSubsetKineticEnergy(sol, i)
 
 Evaluate the classical kinetic energy of a subset of the entire system at each save step. 
 
