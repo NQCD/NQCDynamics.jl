@@ -14,7 +14,17 @@ random walk starting from an initial configuration.
 These are accepted or rejected based upon the Metropolis-Hastings criteria.
 The result is a Markov chain that samples the canonical distribution.
 
-## Example
+!!! Legacy version
+
+    Prior to the use of [`AdvancedMH.jl`](https://github.com/TuringLang/AdvancedMH.jl),
+    an alternative version of the algorithm was implemented that works for both classical
+    and ring polymer systems: `MetropolisHastings.run_monte_carlo_sampling(sim, R0, Δ, passes)`
+    
+    This is currently still included in the code but should be regarded as deprecated and
+    will likely be removed/combined with the [`AdvancedMH.jl`](https://github.com/TuringLang/AdvancedMH.jl)
+    version.
+
+## Example 1
 
 We can perform the sampling by setting up a classical simulation in the usual way and
 providing an appropriate initial configuration.
@@ -33,14 +43,30 @@ steps = 1e4
 step_size = Dict(:H=>1)
 ```
 
-Now we can run the sampling. The extra keyword argument `move_ratio` is used to specify
+Now we can run the sampling. The extra keyword argument `movement_ratio` is used to specify
 the fraction of the system moved during each Monte Carlo step.
 If we attempt to move the entire system at once, we can expect a very low acceptance ratio,
 whereas is we move only a single atom, the sampling will take much longer.
 You will likely have to experiment with this parameter to achieve optimal sampling.
+
+!!! note
+
+    Keyword arguments relating to how much of the system to sample were recently changed. The existing `move_ratio` and `internal_ratio` arguments are no longer used. 
+
+    Instead, there are now two options to specify how much of the system to move:
+
+    `movement_ratio`: Defines which fraction of the system to move. 1 moves the entire system. 
+
+    `stop_ratio`: Defines which fraction of the system *not* to move. 1 stops the entire system. 
+
+    `movement_ratio_internal`: Defines which proportion of ring polymer normal modes to perturb. 1 moves the entire system. 
+
+    `stop_ratio_internal`: Defines which proportion of ring polymer normal modes not to perturb. 1 stops the entire system. 
+ 
+
 ```@example mh
 using NQCDynamics.InitialConditions: ThermalMonteCarlo
-chain = ThermalMonteCarlo.run_advancedmh_sampling(sim, r0, steps, step_size; move_ratio=0.5)
+chain = ThermalMonteCarlo.run_advancedmh_sampling(sim, r0, steps, step_size; movement_ratio=0.5)
 ```
 
 Now that our sampling is complete we can evaluate the potential energy expectation value.
@@ -53,17 +79,10 @@ Estimators.@estimate potential_energy(sim, chain)
 sim.temperature / 2 * 5
 ```
 
-## Legacy version
 
-Prior to the use of [`AdvancedMH.jl`](https://github.com/TuringLang/AdvancedMH.jl),
-an alternative version of the algorithm was implemented that works for both classical
-and ring polymer systems.
-This is currently still included in the code but should be regarded as deprecated and
-will likely be removed/combined with the [`AdvancedMH.jl`](https://github.com/TuringLang/AdvancedMH.jl)
-version.
-
-Here, we use the legacy version to obtain a thermal distribution in a simple
-model system.
+## Example 2
+Here, we obtain a thermal distribution in a simple model system with some additional tweaks to 
+try and sample a larger configuration space.
 
 ```@setup monte
 using NQCDynamics
@@ -83,40 +102,37 @@ nothing # hide
 ```
 
 Then we have to specify the parameters for the Monte Carlo simulation and perform the sampling.
-`Δ` contains the step sizes for each of the species, `R0` the initial geometry and `passes` the
-number of monte carlo passes we perform (`passes*n_atoms` steps total).
-```@example monte
-Δ = Dict([(:N, 0.1), (:O, 0.1)])
-R0 = [1.0 0.0; 0.0 0.0; 0.0 0.0]
-passes = 1000
-output = InitialConditions.MetropolisHastings.run_monte_carlo_sampling(sim, R0, Δ, passes)
-nothing # hide
-```
+`Δ` contains the step sizes for each of the species, `R0` the initial geometry and `samples` the
+number of configurations we want to obtain. 
 
-Output has three fields: the acceptance rates for each species and the energies and geometries
-obtained during sampling.
-```@repl monte
-output.acceptance
-```
+*AdvancedMH.jl* provides some additional options to control the sampling process. To (hopefully) include
+ a larger configuration space in the final results, we set a `thinning` of 10, meaning that we only keep 
+ every 10th proposed configuration. In addition, we discard the first 100 samples, since our initial configuration might not 
+lie in the equilibrium. This is set with `discard_initial`. 
+Further explanations of the keyword arguments can be found in the *AbstractMCMC.jl* [documentation](https://turinglang.org/AbstractMCMC.jl/dev/api/#Common-keyword-arguments).
+
 ```@example monte
-plot(output.energy)
-xlabel!("Step") # hide
-ylabel!("Energy") # hide
+Δ = Dict(:N => 0.1, :O => 0.1)
+R0 = [1.0 0.0; 0.0 0.0; 0.0 0.0]
+samples = 1000
+output = InitialConditions.ThermalMonteCarlo.run_advancedmh_sampling(sim, R0, samples, Δ; movement_ratio=0.5, thinning=10, discard_initial=100)
+nothing # hide
 ```
 
 We can calculate the distance between each atom and plot the bond length throughout the sampling.
 ```@example monte
 using LinearAlgebra
-plot([norm(R[:,1] .- R[:,2]) for R in output.R])
+plot([norm(R[:,1] .- R[:,2]) for R in output])
 xlabel!("Step") # hide
 ylabel!("Bond length") # hide
 ```
 
 The result of this simulation seamlessly interfaces with the `DynamicalDistribution`
-presented in the previous section and `output.R` can be readily passed to provide
+presented in the previous section and `output` can be readily passed to provide
 the position distribution.
 The Monte Carlo sampling does not include velocities but these can be readily
 obtained from the Maxwell-Boltzmann distribution.
+
 ```@setup logging
 runtime = round(time() - start_time; digits=2)
 @info "...done after $runtime s."
