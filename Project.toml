@@ -1,9 +1,7 @@
 name = "NQCDynamics"
 uuid = "36248dfb-79eb-4f4d-ab9c-e29ea5f33e14"
 authors = ["James <james.gardner1421@gmail.com>"]
-
 version = "0.13.7"
-
 
 [deps]
 AdvancedHMC = "0bf59076-c3b1-5ca4-86bd-e02cd72cde3d"
@@ -18,7 +16,7 @@ FastLapackInterface = "29a986be-02c6-4525-aec4-84b980013641"
 HDF5 = "f67ccb44-e63f-5c2f-98bd-6dc0ccc4ba2f"
 Interpolations = "a98d9a8b-a2ab-59e6-89dd-64a1c18fca59"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
-MKL_jll = "856f044c-d86e-5d09-b602-aeab76dc8ba7" # Added to maintain compatibility with MKL.jl - See #324
+MKL_jll = "856f044c-d86e-5d09-b602-aeab76dc8ba7"
 MuladdMacro = "46d2c3a1-f734-5fdb-9937-b9b9aeba4221"
 NQCBase = "78c76ebc-5665-4934-b512-82d81b5cbfb7"
 NQCDistributions = "657014a1-bd25-4aa2-92cb-cbcede0310ad"
@@ -78,6 +76,7 @@ Roots = "1, 2"
 Rotations = "1"
 SciMLBase = "1, 2"
 StaticArrays = "1"
+Statistics = "1"
 StatsBase = "0.33, 0.34"
 StochasticDiffEq = "6"
 StructArrays = "0.6"
