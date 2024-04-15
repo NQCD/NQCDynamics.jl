@@ -1,6 +1,8 @@
 using Test
 using NQCDynamics
 using Unitful
+using Distributions
+using PyCall
 
 atoms = Atoms([:C, :H])
 cell = InfiniteCell()
@@ -64,4 +66,28 @@ end
     @test masses(sim) == atoms.masses
     @test masses(sim, 2) == atoms.masses[2]
     @test masses(sim, CartesianIndex(1, 2, 3)) == atoms.masses[2]
+end
+
+@testset "mobileatoms and distribution generation" begin
+    sim = Simulation(atoms, model)
+    @test NQCModels.mobileatoms(sim) == 1:2
+    @test NQCDistributions.VelocityBoltzmann(10, sim).sampleable == VelocityBoltzmann(10, atoms.masses, size(sim)).sampleable
+
+    # Generate a structure with constraints from ASE as a typical example
+    ase_constraints = pyimport("ase.constraints")
+    ase_io = pyimport("ase.io")
+    structure = ase_io.read("/Users/u5529589/Documents/NQCDynamics.jl/test/artifacts/desorption_test.xyz", index=1)
+    structure.set_constraint(ase_constraints.FixAtoms(indices=collect(0:17)))
+    nqcd_atoms, nqcd_positions, nqcd_cell = NQCDynamics.convert_from_ase_atoms(structure)
+    # Test the frozen model
+    frozen_model = AdiabaticASEModel(structure)
+    frozen_sim=Simulation(nqcd_atoms, frozen_model; cell=cell, temperature=10.0)
+
+    # Pass: Atoms 1-18 are frozen, 19-56 are mobile
+    @test NQCModels.mobileatoms(frozen_sim) == collect(19:56)
+    test_dist = NQCDistributions.VelocityBoltzmann(10, frozen_sim)
+    # Pass: First DOF of first atom should be frozen, so Dirac distribution
+    findfirst(x->isa(x, Distributions.Dirac), test_dist.sampleable) == CartesianIndex(1,1)
+    # Pass: First DOF of Atom 19 should be mobile, so Normal distribution
+    findfirst(x->isa(x, Distributions.Normal), test_dist.sampleable) == CartesianIndex(1,19)
 end
