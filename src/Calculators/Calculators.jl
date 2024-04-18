@@ -522,6 +522,7 @@ end
 include("friction.jl")
 include("large_diabatic.jl")
 include("ring_polymer_large_diabatic.jl")
+include("mace.jl") # Methods that evaluate faster for Ring-polymer Calculators with MACEmodels. 
 
 """
 Evaluates all electronic properties for the current position `r`.
