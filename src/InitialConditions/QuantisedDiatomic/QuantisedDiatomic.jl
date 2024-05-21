@@ -43,6 +43,7 @@ const TIMER = TimerOutputs.TimerOutput()
 include("energy_evaluation.jl")
 include("binding_curve.jl")
 include("random_configuration.jl")
+include("rigid_rotator.jl")
 
 struct EffectivePotential{JType,T,B,F}
     μ::T
