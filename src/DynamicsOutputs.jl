@@ -40,7 +40,7 @@ export OutputVelocity
 """
     OutputCentroidVelocity(sol, i)
 
-Output the velocity of the ring polymer centroid at each timestep during the trajectory. 
+Output the velocity of the ring polymer centroid at each timestep during the trajectory.
 """
 OutputCentroidVelocity(sol, i) = [get_centroid(get_velocities(u)) for u in sol.u]
 export OutputCentroidVelocity
@@ -247,24 +247,49 @@ export OutputDissociation
 
 function (output::OutputDissociation)(sol, i)
     R = DynamicsUtils.get_positions(last(sol.u))
-    dissociated = norm(R[:,output.atom_indices[1]] .- R[:,output.atom_indices[2]]) > output.distance
+    dissociated = norm(R[:, output.atom_indices[1]] .- R[:, output.atom_indices[2]]) > output.distance
     return dissociated ? 1 : 0
 end
 
 """
+Outputs a 1 if the molecule has moved a certain distance from all atoms in the surface, 0 otherwise.
+
+Distance is defined by the projected distance from the highest non-adsorbate atom along the surface normal.
+"""
+struct OutputSurfaceDesorption
+    distance::Number
+    adsorbate_indices <: Vector{Int}
+    surface_normal::AbstractVector
+    OutputSurfaceDesorption(distance, adsorbate_indices; surface_normal=[0, 0, 1]) = new(distance, adsorbate_indices, surface_normal)
+end
+
+function (osd::OutputSurfaceDesorption)(sol, i)
+    desorption_frame = findfirst(Diatomic.surface_distance_condition.(
+        sol.u,
+        Ref(osd.adsorbate_indices),
+        Ref(sol.prob.p);
+        surface_distance_threshold=Ref(osd.distance),
+        surface_normal=Ref(osd.surface_normal),
+    )
+    )
+    return desorption_frame === nothing ? 0 : 1
+end
+
+export OutputSurfaceDesorption
+
+"""
 Output the vibrational and rotational quantum numbers of the final image.
 """
-struct OutputQuantisedDiatomic{S,H,V}
-    sim::S
+struct OutputQuantisedDiatomic{H,V}
     height::H
     normal_vector::V
 end
-OutputQuantisedDiatomic(sim; height=10, normal_vector=[0, 0, 1]) = OutputQuantisedDiatomic(sim, height, normal_vector)
+OutputQuantisedDiatomic(; height=10, normal_vector=[0, 0, 1]) = OutputQuantisedDiatomic(height, normal_vector)
 export OutputQuantisedDiatomic
 
 function (output::OutputQuantisedDiatomic)(sol, i)
-    final = last(sol.u) 
-    ν, J = QuantisedDiatomic.quantise_diatomic(output.sim,
+    final = last(sol.u)
+    ν, J = QuantisedDiatomic.quantise_diatomic(sol.prob.p,
         DynamicsUtils.get_velocities(final), DynamicsUtils.get_positions(final);
         height=output.height, normal_vector=output.normal_vector)
     return (ν, J)
@@ -294,7 +319,7 @@ function (output::OutputStateResolvedScattering1D)(sol, i)
         transmission=zeros(NQCModels.nstates(output.sim))
     )
     x = DynamicsUtils.get_positions(final)[1]
-    if x > 0 # If final position past 0 then we count as transmission 
+    if x > 0 # If final position past 0 then we count as transmission
         output.transmission .= populations
     else # If final position left of 0 then we count as reflection
         output.reflection .= populations
@@ -314,13 +339,13 @@ end
 """
     OutputDesorptionAngle(indices; surface_normal = [0,0,1], surface_distance_threshold = 5.0u"Å")
 
-Outputs the desorption angle in degrees (relative to the surface normal) if a desorption event is detected. 
+Outputs the desorption angle in degrees (relative to the surface normal) if a desorption event is detected.
 Use `surface_normal` to define the direction "away" from the surface. Most commonly, this would be in positive z direction.
 
-A desorption is detected if the centre of mass of the molecule defined with `indices` is above `surface_distance_threshold` from the closest surface atom. 
-This is calculated with respect to `surface_normal` and will take into account periodic boundary conditions. 
+A desorption is detected if the centre of mass of the molecule defined with `indices` is above `surface_distance_threshold` from the closest surface atom.
+This is calculated with respect to `surface_normal` and will take into account periodic boundary conditions.
 """
-OutputDesorptionAngle(indices; surface_normal = [0,0,1], surface_distance_threshold = 5.0u"Å") = OutputDesorptionAngle(indices, convert(Vector{Float64},surface_normal), surface_distance_threshold)
+OutputDesorptionAngle(indices; surface_normal=[0, 0, 1], surface_distance_threshold=5.0u"Å") = OutputDesorptionAngle(indices, convert(Vector{Float64}, surface_normal), surface_distance_threshold)
 export OutputDesorptionAngle
 
 """
@@ -332,7 +357,7 @@ function (output::OutputDesorptionAngle)(sol, i)
     return Analysis.Diatomic.get_desorption_angle(sol.u, output.indices, sol.prob.p; surface_normal=output.surface_normal, surface_distance_threshold=output.surface_distance_threshold)
 end
 
-struct OutputDesorptionTrajectory{I<:Vector{Int}, N<:Vector{Float64}, D, F<:Int}
+struct OutputDesorptionTrajectory{I<:Vector{Int},N<:Vector{Float64},D,F<:Int}
     indices::I
     surface_normal::N
     surface_distance_threshold::D
@@ -343,14 +368,14 @@ end
 
 Like OutputDynamicsVariables, but only saves parts of the trajectory where desorption is occurring.
 
-Use `surface_normal` to define the direction "away" from the surface. Most commonly, this would be in positive z direction. 
+Use `surface_normal` to define the direction "away" from the surface. Most commonly, this would be in positive z direction.
 
-Use `extra_frames` to save additional steps before the desorption event begins. 
+Use `extra_frames` to save additional steps before the desorption event begins.
 
-A desorption is detected if the centre of mass of the molecule defined with `indices` is above `surface_distance_threshold` from the closest surface atom. 
-This is calculated with respect to `surface_normal` and will take into account periodic boundary conditions. 
+A desorption is detected if the centre of mass of the molecule defined with `indices` is above `surface_distance_threshold` from the closest surface atom.
+This is calculated with respect to `surface_normal` and will take into account periodic boundary conditions.
 """
-OutputDesorptionTrajectory(indices; surface_normal = [0,0,1], surface_distance_threshold = 5.0u"Å", extra_frames = 0) = OutputDesorptionTrajectory(indices, convert(Vector{Float64},surface_normal), surface_distance_threshold, extra_frames)
+OutputDesorptionTrajectory(indices; surface_normal=[0, 0, 1], surface_distance_threshold=5.0u"Å", extra_frames=0) = OutputDesorptionTrajectory(indices, convert(Vector{Float64}, surface_normal), surface_distance_threshold, extra_frames)
 """
     (output::OutputDesorptionTrajectory)(sol, i)
 
