@@ -96,10 +96,12 @@ Evaluate the classical kinetic energy at each timestep during the trajectory.
 OutputKineticEnergy(sol, i) = DynamicsUtils.classical_kinetic_energy.(sol.prob.p, sol.u)
 export OutputKineticEnergy
 
+OutputFinalKineticEnergy(sol, i) = DynamicsUtils.classical_kinetic_energy(sol.prob.p, last(sol.u))
+
 """
     OutputSubsetKineticEnergy(sol, i)
 
-Evaluate the classical kinetic energy of a subset of the entire system at each save step. 
+Evaluate the classical kinetic energy of a subset of the entire system at each save step.
 
 The subset is defined by `OutputSubsetKineticEnergy(indices)`.
 """
@@ -107,7 +109,7 @@ struct OutputSubsetKineticEnergy{T}
     indices::T
 end
 function (output::OutputSubsetKineticEnergy)(sol, i)
-    return map(x->DynamicsUtils.classical_kinetic_energy(sol.prob.p.atoms.masses[output.indices], x[:, output.indices]), [DynamicsUtils.get_velocities(i) for i in sol.u])
+    return map(x -> DynamicsUtils.classical_kinetic_energy(sol.prob.p.atoms.masses[output.indices], x[:, output.indices]), [DynamicsUtils.get_velocities(i) for i in sol.u])
 end
 export OutputSubsetKineticEnergy
 
