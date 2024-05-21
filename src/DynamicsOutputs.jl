@@ -362,4 +362,34 @@ function (output::OutputDesorptionTrajectory)(sol, i)
 end
 export OutputDesorptionTrajectory
 
+"""
+Outputs the instantaneous temperature of the selected atoms **in K** in the system at every save point.
+
+Invoke with `OutputKineticTemperature(:)` for the entire system, or with `OutputKineticTemperature([1,2,3...])` for a subset of atoms.
+
+"""
+struct OutputKineticTemperature
+    indices
+    OutputKineticTemperature(indices) = new(indices)
+end
+
+function (out::OutputKineticTemperature)(sol, i)
+    # Allocate output vector
+    kinetic_energies = zeros(DynamicsUtils.classical_kinetic_energy(sol.u[1], sol.prob.p), length(sol.u))
+    # Determine number of atoms
+    if isa(out.indices, Colon)
+        n_atoms = length(sol.prob.p.atoms.masses)
+    elseif isa(out.indices, UnitRange)
+        n_atoms = length(collect(out.indices))
+    else
+        n_atoms = length(out.indices)
+    end
+    # Calculate kinetic temperatures.
+    for snapshot in eachindex(sol.u)
+        kinetic_energy = DynamicsUtils.classical_kinetic_energy(sol.prob.p.atoms.masses[out.indices], DynamicsUtils.get_positions(sol.u[snapshot])[:, out.indices])
+        kinetic_energies[snapshot] = ustrip(uconvert(u"K", kinetic_energy * u"hartree/k_au") / ndofs(sol.prob.p) / n_atoms)
+    end
+    return kinetic_energies
+end
+
 end # module
