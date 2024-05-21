@@ -7,8 +7,8 @@ Defines a set of functions that can be used to calculate outputs for dynamics si
 module DynamicsOutputs
 
 using RingPolymerArrays: get_centroid
-using Unitful: @u_str
-using UnitfulAtomic: austrip
+using Unitful
+using UnitfulAtomic
 using LinearAlgebra: norm
 using ComponentArrays: ComponentVector
 
@@ -112,6 +112,19 @@ function (output::OutputSubsetKineticEnergy)(sol, i)
     return map(x -> DynamicsUtils.classical_kinetic_energy(sol.prob.p.atoms.masses[output.indices], x[:, output.indices]), [DynamicsUtils.get_velocities(i) for i in sol.u])
 end
 export OutputSubsetKineticEnergy
+
+"""
+Evaluate the classical kinetic energy of a subset of the entire system at the end of the simulation.
+
+The subset is defined by `OutputSubsetKineticEnergy(indices)`.
+"""
+struct OutputSubsetFinalKineticEnergy
+    indices
+end
+function (output::OutputSubsetFinalKineticEnergy)(sol, i)
+    return DynamicsUtils.classical_kinetic_energy(sol.prob.p.atoms.masses[output.indices], DynamicsUtils.get_velocities(last(sol.u))[:, output.indices])
+end
+export OutputSubsetFinalKineticEnergy
 
 OutputSpringEnergy(sol, i) = DynamicsUtils.classical_spring_energy.(sol.prob.p, sol.u)
 export OutputSpringEnergy
