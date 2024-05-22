@@ -258,7 +258,7 @@ Distance is defined by the projected distance from the highest non-adsorbate ato
 """
 struct OutputSurfaceDesorption
     distance::Number
-    adsorbate_indices <: Vector{Int}
+    adsorbate_indices::Vector{Int}
     surface_normal::AbstractVector
     OutputSurfaceDesorption(distance, adsorbate_indices; surface_normal=[0, 0, 1]) = new(distance, adsorbate_indices, surface_normal)
 end
