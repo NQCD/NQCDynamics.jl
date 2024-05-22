@@ -221,6 +221,13 @@ OutputFinal(sol, i) = last(sol.u)
 export OutputFinal
 
 """
+Outputs the final time point of a trajectory. This is useful if simulations are terminated by a callback. 
+"""
+OutputFinalTime(sol, i) = last(sol.t)
+export OutputFinalTime
+
+
+"""
 Output the total number of surface hops during the trajectory
 """
 function OutputSurfaceHops(sol, i)::Int
