@@ -395,6 +395,36 @@ function (output::OutputDesorptionTrajectory)(sol, i)
 end
 export OutputDesorptionTrajectory
 
+struct OutputDesorptionSnapshot{I<:Vector{Int},N<:Vector{Float64},D,F<:Int}
+    indices::I
+    surface_normal::N
+    surface_distance_threshold::D
+end
+"""
+    `OutputDesorptionFrame(indices; surface_normal = [0,0,1], surface_distance_threshold = 5.0u"Å", extra_frames = 0)`
+
+Save DynamicsVariables where desorption starts. (Same conditions as for OutputDesorptionTrajectory)
+
+Use `surface_normal` to define the direction "away" from the surface. Most commonly, this would be in positive z direction.
+
+Use `extra_frames` to save additional steps before the desorption event begins.
+
+A desorption is detected if the centre of mass of the molecule defined with `indices` is above `surface_distance_threshold` from the closest surface atom.
+This is calculated with respect to `surface_normal` and will take into account periodic boundary conditions.
+"""
+OutputDesorptionSnapshot(indices; surface_normal=[0, 0, 1], surface_distance_threshold=5.0u"Å") = OutputDesorptionTrajectory(indices, convert(Vector{Float64}, surface_normal), surface_distance_threshold)
+"""
+    (output::OutputDesorptionTrajectory)(sol, i)
+
+Only output trajectory snapshot where desorption begins. (Centre of mass velocity projected onto surface
+normal changes sign)
+"""
+function (output::OutputDesorptionSnapshot)(sol, i)
+    desorption_frame = Analysis.Diatomic.get_desorption_frame(sol.u, output.indices, sol.prob.p; surface_distance_threshold=output.surface_distance_threshold, surface_normal=output.surface_normal)
+    return isa(desorption_frame, Int) ? sol.u[desorption_frame] : nothing
+end
+export OutputDesorptionSnapshot
+
 """
 Outputs the instantaneous temperature of the selected atoms **in K** in the system at every save point.
 
