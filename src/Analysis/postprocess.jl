@@ -10,7 +10,7 @@ end
 struct FakeSolution
     t::AbstractArray
     u::AbstractArray
-    p::FakeProblem
+    prob::FakeProblem
 end
 
 """
