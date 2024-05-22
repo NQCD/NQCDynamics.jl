@@ -12,10 +12,6 @@ export Diatomic
 include("postprocess.jl")
 export Postprocess
 
-# Rebinding of quantise_diatomic under Analysis.
-using NQCDynamics: InitialConditions
-@reexport InitialConditions.QuantisedDiatomic
-
 # Rigid rotator energies
 include("rigid_rotator.jl")
 export RigidRotator
