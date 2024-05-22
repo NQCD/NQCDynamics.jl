@@ -97,6 +97,7 @@ OutputKineticEnergy(sol, i) = DynamicsUtils.classical_kinetic_energy.(sol.prob.p
 export OutputKineticEnergy
 
 OutputFinalKineticEnergy(sol, i) = DynamicsUtils.classical_kinetic_energy(sol.prob.p, last(sol.u))
+export OutputFinalKineticEnergy
 
 """
     OutputSubsetKineticEnergy(sol, i)
@@ -118,13 +119,13 @@ Evaluate the classical kinetic energy of a subset of the entire system at the en
 
 The subset is defined by `OutputSubsetKineticEnergy(indices)`.
 """
-struct OutputSubsetFinalKineticEnergy
+struct OutputFinalSubsetKineticEnergy
     indices
 end
 function (output::OutputSubsetFinalKineticEnergy)(sol, i)
     return DynamicsUtils.classical_kinetic_energy(sol.prob.p.atoms.masses[output.indices], DynamicsUtils.get_velocities(last(sol.u))[:, output.indices])
 end
-export OutputSubsetFinalKineticEnergy
+export OutputFinalSubsetKineticEnergy
 
 OutputSpringEnergy(sol, i) = DynamicsUtils.classical_spring_energy.(sol.prob.p, sol.u)
 export OutputSpringEnergy
@@ -400,7 +401,7 @@ end
 
 function (out::OutputKineticTemperature)(sol, i)
     # Allocate output vector
-    kinetic_energies = zeros(DynamicsUtils.classical_kinetic_energy(sol.u[1], sol.prob.p), length(sol.u))
+    kinetic_energies = zeros(DynamicsUtils.classical_kinetic_energy(sol.prob.p, sol.u[1]), length(sol.u))
     # Determine number of atoms
     if isa(out.indices, Colon)
         n_atoms = length(sol.prob.p.atoms.masses)
@@ -416,5 +417,7 @@ function (out::OutputKineticTemperature)(sol, i)
     end
     return kinetic_energies
 end
+
+export OutputKineticTemperature
 
 end # module
