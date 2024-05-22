@@ -4,7 +4,7 @@ Analysis functions common enough to be included in the main package.
 module Analysis
 using Reexport: @reexport
 
-# Diatomic analysis functions @alexsp32
+# Diatomic analysis functions
 include("diatomic.jl")
 export Diatomic
 
@@ -16,6 +16,7 @@ export Postprocess
 using NQCDynamics: InitialConditions
 @reexport InitialConditions.QuantisedDiatomic
 
+# Rigid rotator energies
 include("rigid_rotator.jl")
 export RigidRotator
 
