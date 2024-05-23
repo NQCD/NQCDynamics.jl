@@ -221,7 +221,7 @@ OutputFinal(sol, i) = last(sol.u)
 export OutputFinal
 
 """
-Outputs the final time point of a trajectory. This is useful if simulations are terminated by a callback. 
+Outputs the final time point of a trajectory. This is useful if simulations are terminated by a callback.
 """
 OutputFinalTime(sol, i) = last(sol.t)
 export OutputFinalTime
@@ -456,5 +456,16 @@ function (out::OutputKineticTemperature)(sol, i)
 end
 
 export OutputKineticTemperature
+
+"""
+    OutputEverything(sol,i)
+
+Outputs the full DifferentialEquations solution object.
+
+Storing this to disk is inefficient, but allows for full post-processing with
+any of the functions defined in this module.
+"""
+OutputEverything(sol, i) = sol
+export OutputEverything
 
 end # module
