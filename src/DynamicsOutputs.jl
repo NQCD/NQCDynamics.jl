@@ -273,7 +273,7 @@ struct OutputSurfaceDesorption
 end
 
 function (osd::OutputSurfaceDesorption)(sol, i)
-    desorption_frame = findfirst([Analysis.Diatomic.surface_distance_condition.(
+    desorption_frame = findfirst([Analysis.Diatomic.surface_distance_condition(
         i,
         osd.adsorbate_indices,
         sol.prob.p;
