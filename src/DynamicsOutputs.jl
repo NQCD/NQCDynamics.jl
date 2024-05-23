@@ -278,7 +278,7 @@ function (osd::OutputSurfaceDesorption)(sol, i)
         Ref(osd.adsorbate_indices),
         Ref(sol.prob.p);
         surface_distance_threshold=Ref(osd.distance),
-        surface_normal=Ref(osd.surface_normal),
+        surface_normal=osd.surface_normal,
     )
     )
     return desorption_frame === nothing ? 0 : 1
