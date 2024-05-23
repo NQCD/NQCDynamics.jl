@@ -38,9 +38,9 @@ Evaluates output functions on a defined Simulation, a `DynamicsVariables` type o
 Basically equivalent to running `run_dynamics()` with the same output functions, but without
 doing the dynamics simulation again.
 """
-function apply_output_functions(sim :: AbstractSimulation, u_type::AbstractVector, t_type::AbstractVector, output_functions; savetime::Bool=true)
+function apply_output_functions(sim::AbstractSimulation, u_type::AbstractVector, t_type::AbstractVector, output_functions; savetime::Bool=true)
     sol = FakeSolution(t_type, u_type, FakeProblem(sim))
-    return apply_output_functions(sol, output_functions; savetime=savetime)
+    return apply_output_functions(sol, output_functions; savetime=savetime)[1]
 end
 
 end

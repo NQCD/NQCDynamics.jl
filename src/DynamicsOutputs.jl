@@ -395,7 +395,7 @@ function (output::OutputDesorptionTrajectory)(sol, i)
 end
 export OutputDesorptionTrajectory
 
-struct OutputDesorptionSnapshot{I<:Vector{Int},N<:Vector{Float64},D,F<:Int}
+struct OutputDesorptionSnapshot{I<:Vector{Int},N<:Vector{Float64},D}
     indices::I
     surface_normal::N
     surface_distance_threshold::D
@@ -412,7 +412,7 @@ Use `extra_frames` to save additional steps before the desorption event begins.
 A desorption is detected if the centre of mass of the molecule defined with `indices` is above `surface_distance_threshold` from the closest surface atom.
 This is calculated with respect to `surface_normal` and will take into account periodic boundary conditions.
 """
-OutputDesorptionSnapshot(indices; surface_normal=[0, 0, 1], surface_distance_threshold=5.0u"Å") = OutputDesorptionTrajectory(indices, convert(Vector{Float64}, surface_normal), surface_distance_threshold)
+OutputDesorptionSnapshot(indices; surface_normal=[0, 0, 1], surface_distance_threshold=5.0u"Å") = OutputDesorptionSnapshot(indices, convert(Vector{Float64}, surface_normal), surface_distance_threshold)
 """
     (output::OutputDesorptionTrajectory)(sol, i)
 
@@ -438,7 +438,7 @@ end
 
 function (out::OutputKineticTemperature)(sol, i)
     # Allocate output vector
-    kinetic_energies = zeros(DynamicsUtils.classical_kinetic_energy(sol.prob.p, sol.u[1]), length(sol.u))
+    kinetic_energies = zeros(typeof(DynamicsUtils.classical_kinetic_energy(sol.prob.p, sol.u[1])), length(sol.u))
     # Determine number of atoms
     if isa(out.indices, Colon)
         n_atoms = length(sol.prob.p.atoms.masses)
