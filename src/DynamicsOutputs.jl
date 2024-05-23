@@ -122,7 +122,7 @@ The subset is defined by `OutputSubsetKineticEnergy(indices)`.
 struct OutputFinalSubsetKineticEnergy
     indices
 end
-function (output::OutputSubsetFinalKineticEnergy)(sol, i)
+function (output::OutputFinalSubsetKineticEnergy)(sol, i)
     return DynamicsUtils.classical_kinetic_energy(sol.prob.p.atoms.masses[output.indices], DynamicsUtils.get_velocities(last(sol.u))[:, output.indices])
 end
 export OutputFinalSubsetKineticEnergy
