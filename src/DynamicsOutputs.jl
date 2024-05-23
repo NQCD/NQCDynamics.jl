@@ -275,9 +275,9 @@ end
 function (osd::OutputSurfaceDesorption)(sol, i)
     desorption_frame = findfirst(Analysis.Diatomic.surface_distance_condition.(
         sol.u,
-        Ref(osd.adsorbate_indices),
-        Ref(sol.prob.p);
-        surface_distance_threshold=Ref(osd.distance),
+        osd.adsorbate_indices,
+        sol.prob.p;
+        surface_distance_threshold=osd.distance,
         surface_normal=osd.surface_normal,
     )
     )
