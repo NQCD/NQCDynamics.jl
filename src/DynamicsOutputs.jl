@@ -15,7 +15,8 @@ using ComponentArrays: ComponentVector
 using NQCDynamics:
     Estimators,
     DynamicsUtils,
-    Analysis
+    Analysis,
+    ndofs
 
 using NQCModels: NQCModels
 
@@ -272,7 +273,7 @@ struct OutputSurfaceDesorption
 end
 
 function (osd::OutputSurfaceDesorption)(sol, i)
-    desorption_frame = findfirst(Diatomic.surface_distance_condition.(
+    desorption_frame = findfirst(Analysis.Diatomic.surface_distance_condition.(
         sol.u,
         Ref(osd.adsorbate_indices),
         Ref(sol.prob.p);
