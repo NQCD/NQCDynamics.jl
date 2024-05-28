@@ -450,8 +450,8 @@ function (out::OutputKineticTemperature)(sol, i)
     end
     # Calculate kinetic temperatures.
     for snapshot in eachindex(sol.u)
-        kinetic_energy = DynamicsUtils.classical_kinetic_energy(sol.prob.p.atoms.masses[out.indices], DynamicsUtils.get_positions(sol.u[snapshot])[:, out.indices])
-        kinetic_energies[snapshot] = ustrip(uconvert(u"K", kinetic_energy * u"hartree/k_au") / ndofs(sol.prob.p) / n_atoms)
+        kinetic_energy = DynamicsUtils.classical_kinetic_energy(sol.prob.p.atoms.masses[out.indices], DynamicsUtils.get_velocities(sol.u[snapshot])[:, out.indices])
+        kinetic_energies[snapshot] = ustrip(uconvert(u"K", 2 * kinetic_energy * u"hartree/k_au") / ndofs(sol.prob.p) / n_atoms)
     end
     return kinetic_energies
 end
