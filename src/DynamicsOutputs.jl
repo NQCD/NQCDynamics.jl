@@ -467,6 +467,8 @@ Storing this to disk is inefficient, but allows for full post-processing with
 any of the functions defined in this module.
 """
 OutputEverything(sol, i) = sol
+OutputSolution(sol, i) = sol
 export OutputEverything
+export OutputSolution
 
 end # module
