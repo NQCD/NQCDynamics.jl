@@ -431,7 +431,7 @@ function quantise_diatomic(sim::Simulation, v::Matrix, r::Matrix, binding_curve:
     @debug begin
         diag_plt = lineplot(
         binding_curve.bond_lengths, 
-        E.- V.(binding_curve.bond_lengths); 
+        sqrt.(abs.(E.- V.(binding_curve.bond_lengths))); 
         title="Binding curve", xlabel="Bond length / bohr", ylabel="Energy / Hartree",
         name="E - V values (should intersect 0 twice)", canvas=DotCanvas, border=:ascii
         )
