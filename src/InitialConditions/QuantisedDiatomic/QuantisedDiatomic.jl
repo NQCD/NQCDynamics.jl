@@ -409,8 +409,6 @@ function quantise_diatomic(sim::Simulation, v::Matrix, r::Matrix, binding_curve:
     v, slab_v = separate_slab_and_molecule(atom_indices, v)
     environment = EvaluationEnvironment(atom_indices, size(sim), slab, austrip(height), surface_normal)
 
-    @debug "After PBC check and separation from slab, diatomic positions are:\n$(r)"
-
     r_com = subtract_centre_of_mass(r, masses(sim)[atom_indices])
     v_com = subtract_centre_of_mass(v, masses(sim)[atom_indices])
     p_com = v_com .* masses(sim)[atom_indices]'
@@ -430,6 +428,16 @@ function quantise_diatomic(sim::Simulation, v::Matrix, r::Matrix, binding_curve:
 
     V = EffectivePotential(μ, J, binding_curve)
 
+    @debug begin
+        diag_plt = lineplot(
+        binding_curve.bond_lengths, 
+        E.- V.(binding_curve.bond_lengths); 
+        title="Binding curve", xlabel="Bond length / bohr", ylabel="Energy / Hartree",
+        name="E - V values (should intersect 0 twice)", canvas=DotCanvas, border=:ascii
+        )
+        show(diag_plt)
+    end
+    
     r₁, r₂ = @timeit TIMER "Finding bounds" find_integral_bounds(E, V)
 
     function nᵣ(E, r₁, r₂)
