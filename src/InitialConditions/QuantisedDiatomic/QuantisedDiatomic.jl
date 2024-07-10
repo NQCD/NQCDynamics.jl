@@ -21,7 +21,8 @@ module QuantisedDiatomic
 using QuadGK: QuadGK
 using Rotations: Rotations
 using LinearAlgebra: norm, normalize!, nullspace, cross, I
-using UnitfulAtomic: austrip
+using Unitful
+using UnitfulAtomic
 using Distributions: Uniform
 using UnicodePlots: lineplot, lineplot!, DotCanvas, histogram
 using Optim: Optim
@@ -44,7 +45,6 @@ const TIMER = TimerOutputs.TimerOutput()
 include("energy_evaluation.jl")
 include("binding_curve.jl")
 include("random_configuration.jl")
-include("rigid_rotator.jl")
 
 struct EffectivePotential{JType,T,B,F}
     μ::T
@@ -384,9 +384,12 @@ Set `max_translation` to the radius of surrounding unit cells to search.
 (e.g. 1 if positions are already wrapped around cell boundaries)
 """
 function quantise_diatomic(sim::Simulation, v::Matrix, r::Matrix, binding_curve::BindingCurve;
-    show_timer=false, reset_timer=false,
-    max_translation=1, height=10.0, 
-    surface_normal=[0, 0, 1.0], atom_indices=[1, 2], 
+    show_timer=false, 
+    reset_timer=false,
+    max_translation=1, 
+    height=10.0, 
+    surface_normal=[0, 0, 1.0], 
+    atom_indices=[1, 2], 
 )
 
     reset_timer && TimerOutputs.reset_timer!(TIMER)
@@ -413,15 +416,17 @@ function quantise_diatomic(sim::Simulation, v::Matrix, r::Matrix, binding_curve:
     p_com = v_com .* masses(sim)[atom_indices]'
 
     k = DynamicsUtils.classical_kinetic_energy(masses(sim)[atom_indices], v_com)
+    @debug "Diatomic Kinetic energy: $(auconvert(u"eV", k))"
     p = calculate_diatomic_energy(bond_length(r_com), sim.calculator.model, environment)
+    @debug "Diatomic Potential energy: $(auconvert(u"eV", p))"
     E = k + p
 
     L = total_angular_momentum(r_com, p_com)
+    @debug "Total angular momentum: $(L)"
     J = (sqrt(1+4*L^2) - 1) / 2 # L^2 = J(J+1)ħ^2
+    @debug "Calculated J (before rounding): $(J)"
 
     μ = reduced_mass(masses(sim)[atom_indices])
-
-    @debug "k=$k\np=$p\nE=$E\nL=$L\nJ=$J\n"
 
     V = EffectivePotential(μ, J, binding_curve)
 
@@ -438,7 +443,7 @@ function quantise_diatomic(sim::Simulation, v::Matrix, r::Matrix, binding_curve:
     TimerOutputs.complement!(TIMER)
     show_timer && show(TIMER)
 
-    @debug "Found ν=$ν"
+    @debug "Calculated ν: $ν"
     return round(Int, ν), round(Int, J)
 end
 
