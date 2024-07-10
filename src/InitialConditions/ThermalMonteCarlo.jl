@@ -27,34 +27,61 @@ using NQCDynamics:
   masses
 
 """
-    run_advancedmh_sampling(sim, r, steps, σ; move_ratio=0.0, internal_ratio=0.0)
+    run_advancedmh_sampling(sim, r, steps, σ; movement_ratio=nothing, movement_ratio_internal=nothing, kwargs...)
 
 Sample the configuration space for the simulation `sim` starting from `r`.
 
 Total number of steps is given by `steps` and `σ` is the dictionary of
 step sizes for each species.
 
-`move_ratio` defaults to `0.0` and denotes the fraction of system moved each step.
-If `move_ratio = 0`, every degree of freedom is moved at each step.
-If `move_ratio = 1`, then nothing will happen. Experiment with this parameter to achieve
-optimal sampling.
+`movement_ratio` denotes the fraction of system moved each step.
+`internal_ratio` works as for `movement_ratio` but for the internal modes of the ring polymer.
+For `movement_ratio = 0`, every degree of freedom is moved at each step, if `movement_ratio = 1`, then nothing will happen. 
 
-`internal_ratio` works as for `move_ratio` but for the internal modes of the ring polymer.
+If neither arguments are defined, default behaviour is to move one atom (and one ring polymer normal mode) per step on average. 
+
+Further kwargs are passed to `AdvancedMH.sample` to allow for [extra functionality](https://turinglang.org/AbstractMCMC.jl/dev/api/#Common-keyword-arguments).
 """
 function run_advancedmh_sampling(
   sim::AbstractSimulation,
   r,
   steps::Real,
   σ::Dict{Symbol,<:Real};
-  move_ratio=0.0,
-  internal_ratio=0.0, 
+  movement_ratio=nothing,
+  stop_ratio=nothing,
+  movement_ratio_internal=nothing,
+  stop_ratio_internal=nothing,
+  move_ratio=nothing, # deprecated
+  internal_ratio=nothing, # deprecated
   kwargs...
 )
+
+  # Give a warning if move_ratio or internal_ratio are used
+  if move_ratio !== nothing || internal_ratio !== nothing
+    @warn "move_ratio and internal_ratio kwargs are deprecated and may be removed in future. More information: https://nqcd.github.io/NQCDynamics.jl/stable/initialconditions/metropolishastings/"
+    stop_ratio=move_ratio === nothing ? nothing : move_ratio
+    stop_ratio_internal=internal_ratio === nothing ? nothing : internal_ratio
+  end
+
+  # If no kwargs for system fraction to move are given, perturb one atom and one normal mode at a time
+  if movement_ratio===nothing && stop_ratio===nothing
+    @debug "No movement restriction for atoms provided, automatically setting to move one atom per step on average."
+    movement_ratio=1/size(sim)[2]
+  end
+
+  if movement_ratio_internal===nothing && stop_ratio_internal===nothing
+    @debug "No movement restriction for ring polymer normal modes provided, automatically setting to move one mode per step on average."
+    movement_ratio_internal=length(size(sim))==3 ? 1/size(sim)[3] : 0.0
+  end
+
+  # Set atom movement ratio by using whichever keyword is defined
+  stop_ratio = stop_ratio===nothing ? 1-movement_ratio : stop_ratio
+  stop_ratio_internal = stop_ratio_internal===nothing ? 1-movement_ratio_internal : stop_ratio_internal
 
   density = get_density_function(sim)
 
   density_model = AdvancedMH.DensityModel(density)
-  proposal = get_proposal(sim, σ, move_ratio, internal_ratio)
+  proposal = get_proposal(sim, σ, stop_ratio, stop_ratio_internal)
 
   sampler = AdvancedMH.MetropolisHastings(proposal)
 
@@ -117,29 +144,29 @@ end
 
 struct ClassicalProposal{P,T,S<:Simulation} <: AdvancedMH.Proposal{P}
   proposal::P
-  move_ratio::T
+  stop_ratio::T
   sim::S
 end
 
 struct RingPolymerProposal{P,T,S<:RingPolymerSimulation} <: AdvancedMH.Proposal{P}
   proposal::P
-  move_ratio::T
-  internal_ratio::T
+  stop_ratio::T
+  stop_ratio_internal::T
   sim::S
 end
 
 const MolecularProposal{P,T,S} = Union{RingPolymerProposal{P,T,S},ClassicalProposal{P,T,S}}
 
-function ClassicalProposal(sim::Simulation, σ, move_ratio)
+function ClassicalProposal(sim::Simulation, σ, stop_ratio)
   proposals = Matrix{UnivariateDistribution}(undef, size(sim))
   for (i, symbol) in enumerate(sim.atoms.types) # Position proposals
     distribution = σ[symbol] == 0 ? Dirac(0) : Normal(0, σ[symbol])
     proposals[:, i] .= distribution
   end
-  ClassicalProposal(proposals[:], move_ratio, sim)
+  ClassicalProposal(proposals[:], stop_ratio, sim)
 end
 
-function RingPolymerProposal(sim::RingPolymerSimulation, σ, move_ratio, internal_ratio)
+function RingPolymerProposal(sim::RingPolymerSimulation, σ, stop_ratio, stop_ratio_internal)
   ωₖ = RingPolymers.get_matsubara_frequencies(nbeads(sim), sim.beads.ω_n)
   proposals = Array{UnivariateDistribution}(undef, size(sim))
   for i = 1:nbeads(sim)
@@ -160,12 +187,12 @@ function RingPolymerProposal(sim::RingPolymerSimulation, σ, move_ratio, interna
       end
     end
   end
-  RingPolymerProposal(proposals[:], move_ratio, internal_ratio, sim)
+  RingPolymerProposal(proposals[:], stop_ratio, stop_ratio_internal, sim)
 end
 
 function Base.rand(rng::Random.AbstractRNG, p::ClassicalProposal)
   result = map(x -> rand(rng, x), p.proposal)
-  result[Random.randsubseq(eachindex(result), p.move_ratio)] .= 0
+  result[Random.randsubseq(findall(x -> x!=0.0, result), p.stop_ratio)] .=0
   return result
 end
 
@@ -174,12 +201,12 @@ function Base.rand(rng::Random.AbstractRNG, p::RingPolymerProposal)
   reshaped_result = reshape(result, size(p.sim))
 
   # Zero some of the centroid moves
-  sequence = Random.randsubseq(CartesianIndices(size(p.sim)[1:2]), p.move_ratio)
+  sequence = Random.randsubseq(findall(x -> x != 0, CartesianIndices(size(p.sim)[1:2])), p.stop_ratio)
   reshaped_result[sequence, 1] .= 0
 
   # Zero some of the internal mode moves
   for i = 2:nbeads(p.sim)
-    sequence = Random.randsubseq(CartesianIndices((ndofs(p.sim), natoms(p.sim))), p.internal_ratio)
+    sequence = Random.randsubseq(findall(x -> x != 0, CartesianIndices((ndofs(p.sim), natoms(p.sim)))), p.stop_ratio_internal)
     reshaped_result[sequence, i] .= 0
   end
 

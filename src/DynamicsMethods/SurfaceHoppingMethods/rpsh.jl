@@ -48,6 +48,19 @@ function perform_rescaling!(
     return nothing
 end
 
+function frustrated_hop_invert_velocity!(
+    sim::RingPolymerSimulation{<:SurfaceHopping}, velocity, d
+)
+    #invert center of mass velocity of ring polymer
+    dn = LinearAlgebra.normalize(d)
+    vcom = sum(velocity, dims=3) / size(velocity,3)
+    γ = dot(vcom[:,:,1],dn)
+    for I in CartesianIndices(dn)
+        velocity[I,:] .-= 2γ * dn[I]
+    end
+    return nothing
+end
+
 function DynamicsUtils.classical_potential_energy(sim::RingPolymerSimulation{<:FSSH}, u)
     all_eigs = Calculators.get_eigen(sim.calculator, DynamicsUtils.get_positions(u))
     potential = sum(eigs.values[u.state] for eigs in all_eigs)

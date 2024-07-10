@@ -44,6 +44,7 @@ end
             "dynamicssimulations/dynamicssimulations.md"
             find_all_files("dynamicssimulations/dynamicsmethods")
         ]
+        "Outputs and Analysis" => find_all_files("output_and_analysis")
         "Examples" => find_all_files("examples")
         "integration_algorithms.md"
         "Developer documentation" => find_all_files("devdocs")

@@ -17,8 +17,18 @@ if GROUP == "All" || GROUP == "Core"
     @safetestset "Ring Polymer Tests" begin
         include("Core/ring_polymers.jl")
     end
+
+end
+
+if GROUP == "All" || GROUP == "Analysis"
     @safetestset "Estimator tests" begin
         include("Core/estimators.jl")
+    end
+    @safetestset "Structure Manipulation" begin
+        include("Structure/structure.jl")
+    end
+    @safetestset "Diatomic Analysis" begin
+        include("Analysis/diatomic.jl")
     end
 end
 

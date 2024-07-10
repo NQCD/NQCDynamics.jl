@@ -50,7 +50,7 @@ Rescale the velocity in the direction of the nonadiabatic coupling.
 [HammesSchiffer1994](@cite)
 """
 function rescale_velocity!(sim::AbstractSimulation{<:SurfaceHopping}, u)::Bool
-    sim.method.rescaling === :off && return true
+    sim.method.rescaling === :off && return true #no rescaling so always accept hop
 
     new_state, old_state = unpack_states(sim)
     velocity = DynamicsUtils.get_hopping_velocity(sim, DynamicsUtils.get_velocities(u))
@@ -63,17 +63,30 @@ function rescale_velocity!(sim::AbstractSimulation{<:SurfaceHopping}, u)::Bool
     c = calculate_potential_energy_change(eigs, new_state, old_state)
 
     discriminant = b^2 - 4a * c
-    discriminant < 0 && return false # Frustrated hop with insufficient kinetic energy
+    if discriminant < 0 # frustrated hop
+        if sim.method.rescaling == :standard
+            # Frustrated hop with insufficient kinetic energy, no velocity inversion
+            # Follow 1990 Tully recipe and do nothing
+            return false 
+        elseif sim.method.rescaling == :vinversion
+            # Frustrated hop with insufficient kinetic energy
+            # perform inversion of the velocity component along the nonadiabatic coupling vector
+            frustrated_hop_invert_velocity!(sim, DynamicsUtils.get_velocities(u), d)
+            return false
+        else   
+            throw(error("This mode of rescaling is not implemented"))
+        end
+    else     #sufficient energy for hopping
+        root = sqrt(discriminant)
+        if b < 0
+            γ = (b + root) / 2a
+        else
+            γ = (b - root) / 2a
+        end
+        perform_rescaling!(sim, DynamicsUtils.get_velocities(u), γ, d)
 
-    root = sqrt(discriminant)
-    if b < 0
-        γ = (b + root) / 2a
-    else
-        γ = (b - root) / 2a
+        return true
     end
-    perform_rescaling!(sim, DynamicsUtils.get_velocities(u), γ, d)
-
-    return true
 end
 
 """
@@ -119,6 +132,24 @@ function perform_rescaling!(
 )
     for I in CartesianIndices(d)
         velocity[I] -= γ * d[I] / masses(sim, I)
+    end
+    return nothing
+end
+
+"""
+    frustrated_hop_invert_velocity!(
+        sim::AbstractSimulation{<:SurfaceHopping}, velocity, d
+    )
+
+Measures the component of velocity along the nonadiabatic coupling vector and inverts that component.
+"""
+function frustrated_hop_invert_velocity!(
+    sim::AbstractSimulation{<:SurfaceHopping}, velocity, d
+)
+    dn = LinearAlgebra.normalize(d)
+    γ = dot(velocity,dn)
+    for I in CartesianIndices(dn)
+        velocity[I] -= 2γ * dn[I]
     end
     return nothing
 end
