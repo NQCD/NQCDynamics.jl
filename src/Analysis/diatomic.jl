@@ -62,7 +62,7 @@ function get_desorption_frame(trajectory::AbstractVector, diatomic_indices::Vect
     else
         @debug "Desorption observed in snapshot $(desorbed_frame)"
         leaving_surface_frame = findlast(com_velocity_condition.(view(trajectory, 1:desorbed_frame), Ref(diatomic_indices), Ref(simulation); surface_normal=surface_normal)) #ToDo testing views for memory efficiency, need to test time penalty. Also need to test if running on everything and findfirst-ing the Bool array is quicker.
-        if leaving_surface_frame < 0
+        if isnothing(leaving_surface_frame)
             @warn "Desorption event detected, but no direction change detected."
             return nothing
         else
