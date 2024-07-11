@@ -390,6 +390,7 @@ function quantise_diatomic(sim::Simulation, v::Matrix, r::Matrix, binding_curve:
     height=10.0, 
     surface_normal=[0, 0, 1.0], 
     atom_indices=[1, 2], 
+    langer_modification = false, # The Langer modification uses L^2 = J*(J+1/2)^2ħ^2 instead of L^2 = J*(J+1)ħ^2
 )
 
     reset_timer && TimerOutputs.reset_timer!(TIMER)
@@ -421,7 +422,7 @@ function quantise_diatomic(sim::Simulation, v::Matrix, r::Matrix, binding_curve:
 
     L = total_angular_momentum(r_com, p_com)
     @debug "Total angular momentum: $(L)"
-    J = (sqrt(1+4*L^2) - 1) / 2 # L^2 = J(J+1)ħ^2
+    J = langer_modification ? L - (1 / 2) : (sqrt(1+4*L^2) - 1) / 2 # L^2 = J(J+1)ħ^2
     @debug "Calculated J (before rounding): $(J)"
 
     μ = reduced_mass(masses(sim)[atom_indices])
