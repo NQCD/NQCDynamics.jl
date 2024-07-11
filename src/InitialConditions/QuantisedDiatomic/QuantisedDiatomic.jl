@@ -50,11 +50,13 @@ struct EffectivePotential{JType,T,B,F}
     μ::T
     J::JType
     binding_curve::BindingCurve{T,B,F}
+    langer_modification::Bool
 end
 
 function (effective_potential::EffectivePotential)(r)
-    (; μ, J, binding_curve) = effective_potential
-    rotational = J * (J + 1) / (2μ * r^2)
+    (; μ, J, binding_curve, langer_modification) = effective_potential
+    L_squared = langer_modification ? (J + 1 / 2) ^ 2 : J * (J + 1)
+    rotational = L_squared / (2μ * r^2)
 
     potential = binding_curve.fit(r)
     return rotational + potential
@@ -93,7 +95,8 @@ function generate_configurations(sim, ν, J;
     direction=[0, 0, -1.0],
     atom_indices=[1, 2],
     r=zeros(size(sim)),
-    bond_lengths=0.5:0.01:5.0
+    bond_lengths=0.5:0.01:5.0,
+    langer_modification = false
 )
 
     μ = reduced_mass(masses(sim)[atom_indices])
@@ -104,7 +107,7 @@ function generate_configurations(sim, ν, J;
     binding_curve = calculate_binding_curve(bond_lengths, sim.calculator.model, environment)
     plot_binding_curve(binding_curve.bond_lengths, binding_curve.potential, binding_curve.fit)
 
-    V = EffectivePotential(μ, J, binding_curve)
+    V = EffectivePotential(μ, J, binding_curve, langer_modification)
 
     total_energy, bounds = find_total_energy(V, ν)
 
@@ -119,7 +122,7 @@ function generate_configurations(sim, ν, J;
 end
 
 function generate_1D_vibrations(model::AdiabaticModel, μ::Real, ν::Integer;
-    samples=1000, bond_lengths=0.5:0.01:5.0
+    samples=1000, bond_lengths=0.5:0.01:5.0, langer_modification = false
 )
 
     J = 0
@@ -127,7 +130,7 @@ function generate_1D_vibrations(model::AdiabaticModel, μ::Real, ν::Integer;
     binding_curve = calculate_binding_curve(bond_lengths, model, environment)
     plot_binding_curve(binding_curve.bond_lengths, binding_curve.potential, binding_curve.fit)
 
-    V = EffectivePotential(μ, J, binding_curve)
+    V = EffectivePotential(μ, J, binding_curve, langer_modification)
 
     total_energy, bounds = find_total_energy(V, ν)
 
@@ -427,7 +430,7 @@ function quantise_diatomic(sim::Simulation, v::Matrix, r::Matrix, binding_curve:
 
     μ = reduced_mass(masses(sim)[atom_indices])
 
-    V = EffectivePotential(μ, J, binding_curve)
+    V = EffectivePotential(μ, J, binding_curve, langer_modification)
 
     @debug begin
         diag_plt = lineplot(
@@ -457,7 +460,7 @@ function quantise_diatomic(sim::Simulation, v::Matrix, r::Matrix, binding_curve:
 end
 
 function quantise_1D_vibration(model::AdiabaticModel, μ::Real, r::Real, v::Real;
-    bond_lengths=0.5:0.01:5.0, reset_timer=false, show_timer=false
+    bond_lengths=0.5:0.01:5.0, reset_timer=false, show_timer=false, langer_modification = false
 )
     reset_timer && TimerOutputs.reset_timer!(TIMER)
 
@@ -470,7 +473,7 @@ function quantise_1D_vibration(model::AdiabaticModel, μ::Real, r::Real, v::Real
 
     binding_curve = calculate_binding_curve(bond_lengths, model, environment)
 
-    V = EffectivePotential(μ, J, binding_curve)
+    V = EffectivePotential(μ, J, binding_curve, langer_modification)
 
     r₁, r₂ = @timeit TIMER "Finding bounds" find_integral_bounds(E, V)
 
