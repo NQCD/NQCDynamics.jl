@@ -32,9 +32,9 @@ end
         "NQCModels.jl" => Any[
             "NQCModels/overview.md"
             "NQCModels/analyticmodels.md"
-            "NQCModels/ase.md"
-            "NQCModels/neuralnetworkmodels.md"
+            "NQCModels/fullsizemodels.md"
             "NQCModels/frictionmodels.md"
+            "NQCModels/neuralnetworkmodels.md"
         ]
         "NQCDistributions.jl" => Any[
             "NQCDistributions/overview.md"
