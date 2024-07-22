@@ -305,10 +305,11 @@ function quantise_diatomic(sim::Simulation, v::Matrix, r::Matrix;
     height=10.0, 
     surface_normal=[0, 0, 1.0], 
     atom_indices=[1, 2], 
+    output_energies = false,
     args...
 )
     binding_curve=binding_curve_from_structure(sim, v, r; bond_lengths=bond_lengths, height=height, surface_normal=surface_normal, atom_indices=atom_indices)
-    return quantise_diatomic(sim, v, r, binding_curve; height=height, surface_normal=surface_normal, atom_indices=atom_indices, args...)
+    return quantise_diatomic(sim, v, r, binding_curve; height=height, surface_normal=surface_normal, atom_indices=atom_indices, output_energies = output_energies, args...)
 end
 
 """
@@ -343,25 +344,25 @@ function quantise_diatomic(sim::Simulation, v::Vector{<: Matrix{<: Any}}, r::Vec
     height=10.0, 
     surface_normal=[0, 0, 1.0], 
     atom_indices=[1, 2], 
+    output_energies = false,
     args...
 )
     # Generate binding curve for all structures
     binding_curve=binding_curve_from_structure(sim, v[1], r[1]; bond_lengths=bond_lengths, height=height, surface_normal=surface_normal, atom_indices=atom_indices)
-    ν, J=[],[]
+    results=[]
 
     # Quantise all configurations in the given vectors. 
     @showprogress for index in eachindex(v)
         try
-            result=quantise_diatomic(sim, v[index], r[index], binding_curve; height=height, surface_normal=surface_normal, atom_indices=atom_indices, args...)
-            push!(ν, result[1])
-            push!(J, result[2])
+            result=quantise_diatomic(sim, v[index], r[index], binding_curve; height=height, surface_normal=surface_normal, atom_indices=atom_indices, output_energies=output_energies, args...)
+            push!(results, result)
         catch e
             @warn "Quantisation was unsuccessful for configuration at $(index).\nThe final results vectors will show ν=-1 and J=-1 for this configuration.\n The error was: $(e)"
-            push!(ν, -1)
-            push!(J, -1)
+            output = output_energies ? (-1, -1, -1, -1, -1) : (-1, -1)
+            push!(results, output)
         end
     end
-    return ν, J
+    return getindex.(results, 1), getindex.(results, 2) # returns (ν, J)
 end
 
 """
@@ -394,6 +395,7 @@ function quantise_diatomic(sim::Simulation, v::Matrix, r::Matrix, binding_curve:
     surface_normal=[0, 0, 1.0], 
     atom_indices=[1, 2], 
     langer_modification = false, # The Langer modification uses L^2 = J*(J+1/2)^2ħ^2 instead of L^2 = J*(J+1)ħ^2
+    output_energies = false, # Output translation, rotation and vibrational energies with the quantisation information. 
 )
 
     reset_timer && TimerOutputs.reset_timer!(TIMER)
@@ -456,7 +458,15 @@ function quantise_diatomic(sim::Simulation, v::Matrix, r::Matrix, binding_curve:
     show_timer && show(TIMER)
 
     @debug "Calculated ν: $ν"
-    return round(Int, ν), round(Int, J)
+    if !output_energies
+        return round(Int, ν), round(Int, J)
+    else
+        translation_energy = DynamicsUtils.classical_kinetic_energy(sim.atoms.masses[atom_indices], centre_of_mass(v[:, atom_indices], sim.atoms.masses[atom_indices]))
+        rotation_energy = L / (2 * μ * bond_length(r)^2) # $\frac{L^2}{2I}$
+        vibration_energy = (ν + 0.5) * sqrt(calculate_force_constant(binding_curve) / µ)
+
+        return (round(Int, ν), round(Int, J), translation_energy, rotation_energy, vibration_energy)
+    end
 end
 
 function quantise_1D_vibration(model::AdiabaticModel, μ::Real, r::Real, v::Real;
@@ -503,101 +513,6 @@ function reduced_mass(m::AbstractVector)
     else
         throw(error("Mass vector of incorrect length."))
     end
-end
-
-function energy_distribution_from_quantisation(sim::Simulation, v::Vector{<: Matrix{<: Any}}, r::Vector{<: Matrix{<: Any}}, ν::Vector{<: Any}, J::Vector{<: Any};
-    bond_lengths=0.5:0.01:5.0,
-    height=10.0,
-    surface_normal::Vector{Float64}=[0,0,1.0],
-    atom_indices=[1,2],
-    max_translation=1
-)
-    
-    @debug "Generating a binding curve since none was given. "
-    binding_curve=binding_curve_from_structure(sim, v[1], r[1]; bond_lengths=bond_lengths, height=height, surface_normal=surface_normal, atom_indices=atom_indices)
-
-    E_tot, E_trans, E_rot, E_vib, E_delta=[],[],[],[],[]
-
-    @debug "Calculating energies"
-    @showprogress for index in eachindex(v)
-        result=energy_distribution_from_quantisation(sim, v[index], r[index], ν[index], J[index],binding_curve; height=height, surface_normal=surface_normal, atom_indices=atom_indices)
-        push!(E_tot, result[1])
-        push!(E_trans, result[2])
-        push!(E_rot, result[3])
-        push!(E_vib, result[4])
-        push!(E_delta, result[5])
-    end
-    
-    return E_tot, E_trans, E_rot, E_vib, E_delta
-end
-
-function energy_distribution_from_quantisation(sim::Simulation, v::Matrix, r::Matrix, ν::Int, J::Int; 
-    bond_lengths=0.5:0.01:5.0,
-    height=0,
-    surface_normal=[0,0,1],
-    atom_indices=[1,2],
-    max_translation=1
-)
-    @debug "Generating a binding curve since none was given."
-    binding_curve=binding_curve_from_structure(sim, v[1], r[1]; bond_lengths=bond_lengths, height=height, surface_normal=surface_normal, atom_indices=atom_indices)
-
-    @debug "Calculating energies"
-    return energy_distribution_from_quantisation(sim, v, r, ν, J, binding_curve;
-    height=height,
-    surface_normal=surface_normal,
-    atom_indices=atom_indices,
-    max_translation=max_translation
-    )
-end
-
-function energy_distribution_from_quantisation(sim::Simulation, v::Matrix, r::Matrix, ν::Int, J::Int, binding_curve::BindingCurve;
-    height=0,
-    surface_normal=[0,0,1],
-    atom_indices=[1,2],
-    max_translation=1
-)
-    @debug "Checking for periodicity. "
-    if isa(sim.cell,PeriodicCell)
-        # If the simulation used a `PeriodicCell`, translate `atom_indices` so they are at their minimum distance. (This is necessary if atoms were translated back into the original unit cell)
-        translations=[[i,j,k] for i in -max_translation:max_translation for j in -max_translation:max_translation for k in -max_translation:max_translation]
-        which_translation=argmin([norm(abs.(r[:,atom_indices[2]]-r[:,atom_indices[1]]+sim.cell.vectors*operation)) for operation in translations])
-        # Translate one atom for minimal distance. 
-        if translations[which_translation]!=[0,0,0]
-            r[:,atom_indices[2]].=r[:,atom_indices[2]]+sim.cell.vectors*translations[which_translation]
-            @debug "Using a periodic copy of atom "*string(atom_indices[end])*"  to bring it closer to atom "*string(atom_indices[begin])
-        end
-    end
-
-    # Separate diatomic from slab, if necessary
-    r, slab_r = separate_slab_and_molecule(atom_indices, r)
-    v, slab_v = separate_slab_and_molecule(atom_indices, v)
-    environment = EvaluationEnvironment(atom_indices, size(sim), slab_r, austrip(height), surface_normal)
-
-    # Determine centers of mass and velocity and reduced mass. 
-    r_com = subtract_centre_of_mass(r, masses(sim)[atom_indices])
-    v_com = subtract_centre_of_mass(v, masses(sim)[atom_indices])
-    μ = reduced_mass(masses(sim)[atom_indices])
-
-    # Calculate total energy
-    k = DynamicsUtils.classical_kinetic_energy(masses(sim)[atom_indices], v_com)
-    p = calculate_diatomic_energy(bond_length(r_com), sim.calculator.model, environment)
-    E_tot = k + p
-
-    # Classical translation energy: m/2*v^2 with center of mass translation. 
-    E_trans = sum(sim.atoms.masses[atom_indices]) * norm(centre_of_mass(v, sim.atoms.masses[atom_indices]))^2 / 2
-
-    # Classical rotational energy. 
-    I = μ * bond_length(r)^2
-    E_rot=J * (J+1) / (2 * I)
-
-    # Harmonic vibrational energy. 
-
-    E_vib=(ν + 0.5) * sqrt(calculate_force_constant(binding_curve) / µ)
-
-    # Difference between total kinetic energy and kinetic energy contributions from the quantised energy terms
-    E_delta=k-E_trans-E_rot-E_vib/2
-
-    return E_tot-p, E_trans, E_rot, E_vib, E_delta
 end
 
 @views bond_length(r) = norm(r[:, 1] .- r[:, 2])
