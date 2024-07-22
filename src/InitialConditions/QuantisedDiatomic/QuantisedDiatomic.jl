@@ -21,7 +21,8 @@ module QuantisedDiatomic
 using QuadGK: QuadGK
 using Rotations: Rotations
 using LinearAlgebra: norm, normalize!, nullspace, cross, I
-using UnitfulAtomic: austrip
+using Unitful
+using UnitfulAtomic
 using Distributions: Uniform
 using UnicodePlots: lineplot, lineplot!, DotCanvas, histogram
 using Optim: Optim
@@ -37,6 +38,7 @@ using NQCModels.AdiabaticModels: AdiabaticModel
 
 export generate_configurations
 export quantise_diatomic
+export energy_distribution_from_quantisation
 
 const TIMER = TimerOutputs.TimerOutput()
 
@@ -48,11 +50,13 @@ struct EffectivePotential{JType,T,B,F}
     μ::T
     J::JType
     binding_curve::BindingCurve{T,B,F}
+    langer_modification::Bool
 end
 
 function (effective_potential::EffectivePotential)(r)
-    (; μ, J, binding_curve) = effective_potential
-    rotational = J * (J + 1) / (2μ * r^2)
+    (; μ, J, binding_curve, langer_modification) = effective_potential
+    L_squared = langer_modification ? (J + 1 / 2) ^ 2 : J * (J + 1)
+    rotational = L_squared / (2μ * r^2)
 
     potential = binding_curve.fit(r)
     return rotational + potential
@@ -91,7 +95,8 @@ function generate_configurations(sim, ν, J;
     direction=[0, 0, -1.0],
     atom_indices=[1, 2],
     r=zeros(size(sim)),
-    bond_lengths=0.5:0.01:5.0
+    bond_lengths=0.5:0.01:5.0,
+    langer_modification = false
 )
 
     μ = reduced_mass(masses(sim)[atom_indices])
@@ -102,7 +107,7 @@ function generate_configurations(sim, ν, J;
     binding_curve = calculate_binding_curve(bond_lengths, sim.calculator.model, environment)
     plot_binding_curve(binding_curve.bond_lengths, binding_curve.potential, binding_curve.fit)
 
-    V = EffectivePotential(μ, J, binding_curve)
+    V = EffectivePotential(μ, J, binding_curve, langer_modification)
 
     total_energy, bounds = find_total_energy(V, ν)
 
@@ -117,7 +122,7 @@ function generate_configurations(sim, ν, J;
 end
 
 function generate_1D_vibrations(model::AdiabaticModel, μ::Real, ν::Integer;
-    samples=1000, bond_lengths=0.5:0.01:5.0
+    samples=1000, bond_lengths=0.5:0.01:5.0, langer_modification = false
 )
 
     J = 0
@@ -125,7 +130,7 @@ function generate_1D_vibrations(model::AdiabaticModel, μ::Real, ν::Integer;
     binding_curve = calculate_binding_curve(bond_lengths, model, environment)
     plot_binding_curve(binding_curve.bond_lengths, binding_curve.potential, binding_curve.fit)
 
-    V = EffectivePotential(μ, J, binding_curve)
+    V = EffectivePotential(μ, J, binding_curve, langer_modification)
 
     total_energy, bounds = find_total_energy(V, ν)
 
@@ -300,10 +305,11 @@ function quantise_diatomic(sim::Simulation, v::Matrix, r::Matrix;
     height=10.0, 
     surface_normal=[0, 0, 1.0], 
     atom_indices=[1, 2], 
+    output_energies = false,
     args...
 )
     binding_curve=binding_curve_from_structure(sim, v, r; bond_lengths=bond_lengths, height=height, surface_normal=surface_normal, atom_indices=atom_indices)
-    return quantise_diatomic(sim, v, r, binding_curve; height=height, surface_normal=surface_normal, atom_indices=atom_indices, args...)
+    return quantise_diatomic(sim, v, r, binding_curve; height=height, surface_normal=surface_normal, atom_indices=atom_indices, output_energies = output_energies, args...)
 end
 
 """
@@ -338,25 +344,25 @@ function quantise_diatomic(sim::Simulation, v::Vector{<: Matrix{<: Any}}, r::Vec
     height=10.0, 
     surface_normal=[0, 0, 1.0], 
     atom_indices=[1, 2], 
+    output_energies = false,
     args...
 )
     # Generate binding curve for all structures
     binding_curve=binding_curve_from_structure(sim, v[1], r[1]; bond_lengths=bond_lengths, height=height, surface_normal=surface_normal, atom_indices=atom_indices)
-    ν, J=[],[]
+    results=[]
 
     # Quantise all configurations in the given vectors. 
     @showprogress for index in eachindex(v)
         try
-            result=quantise_diatomic(sim, v[index], r[index], binding_curve; height=height, surface_normal=surface_normal, atom_indices=atom_indices, args...)
-            push!(ν, result[1])
-            push!(J, result[2])
+            result=quantise_diatomic(sim, v[index], r[index], binding_curve; height=height, surface_normal=surface_normal, atom_indices=atom_indices, output_energies=output_energies, args...)
+            push!(results, result)
         catch e
             @warn "Quantisation was unsuccessful for configuration at $(index).\nThe final results vectors will show ν=-1 and J=-1 for this configuration.\n The error was: $(e)"
-            push!(ν, -1)
-            push!(J, -1)
+            output = output_energies ? (-1, -1, -1, -1, -1) : (-1, -1)
+            push!(results, output)
         end
     end
-    return ν, J
+    return getindex.(results, 1), getindex.(results, 2) # returns (ν, J)
 end
 
 """
@@ -382,9 +388,14 @@ Set `max_translation` to the radius of surrounding unit cells to search.
 (e.g. 1 if positions are already wrapped around cell boundaries)
 """
 function quantise_diatomic(sim::Simulation, v::Matrix, r::Matrix, binding_curve::BindingCurve;
-    show_timer=false, reset_timer=false,
-    max_translation=1, height=10.0, 
-    surface_normal=[0, 0, 1.0], atom_indices=[1, 2], 
+    show_timer=false, 
+    reset_timer=false,
+    max_translation=1, 
+    height=10.0, 
+    surface_normal=[0, 0, 1.0], 
+    atom_indices=[1, 2], 
+    langer_modification = false, # The Langer modification uses L^2 = J*(J+1/2)^2ħ^2 instead of L^2 = J*(J+1)ħ^2
+    output_energies = false, # Output translation, rotation and vibrational energies with the quantisation information. 
 )
 
     reset_timer && TimerOutputs.reset_timer!(TIMER)
@@ -404,25 +415,35 @@ function quantise_diatomic(sim::Simulation, v::Matrix, r::Matrix, binding_curve:
     v, slab_v = separate_slab_and_molecule(atom_indices, v)
     environment = EvaluationEnvironment(atom_indices, size(sim), slab, austrip(height), surface_normal)
 
-    @debug "After PBC check and separation from slab, diatomic positions are:\n$(r)"
-
     r_com = subtract_centre_of_mass(r, masses(sim)[atom_indices])
     v_com = subtract_centre_of_mass(v, masses(sim)[atom_indices])
     p_com = v_com .* masses(sim)[atom_indices]'
 
     k = DynamicsUtils.classical_kinetic_energy(masses(sim)[atom_indices], v_com)
+    @debug "Diatomic Kinetic energy: $(auconvert(u"eV", k))"
     p = calculate_diatomic_energy(bond_length(r_com), sim.calculator.model, environment)
+    @debug "Diatomic Potential energy: $(auconvert(u"eV", p))"
     E = k + p
 
     L = total_angular_momentum(r_com, p_com)
-    J = (sqrt(1+4*L^2) - 1) / 2 # L^2 = J(J+1)ħ^2
+    @debug "Total angular momentum: $(L)"
+    J = langer_modification ? L - (1 / 2) : (sqrt(1+4*L^2) - 1) / 2 # L^2 = J(J+1)ħ^2
+    @debug "Calculated J (before rounding): $(J)"
 
     μ = reduced_mass(masses(sim)[atom_indices])
 
-    @debug "k=$k\np=$p\nE=$E\nL=$L\nJ=$J\n"
+    V = EffectivePotential(μ, J, binding_curve, langer_modification)
 
-    V = EffectivePotential(μ, J, binding_curve)
-
+    @debug begin
+        diag_plt = lineplot(
+        binding_curve.bond_lengths, 
+        sqrt.(abs.(E.- V.(binding_curve.bond_lengths))); 
+        title="Binding curve", xlabel="Bond length / bohr", ylabel="Energy / Hartree",
+        name="E - V values (should intersect 0 twice)", canvas=DotCanvas, border=:ascii
+        )
+        show(diag_plt)
+    end
+    
     r₁, r₂ = @timeit TIMER "Finding bounds" find_integral_bounds(E, V)
 
     function nᵣ(E, r₁, r₂)
@@ -436,12 +457,20 @@ function quantise_diatomic(sim::Simulation, v::Matrix, r::Matrix, binding_curve:
     TimerOutputs.complement!(TIMER)
     show_timer && show(TIMER)
 
-    @debug "Found ν=$ν"
-    return round(Int, ν), round(Int, J)
+    @debug "Calculated ν: $ν"
+    if !output_energies
+        return round(Int, ν), round(Int, J)
+    else
+        translation_energy = DynamicsUtils.classical_kinetic_energy(sim.atoms.masses[atom_indices], centre_of_mass(v[:, atom_indices], sim.atoms.masses[atom_indices]))
+        rotation_energy = L / (2 * μ * bond_length(r)^2) # $\frac{L^2}{2I}$
+        vibration_energy = (ν + 0.5) * sqrt(calculate_force_constant(binding_curve) / µ)
+
+        return (round(Int, ν), round(Int, J), translation_energy, rotation_energy, vibration_energy)
+    end
 end
 
 function quantise_1D_vibration(model::AdiabaticModel, μ::Real, r::Real, v::Real;
-    bond_lengths=0.5:0.01:5.0, reset_timer=false, show_timer=false
+    bond_lengths=0.5:0.01:5.0, reset_timer=false, show_timer=false, langer_modification = false
 )
     reset_timer && TimerOutputs.reset_timer!(TIMER)
 
@@ -454,7 +483,7 @@ function quantise_1D_vibration(model::AdiabaticModel, μ::Real, r::Real, v::Real
 
     binding_curve = calculate_binding_curve(bond_lengths, model, environment)
 
-    V = EffectivePotential(μ, J, binding_curve)
+    V = EffectivePotential(μ, J, binding_curve, langer_modification)
 
     r₁, r₂ = @timeit TIMER "Finding bounds" find_integral_bounds(E, V)
 
