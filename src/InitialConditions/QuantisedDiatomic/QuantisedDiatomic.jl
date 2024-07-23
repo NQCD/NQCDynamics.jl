@@ -362,7 +362,7 @@ function quantise_diatomic(sim::Simulation, v::Vector{<: Matrix{<: Any}}, r::Vec
             push!(results, output)
         end
     end
-    return getindex.(results, 1), getindex.(results, 2) # returns (ν, J)
+    return results # returns (ν, J) or (ν, J, translation_energy, rotation_energy, vibration_energy)
 end
 
 """
@@ -461,9 +461,9 @@ function quantise_diatomic(sim::Simulation, v::Matrix, r::Matrix, binding_curve:
     if !output_energies
         return round(Int, ν), round(Int, J)
     else
-        translation_energy = DynamicsUtils.classical_kinetic_energy(sim.atoms.masses[atom_indices], centre_of_mass(v[:, atom_indices], sim.atoms.masses[atom_indices]))
+        translation_energy = sum(sim.atoms.masses[atom_indices]) / 2 * norm(centre_of_mass(v[:, atom_indices], sim.atoms.masses[atom_indices]))^2 # m/2 v^2
         rotation_energy = L / (2 * μ * bond_length(r)^2) # $\frac{L^2}{2I}$
-        vibration_energy = (ν + 0.5) * sqrt(calculate_force_constant(binding_curve) / µ)
+        vibration_energy = (ν + 0.5) * sqrt(calculate_force_constant(binding_curve) / µ) # $(ν+1/2)\sqrt{\frac{k}{μ}}$
 
         return (round(Int, ν), round(Int, J), translation_energy, rotation_energy, vibration_energy)
     end
