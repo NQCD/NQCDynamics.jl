@@ -43,7 +43,20 @@ function com_velocity_condition(x::AbstractArray, indices::Vector{Int}, simulati
 end
 
 """
-    get_desorption_frame(trajectory::Vector, diatomic_indices::Vector{Int}, simulation::AbstractSimulation;surface_normal::Vector=[0,0,1], surface_distance_threshold=5.0*u"Å")
+    close_approach_condition(x::AbstractArray, indices::Vector{Int}, simulation::AbstractSimulation; threshold = 1.5u"Å")
+
+    Evaluate true if the diatomic bond length is below `threshold`.
+"""
+function close_approach_condition(x::AbstractArray, indices::Vector{Int}, simulation::AbstractSimulation; threshold = 1.5u"Å")
+    if NQCDynamics.Structure.pbc_distance(x, indices..., simulation) ≤ threshold
+        return true
+    else
+        return false
+    end
+end
+
+"""
+    get_desorption_frame(trajectory::AbstractVector, diatomic_indices::Vector{Int}, simulation::AbstractSimulation; surface_normal::Vector=[0, 0, 1], surface_distance_threshold=5.0 * u"Å", fallback_distance_threshold = 1.5u"Å")
 
 Determines the index in a trajectory where surface desorption begins.
 
@@ -52,8 +65,11 @@ This is evaluated using two conditions:
 1. In the trajectory, the diatomic must be `surface_distance_threshold` or further away from the highest other atom. (In `surface_normal` direction).
 
 2. Desorption begins at the turning point of the centre of mass velocity component along `surface_normal`, indicating overall movement away from the surface.
+
+If the second condition is never reached (can happen for particularly quick desorptions), the `fallback_distance_threshold` is used to find the last point where the
+diatomic bond length is above the given value and saves from that point onwards. 
 """
-function get_desorption_frame(trajectory::AbstractVector, diatomic_indices::Vector{Int}, simulation::AbstractSimulation; surface_normal::Vector=[0, 0, 1], surface_distance_threshold=5.0 * u"Å")
+function get_desorption_frame(trajectory::AbstractVector, diatomic_indices::Vector{Int}, simulation::AbstractSimulation; surface_normal::Vector=[0, 0, 1], surface_distance_threshold=5.0 * u"Å", fallback_distance_threshold = 1.5u"Å")
     desorbed_frame = findfirst(surface_distance_condition.(trajectory, Ref(diatomic_indices), Ref(simulation); surface_distance_threshold=surface_distance_threshold))
 
     if isa(desorbed_frame, Nothing)
@@ -63,8 +79,17 @@ function get_desorption_frame(trajectory::AbstractVector, diatomic_indices::Vect
         @debug "Desorption observed in snapshot $(desorbed_frame)"
         leaving_surface_frame = findlast(com_velocity_condition.(view(trajectory, 1:desorbed_frame), Ref(diatomic_indices), Ref(simulation); surface_normal=surface_normal)) #ToDo testing views for memory efficiency, need to test time penalty. Also need to test if running on everything and findfirst-ing the Bool array is quicker.
         if isnothing(leaving_surface_frame)
-            @warn "Desorption event detected, but no direction change detected."
-            return nothing
+            @debug "Centre of mass velocity criterion was never met. Falling back to distance threshold."
+            leaving_surface_frame = findlast(close_approach_condition.(view(trajectory, 1:desorbed_frame), Ref(diatomic_indices), Ref(simulation); threshold = fallback_distance_threshold))
+            if isnothing(leaving_surface_frame)
+                @debug begin
+                    println("Fallback distance threshold was never met. Something is very wrong here - Returning 1 to capture entire trajectory for debugging.")
+                    return 1
+                end
+                return nothing
+            else 
+                return leaving_surface_frame
+            end
         else
             return leaving_surface_frame
         end
