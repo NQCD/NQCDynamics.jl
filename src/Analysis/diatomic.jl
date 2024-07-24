@@ -48,7 +48,7 @@ end
     Evaluate true if the diatomic bond length is below `threshold`.
 """
 function close_approach_condition(x::AbstractArray, indices::Vector{Int}, simulation::AbstractSimulation; threshold = 1.5u"Å")
-    if NQCDynamics.Structure.pbc_distance(x, indices..., simulation) ≤ threshold
+    if Structure.pbc_distance(x, indices..., simulation) ≤ threshold
         return true
     else
         return false
