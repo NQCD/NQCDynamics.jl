@@ -462,7 +462,7 @@ function quantise_diatomic(sim::Simulation, v::Matrix, r::Matrix, binding_curve:
         return round(Int, ν), round(Int, J)
     else
         translation_energy = sum(sim.atoms.masses[atom_indices]) / 2 * norm(centre_of_mass(v[:, atom_indices], sim.atoms.masses[atom_indices]))^2 # m/2 v^2
-        rotation_energy = L / (2 * μ * bond_length(r)^2) # $\frac{L^2}{2I}$
+        rotation_energy = L^2 / (2 * μ * bond_length(r)^2) # $\frac{L^2}{2I} = \frac{L^2}{2\mu ||r_2-r_1||^2}$ - Should be independent of the Langer modification
         vibration_energy = (ν + 0.5) * sqrt(calculate_force_constant(binding_curve) / µ) # $(ν+1/2)\sqrt{\frac{k}{μ}}$
 
         return (round(Int, ν), round(Int, J), translation_energy, rotation_energy, vibration_energy)
