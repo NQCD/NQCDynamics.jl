@@ -68,19 +68,18 @@ derivative(model, rand(3, 2))
 
 ## MACE interface
 
-The [`MACEModel`](@ref) is an interface to the [MACE](https://github.com/ACEsuit/mace) python code which bypasses some of the limitations of ASE, improving performance in ring-polymer simulations.
-Further documentation is available @Alex put a link to API docs here.
+[MACEModels.jl](https://github.com/NQCD/MACEModels.jl) is an interface to the [MACE](https://github.com/ACEsuit/mace) code. The package attempts to improve calculation speeds by directly interfacing with `MACE`, instead of going through `ase`.
+
+More information on how to use MACE models is available in the [MACEModels.jl](@ref) API documentation. 
 
 !!! tip
 
-      The MACE interface requires the `mace` python code to be installed and available through PyCall.
-      If you are using a virtual environment, you may need to re-build PyCall.jl in order for the correct packages to be available.
-      See [this page](https://github.com/JuliaPy/PyCall.jl?tab=readme-ov-file#specifying-the-python-version) for more information.
+      To make the installation of a python environment to execute MACE in optional, the `MACEModel` is provided in a separate package, which needs to be installed with `]add MACEModels`. 
 
 ### Example
 
 ```julia
-using NQCModels, PyCall, NQCDynamics.jl
+using NQCModels, PyCall, NQCDynamics.jl, MACEModels
 
 ensemble_paths = [
     "model01.model",
@@ -95,10 +94,10 @@ cell = InfiniteCell() # Set periodicity (none in this case)
 model = MACEModel(
     atoms, # Atoms (used for neighbour lists)
     cell, # Cell (used for neighbour lists)
-    ensemble_paths; # Vector containins paths to one or more models
+    ensemble_paths; # Vector containing paths to one or more models
     device = "cpu", # Device (or vector of devices) to use
     default_dtype = Float32, # Data type of the models (Float32 or Float64)
-    batch_size = 1, # Set to the number of ring-polymer beads if using ring-polymer dynamics
+    batch_size = 1, # Number of structures to evaluate at once (improves overall throughput)
 )
 ```
 

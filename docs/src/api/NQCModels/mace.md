@@ -3,12 +3,11 @@
 start_time = time()
 ```
 
-# MACE interface
-
-## Possible output data
+# MACEModels.jl
 
 ```@autodocs
-Modules=[NQCModels.AdiabaticModels.MACE]
+Modules = [MACEModels]
+Private = true
 ```
 
 ```@setup logging

@@ -28,7 +28,7 @@ First we load the model into an `ase` calculator and attach it to our diatomic
 hydrogen molecule.
 
 ```julia
-using PyCall
+using PythonCall
 
 ase = pyimport("ase")
 spkutils = pyimport("schnetpack.utils")
@@ -47,8 +47,8 @@ them to atomic units using [UnitfulAtomic](https://github.com/sostock/UnitfulAto
 
 ```julia-repl
 using Unitful, UnitfulAtomic;
-austrip(h2.get_total_energy() * u"eV")
-austrip.(h2.get_forces() .* u"eV/Å")
+austrip(pyconvert(Float64,h2.get_total_energy()) * u"eV")
+austrip.(pyconvert(Matrix{Float64}, h2.get_forces()) .* u"eV/Å")
 ```
 
 !!! warning
@@ -81,7 +81,7 @@ derivative(model, r)
 The following example shows how to connect a trained [MACE](https://github.com/ACEsuit/mace) model to NQCDynamics.jl using the [ASE interface](@ref).
 
 ```julia
-using PyCall, NQCModels
+using PythonCall, NQCModels
 
 ase_io = pyimport("ase.io") # make sure ase is installed in your environment first
 mace_module = pyimport("mace.calculators") # make sure mace is installed in your environment first
