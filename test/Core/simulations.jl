@@ -76,7 +76,7 @@ end
     # Generate a structure with constraints from ASE as a typical example
     ase_constraints = pyimport("ase.constraints")
     ase_io = pyimport("ase.io")
-    structure = ase_io.read("/Users/u5529589/Documents/NQCDynamics.jl/test/artifacts/desorption_test.xyz", index=1)
+    structure = ase_io.read("artifacts/desorption_test.xyz", index=1)
     structure.set_constraint(ase_constraints.FixAtoms(indices=collect(0:17)))
     nqcd_atoms, nqcd_positions, nqcd_cell = NQCDynamics.convert_from_ase_atoms(structure)
     # Test the frozen model
