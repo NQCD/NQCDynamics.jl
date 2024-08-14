@@ -1,7 +1,7 @@
 name = "NQCDynamics"
 uuid = "36248dfb-79eb-4f4d-ab9c-e29ea5f33e14"
 authors = ["James <james.gardner1421@gmail.com>"]
-version = "0.13.7"
+version = "0.14.0"
 
 [deps]
 AdvancedHMC = "0bf59076-c3b1-5ca4-86bd-e02cd72cde3d"
@@ -62,7 +62,7 @@ MKL_jll = "2023"
 MuladdMacro = "0.2"
 NQCBase = "0.2"
 NQCDistributions = "0.1"
-NQCModels = "0.8"
+NQCModels = "0.9"
 Optim = "1"
 OrdinaryDiffEq = "5, 6"
 Parameters = "0.12"
@@ -106,4 +106,20 @@ Symbolics = "0c5d862f-8b57-4792-8d23-62f2024744c7"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]
-test = ["Test", "SafeTestsets", "CSV", "DataFrames", "DiffEqNoiseProcess", "FiniteDiff", "DiffEqDevTools", "Logging", "MKL", "PyCall", "JuLIP", "Symbolics", "Statistics", "Plots", "JLD2"]
+test = [
+    "Test",
+    "SafeTestsets",
+    "CSV",
+    "DataFrames",
+    "DiffEqNoiseProcess",
+    "FiniteDiff",
+    "DiffEqDevTools",
+    "Logging",
+    "MKL",
+    "PyCall",
+    "JuLIP",
+    "Symbolics",
+    "Statistics",
+    "Plots",
+    "JLD2",
+]
