@@ -1,7 +1,7 @@
 using Test
 using NQCDynamics
 using Unitful, UnitfulAtomic
-using PyCall
+using PythonCall
 using NQCModels
 using JLD2
 
