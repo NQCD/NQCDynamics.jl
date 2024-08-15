@@ -99,7 +99,7 @@ JuLIP = "945c410c-986d-556a-acb1-167a618e0462"
 Logging = "56ddb016-857b-54e1-b83d-db4d58db5568"
 MKL = "33e6dc65-8f57-5167-99aa-e5a354878fb2"
 Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
-PyCall = "438e738f-606a-5dbb-bf0a-cddfbfd45ab0"
+PythonCall = "6099a3de-0909-46bc-b1f4-468b9a2dfc0d"
 SafeTestsets = "1bc83da4-3b8d-516f-aca4-4fe02f6d838f"
 Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
 Symbolics = "0c5d862f-8b57-4792-8d23-62f2024744c7"
@@ -116,7 +116,7 @@ test = [
     "DiffEqDevTools",
     "Logging",
     "MKL",
-    "PyCall",
+    "PythonCall",
     "JuLIP",
     "Symbolics",
     "Statistics",
