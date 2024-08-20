@@ -216,6 +216,12 @@ OutputInitial(sol, i) = first(sol.u)
 export OutputInitial
 
 """
+Output the first point of each trajectory in DynamicsVariables format. (Useful when using distributions for initial conditions.)
+"""
+OutputInitial(sol, i) = first(sol.u)
+export OutputInitial
+
+"""
 Output the end point of each trajectory.
 """
 OutputFinal(sol, i) = last(sol.u)
