@@ -392,7 +392,12 @@ Only output parts of the trajectory where desorption is occurring.
 """
 function (output::OutputDesorptionTrajectory)(sol, i)
     desorption_frame = Analysis.Diatomic.get_desorption_frame(sol.u, output.indices, sol.prob.p; surface_distance_threshold=output.surface_distance_threshold, surface_normal=output.surface_normal)
-    return isa(desorption_frame, Int) ? sol.u[desorption_frame-output.extra_frames:end] : nothing
+    start_save_frame = desorption_frame - output.extra_frames < 0
+    if start_save_frame < 0
+        return sol.u
+    else
+        return sol.u[start_save_frame:desorption_frame]
+    end
 end
 export OutputDesorptionTrajectory
 
