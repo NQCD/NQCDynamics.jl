@@ -56,7 +56,7 @@ end
 
 function (effective_potential::EffectivePotential)(r)
     (; μ, J, binding_curve, langer_modification) = effective_potential
-    L_squared = langer_modification ? (J + 1 / 2) ^ 2 : J * (J + 1)
+    L_squared = langer_modification ? (J + 1 / 2)^2 : J * (J + 1)
     rotational = L_squared / (2μ * r^2)
 
     potential = binding_curve.fit(r)
@@ -97,7 +97,7 @@ function generate_configurations(sim, ν, J;
     atom_indices=[1, 2],
     r=zeros(size(sim)),
     bond_lengths=0.5:0.01:5.0,
-    langer_modification = false
+    langer_modification=false
 )
 
     μ = reduced_mass(masses(sim)[atom_indices])
@@ -123,7 +123,7 @@ function generate_configurations(sim, ν, J;
 end
 
 function generate_1D_vibrations(model::AdiabaticModel, μ::Real, ν::Integer;
-    samples=1000, bond_lengths=0.5:0.01:5.0, langer_modification = false
+    samples=1000, bond_lengths=0.5:0.01:5.0, langer_modification=false
 )
 
     J = 0
@@ -258,14 +258,14 @@ function find_integral_bounds(total_energy::Real, V::EffectivePotential)
     return r₁, r₂
 end
 
-function binding_curve_from_structure(sim::Simulation, v::Matrix, r::Matrix; 
-    bond_lengths=0.5:0.01:5.0, 
-    height=10.0, 
-    surface_normal=[0, 0, 1.0], 
-    atom_indices=[1, 2], 
+function binding_curve_from_structure(sim::Simulation, v::Matrix, r::Matrix;
+    bond_lengths=0.5:0.01:5.0,
+    height=10.0,
+    surface_normal=[0, 0, 1.0],
+    atom_indices=[1, 2],
     args...
 )
-    # Separate slab from molecule if necessary. 
+    # Separate slab from molecule if necessary.
     r, slab = separate_slab_and_molecule(atom_indices, r)
     v, slab_v = separate_slab_and_molecule(atom_indices, v)
     environment = EvaluationEnvironment(atom_indices, size(sim), slab, austrip(height), surface_normal)
@@ -277,11 +277,11 @@ function binding_curve_from_structure(sim::Simulation, v::Matrix, r::Matrix;
 end
 
 """
-    quantise_diatomic(sim::Simulation, v::Matrix, r::Matrix; 
-    bond_lengths=0.5:0.01:5.0, 
-    height=10.0, 
-    surface_normal=[0, 0, 1.0], 
-    atom_indices=[1, 2], 
+    quantise_diatomic(sim::Simulation, v::Matrix, r::Matrix;
+    bond_lengths=0.5:0.01:5.0,
+    height=10.0,
+    surface_normal=[0, 0, 1.0],
+    atom_indices=[1, 2],
     max_translation=1,
     show_timer=false, reset_timer=false
     )
@@ -289,77 +289,77 @@ end
 Quantise the vibrational and rotational degrees of freedom for the specified
 positions and velocities.
 
-If the potential can be evaluated for the diatomic only, independent of position, 
-supplying a `Simulation` for just the diatomic will speed up evaluation. 
+If the potential can be evaluated for the diatomic only, independent of position,
+supplying a `Simulation` for just the diatomic will speed up evaluation.
 
 When evaluating the potential, the molecule is moved to `height` in direction `normal_vector`.
 If the potential is independent of centre of mass position, this has no effect.
 Otherwise, be sure to modify these parameters to give the intended behaviour.
 
-If a `Simulation` with a `PeriodicCell` is supplied, periodic copies of the diatomic atoms 
-will be used if positions are close to cell boundaries. 
-Set `max_translation` to the radius of surrounding unit cells to search. 
+If a `Simulation` with a `PeriodicCell` is supplied, periodic copies of the diatomic atoms
+will be used if positions are close to cell boundaries.
+Set `max_translation` to the radius of surrounding unit cells to search.
 (e.g. 1 if positions are already wrapped around cell boundaries)
 """
-function quantise_diatomic(sim::Simulation, v::Matrix, r::Matrix; 
-    bond_lengths=0.5:0.01:5.0, 
-    height=10.0, 
-    surface_normal=[0, 0, 1.0], 
-    atom_indices=[1, 2], 
-    output_energies = false,
+function quantise_diatomic(sim::Simulation, v::Matrix, r::Matrix;
+    bond_lengths=0.5:0.01:5.0,
+    height=10.0,
+    surface_normal=[0, 0, 1.0],
+    atom_indices=[1, 2],
+    output_energies=false,
     args...
 )
-    binding_curve=binding_curve_from_structure(sim, v, r; bond_lengths=bond_lengths, height=height, surface_normal=surface_normal, atom_indices=atom_indices)
-    return quantise_diatomic(sim, v, r, binding_curve; height=height, surface_normal=surface_normal, atom_indices=atom_indices, output_energies = output_energies, args...)
+    binding_curve = binding_curve_from_structure(sim, v, r; bond_lengths=bond_lengths, height=height, surface_normal=surface_normal, atom_indices=atom_indices)
+    return quantise_diatomic(sim, v, r, binding_curve; height=height, surface_normal=surface_normal, atom_indices=atom_indices, output_energies=output_energies, args...)
 end
 
 """
     quantise_diatomic(sim::Simulation, v::Vector{Matrix}, r::Vector{Matrix};
-    bond_lengths=0.5:0.01:5.0, 
-    height=10.0, 
-    surface_normal=[0, 0, 1.0], 
-    atom_indices=[1, 2], 
+    bond_lengths=0.5:0.01:5.0,
+    height=10.0,
+    surface_normal=[0, 0, 1.0],
+    atom_indices=[1, 2],
     show_timer=false, reset_timer=false
     )
 
-Quantise the vibrational and rotational degrees of freedom of multiple atomic configurations 
-given as a vector of velocity matrices and a vector of position matrices. 
+Quantise the vibrational and rotational degrees of freedom of multiple atomic configurations
+given as a vector of velocity matrices and a vector of position matrices.
 
-If the potential can be evaluated for the diatomic only, independent of position, 
-supplying a `Simulation` for just the diatomic will speed up evaluation. 
+If the potential can be evaluated for the diatomic only, independent of position,
+supplying a `Simulation` for just the diatomic will speed up evaluation.
 
 When evaluating the potential, the molecule is moved to `height` in direction `normal_vector`.
 If the potential is independent of centre of mass position, this has no effect.
 Otherwise, be sure to modify these parameters to give the intended behaviour.
 
-If a `Simulation` with a `PeriodicCell` is supplied, periodic copies of the diatomic atoms 
-will be used if positions are close to cell boundaries. 
-Set `max_translation` to the radius of surrounding unit cells to search. 
+If a `Simulation` with a `PeriodicCell` is supplied, periodic copies of the diatomic atoms
+will be used if positions are close to cell boundaries.
+Set `max_translation` to the radius of surrounding unit cells to search.
 (e.g. 1 if positions are already wrapped around cell boundaries)
 
 Specify `show_timer=true` for performance timings of the EBK quantisation process and
-`reset_timer=true` to see timings for each individual quantisation. 
+`reset_timer=true` to see timings for each individual quantisation.
 """
-function quantise_diatomic(sim::Simulation, v::Vector{<: Matrix{<: Any}}, r::Vector{<: Matrix{<: Any}};
-    bond_lengths=0.5:0.01:5.0, 
-    height=10.0, 
-    surface_normal=[0, 0, 1.0], 
-    atom_indices=[1, 2], 
-    output_energies = false,
+function quantise_diatomic(sim::Simulation, v::Vector{<:Matrix{<:Any}}, r::Vector{<:Matrix{<:Any}};
+    bond_lengths=0.5:0.01:5.0,
+    height=10.0,
+    surface_normal=[0, 0, 1.0],
+    atom_indices=[1, 2],
+    output_energies=false,
     args...
 )
     # Generate binding curve for all structures
-    binding_curve=binding_curve_from_structure(sim, v[1], r[1]; bond_lengths=bond_lengths, height=height, surface_normal=surface_normal, atom_indices=atom_indices)
-    results=[]
+    binding_curve = binding_curve_from_structure(sim, v[1], r[1]; bond_lengths=bond_lengths, height=height, surface_normal=surface_normal, atom_indices=atom_indices)
+    results = []
 
-    # Quantise all configurations in the given vectors. 
+    # Quantise all configurations in the given vectors.
     @showprogress for index in eachindex(v)
         try
-            result=quantise_diatomic(sim, v[index], r[index], binding_curve; height=height, surface_normal=surface_normal, atom_indices=atom_indices, output_energies=output_energies, args...)
+            result = quantise_diatomic(sim, v[index], r[index], binding_curve; height=height, surface_normal=surface_normal, atom_indices=atom_indices, output_energies=output_energies, args...)
             push!(results, result)
         catch e
             @warn "Quantisation was unsuccessful for configuration at $(index).\nThe final results vectors will show ν=-1 and J=-1 for this configuration.\n The error was: $(e)"
-            output = output_energies ? (-1, -1, -1, -1, -1) : (-1, -1)
+            output = output_energies ? (missing, missing, missing, missing, missing) : (missing, missing)
             push!(results, output)
         end
     end
@@ -369,46 +369,46 @@ end
 """
     quantise_diatomic(sim::Simulation, v::Matrix, r::Matrix, binding_curve::BindingCurve;
     show_timer=false, reset_timer=false,
-    height=10, normal_vector=[0, 0, 1], atom_indices=[1,2], max_translation=1) 
+    height=10, normal_vector=[0, 0, 1], atom_indices=[1,2], max_translation=1)
     )
 
 Quantise the vibrational and rotational degrees of freedom for the specified
-positions and velocities using the `BindingCurve` specified. 
-A binding curve will be automatically generated if you do not supply one. 
+positions and velocities using the `BindingCurve` specified.
+A binding curve will be automatically generated if you do not supply one.
 
-If the potential can be evaluated for the diatomic only, independent of position, 
-supplying a `Simulation` for just the diatomic will speed up evaluation. 
+If the potential can be evaluated for the diatomic only, independent of position,
+supplying a `Simulation` for just the diatomic will speed up evaluation.
 
 When evaluating the potential, the molecule is moved to `height` in direction `normal_vector`.
 If the potential is independent of centre of mass position, this has no effect.
 Otherwise, be sure to modify these parameters to give the intended behaviour.
 
-If a `Simulation` with a `PeriodicCell` is supplied, periodic copies of the diatomic atoms 
-will be used if positions are close to cell boundaries. 
-Set `max_translation` to the radius of surrounding unit cells to search. 
+If a `Simulation` with a `PeriodicCell` is supplied, periodic copies of the diatomic atoms
+will be used if positions are close to cell boundaries.
+Set `max_translation` to the radius of surrounding unit cells to search.
 (e.g. 1 if positions are already wrapped around cell boundaries)
 """
 function quantise_diatomic(sim::Simulation, v::Matrix, r::Matrix, binding_curve::BindingCurve;
-    show_timer=false, 
+    show_timer=false,
     reset_timer=false,
-    max_translation=1, 
-    height=10.0, 
-    surface_normal=[0, 0, 1.0], 
-    atom_indices=[1, 2], 
-    langer_modification = false, # The Langer modification uses L^2 = J*(J+1/2)^2ħ^2 instead of L^2 = J*(J+1)ħ^2
-    output_energies = false, # Output translation, rotation and vibrational energies with the quantisation information. 
+    max_translation=1,
+    height=10.0,
+    surface_normal=[0, 0, 1.0],
+    atom_indices=[1, 2],
+    langer_modification=false, # The Langer modification uses L^2 = J*(J+1/2)^2ħ^2 instead of L^2 = J*(J+1)ħ^2
+    output_energies=false, # Output translation, rotation and vibrational energies with the quantisation information.
 )
 
     reset_timer && TimerOutputs.reset_timer!(TIMER)
 
-    if isa(sim.cell,PeriodicCell)
+    if isa(sim.cell, PeriodicCell)
         # If the simulation used a `PeriodicCell`, translate `atom_indices` so they are at their minimum distance. (This is necessary if atoms were translated back into the original unit cell)
-        translations=[[i,j,k] for i in -max_translation:max_translation for j in -max_translation:max_translation for k in -max_translation:max_translation]
-        which_translation=argmin([norm(abs.(r[:,atom_indices[2]]-r[:,atom_indices[1]]+sim.cell.vectors*operation)) for operation in translations])
-        # Translate one atom for minimal distance. 
-        if translations[which_translation]!=[0,0,0]
-            r[:,atom_indices[2]].=r[:,atom_indices[2]]+sim.cell.vectors*translations[which_translation]
-            @debug "Using a periodic copy of atom "*string(atom_indices[end])*"  to bring it closer to atom "*string(atom_indices[begin])
+        translations = [[i, j, k] for i in -max_translation:max_translation for j in -max_translation:max_translation for k in -max_translation:max_translation]
+        which_translation = argmin([norm(abs.(r[:, atom_indices[2]] - r[:, atom_indices[1]] + sim.cell.vectors * operation)) for operation in translations])
+        # Translate one atom for minimal distance.
+        if translations[which_translation] != [0, 0, 0]
+            r[:, atom_indices[2]] .= r[:, atom_indices[2]] + sim.cell.vectors * translations[which_translation]
+            @debug "Using a periodic copy of atom " * string(atom_indices[end]) * "  to bring it closer to atom " * string(atom_indices[begin])
         end
     end
 
@@ -428,7 +428,7 @@ function quantise_diatomic(sim::Simulation, v::Matrix, r::Matrix, binding_curve:
 
     L = total_angular_momentum(r_com, p_com)
     @debug "Total angular momentum: $(L)"
-    J = langer_modification ? L - (1 / 2) : (sqrt(1+4*L^2) - 1) / 2 # L^2 = J(J+1)ħ^2
+    J = langer_modification ? L - (1 / 2) : (sqrt(1 + 4 * L^2) - 1) / 2 # L^2 = J(J+1)ħ^2
     @debug "Calculated J (before rounding): $(J)"
 
     μ = reduced_mass(masses(sim)[atom_indices])
@@ -437,14 +437,14 @@ function quantise_diatomic(sim::Simulation, v::Matrix, r::Matrix, binding_curve:
 
     @debug begin
         diag_plt = lineplot(
-        binding_curve.bond_lengths, 
-        sqrt.(abs.(E.- V.(binding_curve.bond_lengths))); 
-        title="Binding curve", xlabel="Bond length / bohr", ylabel="Energy / Hartree",
-        name="E - V values (should intersect 0 twice)", canvas=DotCanvas, border=:ascii
+            binding_curve.bond_lengths,
+            sqrt.(abs.(E .- V.(binding_curve.bond_lengths)));
+            title="Binding curve", xlabel="Bond length / bohr", ylabel="Energy / Hartree",
+            name="E - V values (should intersect 0 twice)", canvas=DotCanvas, border=:ascii
         )
         show(diag_plt)
     end
-    
+
     r₁, r₂ = @timeit TIMER "Finding bounds" find_integral_bounds(E, V)
 
     function nᵣ(E, r₁, r₂)
@@ -462,16 +462,18 @@ function quantise_diatomic(sim::Simulation, v::Matrix, r::Matrix, binding_curve:
     if !output_energies
         return round(Int, ν), round(Int, J)
     else
+        ν = round(Int, ν)
+        J = round(Int, J)
         translation_energy = sum(sim.atoms.masses[atom_indices]) / 2 * norm(centre_of_mass(v[:, atom_indices], sim.atoms.masses[atom_indices]))^2 # m/2 v^2
-        rotation_energy = L^2 / (2 * μ * bond_length(r)^2) # $\frac{L^2}{2I} = \frac{L^2}{2\mu ||r_2-r_1||^2}$ - Should be independent of the Langer modification
-        vibration_energy = (ν + 0.5) * sqrt(calculate_force_constant(binding_curve) / µ) # $(ν+1/2)\sqrt{\frac{k}{μ}}$
+        rotation_energy = J * (J + 1) / (2 * sum(r_com .^ 2 .* masses(sim)[atom_indices]')) # $E = \frac{J*(J+1)}{2I}$ in a.u.
+        vibration_energy = (ν + 0.5) * sqrt(calculate_force_constant(binding_curve) / μ) # $(ν+1/2)\sqrt{\frac{k}{μ}}$
 
         return (round(Int, ν), round(Int, J), translation_energy, rotation_energy, vibration_energy)
     end
 end
 
 function quantise_1D_vibration(model::AdiabaticModel, μ::Real, r::Real, v::Real;
-    bond_lengths=0.5:0.01:5.0, reset_timer=false, show_timer=false, langer_modification = false
+    bond_lengths=0.5:0.01:5.0, reset_timer=false, show_timer=false, langer_modification=false
 )
     reset_timer && TimerOutputs.reset_timer!(TIMER)
 
