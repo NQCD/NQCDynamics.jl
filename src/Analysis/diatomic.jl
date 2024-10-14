@@ -82,11 +82,10 @@ function get_desorption_frame(trajectory::AbstractVector, diatomic_indices::Vect
             @debug "Centre of mass velocity criterion was never met. Falling back to distance threshold."
             leaving_surface_frame = findlast(close_approach_condition.(view(trajectory, 1:desorbed_frame), Ref(diatomic_indices), Ref(simulation); threshold = fallback_distance_threshold))
             if isnothing(leaving_surface_frame)
-                @debug begin
-                    println("Fallback distance threshold was never met. Something is very wrong here - Returning 1 to capture entire trajectory for debugging.")
-                    return 1
+                @warn begin
+                    println("H-H distance threshold was never met. Something is wrong in desorption detection logic - Returning entire trajectory for debugging.")
                 end
-                return nothing
+                return 1
             else 
                 return leaving_surface_frame
             end
