@@ -474,6 +474,8 @@ function OutputNoise(sol, i)
     return sol.W
 end
 
+export OutputNoise
+
 """
     OutputEverything(sol,i)
 
