@@ -16,6 +16,7 @@ using NQCDynamics:
     NQCDynamics,
     AbstractSimulation,
     Simulation,
+    RingPolymerSimulation,
     Calculators,
     DynamicsMethods,
     DynamicsUtils,
