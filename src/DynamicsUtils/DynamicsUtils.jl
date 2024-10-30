@@ -181,6 +181,61 @@ function sample_fermi_dirac_distribution(energies, nelectrons, available_states,
     return state
 end
 
+# ----------------------------------------- NEW FUNCTIONS ---------------------------------------- #
+# Insert here the wrapper for Henry's DiscretizationScript - may want to move this to NQCDistributions instead?
+
+include("noneqdist_discretization.jl")
+
+"""
+    DiscretizeNeq(nStates, dist_filename, DOS_filename; nVecs, EnergySpan)
+
+This is a wrapper function for the `discretization()` function from "noneqdist_discretization.jl".
+Calling this function returns an object `splits` that contains a 2D array of nVec * BinaryVectors of length nStates.
+"""
+function DiscretizeNeq(nStates::Integer, dist_filename::String, DOS_filename::String; 
+        nVecs = 1000, EnergySpan = 10.0
+    )
+    
+    dis_from_file = readdlm(dist_filename) # Read distribution from file
+    energy_grid = dis_from_file[:,1] # Seperate into energy grid 
+    distribution = dis_from_file[:,2] # and total distribution
+    dis_spl = LinearInterpolation(distribution,energy_grid) # Spline the distribution to project onto new energy grid
+    DOS_spl = generate_DOS(DOS_filename,85) # Build DOS spline from file - n = 85 corresponds to the interpolation factor
+
+    NAH_energygrid = grid_builder(nStates,EnergySpan) # Build new energy grid
+    DOS = DOS_spl(NAH_energygrid) # Recast DOS and distribution onto new grid
+    dis = dis_spl(NAH_energygrid)
+
+    vecs=nVecs # Number of binary vectors requested, default 1000
+    splits,parts = discretization(dis,vecs,DOS,NAH_energygrid,mean_tol=0.01,particle_tol=0.001) #Builds the vectors and returns the vectors (splits) and the relative particle distribution (parts)
+    #The first value of parts is the correct value if you would like to plot a h-line or something to see the distribution
+
+    return splits, parts
+end
+
+"""
+    sample_noneq_distribution(splits, i)
+
+New sampling function which passes in one of the BinaryVectors produced by the Non-equilbrium disribution discretization script 
+    and generates a state to be passed by DynamicsVariables. 
+
+The `BinaryVector` needs to be a slice of the `splits` matrix output by `DiscretizeNeq()` along axis = 2 ( `splits[:,i]` ).
+
+Particularly used by IESH to be passed to the `SurfaceHoppingVariables` struct to define state occupation.
+"""
+function sample_noneq_distribution(BinaryVector::Vector)
+
+    # generating `state` from a slice of splits 
+    state = Vector{Int32}()
+    for j in 1:length(BinaryVector)
+        if splits[j] === 1
+            append!(state, j)
+        end
+    end
+    return state
+end
+# ------------------------------------------------------------------------------------------------ #
+
 get_available_states(::Colon, nstates::Integer) = 1:nstates
 function get_available_states(available_states::AbstractVector, nstates::Integer)
     maximum(available_states) > nstates && throw(DomainError(available, "There are only $nstates in the system."))
