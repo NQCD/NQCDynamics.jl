@@ -83,10 +83,6 @@ function DynamicsUtils.get_hopping_velocity(::Simulation, v::AbstractMatrix)
     return v
 end
 
-function DynamicsUtils.get_hopping_eigenvalues(sim::Simulation, r::AbstractMatrix)
-    return Calculators.get_eigen(sim.calculator, r).values
-end
-
 function fewest_switches_probability!(probability, v, σ, s, d, dt)
     probability .= 0 # Set all entries to 0
     for m in axes(σ, 1)
