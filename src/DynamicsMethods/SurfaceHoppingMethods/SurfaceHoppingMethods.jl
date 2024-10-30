@@ -88,8 +88,8 @@ function DynamicsUtils.get_hopping_eigenvalues(sim::Simulation, r::AbstractMatri
     return Calculators.get_eigen(sim.calculator, r).values
 end
 
-function DynamicsUtils.get_hopping_nonadiabatic_coupling(sim::RingPolymerSimulation, r::AbstractArray{T,3}) where {T}
-    return Calculators.get_centroid_nonadiabatic_coupling(sim.calculator, r)
+function DynamicsUtils.get_hopping_eigenvalues(sim::RingPolymerSimulation, r::AbstractArray{T,3}) where {T}
+    return Calculators.get_centroid_eigen(sim.calculator, r).values
 end
 
 include("decoherence_corrections.jl")
