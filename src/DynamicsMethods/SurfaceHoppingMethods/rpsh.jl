@@ -35,10 +35,6 @@ function DynamicsUtils.get_hopping_velocity(::RingPolymerSimulation, v::Abstract
     return get_centroid(v)
 end
 
-function DynamicsUtils.get_hopping_eigenvalues(sim::RingPolymerSimulation, r::AbstractArray{T,3}) where {T}
-    return Calculators.get_centroid_eigen(sim.calculator, r).values
-end
-
 function perform_rescaling!(
     sim::RingPolymerSimulation{<:SurfaceHopping}, velocity, γ, d
 )
