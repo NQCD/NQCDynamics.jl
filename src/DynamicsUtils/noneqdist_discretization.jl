@@ -1,4 +1,4 @@
-using Random,Distributions,DelimitedFiles,DataInterpolations,FastGaussQuadrature,Trapz,Plots
+using Random,Distributions,DelimitedFiles,DataInterpolations,FastGaussQuadrature,Trapz # removed Plots from the using list
 
 """
 Discretization script generates (in this default case) 1000 occupation vectors denoting which states in the discretized
@@ -95,20 +95,20 @@ end
 # ------------------------------------------------------------------------------------------------ #
 
 
-# ------------------------- Generation of discretized Neq dist. over DOS ------------------------- #
-dis_from_file = readdlm("Neq_distribution.csv") # Read distribution from file
-energy_grid = dis_from_file[:,1] # Seperate into energy grid 
-distribution = dis_from_file[:,2] # and total distribution
-dis_spl = LinearInterpolation(distribution,energy_grid) # Spline the distribution to project onto new energy grid
-DOS_spl = generate_DOS("Cu_DOS.dat",85) # Build DOS spline from file
+# # ------------------------- Generation of discretized Neq dist. over DOS ------------------------- #
+# dis_from_file = readdlm("Neq_distribution.csv") # Read distribution from file
+# energy_grid = dis_from_file[:,1] # Seperate into energy grid 
+# distribution = dis_from_file[:,2] # and total distribution
+# dis_spl = LinearInterpolation(distribution,energy_grid) # Spline the distribution to project onto new energy grid
+# DOS_spl = generate_DOS("Cu_DOS.dat",85) # Build DOS spline from file
 
-NAH_energygrid = grid_builder(250,10.0) # Build new energy grid
-DOS = DOS_spl(NAH_energygrid) # Recast DOS and distribution onto new grid
-dis = dis_spl(NAH_energygrid)
+# NAH_energygrid = grid_builder(250,10.0) # Build new energy grid
+# DOS = DOS_spl(NAH_energygrid) # Recast DOS and distribution onto new grid
+# dis = dis_spl(NAH_energygrid)
 
-vecs=1000 # Number of binary vectors requested
-splits,parts = discretization(dis,vecs,DOS,NAH_energygrid,mean_tol=0.01,particle_tol=0.001) #Builds the vectors and returns the vectors (splits) and the relative particle distribution (parts)
-#The first value of parts is the correct value if you would like to plot a h-line or something to see the distribution
+# vecs=1000 # Number of binary vectors requested
+# splits,parts = discretization(dis,vecs,DOS,NAH_energygrid,mean_tol=0.01,particle_tol=0.001) #Builds the vectors and returns the vectors (splits) and the relative particle distribution (parts)
+# #The first value of parts is the correct value if you would like to plot a h-line or something to see the distribution
 
-# ----------------------------- Regenerate original Neq distribution ----------------------------- #
-restored_ftot = restore_ftot(splits,vecs) # Rebuilds original distribution
+# # ----------------------------- Regenerate original Neq distribution ----------------------------- #
+# restored_ftot = restore_ftot(splits,vecs) # Rebuilds original distribution

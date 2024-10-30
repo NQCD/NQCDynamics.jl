@@ -121,6 +121,37 @@ function DynamicsMethods.DynamicsVariables(sim::AbstractSimulation{<:AdiabaticIE
     SurfaceHoppingVariables(ComponentVector(v=v, r=r, σreal=ψ, σimag=zero(ψ)), state)
 end
 
+# ------------------------------- New Non-Equilibrium Dist dispatch ------------------------------ #
+
+# function DynamicsMethods.DynamicsVariables(sim::AbstractSimulation{<:AdiabaticIESH}, v, r, electronic::NonEqState) # NonEqState doesn't exist yet, need to define this in NQCDistributions/electronic.jl
+
+#     available_states = DynamicsUtils.get_available_states(electronic.available_states, NQCModels.nstates(sim)) # obtains number of available states from the model / simulation struct
+#     BinaryVector = DynamicsUtils.DiscretizeNeq(available_states, electronic.distpath, electronic.DOSpath; EnergySpan = 10.0)[1] # need to figure out if EnergySpan can be obtained from sim object 
+#     state = DynamicsUtils.sample_noneq_distribution(BinaryVector[:,1]) # will make a multiple dispatch for if you supply more than 1 trajectory such that all all of the BinaryVectors are accessed
+
+#     length(state) ≈ NQCModels.nelectrons(sim) || throw(error(
+#         """
+#         Number of electroncs in state and model do not match:
+#             State: $(length(state))
+#             Model: $(NQCModels.nelectrons(sim))
+#         Change one of them to make them the same.
+#         """
+#     ))
+
+#     # available_states = NQCModels.nstates(sim)
+#     # length(state) = NQCModels.nelectrons(sim)
+
+#     ψ = zeros(NQCModels.nstates(sim), NQCModels.nelectrons(sim))
+#     for (i, j) in enumerate(state)
+#         ψ[j,i] = 1
+#     end
+
+#     SurfaceHoppingVariables(ComponentVector(v=v, r=r, σreal=ψ, σimag=zero(ψ)), state)
+# end
+
+# ------------------------------------------------------------------------------------------------ #
+
+
 function DynamicsMethods.create_problem(u0, tspan, sim::AbstractSimulation{<:AbstractIESH})
     set_state!(sim.method, u0.state)
     set_unoccupied_states!(sim)
