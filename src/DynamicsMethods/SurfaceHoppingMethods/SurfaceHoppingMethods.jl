@@ -84,6 +84,14 @@ function DynamicsMethods.create_problem(u0, tspan, sim::AbstractSimulation{<:Sur
         callback=DynamicsMethods.get_callbacks(sim))
 end
 
+function DynamicsUtils.get_hopping_eigenvalues(sim::Simulation, r::AbstractMatrix)
+    return Calculators.get_eigen(sim.calculator, r).values
+end
+
+function DynamicsUtils.get_hopping_eigenvalues(sim::RingPolymerSimulation, r::AbstractArray{T,3}) where {T}
+    return Calculators.get_centroid_eigen(sim.calculator, r).values
+end
+
 include("decoherence_corrections.jl")
 include("surface_hopping.jl")
 include("fssh.jl")
