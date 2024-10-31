@@ -17,6 +17,8 @@ using NQCDynamics:
     RingPolymerSimulation,
     Calculators,
     masses
+using NQCModels: 
+    ShenviGaussLegendre # required for discretizing non-equilibrium distributions
 
 """
     divide_by_mass!(dv, masses)
@@ -187,22 +189,34 @@ end
 include("noneqdist_discretization.jl")
 
 """
-    DiscretizeNeq(nStates, dist_filename, DOS_filename; nVecs, EnergySpan)
+    DiscretizeNeq(nStates, EnergySpan, dist_filename, DOS_filename; nVecs)
 
 This is a wrapper function for the `discretization()` function from "noneqdist_discretization.jl".
 Calling this function returns an object `splits` that contains a 2D array of nVec * BinaryVectors of length nStates.
+
+The EnergySpan takes a Tuple of Floats containg the bandmin and bandmax arguments:
+    EnergSpan = (bandmin, bandmax).
 """
-function DiscretizeNeq(nStates::Integer, dist_filename::String, DOS_filename::String; 
-        nVecs = 1000, EnergySpan = 10.0
+function DiscretizeNeq(nStates::Integer, EnergySpan::Tuple, dist_filename::String, DOS_filename::String; 
+        nVecs = 1000
     )
     
+    length(EnergySpan) === 2 || throw(error(
+        """
+        `EnergySpan`` span given is not correct length.
+        Tuple `EnergySpan` should have length 2, containing bandmin and bandmax values:
+            (bandmin, bandmax)
+        Please change provided `EnergySpan` to match requirement.
+        """
+    ))
+
     dis_from_file = readdlm(dist_filename) # Read distribution from file
     energy_grid = dis_from_file[:,1] # Seperate into energy grid 
     distribution = dis_from_file[:,2] # and total distribution
     dis_spl = LinearInterpolation(distribution,energy_grid) # Spline the distribution to project onto new energy grid
     DOS_spl = generate_DOS(DOS_filename,85) # Build DOS spline from file - n = 85 corresponds to the interpolation factor
 
-    NAH_energygrid = grid_builder(nStates,EnergySpan) # Build new energy grid
+    NAH_energygrid = ShenviGaussLegendre(nStates,EnergySpan[1],EnergySpan[2]) # Build new energy grid using ShenviGaussLegendre
     DOS = DOS_spl(NAH_energygrid) # Recast DOS and distribution onto new grid
     dis = dis_spl(NAH_energygrid)
 
@@ -212,6 +226,33 @@ function DiscretizeNeq(nStates::Integer, dist_filename::String, DOS_filename::St
 
     return splits, parts
 end
+
+"""
+    DiscretizeNeq(nStates, EnergySpan, dist_filename, DOS_filename; nVecs)
+
+Energy grid is explicitly supplied as a Vector.
+"""
+function DiscretizeNeq(model_energy_grid::Vector, dist_filename::String, DOS_filename::String; 
+        nVecs = 1000
+    )
+
+    dis_from_file = readdlm(dist_filename) # Read distribution from file
+    energy_grid = dis_from_file[:,1] # Seperate into energy grid 
+    distribution = dis_from_file[:,2] # and total distribution
+    dis_spl = LinearInterpolation(distribution,energy_grid) # Spline the distribution to project onto new energy grid
+    DOS_spl = generate_DOS(DOS_filename,85) # Build DOS spline from file - n = 85 corresponds to the interpolation factor
+
+    NAH_energygrid = model_energy_grid # Energy grid is explicitly supplied - obtained from model
+    DOS = DOS_spl(NAH_energygrid) # Recast DOS and distribution onto new grid
+    dis = dis_spl(NAH_energygrid)
+
+    vecs=nVecs # Number of binary vectors requested, default 1000
+    splits,parts = discretization(dis,vecs,DOS,NAH_energygrid,mean_tol=0.01,particle_tol=0.001) #Builds the vectors and returns the vectors (splits) and the relative particle distribution (parts)
+    #The first value of parts is the correct value if you would like to plot a h-line or something to see the distribution
+
+    return splits, parts
+end
+
 
 """
     sample_noneq_distribution(splits, i)

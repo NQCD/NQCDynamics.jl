@@ -123,10 +123,15 @@ end
 
 # ------------------------------- New Non-Equilibrium Dist dispatch ------------------------------ #
 
+function get_energygrid(sim::AbstractSimulation{<:AdiabaticIESH})
+    return sim.calculator.model.bath.bathstates
+end
+
+
 function DynamicsMethods.DynamicsVariables(sim::AbstractSimulation{<:AdiabaticIESH}, v, r, electronic::NonEqState) # NonEqState defined in new branch of NQCDistributions/electronic.jl
 
     available_states = DynamicsUtils.get_available_states(electronic.available_states, NQCModels.nstates(sim)) # obtains number of available states from the model / simulation struct
-    BinaryVector = DynamicsUtils.DiscretizeNeq(available_states, electronic.distpath, electronic.DOSpath; EnergySpan = 10.0)[1] # need to figure out if EnergySpan can be obtained from sim object 
+    BinaryVector = DynamicsUtils.DiscretizeNeq(get_energygrid(sim), electronic.distpath, electronic.DOSpath)[1] # need to figure out if EnergySpan can be obtained from sim object 
     state = DynamicsUtils.sample_noneq_distribution(BinaryVector[:,1]) # will make a multiple dispatch for if you supply more than 1 trajectory such that all all of the BinaryVectors are accessed
 
     length(state) ≈ NQCModels.nelectrons(sim) || throw(error(
@@ -141,7 +146,7 @@ function DynamicsMethods.DynamicsVariables(sim::AbstractSimulation{<:AdiabaticIE
     # available_states = NQCModels.nstates(sim)
     # length(state) = NQCModels.nelectrons(sim)
 
-    ψ = zeros(NQCModels.nstates(sim), NQCModels.nelectrons(sim))
+    ψ = zeros(available_states, NQCModels.nelectrons(sim))
     for (i, j) in enumerate(state)
         ψ[j,i] = 1
     end

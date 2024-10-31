@@ -16,7 +16,7 @@ function generate_DOS(File::String,n) #Simply builds a spline of a DOS from a fi
     return DataInterpolations.LinearInterpolation(TotalDOS[:,2].*n,TotalDOS[:,1],extrapolate=true)
 end
 
-function grid_builder(l,Espan) #Builds a grid similar to that used in News Andersen Hamiltonian
+function grid_builder(l,Espan) #Builds a grid similar to that used in News Andersen Hamiltonian - redundant
     gh,weights = gausshermite(l)
     return ((gh .- minimum(gh)) ./ (maximum(gh)/(Espan/2))) .- (Espan/2) 
 end
