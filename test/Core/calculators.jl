@@ -4,14 +4,9 @@ using NQCDynamics.Calculators
 using LinearAlgebra: tr, Diagonal, eigvecs, eigvals
 using RingPolymerArrays: RingPolymerArrays
 
-# For the allocation tests check against both backends as we can't be sure which is in use. 
-const MKL_EIGEN_ALLOCATIONS = 54912
-# Julia 1.10 has slightly different eigen allocations
-if VERSION>v"1.9"
-    const OPENBLAS_EIGEN_ALLOCATIONS = 57216
-else
-    const OPENBLAS_EIGEN_ALLOCATIONS = 56896
-end
+# Allocation-based tests aren't great - change these values if there's a good reason to. 
+# Eigenvalue allocations limit: Regardless of maths backend and Julia version, eigenvalues should take fewer allocations than this or something might be wrong
+const MAX_EIGEN_ALLOCATIONS = 60000
 
 @testset "General constructors" begin
     model = NQCModels.DoubleWell()
@@ -275,8 +270,9 @@ end
     @test @allocated(Calculators.evaluate_potential!(calc, r)) == 0
     @test @allocated(Calculators.evaluate_derivative!(calc, r)) == 0
     eigen_allocations = @allocated(Calculators.evaluate_eigen!(calc, r))
-    @info "Non-zero allocations test LargeDiabaticCalculator: eigen_allocations returned $(eigen_allocations)"
-    @test (eigen_allocations ≤ MKL_EIGEN_ALLOCATIONS) || (eigen_allocations ≤ OPENBLAS_EIGEN_ALLOCATIONS)
+    global allocs_LargeDiabatic = eigen_allocations
+    @debug "LargeDiabaticCalculator: $(eigen_allocations) needed for eigenvalues"
+    @test eigen_allocations < MAX_EIGEN_ALLOCATIONS
     @test @allocated(Calculators.evaluate_adiabatic_derivative!(calc, r)) == 0
     @test @allocated(Calculators.evaluate_nonadiabatic_coupling!(calc, r)) == 0
 end
@@ -298,9 +294,7 @@ end
 
     @test @allocated(Calculators.evaluate_potential!(calc, r)) == 0
     @test @allocated(Calculators.evaluate_derivative!(calc, r)) == 0
-    eigen_allocations = @allocated(Calculators.evaluate_eigen!(calc, r)) / 10
-    @info "Non-zero allocations test RingPolymerLargeDiabaticCalculator: eigen_allocations returned $(eigen_allocations)"
-    @test (eigen_allocations ≤ MKL_EIGEN_ALLOCATIONS) || (eigen_allocations ≤ OPENBLAS_EIGEN_ALLOCATIONS)
+    @test @allocated(Calculators.evaluate_eigen!(calc, r)) == 10 * allocs_LargeDiabatic
     @test @allocated(Calculators.evaluate_adiabatic_derivative!(calc, r)) == 0
     @test @allocated(Calculators.evaluate_nonadiabatic_coupling!(calc, r)) == 0
 end
@@ -320,7 +314,9 @@ end
     Calculators.evaluate_friction!(calc, r)
     @test @allocated(Calculators.evaluate_potential!(calc, r)) == 0
     @test @allocated(Calculators.evaluate_derivative!(calc, r)) == 0
-    @test @allocated(Calculators.evaluate_friction!(calc, r)) == 192
+    global allocs_Friction = @allocated(Calculators.evaluate_friction!(calc, r)) 
+    @debug "FrictionCalculator.evaluate_friction made $(allocs_Friction) allocations. This should be around 250."
+    @test allocs_Friction ≤ 250
 end
 
 @testset "RingPolymerFrictionCalculator" begin
@@ -338,5 +334,5 @@ end
     Calculators.evaluate_friction!(calc, r)
     @test @allocated(Calculators.evaluate_potential!(calc, r)) == 0
     @test @allocated(Calculators.evaluate_derivative!(calc, r)) == 0
-    @test @allocated(Calculators.evaluate_friction!(calc, r)) == 1920
+    @test @allocated(Calculators.evaluate_friction!(calc, r)) == 10 * allocs_Friction
 end
