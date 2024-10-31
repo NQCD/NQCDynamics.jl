@@ -3,7 +3,7 @@ using Unitful, UnitfulAtomic
 using MuladdMacro: @muladd
 using NQCDynamics: FastDeterminant
 using NQCModels: eachelectron, eachstate, mobileatoms, dofs
-using NQCDistributions: FermiDiracState, Adiabatic, Diabatic
+using NQCDistributions: FermiDiracState, Adiabatic, Diabatic, NonEqState
 using StatsBase: sample, Weights
 using FastLapackInterface: FastLapackInterface
 using SciMLBase: SciMLBase
@@ -123,31 +123,31 @@ end
 
 # ------------------------------- New Non-Equilibrium Dist dispatch ------------------------------ #
 
-# function DynamicsMethods.DynamicsVariables(sim::AbstractSimulation{<:AdiabaticIESH}, v, r, electronic::NonEqState) # NonEqState doesn't exist yet, need to define this in NQCDistributions/electronic.jl
+function DynamicsMethods.DynamicsVariables(sim::AbstractSimulation{<:AdiabaticIESH}, v, r, electronic::NonEqState) # NonEqState defined in new branch of NQCDistributions/electronic.jl
 
-#     available_states = DynamicsUtils.get_available_states(electronic.available_states, NQCModels.nstates(sim)) # obtains number of available states from the model / simulation struct
-#     BinaryVector = DynamicsUtils.DiscretizeNeq(available_states, electronic.distpath, electronic.DOSpath; EnergySpan = 10.0)[1] # need to figure out if EnergySpan can be obtained from sim object 
-#     state = DynamicsUtils.sample_noneq_distribution(BinaryVector[:,1]) # will make a multiple dispatch for if you supply more than 1 trajectory such that all all of the BinaryVectors are accessed
+    available_states = DynamicsUtils.get_available_states(electronic.available_states, NQCModels.nstates(sim)) # obtains number of available states from the model / simulation struct
+    BinaryVector = DynamicsUtils.DiscretizeNeq(available_states, electronic.distpath, electronic.DOSpath; EnergySpan = 10.0)[1] # need to figure out if EnergySpan can be obtained from sim object 
+    state = DynamicsUtils.sample_noneq_distribution(BinaryVector[:,1]) # will make a multiple dispatch for if you supply more than 1 trajectory such that all all of the BinaryVectors are accessed
 
-#     length(state) ≈ NQCModels.nelectrons(sim) || throw(error(
-#         """
-#         Number of electroncs in state and model do not match:
-#             State: $(length(state))
-#             Model: $(NQCModels.nelectrons(sim))
-#         Change one of them to make them the same.
-#         """
-#     ))
+    length(state) ≈ NQCModels.nelectrons(sim) || throw(error(
+        """
+        Number of electroncs in state and model do not match:
+            State: $(length(state))
+            Model: $(NQCModels.nelectrons(sim))
+        Change one of them to make them the same.
+        """
+    ))
 
-#     # available_states = NQCModels.nstates(sim)
-#     # length(state) = NQCModels.nelectrons(sim)
+    # available_states = NQCModels.nstates(sim)
+    # length(state) = NQCModels.nelectrons(sim)
 
-#     ψ = zeros(NQCModels.nstates(sim), NQCModels.nelectrons(sim))
-#     for (i, j) in enumerate(state)
-#         ψ[j,i] = 1
-#     end
+    ψ = zeros(NQCModels.nstates(sim), NQCModels.nelectrons(sim))
+    for (i, j) in enumerate(state)
+        ψ[j,i] = 1
+    end
 
-#     SurfaceHoppingVariables(ComponentVector(v=v, r=r, σreal=ψ, σimag=zero(ψ)), state)
-# end
+    SurfaceHoppingVariables(ComponentVector(v=v, r=r, σreal=ψ, σimag=zero(ψ)), state)
+end
 
 # ------------------------------------------------------------------------------------------------ #
 
