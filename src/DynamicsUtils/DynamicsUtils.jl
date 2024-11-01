@@ -201,6 +201,8 @@ function DiscretizeNeq(nStates::Integer, EnergySpan::Tuple, dist_filename::Strin
         nVecs = 1000
     )
     
+    @info "nstates and energy span provided"
+
     length(EnergySpan) === 2 || throw(error(
         """
         `EnergySpan`` span given is not correct length.
@@ -210,13 +212,18 @@ function DiscretizeNeq(nStates::Integer, EnergySpan::Tuple, dist_filename::Strin
         """
     ))
 
+    @info "reading in from external files"
+
     dis_from_file = readdlm(dist_filename) # Read distribution from file
     energy_grid = dis_from_file[:,1] # Seperate into energy grid 
     distribution = dis_from_file[:,2] # and total distribution
     dis_spl = LinearInterpolation(distribution,energy_grid) # Spline the distribution to project onto new energy grid
     DOS_spl = generate_DOS(DOS_filename,85) # Build DOS spline from file - n = 85 corresponds to the interpolation factor
 
-    NAH_energygrid = ShenviGaussLegendre(nStates,EnergySpan[1],EnergySpan[2]) # Build new energy grid using ShenviGaussLegendre
+    @info "generating new energy grid" 
+
+    NAH_energygrid = grid_builder(nStates,EnergySpan[2]-EnergySpan[1])
+    # NAH_energygrid = ShenviGaussLegendre(nStates,EnergySpan[1],EnergySpan[2]).bathstates # Build new energy grid using ShenviGaussLegendre, needs the `.bathstates` such that the correct field is accessed and NAH_energygrid is a vector
     DOS = DOS_spl(NAH_energygrid) # Recast DOS and distribution onto new grid
     dis = dis_spl(NAH_energygrid)
 
@@ -235,12 +242,17 @@ Energy grid is explicitly supplied as a Vector.
 function DiscretizeNeq(model_energy_grid::Vector, dist_filename::String, DOS_filename::String; 
         nVecs = 1000
     )
+    @info "energy grid provided"
+
+    @info "reading in from external files"
 
     dis_from_file = readdlm(dist_filename) # Read distribution from file
     energy_grid = dis_from_file[:,1] # Seperate into energy grid 
     distribution = dis_from_file[:,2] # and total distribution
     dis_spl = LinearInterpolation(distribution,energy_grid) # Spline the distribution to project onto new energy grid
     DOS_spl = generate_DOS(DOS_filename,85) # Build DOS spline from file - n = 85 corresponds to the interpolation factor
+
+    @info "importing existing energy_grid"
 
     NAH_energygrid = model_energy_grid # Energy grid is explicitly supplied - obtained from model
     DOS = DOS_spl(NAH_energygrid) # Recast DOS and distribution onto new grid
