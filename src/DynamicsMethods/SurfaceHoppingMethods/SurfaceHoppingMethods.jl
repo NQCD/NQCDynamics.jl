@@ -11,6 +11,7 @@ using ComponentArrays: ComponentVector
 using DiffEqBase: DiffEqBase
 using LinearAlgebra: LinearAlgebra, lmul!
 using OrdinaryDiffEq: OrdinaryDiffEq
+using RingPolymerArrays: get_centroid
 
 using NQCDynamics:
     NQCDynamics,
