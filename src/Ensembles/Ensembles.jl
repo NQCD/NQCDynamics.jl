@@ -120,7 +120,7 @@ function run_dynamics(
     log_simulation_duration(stats.time)
 
     if trajectories == 1
-        return stats.value.u[1]
+        return stats.value.u[1] # this indexing doesn't work!!
     else
         return stats.value.u
     end

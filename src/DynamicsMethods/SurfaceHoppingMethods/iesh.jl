@@ -131,22 +131,25 @@ end
 function DynamicsMethods.DynamicsVariables(sim::AbstractSimulation{<:AdiabaticIESH}, v, r, electronic::NonEqState) # NonEqState defined in new branch of NQCDistributions/electronic.jl
 
     available_states = DynamicsUtils.get_available_states(electronic.available_states, NQCModels.nstates(sim)) # obtains number of available states from the model / simulation struct
-    BinaryVector = DynamicsUtils.DiscretizeNeq(get_energygrid(sim), electronic.distpath, electronic.DOSpath)[1] # need to figure out if EnergySpan can be obtained from sim object 
-    state = DynamicsUtils.sample_noneq_distribution(BinaryVector[:,1]) # will make a multiple dispatch for if you supply more than 1 trajectory such that all all of the BinaryVectors are accessed
+    # BinaryVector = DynamicsUtils.DiscretizeNeq(get_energygrid(sim), electronic.distpath, electronic.DOSpath)[1] # need to figure out if EnergySpan can be obtained from sim object 
+    BinaryVector = electronic.occupation_vector # binary_vector directly passed to the electronic distribution object in the occupation_vector field
 
-    length(state) ≈ NQCModels.nelectrons(sim) || throw(error(
-        """
-        Number of electroncs in state and model do not match:
-            State: $(length(state))
-            Model: $(NQCModels.nelectrons(sim))
-        Change one of them to make them the same.
-        """
-    ))
+    # state and ψ objects are generated from the imported occupation_vector
+    state = DynamicsUtils.sample_noneq_distribution(BinaryVector) # will make a multiple dispatch for if you supply more than 1 trajectory such that all all of the BinaryVectors are accessed
+
+    # length(state) ≈ NQCModels.nelectrons(sim) || throw(error(    # thought this was good idea but due to the generation of the discreisation, the binary vectors don't all give the same number of particles for the constraints ive needed to use
+    #     """
+    #     Number of electrons in state and model do not match:
+    #         State: $(length(state))
+    #         Model: $(NQCModels.nelectrons(sim))
+    #     Change one of them to make them the same.
+    #     """
+    # ))
 
     # available_states = NQCModels.nstates(sim)
     # length(state) = NQCModels.nelectrons(sim)
 
-    ψ = zeros(available_states, NQCModels.nelectrons(sim))
+    ψ = zeros(available_states, length(state)) # number of electrons in the state vector for the non-equilibrium state is going to fluctuate some around the actual number of electrons given by the simulation object
     for (i, j) in enumerate(state)
         ψ[j,i] = 1
     end

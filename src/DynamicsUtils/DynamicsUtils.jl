@@ -169,12 +169,12 @@ fermi(ϵ, μ, β) = 1 / (1 + exp(β*(ϵ-μ)))
 
 function sample_fermi_dirac_distribution(energies, nelectrons, available_states, β)
     nstates = length(available_states)
-    state = collect(Iterators.take(available_states, nelectrons))
-    for _ in 1:(nstates * nelectrons)
-        current_index = rand(eachindex(state))
+    state = collect(Iterators.take(available_states, nelectrons)) # populate your states according to the number of electrons you have
+    for _ in 1:(nstates * nelectrons) # iterate many times where you check to see if you should make a state change
+        current_index = rand(eachindex(state)) # makes rand() return a random index of state array instead of a random element
         i = state[current_index] # Pick random occupied state
         j = rand(setdiff(available_states, state)) # Pick random unoccupied state
-        prob = exp(-β * (energies[j] - energies[i])) # Calculate Boltzmann factor
+        prob = exp(-β * (energies[j] - energies[i])) # Calculate Boltzmann factor - replace this with bernouili of non-eq dist
         if prob > rand()
             state[current_index] = j # Set unoccupied state to occupied
         end
@@ -189,7 +189,7 @@ end
 include("noneqdist_discretization.jl")
 
 """
-    DiscretizeNeq(nStates, EnergySpan, dist_filename, DOS_filename; nVecs)
+    DiscretizeNeq(nStates, EnergySpan, dist_filename, DOS_filename; nVecs = 1000, mean_tolerance = 0.01, particle_tolerance = 0.001)
 
 This is a wrapper function for the `discretization()` function from "noneqdist_discretization.jl".
 Calling this function returns an object `splits` that contains a 2D array of nVec * BinaryVectors of length nStates.
@@ -198,7 +198,7 @@ The EnergySpan takes a Tuple of Floats containg the bandmin and bandmax argument
     EnergSpan = (bandmin, bandmax).
 """
 function DiscretizeNeq(nStates::Integer, EnergySpan::Tuple, dist_filename::String, DOS_filename::String; 
-        nVecs = 1000
+        nVecs = 1000, mean_tolerance = 0.01, particle_tolerance = 0.001
     )
     
     @info "nstates and energy span provided"
@@ -228,19 +228,20 @@ function DiscretizeNeq(nStates::Integer, EnergySpan::Tuple, dist_filename::Strin
     dis = dis_spl(NAH_energygrid)
 
     vecs=nVecs # Number of binary vectors requested, default 1000
-    splits,parts = discretization(dis,vecs,DOS,NAH_energygrid,mean_tol=0.01,particle_tol=0.001) #Builds the vectors and returns the vectors (splits) and the relative particle distribution (parts)
+    @info "begin discretization"
+    splits,parts = discretization(dis,vecs,DOS,NAH_energygrid,mean_tol=mean_tolerance,particle_tol=particle_tolerance) #Builds the vectors and returns the vectors (splits) and the relative particle distribution (parts)
     #The first value of parts is the correct value if you would like to plot a h-line or something to see the distribution
 
     return splits, parts
 end
 
 """
-    DiscretizeNeq(nStates, EnergySpan, dist_filename, DOS_filename; nVecs)
+    DiscretizeNeq(nStates, EnergySpan, dist_filename, DOS_filename; nVecs = 1000, mean_tolerance = 0.01, particle_tolerance = 0.001)
 
 Energy grid is explicitly supplied as a Vector.
 """
 function DiscretizeNeq(model_energy_grid::Vector, dist_filename::String, DOS_filename::String; 
-        nVecs = 1000
+        nVecs = 1000, mean_tolerance = 0.01, particle_tolerance = 0.001
     )
     @info "energy grid provided"
 
@@ -259,7 +260,8 @@ function DiscretizeNeq(model_energy_grid::Vector, dist_filename::String, DOS_fil
     dis = dis_spl(NAH_energygrid)
 
     vecs=nVecs # Number of binary vectors requested, default 1000
-    splits,parts = discretization(dis,vecs,DOS,NAH_energygrid,mean_tol=0.01,particle_tol=0.001) #Builds the vectors and returns the vectors (splits) and the relative particle distribution (parts)
+    @info "begin discretization"
+    splits,parts = discretization(dis,vecs,DOS,NAH_energygrid,mean_tol=mean_tolerance,particle_tol=particle_tolerance) #Builds the vectors and returns the vectors (splits) and the relative particle distribution (parts)
     #The first value of parts is the correct value if you would like to plot a h-line or something to see the distribution
 
     return splits, parts
@@ -276,15 +278,20 @@ The `BinaryVector` needs to be a slice of the `splits` matrix output by `Discret
 
 Particularly used by IESH to be passed to the `SurfaceHoppingVariables` struct to define state occupation.
 """
-function sample_noneq_distribution(BinaryVector::Vector)
+function sample_noneq_distribution(distribution, nelectrons, available_states)
 
-    # generating `state` from a slice of splits 
-    state = Vector{Int32}()
-    for j in 1:length(BinaryVector)
-        if splits[j] === 1
-            append!(state, j)
+    nstates = length(available_states)
+    state = collect(Iterators.take(available_states, nelectrons)) # populate your states according to the number of electrons you have
+    for _ in 1:(nstates * nelectrons) # iterate many times where you check to see if you should make a state change
+        current_index = rand(eachindex(state)) # makes rand() return a random index of state array instead of a random element
+        i = state[current_index] # Pick random occupied state
+        j = rand(setdiff(available_states, state)) # Pick random unoccupied state
+        prob = exp(-β * (energies[j] - energies[i])) # Bernouili of non-eq distribution
+        if prob > rand()
+            state[current_index] = j # Set unoccupied state to occupied
         end
     end
+    sort!(state)
     return state
 end
 # ------------------------------------------------------------------------------------------------ #
