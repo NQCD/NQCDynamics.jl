@@ -19,6 +19,7 @@ using NQCDynamics:
     masses
 using NQCModels: 
     ShenviGaussLegendre # required for discretizing non-equilibrium distributions
+using Distributions: Bernoulli
 
 """
     divide_by_mass!(dv, masses)
@@ -286,7 +287,7 @@ function sample_noneq_distribution(distribution, nelectrons, available_states)
         current_index = rand(eachindex(state)) # makes rand() return a random index of state array instead of a random element
         i = state[current_index] # Pick random occupied state
         j = rand(setdiff(available_states, state)) # Pick random unoccupied state
-        prob = exp(-β * (energies[j] - energies[i])) # Bernouili of non-eq distribution
+        prob = Bernoulli(distribution[j]) # Bernouili of non-eq distribution
         if prob > rand()
             state[current_index] = j # Set unoccupied state to occupied
         end
