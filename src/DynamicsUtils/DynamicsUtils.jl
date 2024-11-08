@@ -278,7 +278,7 @@ function sample_noneq_distribution(distribution, nelectrons, available_states)
         i = state[current_index] # Pick random occupied state
         j = rand(setdiff(available_states, state)) # Pick random unoccupied state
         prob = Bernoulli(distribution[j]) # Bernouili of non-eq distribution
-        if prob > rand()
+        if rand(prob) # will return True if a random number is less than the probability given by Bernoulli
             state[current_index] = j # Set unoccupied state to occupied
         end
     end
