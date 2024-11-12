@@ -190,62 +190,12 @@ end
 include("noneqdist_discretization.jl")
 
 """
-    DiscretizeNeq(nStates, EnergySpan, dist_filename, DOS_filename; nVecs = 1000, mean_tolerance = 0.01, particle_tolerance = 0.001)
-
-This is a wrapper function for the `discretization()` function from "noneqdist_discretization.jl".
-Calling this function returns an object `splits` that contains a 2D array of nVec * BinaryVectors of length nStates.
-
-The EnergySpan takes a Tuple of Floats containg the bandmin and bandmax arguments:
-    EnergSpan = (bandmin, bandmax).
-"""
-function DiscretizeNeq(nStates::Integer, EnergySpan::Tuple, dist_filename::String, DOS_filename::String; 
-        nVecs = 1000, mean_tolerance = 0.01, particle_tolerance = 0.001
-    )
-    
-    @info "nstates and energy span provided"
-
-    length(EnergySpan) === 2 || throw(error(
-        """
-        `EnergySpan`` span given is not correct length.
-        Tuple `EnergySpan` should have length 2, containing bandmin and bandmax values:
-            (bandmin, bandmax)
-        Please change provided `EnergySpan` to match requirement.
-        """
-    ))
-
-    @info "reading in from external files"
-
-    dis_from_file = readdlm(dist_filename) # Read distribution from file
-    energy_grid = dis_from_file[:,1] # Seperate into energy grid 
-    distribution = dis_from_file[:,2] # and total distribution
-    dis_spl = LinearInterpolation(distribution,energy_grid) # Spline the distribution to project onto new energy grid
-    DOS_spl = generate_DOS(DOS_filename,85) # Build DOS spline from file - n = 85 corresponds to the interpolation factor
-
-    @info "generating new energy grid" 
-
-    NAH_energygrid = grid_builder(nStates,EnergySpan[2]-EnergySpan[1])
-    # NAH_energygrid = ShenviGaussLegendre(nStates,EnergySpan[1],EnergySpan[2]).bathstates # Build new energy grid using ShenviGaussLegendre, needs the `.bathstates` such that the correct field is accessed and NAH_energygrid is a vector
-    DOS = DOS_spl(NAH_energygrid) # Recast DOS and distribution onto new grid
-    dis = dis_spl(NAH_energygrid)
-
-    vecs=nVecs # Number of binary vectors requested, default 1000
-    @info "begin discretization"
-    splits,parts = discretization(dis,vecs,DOS,NAH_energygrid,mean_tol=mean_tolerance,particle_tol=particle_tolerance) #Builds the vectors and returns the vectors (splits) and the relative particle distribution (parts)
-    #The first value of parts is the correct value if you would like to plot a h-line or something to see the distribution
-
-    return splits, parts
-end
-
-"""
     NonEqDist(sim::AbstractSimulation, dist_filename::String, DOS_filename::String)
 
 Non-equilibrium distribution and DoS are read in from file and mapped to the energy grid generated for the system.
 The `NonEqState` electronic distribution is output.
 """
-function NonEqDist(sim::AbstractSimulation, dist_filename::String, DOS_filename::String)
-
-    @info "accessing existing energy grid"
-    model_energy_grid = sim.calculator.model.bath.bathstates # Energy grid is explicitly supplied - obtained from model
+function NonEqDist(dist_filename::String, DOS_filename::String)
 
     @info "reading in from external files"
     dis_from_file = readdlm(dist_filename) # Read distribution from file
@@ -254,12 +204,8 @@ function NonEqDist(sim::AbstractSimulation, dist_filename::String, DOS_filename:
     dis_spl = LinearInterpolation(distribution,energy_grid) # Spline the distribution to project onto new energy grid
     DOS_spl = generate_DOS(DOS_filename,85) # Build DOS spline from file - n = 85 corresponds to the interpolation factor
 
-    @info "mapping to energy_grid"
-    DOS = DOS_spl(model_energy_grid) # Recast DOS and distribution onto new grid
-    dis = dis_spl(model_energy_grid)
-
     @info "create `NonEqState` electronic state"
-    return NonEqState(dis, DOS, model_energy_grid)
+    return NonEqState(dis_spl, DOS_spl)
 end
 
 
@@ -269,7 +215,11 @@ end
 New sampling function which generates a state object from a pre-existing non-equilibrium distribution.
 Distribution must have been mapped tot he number of available states.
 """
-function sample_noneq_distribution(distribution, nelectrons, available_states)
+function sample_noneq_distribution(energies, nelectrons, available_states, dis_spline)
+
+    # DOS = DOS_spline(energies) # Recast DOS and distribution onto new grid
+    dis = dis_spline(energies)
+
     # add check here to ensure distribution is same dimension as available_states
     nstates = length(available_states)
     state = collect(Iterators.take(available_states, nelectrons)) # populate your states according to the number of electrons you have
@@ -277,7 +227,7 @@ function sample_noneq_distribution(distribution, nelectrons, available_states)
         current_index = rand(eachindex(state)) # makes rand() return a random index of state array instead of a random element
         i = state[current_index] # Pick random occupied state
         j = rand(setdiff(available_states, state)) # Pick random unoccupied state
-        prob = Bernoulli(distribution[j]) # Bernouili of non-eq distribution
+        prob = Bernoulli(dis[j]) # Bernouili of non-eq distribution
         if rand(prob) # will return True if a random number is less than the probability given by Bernoulli
             state[current_index] = j # Set unoccupied state to occupied
         end
