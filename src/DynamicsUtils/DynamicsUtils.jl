@@ -226,15 +226,19 @@ function sample_noneq_distribution(energies, nelectrons, available_states, dis_s
     for _ in 1:(nstates * nelectrons) # iterate many times where you check to see if you should make a state change
         current_index = rand(eachindex(state)) # makes rand() return a random index of state array instead of a random element
         i = state[current_index] # Pick random occupied state
-        j = rand(setdiff(available_states, state)) # Pick random unoccupied state
-        prob = Bernoulli(dis[j]) # Bernouili of non-eq distribution
-        if rand(prob) # will return True if a random number is less than the probability given by Bernoulli
-            state[current_index] = j # Set unoccupied state to occupied
+        prob_RemainOccupied = Bernoulli(dis[i]) # Bernoulli of non-eq distribution at selected occupied state
+        if !rand(prob_RemainOccupied) # check if occupied state should remain occupied
+            j = rand(setdiff(available_states, state)) # Pick random unoccupied state
+            prob_BecomeOccupied = Bernoulli(dis[j]) # Bernouili of non-eq distribution at selected unoccupied state
+            if rand(prob_BecomeOccupied) # will return True if a random number is less than the probability given by Bernoulli
+                state[current_index] = j # Set unoccupied state to occupied
+            end
         end
     end
     sort!(state)
     return state
 end
+
 # ------------------------------------------------------------------------------------------------ #
 
 get_available_states(::Colon, nstates::Integer) = 1:nstates
