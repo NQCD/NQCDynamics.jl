@@ -190,53 +190,6 @@ end
 include("noneqdist_discretization.jl")
 
 """
-    DiscretizeNeq(nStates, EnergySpan, dist_filename, DOS_filename; nVecs = 1000, mean_tolerance = 0.01, particle_tolerance = 0.001)
-
-This is a wrapper function for the `discretization()` function from "noneqdist_discretization.jl".
-Calling this function returns an object `splits` that contains a 2D array of nVec * BinaryVectors of length nStates.
-
-The EnergySpan takes a Tuple of Floats containg the bandmin and bandmax arguments:
-    EnergSpan = (bandmin, bandmax).
-"""
-function DiscretizeNeq(nStates::Integer, EnergySpan::Tuple, dist_filename::String, DOS_filename::String; 
-        nVecs = 1000, mean_tolerance = 0.01, particle_tolerance = 0.001
-    )
-    
-    @info "nstates and energy span provided"
-
-    length(EnergySpan) === 2 || throw(error(
-        """
-        `EnergySpan`` span given is not correct length.
-        Tuple `EnergySpan` should have length 2, containing bandmin and bandmax values:
-            (bandmin, bandmax)
-        Please change provided `EnergySpan` to match requirement.
-        """
-    ))
-
-    @info "reading in from external files"
-
-    dis_from_file = readdlm(dist_filename) # Read distribution from file
-    energy_grid = dis_from_file[:,1] # Seperate into energy grid 
-    distribution = dis_from_file[:,2] # and total distribution
-    dis_spl = LinearInterpolation(distribution,energy_grid) # Spline the distribution to project onto new energy grid
-    DOS_spl = generate_DOS(DOS_filename,85) # Build DOS spline from file - n = 85 corresponds to the interpolation factor
-
-    @info "generating new energy grid" 
-
-    NAH_energygrid = grid_builder(nStates,EnergySpan[2]-EnergySpan[1])
-    # NAH_energygrid = ShenviGaussLegendre(nStates,EnergySpan[1],EnergySpan[2]).bathstates # Build new energy grid using ShenviGaussLegendre, needs the `.bathstates` such that the correct field is accessed and NAH_energygrid is a vector
-    DOS = DOS_spl(NAH_energygrid) # Recast DOS and distribution onto new grid
-    dis = dis_spl(NAH_energygrid)
-
-    vecs=nVecs # Number of binary vectors requested, default 1000
-    @info "begin discretization"
-    splits,parts = discretization(dis,vecs,DOS,NAH_energygrid,mean_tol=mean_tolerance,particle_tol=particle_tolerance) #Builds the vectors and returns the vectors (splits) and the relative particle distribution (parts)
-    #The first value of parts is the correct value if you would like to plot a h-line or something to see the distribution
-
-    return splits, parts
-end
-
-"""
     NonEqDist(sim::AbstractSimulation, dist_filename::String, DOS_filename::String)
 
 Non-equilibrium distribution and DoS are read in from file and mapped to the energy grid generated for the system.
