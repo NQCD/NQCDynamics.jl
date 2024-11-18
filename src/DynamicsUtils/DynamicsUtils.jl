@@ -190,15 +190,12 @@ end
 include("noneqdist_discretization.jl")
 
 """
-    NonEqDist(sim::AbstractSimulation, dist_filename::String, DOS_filename::String)
+    NonEqDist(dist_filename::String, DOS_filename::String)
 
 Non-equilibrium distribution and DoS are read in from file and mapped to the energy grid generated for the system.
 The `NonEqState` electronic distribution is output.
 """
-function NonEqDist(sim::AbstractSimulation, dist_filename::String, DOS_filename::String)
-
-    @info "accessing existing energy grid"
-    model_energy_grid = sim.calculator.model.bath.bathstates # Energy grid is explicitly supplied - obtained from model
+function NonEqDist(dist_filename::String, DOS_filename::String)
 
     @info "reading in from external files"
     dis_from_file = readdlm(dist_filename) # Read distribution from file
@@ -207,12 +204,8 @@ function NonEqDist(sim::AbstractSimulation, dist_filename::String, DOS_filename:
     dis_spl = LinearInterpolation(distribution,energy_grid) # Spline the distribution to project onto new energy grid
     DOS_spl = generate_DOS(DOS_filename,85) # Build DOS spline from file - n = 85 corresponds to the interpolation factor
 
-    @info "mapping to energy_grid"
-    DOS = DOS_spl(model_energy_grid) # Recast DOS and distribution onto new grid
-    dis = dis_spl(model_energy_grid)
-
     @info "create `NonEqState` electronic state"
-    return NonEqState(dis, DOS, model_energy_grid)
+    return NonEqState(dis_spl, DOS_spl)
 end
 
 
@@ -222,7 +215,11 @@ end
 New sampling function which generates a state object from a pre-existing non-equilibrium distribution.
 Distribution must have been mapped tot he number of available states.
 """
-function sample_noneq_distribution(distribution, nelectrons, available_states)
+function sample_noneq_distribution(energies, nelectrons, available_states, dis_spline)
+
+    # DOS = DOS_spline(energies) # Recast DOS and distribution onto new grid
+    dis = dis_spline(energies)
+
     # add check here to ensure distribution is same dimension as available_states
     nstates = length(available_states)
     state = collect(Iterators.take(available_states, nelectrons)) # populate your states according to the number of electrons you have
@@ -230,8 +227,8 @@ function sample_noneq_distribution(distribution, nelectrons, available_states)
         current_index = rand(eachindex(state)) # makes rand() return a random index of state array instead of a random element
         i = state[current_index] # Pick random occupied state
         j = rand(setdiff(available_states, state)) # Pick random unoccupied state
-        prob = Bernoulli(distribution[j]) # Bernouili of non-eq distribution
-        if prob > rand()
+        prob = Bernoulli(dis[j]) # Bernouili of non-eq distribution
+        if rand(prob) # will return True if a random number is less than the probability given by Bernoulli
             state[current_index] = j # Set unoccupied state to occupied
         end
     end
