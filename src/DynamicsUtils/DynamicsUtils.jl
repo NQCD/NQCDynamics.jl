@@ -190,7 +190,7 @@ end
 include("noneqdist_discretization.jl")
 
 """
-    NonEqDist(sim::AbstractSimulation, dist_filename::String, DOS_filename::String)
+    NonEqDist(dist_filename::String, DOS_filename::String)
 
 Non-equilibrium distribution and DoS are read in from file and mapped to the energy grid generated for the system.
 The `NonEqState` electronic distribution is output.
