@@ -6,11 +6,11 @@ start_time = time()
 
 To perform [molecular dynamics with electronic friction (MDEF)](@ref mdef-dynamics)
 a specific type of model must be used
-that provides the friction tensor used to propagate the dynamics.
+that provides the friction tensor used to propagate the dynamics. For this we recommend using [FrictionProviders.jl](https://github.com/NQCD/FrictionProviders.jl).
 
 As detailed in the [MDEF page](@ref mdef-dynamics), there are two ways to obtain friction
 values, either from the local density friction approximation (LDFA), or from time-dependent
-perturbation theory (TDPT).
+perturbation theory (TDPT), also known as orbital-dependent friction (ODF).
 The models on this page describe our existing implementations.
 
 ## Analytic models
@@ -34,11 +34,38 @@ converted to the adiabatic representation.
 
     The analytic friction models and the equation above are experimental and subject to change.
 
-## [CubeLDFAModel.jl](@id models-cubeldfa)
 
-Our LDFA implementation is given in
-[CubeLDFAModel.jl](https://github.com/NQCD/CubeLDFAModel.jl)
-which takes a `.cube` file containing the electron density and evaluates the friction based
+## [TDPT (ODF) models](@id ml-tdpt)
+
+Connector for [ACEfriction.jl](https://github.com/ACEsuit/ACEds.jl) TDPT models is included within [FrictionProviders.jl](https://github.com/NQCD/FrictionProviders.jl).
+
+```
+acefriction_model = ACEdsODF(read_dict(load_dict("$(model_path)eft_ac.model")), Gamma, atoms_julip; friction_unit=u"ps^-1")
+eft_model = ODFriction(acefriction_model; friction_atoms=[1,2])
+```
+
+## [Machine-learning-based LDFA](@id ml-ldfa)
+
+Two machine learning models are currently implemented within [FrictionProviders.jl](https://github.com/NQCD/FrictionProviders.jl), based on [ACEpotentials.jl](https://github.com/ACEsuit/ACEpotentials.jl) and [scikit-learn](https://github.com/scikit-learn/scikit-learn).
+
+```
+model_ml = ace_model("model.json", atoms_julip)
+density_model = AceLDFA(model_ml; density_unit=u"Å^-3")
+```
+
+```
+density_model = SciKitLDFA(desc, model_ml, atoms_ase; density_unit=u"Å^-3", scaler=scaler_ml)
+```
+
+
+```
+eft_model = LDFAFriction(density_model, atoms; friction_atoms=[55, 56])
+```
+
+
+## [Cube-based LDFA](@id models-cubeldfa)
+
+Our Cube-LDFA implementation takes a `.cube` file containing the electron density and evaluates the friction based
 upon this local density.
 
 The model works by fitting the LDA data provided by [Gerrits2020](@cite) that provides
@@ -65,6 +92,7 @@ as a function of the Wigner-Seitz radius.
 The [reactive scattering example](@ref example-h2scattering) uses this model to investigate
 the scattering of a diatomic molecule from a metal surface.
 
+<!-- 
 ## NNInterfaces.jl
 
 Another way to perform MDEF simulations is the use one of the models from
@@ -76,4 +104,4 @@ As with LDFA, one of these models is used in the
 ```@setup logging
 runtime = round(time() - start_time; digits=2)
 @info "...done after $runtime s."
-```
+``` -->
