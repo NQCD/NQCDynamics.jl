@@ -39,27 +39,56 @@ converted to the adiabatic representation.
 
 Connector for [ACEfriction.jl](https://github.com/ACEsuit/ACEds.jl) TDPT models is included within [FrictionProviders.jl](https://github.com/NQCD/FrictionProviders.jl).
 
+```julia
+using FrictionProviders
+using PyCall: pyimport
+using ASE, JuLIP
+ase_build = pyimport("ase.build")
+
+atoms_ase = ase_build.fcc111("Cu", a=3.65, size=(3,3,6), vacuum=20.0)
+ase_build.add_adsorbate(atoms_ase, ase_build.molecule("H2"), 2.0, "bridge")
+atoms_ase_jl = ASE.ASEAtoms(atoms_ase)
+atoms_julip = JuLIP.Atoms(atoms_ase_jl)
 ```
-acefriction_model = ACEdsODF(read_dict(load_dict("$(model_path)eft_ac.model")), Gamma, atoms_julip; friction_unit=u"ps^-1")
-eft_model = ODFriction(acefriction_model; friction_atoms=[1,2])
+
+```julia
+using ACE
+using ACEds.FrictionModels
+using ACEds.FrictionModels: Gamma
+ace_model = ACEdsODF(read_dict(load_dict("../assets/ace_friction/eft_ac.model")), Gamma, atoms_julip)
+eft_model = ODFriction(ace_model; friction_atoms=[55,56])
+```
+
+```julia
+using NQCBase: NQCBase
+using NQCModels: FrictionModels
+at, r, cell =  NQCBase.convert_from_ase_atoms(atoms_ase)
+eft = zeros(3*length(at), 3*length(at))
+FrictionModels.friction!(eft_model, eft, r)
 ```
 
 ## [Machine-learning-based LDFA](@id ml-ldfa)
 
 Two machine learning models are currently implemented within [FrictionProviders.jl](https://github.com/NQCD/FrictionProviders.jl), based on [ACEpotentials.jl](https://github.com/ACEsuit/ACEpotentials.jl) and [scikit-learn](https://github.com/scikit-learn/scikit-learn).
 
-```
-model_ml = ace_model("model.json", atoms_julip)
-density_model = AceLDFA(model_ml; density_unit=u"Å^-3")
-```
+```julia
+using ACEpotentials
+atoms_ase = ase_build.fcc111("Cu", a=3.65, size=(3,3,6), vacuum=20.0)
+ase_build.add_adsorbate(atoms_ase, ase_build.molecule("H2"), 2.0, "bridge")
+atoms, r, cell =  NQCBase.convert_from_ase_atoms(atoms_ase)
 
-```
-density_model = SciKitLDFA(desc, model_ml, atoms_ase; density_unit=u"Å^-3", scaler=scaler_ml)
-```
+ace_model, ace_model_meta = ACEpotentials.load_model("../assets/ace_ldfa/model.json")
+ace_model = AdiabaticModels.ACEpotentialsModel(atoms, cell, ace_model) 
 
-
-```
+ace_density_model = AceLDFA(density_model)
 eft_model = LDFAFriction(density_model, atoms; friction_atoms=[55, 56])
+
+eft = zeros(3*length(at), 3*length(at))
+FrictionModels.friction!(eft_model, eft, r)
+```
+
+```julia
+density_model = SciKitLDFA(desc, model_ml, atoms_ase; density_unit=u"Å^-3", scaler=scaler_ml)
 ```
 
 
