@@ -239,6 +239,39 @@ function sample_noneq_distribution(energies, nelectrons, available_states, dis_s
     return state
 end
 
+### TEMP ###
+function DEBUG_sample_noneq_distribution(energies, nelectrons, available_states, dis_spline)
+
+    # DOS = DOS_spline(energies) # Recast DOS and distribution onto new grid
+    dis = dis_spline(energies)
+
+    # counters for returning proportion successful
+    count_UnoccupySource = 0
+    count_OccupyDestination = 0
+
+    # add check here to ensure distribution is same dimension as available_states
+    nstates = length(available_states)
+    total_iterations = nstates * nelectrons
+    state = collect(Iterators.take(available_states, nelectrons)) # populate your states according to the number of electrons you have
+    for _ in 1:(total_iterations) # iterate many times where you check to see if you should make a state change
+        current_index = rand(eachindex(state)) # makes rand() return a random index of state array instead of a random element
+        i = state[current_index] # Pick random occupied state
+        prob_RemainOccupied = Bernoulli(dis[i]) # Bernoulli of non-eq distribution at selected occupied state
+        if !rand(prob_RemainOccupied) # check if occupied state should remain occupied
+            count_UnoccupySource += 1
+            j = rand(setdiff(available_states, state)) # Pick random unoccupied state
+            prob_BecomeOccupied = Bernoulli(dis[j]) # Bernouili of non-eq distribution at selected unoccupied state
+            if rand(prob_BecomeOccupied) # will return True if a random number is less than the probability given by Bernoulli
+                count_OccupyDestination += 1
+                state[current_index] = j # Set unoccupied state to occupied
+            end
+        end
+    end
+    sort!(state)
+    return state, (total_iterations, count_UnoccupySource, count_OccupyDestination)
+end
+### TEMP ###
+
 # ------------------------------------------------------------------------------------------------ #
 
 get_available_states(::Colon, nstates::Integer) = 1:nstates
