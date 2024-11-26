@@ -55,22 +55,6 @@ as a function of the Wigner-Seitz radius.
 ![ldfa graph](../assets/figures/ldfa_graph.png)
 
 
-
-<!-- 
-## NNInterfaces.jl
-
-Another way to perform MDEF simulations is the use one of the models from
-[`NNInterfaces.jl`](https://github.com/NQCD/NNInterfaces.jl/) that uses a neural network
-to obtain the time-dependent perturbation theory friction from the atomic positions.
-As with LDFA, one of these models is used in the
-[reactive scattering example](@ref example-h2scattering).
-
-```@setup logging
-runtime = round(time() - start_time; digits=2)
-@info "...done after $runtime s."
-``` -->
-
-
 ## Analytic models
 
 Since *ab initio* friction calculations are often expensive it is useful to

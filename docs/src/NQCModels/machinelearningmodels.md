@@ -4,8 +4,6 @@ start_time = time()
 ```
 # [Machine learning interatomic potentials](@id ml-pes-models)
 
-
-
 Using the ASE interface within (NQCModels.jl)[https://github.com/NQCD/NQCModels.jl] we can directly use models trained e.g. using [MACE](https://github.com/ACEsuit/mace).
 
 To use a MACE model, please load any pre-trained model into a given path you can access.

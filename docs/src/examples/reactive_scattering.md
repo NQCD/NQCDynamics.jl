@@ -34,7 +34,6 @@ surface (`height` keyword) with a normal incidence.
 
 ```@example h2scatter
 using NQCDynamics
-using NNInterfaces
 using Unitful
 using NQCDynamics.InitialConditions: QuantisedDiatomic
 using JLD2
