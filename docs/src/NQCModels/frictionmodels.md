@@ -6,96 +6,32 @@ start_time = time()
 
 To perform [molecular dynamics with electronic friction (MDEF)](@ref mdef-dynamics)
 a specific type of model must be used
-that provides the friction tensor used to propagate the dynamics. For this we recommend using [FrictionProviders.jl](https://github.com/NQCD/FrictionProviders.jl).
+that provides the friction tensor used to propagate the dynamics. For this we recommend using [FrictionProviders.jl](https://github.com/NQCD/FrictionProviders.jl), however, various analytic models can also be employed.
 
 As detailed in the [MDEF page](@ref mdef-dynamics), there are two ways to obtain friction
 values, either from the local density friction approximation (LDFA), or from time-dependent
 perturbation theory (TDPT), also known as orbital-dependent friction (ODF).
 The models on this page describe our existing implementations.
 
-## Analytic models
+## [FrictionProviders.jl](@id friction-providers)
 
-Since *ab initio* friction calculations are often expensive it is useful to
-have some models that we can use to test different friction methods.
-The [`DiabaticFrictionModel`](@ref NQCModels.DiabaticModels.DiabaticFrictionModel)
-is the abstract type that groups together the diabatic models for which electronic friction can be evaluated.
-These have many electronic states, modelling the electronic structure characteristic of a metal. 
-The friction is calculated for these models directly from the nonadiabatic couplings
-with the equation:
-```math
-γ = 2\pi\hbar \sum_j <1|dH|j><j|dH|1> \delta(\omega_j) / \omega_j
-```
-where the delta function is approximated by a normalised Gaussian function and the sum
-runs over the adiabatic states ([Box2021](@cite)).
-The matrix elements in this equation are the position derivatives of the diabatic hamiltonian
-converted to the adiabatic representation.
+Machine learning-based models, and cube-based calculators can called through [FrictionProviders.jl](https://github.com/NQCD/FrictionProviders.jl) connector package.
 
-!!! warning
+Currently, [FrictionProviders.jl](https://github.com/NQCD/FrictionProviders.jl) supports
+LDFA (density) models based on:
+- Cube electronic densities
+- (ACEpotentials.jl)[https://github.com/ACEsuit/ACEpotentials.jl]
+- (Scikit-learn)[https://github.com/scikit-learn/scikit-learn]
 
-    The analytic friction models and the equation above are experimental and subject to change.
+TDPT (ODF) friction models based on:
+- (ACEds.jl)[https://github.com/ACEsuit/ACEds.jl]
 
+The use of [FrictionProviders.jl](https://github.com/NQCD/FrictionProviders.jl) with LDFA (Cube calculator and ACE model), and TDPT (ACEds-based model) is explained on the [reactive scattering example](@ref example-h2scattering), to investigate the scattering of a diatomic molecule from a metal surface.
 
-## [TDPT (ODF) models](@id ml-tdpt)
+### [Density models for LDFA](@id models-ldfa)
 
-Connector for [ACEfriction.jl](https://github.com/ACEsuit/ACEds.jl) TDPT models is included within [FrictionProviders.jl](https://github.com/NQCD/FrictionProviders.jl).
-
-```julia
-using FrictionProviders
-using PyCall: pyimport
-using ASE, JuLIP
-ase_build = pyimport("ase.build")
-
-atoms_ase = ase_build.fcc111("Cu", a=3.65, size=(3,3,6), vacuum=20.0)
-ase_build.add_adsorbate(atoms_ase, ase_build.molecule("H2"), 2.0, "bridge")
-atoms_ase_jl = ASE.ASEAtoms(atoms_ase)
-atoms_julip = JuLIP.Atoms(atoms_ase_jl)
-```
-
-```julia
-using ACE
-using ACEds.FrictionModels
-using ACEds.FrictionModels: Gamma
-ace_model = ACEdsODF(read_dict(load_dict("../assets/ace_friction/eft_ac.model")), Gamma, atoms_julip)
-eft_model = ODFriction(ace_model; friction_atoms=[55,56])
-```
-
-```julia
-using NQCBase: NQCBase
-using NQCModels: FrictionModels
-at, r, cell =  NQCBase.convert_from_ase_atoms(atoms_ase)
-eft = zeros(3*length(at), 3*length(at))
-FrictionModels.friction!(eft_model, eft, r)
-```
-
-## [Machine-learning-based LDFA](@id ml-ldfa)
-
-Two machine learning models are currently implemented within [FrictionProviders.jl](https://github.com/NQCD/FrictionProviders.jl), based on [ACEpotentials.jl](https://github.com/ACEsuit/ACEpotentials.jl) and [scikit-learn](https://github.com/scikit-learn/scikit-learn).
-
-```julia
-using ACEpotentials
-atoms_ase = ase_build.fcc111("Cu", a=3.65, size=(3,3,6), vacuum=20.0)
-ase_build.add_adsorbate(atoms_ase, ase_build.molecule("H2"), 2.0, "bridge")
-atoms, r, cell =  NQCBase.convert_from_ase_atoms(atoms_ase)
-
-ace_model, ace_model_meta = ACEpotentials.load_model("../assets/ace_ldfa/model.json")
-ace_model = AdiabaticModels.ACEpotentialsModel(atoms, cell, ace_model) 
-
-ace_density_model = AceLDFA(density_model)
-eft_model = LDFAFriction(density_model, atoms; friction_atoms=[55, 56])
-
-eft = zeros(3*length(at), 3*length(at))
-FrictionModels.friction!(eft_model, eft, r)
-```
-
-```julia
-density_model = SciKitLDFA(desc, model_ml, atoms_ase; density_unit=u"Å^-3", scaler=scaler_ml)
-```
-
-
-## [Cube-based LDFA](@id models-cubeldfa)
-
-Our Cube-LDFA implementation takes a `.cube` file containing the electron density and evaluates the friction based
-upon this local density.
+Our Cube-LDFA implementation takes a `.cube` file containing the electron density, whereas the ML-LDFA models predict the density directly.
+In both cases the obtained local density is then used to evaluate the friction.
 
 The model works by fitting the LDA data provided by [Gerrits2020](@cite) that provides
 the LDFA friction coefficient as a function of the Wigner-Seitz radius.
@@ -118,8 +54,7 @@ This graph shows how we interpolate the LDA data and evaluate the friction coeff
 as a function of the Wigner-Seitz radius.
 ![ldfa graph](../assets/figures/ldfa_graph.png)
 
-The [reactive scattering example](@ref example-h2scattering) uses this model to investigate
-the scattering of a diatomic molecule from a metal surface.
+
 
 <!-- 
 ## NNInterfaces.jl
@@ -134,3 +69,26 @@ As with LDFA, one of these models is used in the
 runtime = round(time() - start_time; digits=2)
 @info "...done after $runtime s."
 ``` -->
+
+
+## Analytic models
+
+Since *ab initio* friction calculations are often expensive it is useful to
+have some models that we can use to test different friction methods.
+The [`DiabaticFrictionModel`](@ref NQCModels.DiabaticModels.DiabaticFrictionModel)
+is the abstract type that groups together the diabatic models for which electronic friction can be evaluated.
+These have many electronic states, modelling the electronic structure characteristic of a metal. 
+The friction is calculated for these models directly from the nonadiabatic couplings
+with the equation:
+```math
+γ = 2\pi\hbar \sum_j <1|dH|j><j|dH|1> \delta(\omega_j) / \omega_j
+```
+where the delta function is approximated by a normalised Gaussian function and the sum
+runs over the adiabatic states ([Box2021](@cite)).
+The matrix elements in this equation are the position derivatives of the diabatic hamiltonian
+converted to the adiabatic representation.
+
+!!! warning
+
+    The analytic friction models and the equation above are experimental and subject to change.
+
