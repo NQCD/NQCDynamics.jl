@@ -115,6 +115,12 @@ end
 """
 A Thermostat is defined by a temperature (either constant or time-dependent) as the atom indices within a structure that it is applied to. 
 
+## Parameters
+
+`temperature`: A temperature function. This can be a Number type for constant temperatures, or a function taking the time in Unitful `u"ps"` as input and giving a temperature in Unitful `u"K"` as output. 
+
+`indices`: Indices of the atoms to apply this thermostat to. Can be a range of indices, a single `Int`, or a `Vector{Int}`.
+
 """
 struct Thermostat{I}
     temperature::Function
@@ -122,7 +128,7 @@ struct Thermostat{I}
 end
 
 function Base.show(io::IO, thermostat::Thermostat)
-    print(io, "Thermostat:\n\tT(0) = $(get_temperature(thermostat, 0u"fs"))\n\tApplies to atoms: $(thermostat.indices)\n")
+    print(io, "Thermostat:\n\tT(t=0) = $(get_temperature(thermostat, 0u"fs"))\n\tApplies to atoms: $(thermostat.indices)\n")
 end
 
 function Thermostat(temperature, indices=:)
@@ -139,6 +145,11 @@ function Thermostat(temperature, indices=:)
     end
 end
 
+"""
+    Thermostat(temperature, subsystem::NQCModels.Subsystem)
+
+Creates a `Thermostat` using the indices from a `Subsystem` (so indices only have to be provided once)
+"""
 function Thermostat(temperature, subsystem::NQCModels.Subsystem)
     Thermostat(temperature, subsystem.indices)
 end
