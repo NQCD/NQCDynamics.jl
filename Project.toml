@@ -49,7 +49,7 @@ Unitful = "1986cc42-f94f-5a68-af5c-568840ba703d"
 UnitfulAtomic = "a7773ee8-282e-5fa2-be4e-bd808c38a91a"
 
 [weakdeps]
-MACEModel = "29bafc4c-4f38-420f-a153-8a5a5e0bd5f6"
+MACEModels = "29bafc4c-4f38-420f-a153-8a5a5e0bd5f6"
 
 [compat]
 AdvancedHMC = "0.5, 0.6"
