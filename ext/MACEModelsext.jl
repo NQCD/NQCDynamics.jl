@@ -22,6 +22,7 @@ function Calculators.evaluate_derivative!(calc::RingPolymerAdiabaticCalculator{T
 end
 
 function Calculators.evaluate_potential!(calc::RingPolymerFrictionCalculator{T,MACEModel}, R::AbstractArray{S,3}) where {T,S}
+    @debug "RPMDEF accelerated potential evaluation"
     calc.stats[:potential] += 1
     potential_vector = @views [R[:, :, i] for i in axes(R, 3)]
     calc.potential = NQCModels.potential(calc.model, calc.model.atoms, potential_vector, calc.model.cell)
@@ -29,6 +30,7 @@ function Calculators.evaluate_potential!(calc::RingPolymerFrictionCalculator{T,M
 end
 
 function Calculators.evaluate_derivative!(calc::RingPolymerFrictionCalculator{T,MACEModel}, R::AbstractArray{S,3}) where {T,S}
+    @debug "RPMDEF accelerated derivative evaluation"
     calc.stats[:derivative] += 1
     derivative_vector = @views [R[:, :, i] for i in axes(R, 3)]
     NQCModels.derivative!(calc.model, calc.model.atoms, calc.derivative, derivative_vector, calc.model.cell)
