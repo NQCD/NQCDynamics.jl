@@ -208,6 +208,21 @@ function NonEqDist(dist_filename::String, DOS_filename::String)
     return NonEqState(dis_spl, DOS_spl)
 end
 
+"""
+    NonEqDist(sample_distribution::Vector{Float64})
+
+Takes existing non-equilibrium distribution and energy grid in array format and converts to spline functions.
+(DOS is not included in this version, `dis_spl` is mapped to both fields temporarily!)
+"""
+function NonEqDist(sample_distribution::Vector{Float64}, sample_energy_grid::Vector{Float64})
+
+    dis_spl = LinearInterpolation(sample_distribution, sample_energy_grid) # Spline the distribution to project onto new energy grid
+    # DOS_spl = generate_DOS(DOS_filename,85) # Build DOS spline from file - n = 85 corresponds to the interpolation factor
+
+    @info "create `NonEqState` electronic state"
+    return NonEqState(dis_spl, dis_spl)
+end
+
 
 """
     sample_noneq_distribution(distribution, nelectrons, available_states)
@@ -271,6 +286,17 @@ function DEBUG_sample_noneq_distribution(energies, nelectrons, available_states,
     return state, (total_iterations, count_UnoccupySource, count_OccupyDestination)
 end
 ### TEMP ###
+"""
+    simple_non_eq(ϵ, μ, β, Δf_β1, Δf_β2)
+
+Outputs a simple approximation to a non-equilibrium distribution, generated from finite temperature Fermi-Dirac distributions, that can be used for test purposes.
+"""
+function simple_non_eq(ϵ, μ, β, Δf_β1, Δf_β2)
+    β != Inf || throw(error("Non-equilibrium distribution needs to be a finite temperature, β cannot be Inf."))
+    Δf = fermi.(ϵ, μ, Δf_β1) - fermi.(ϵ, μ, Δf_β2) #  create perterbation from 2 finite temperature Fermi-Dirac distributions
+    F = fermi.(ϵ, μ, β) + Δf  # add perterbation to a finite temperature Fermi-Dirac distribution
+    return F
+end
 
 # ------------------------------------------------------------------------------------------------ #
 

@@ -135,16 +135,7 @@ function DynamicsMethods.DynamicsVariables(sim::AbstractSimulation{<:AdiabaticIE
 
     # state and ψ objects are generated from 
     state = DynamicsUtils.sample_noneq_distribution(eigenvalues, NQCModels.nelectrons(sim), available_states, electronic.dis_spline)
-
-    # length(state) ≈ NQCModels.nelectrons(sim) || throw(error(    # thought this was good idea but due to the generation of the discreisation, the binary vectors don't all give the same number of particles for the constraints ive needed to use
-    #     """
-    #     Number of electrons in state and model do not match:
-    #         State: $(length(state))
-    #         Model: $(NQCModels.nelectrons(sim))
-    #     Change one of them to make them the same.
-    #     """
-    # ))
-
+    
     # available_states = NQCModels.nstates(sim)
     # length(state) = NQCModels.nelectrons(sim)
 

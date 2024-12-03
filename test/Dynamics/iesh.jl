@@ -32,12 +32,12 @@ SurfaceHoppingMethods.set_unoccupied_states!(sim)
     sim = Simulation{AdiabaticIESH}(atoms, model)
     distribution = NQCDistributions.FermiDiracState(0.0u"eV", 0u"K")
     u = DynamicsVariables(sim, v, r, distribution)
-    @test u.state == 1:n_electrons
+    @test u.state == 1:n_electrons # for a 0 K thermal distribution are all states sequentially occupied from bandmin to fermi_level?
 
     model = AndersonHolstein(basemodel, bath; fermi_level=0.1u"eV")
     sim = Simulation{AdiabaticIESH}(atoms, model)
     distribution = NQCDistributions.FermiDiracState(0.0u"eV", 300u"K")
-    @test_throws ErrorException DynamicsVariables(sim, v, r, distribution) # do fermi energies match
+    @test_throws ErrorException DynamicsVariables(sim, v, r, distribution) # do supplied fermi energies to model and distribution match (`ErrorException` thrown in function).
 
     model = AndersonHolstein(basemodel, bath; fermi_level=0.1u"eV")
     sim = Simulation{AdiabaticIESH}(atoms, model)
@@ -52,30 +52,36 @@ SurfaceHoppingMethods.set_unoccupied_states!(sim)
     eigs = Calculators.get_eigen(sim.calculator, r)
     occupations = NQCDistributions.fermi.(eigs.values, distribution.fermi_level, distribution.β)
 
-    @test avg ≈ occupations atol = 0.2
+    @test avg ≈ occupations atol = 0.2 # for 5000 samples, does the average reconstructed distribution approximately match the generated fermi-dirac distribution?
 end
+# ------------------------------------------------------------------------------------------------ #
+#                                             New Test                                             #
+# ------------------------------------------------------------------------------------------------ #
 
 ## will need to make a custom / simple non-equilibrium distribution generator which can be called here
 ## instead of passing the distribution from file (or have a simple, non-eq distribution file stored within NQCDyanmics)
-NonEqDistributionPath = "C:\\Users\\capri\\Documents\\NQCDynamics\\AthEM-Discretization\\Neq_distribution.csv"
-DOSPath = "C:\\Users\\capri\\Documents\\NQCDynamics\\AthEM-Discretization\\Cu_DOS.dat"
+
+# create sample distribution at higher level of discretisation
+factorinc = 10 # increase in number of states used for generating the 
+sample_energies = collect(TrapezoidalRule(M*factorinc, -(W*1.1), W*1.1).bathstates) # obtains vector from bathstates field of TrapezoidalRule
+sampleβ = 1/austrip(300u"K") # β factor for Fermi-Dirac distribution that will form basis of Non_Eq distribution
+Δf_β1 = 1/austrip(1000u"K") # β factors for Fermi-Dirac distributions that will define the perturbation, giving the non-eq element
+Δf_β2 = 1/austrip(100u"K")
+sample_distribution = DynamicsUtils.simple_non_eq(sample_energies, 0.0, sampleβ, Δf_β1, Δf_β2)
 
 
 @testset "DynamicsVariables - nonthermal electronic distribution" begin
+    # consider new test ...
+    # model = AndersonHolstein(basemodel, bath; fermi_level=0.0u"eV")
+    # sim = Simulation{AdiabaticIESH}(atoms, model)
+    # distribution = DynamicsUtils.NonEqDist(sample_distribution, sample_energies)
+    # u = DynamicsVariables(sim, v, r, distribution)
+    # @test u.state == 1:n_electrons # this is no longer true as the inital state is sampled from a non-eq distribution, not a Fermi-Dirac distribution at 0 K
+
+
     model = AndersonHolstein(basemodel, bath; fermi_level=0.0u"eV")
     sim = Simulation{AdiabaticIESH}(atoms, model)
-    distribution = DynamicsUtils.NonEqDist(NonEqDistributionPath, DOSPath)
-    u = DynamicsVariables(sim, v, r, distribution)
-    @test u.state == 1:n_electrons
-
-    # model = AndersonHolstein(basemodel, bath; fermi_level=0.1u"eV") # not using fermi-distribution so don't have to worry about this test
-    # sim = Simulation{AdiabaticIESH}(atoms, model)
-    # distribution = NQCDistributions.FermiDiracState(0.0u"eV", 300u"K")
-    # @test_throws ErrorException DynamicsVariables(sim, v, r, distribution)
-
-    model = AndersonHolstein(basemodel, bath; fermi_level=0.1u"eV")
-    sim = Simulation{AdiabaticIESH}(atoms, model)
-    distribution = NQCDistributions.FermiDiracState(0.1u"eV", 300u"K")
+    distribution = DynamicsUtils.NonEqDist(sample_distribution, sample_energies)
     avg = zeros(nstates(model))
     samples = 5000
     for i = 1:samples
@@ -84,10 +90,12 @@ DOSPath = "C:\\Users\\capri\\Documents\\NQCDynamics\\AthEM-Discretization\\Cu_DO
     end
     avg ./= samples
     eigs = Calculators.get_eigen(sim.calculator, r)
-    occupations = NQCDistributions.fermi.(eigs.values, distribution.fermi_level, distribution.β)
+    occupations =  DynamicsUtils.simple_non_eq(eigs.values, 0.0, sampleβ, Δf_β1, Δf_β2)
 
     @test avg ≈ occupations atol = 0.2
 end
+# ------------------------------------------------------------------------------------------------ #
+
 
 @testset "set_unoccupied_states!" begin
     sim = Simulation{AdiabaticIESH}(atoms, model)
