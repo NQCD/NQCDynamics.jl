@@ -11,7 +11,7 @@ For some non-adiabatic dynamics methods, we would like to calculate certain quan
 However, a model for a potential energy surface does not and should not be able to provide e.g. an electronic friction tensor. 
 Instead, we can use the modular nature of NQCModels.jl to combine different components to a non-adiabatic dynamics method into a single model that can be used to set up a [`Simulation`](@ref)
 
-For example, in order to run [Molecular Dynamics with Electronic friction](@ref mdef-dynamics), we need to use a [`Model`](@ref) which supports the following methods:
+For example, in order to run [Molecular Dynamics with Electronic friction](@ref mdef-dynamics), we need to use a `Model` which supports the following methods:
 - `potential` to determine the total energy
 - `derivative` to determine interatomic forces
 - `friction` to determine the electronic friction tensor
