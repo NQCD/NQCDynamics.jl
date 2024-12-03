@@ -56,7 +56,7 @@ AdvancedHMC = "0.5, 0.6"
 AdvancedMH = "0.8"
 ComponentArrays = "0.11, 0.12, 0.13, 0.14, 0.15"
 DEDataArrays = "0.2"
-Dictionaries = "0.3"
+Dictionaries = "0.3, 0.4"
 DiffEqBase = "6"
 Distributions = "0.25"
 FastBroadcast = "0.1, 0.2"
@@ -109,4 +109,19 @@ Symbolics = "0c5d862f-8b57-4792-8d23-62f2024744c7"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]
-test = ["Test", "SafeTestsets", "CSV", "DataFrames", "DiffEqNoiseProcess", "FiniteDiff", "DiffEqDevTools", "Logging", "MKL", "PythonCall", "JuLIP", "Symbolics", "Statistics", "Plots", "JLD2"]
+test = ["Test",
+    "SafeTestsets",
+    "CSV",
+    "DataFrames",
+    "DiffEqNoiseProcess",
+    "FiniteDiff",
+    "DiffEqDevTools",
+    "Logging",
+    "MKL",
+    "PythonCall",
+    "JuLIP",
+    "Symbolics",
+    "Statistics",
+    "Plots",
+    "JLD2"
+]
