@@ -1,7 +1,9 @@
 name = "NQCDynamics"
 uuid = "36248dfb-79eb-4f4d-ab9c-e29ea5f33e14"
 authors = ["James <james.gardner1421@gmail.com>"]
+
 version = "0.14.0"
+
 
 [deps]
 AdvancedHMC = "0bf59076-c3b1-5ca4-86bd-e02cd72cde3d"
@@ -16,7 +18,7 @@ FastLapackInterface = "29a986be-02c6-4525-aec4-84b980013641"
 HDF5 = "f67ccb44-e63f-5c2f-98bd-6dc0ccc4ba2f"
 Interpolations = "a98d9a8b-a2ab-59e6-89dd-64a1c18fca59"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
-MKL_jll = "856f044c-d86e-5d09-b602-aeab76dc8ba7"
+MKL_jll = "856f044c-d86e-5d09-b602-aeab76dc8ba7" # Added to maintain compatibility with MKL.jl - See #324
 MuladdMacro = "46d2c3a1-f734-5fdb-9937-b9b9aeba4221"
 NQCBase = "78c76ebc-5665-4934-b512-82d81b5cbfb7"
 NQCDistributions = "657014a1-bd25-4aa2-92cb-cbcede0310ad"
@@ -46,23 +48,25 @@ UnicodePlots = "b8865327-cd53-5732-bb35-84acbb429228"
 Unitful = "1986cc42-f94f-5a68-af5c-568840ba703d"
 UnitfulAtomic = "a7773ee8-282e-5fa2-be4e-bd808c38a91a"
 
+[weakdeps]
+MACEModels = "29bafc4c-4f38-420f-a153-8a5a5e0bd5f6"
+
 [compat]
 AdvancedHMC = "0.5, 0.6"
 AdvancedMH = "0.8"
 ComponentArrays = "0.11, 0.12, 0.13, 0.14, 0.15"
 DEDataArrays = "0.2"
-Dictionaries = "0.3, 0.4"
+Dictionaries = "0.3"
 DiffEqBase = "6"
 Distributions = "0.25"
 FastBroadcast = "0.1, 0.2"
 FastLapackInterface = "1, 2"
 HDF5 = "0.15, 0.16, 0.17"
-Interpolations = "0.13, 0.14, 0.15"
-MKL_jll = "2023"
+Interpolations = "0.13, 0.14"
 MuladdMacro = "0.2"
 NQCBase = "0.2"
 NQCDistributions = "0.1"
-NQCModels = "0.9"
+NQCModels = "0.8"
 Optim = "1"
 OrdinaryDiffEq = "5, 6"
 Parameters = "0.12"
@@ -70,14 +74,13 @@ PeriodicTable = "1"
 ProgressMeter = "1"
 QuadGK = "2"
 RecipesBase = "1"
-RecursiveArrayTools = "2, 3"
+RecursiveArrayTools = "2"
 Reexport = "1"
 RingPolymerArrays = "0.1"
 Roots = "1, 2"
 Rotations = "1"
 SciMLBase = "1, 2"
 StaticArrays = "1"
-Statistics = "1"
 StatsBase = "0.33, 0.34"
 StochasticDiffEq = "6"
 StructArrays = "0.6"
@@ -86,7 +89,7 @@ UnPack = "1"
 UnicodePlots = "2, 3"
 Unitful = "1"
 UnitfulAtomic = "1"
-julia = "1.9"
+julia = "≥1.9"
 
 [extras]
 CSV = "336ed68f-0bac-5ca0-87d4-7b16caf5d00b"
@@ -106,20 +109,4 @@ Symbolics = "0c5d862f-8b57-4792-8d23-62f2024744c7"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]
-test = [
-    "Test",
-    "SafeTestsets",
-    "CSV",
-    "DataFrames",
-    "DiffEqNoiseProcess",
-    "FiniteDiff",
-    "DiffEqDevTools",
-    "Logging",
-    "MKL",
-    "PythonCall",
-    "JuLIP",
-    "Symbolics",
-    "Statistics",
-    "Plots",
-    "JLD2",
-]
+test = ["Test", "SafeTestsets", "CSV", "DataFrames", "DiffEqNoiseProcess", "FiniteDiff", "DiffEqDevTools", "Logging", "MKL", "PythonCall", "JuLIP", "Symbolics", "Statistics", "Plots", "JLD2"]
