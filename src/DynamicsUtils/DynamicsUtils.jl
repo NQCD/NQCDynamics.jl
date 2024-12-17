@@ -216,7 +216,7 @@ Takes existing non-equilibrium distribution and energy grid in array format and 
 """
 function NonEqDist(sample_distribution::Vector{Float64}, sample_energy_grid::Vector{Float64})
 
-    dis_spl = LinearInterpolation(sample_distribution, sample_energy_grid) # Spline the distribution to project onto new energy grid
+    dis_spl = LinearInterpolation(sample_distribution, sample_energy_grid; extrapolate=true) # Spline the distribution to project onto new energy grid
     # DOS_spl = generate_DOS(DOS_filename,85) # Build DOS spline from file - n = 85 corresponds to the interpolation factor
 
     @info "create `NonEqState` electronic state"
