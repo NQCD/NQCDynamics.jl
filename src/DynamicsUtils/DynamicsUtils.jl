@@ -228,12 +228,16 @@ end
     sample_noneq_distribution(distribution, nelectrons, available_states)
 
 New sampling function which generates a state object from a pre-existing non-equilibrium distribution.
-Distribution must have been mapped tot he number of available states.
+Distribution must have been mapped to the number of available states.
 """
 function sample_noneq_distribution(energies, nelectrons, available_states, dis_spline)
 
     # DOS = DOS_spline(energies) # Recast DOS and distribution onto new grid
     dis = dis_spline(energies)
+
+    # confining values in dis to have upper bounds of 0.0 and 1.0
+    dis[dis .< 0.0] .= 0.0
+    dis[dis .> 1.0] .= 1.0
 
     # add check here to ensure distribution is same dimension as available_states
     nstates = length(available_states)
