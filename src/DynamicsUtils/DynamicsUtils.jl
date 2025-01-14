@@ -235,7 +235,7 @@ function sample_noneq_distribution(energies, nelectrons, available_states, dis_s
     # DOS = DOS_spline(energies) # Recast DOS and distribution onto new grid
     dis = dis_spline(energies)
 
-    # confining values in dis to have upper bounds of 0.0 and 1.0
+    # confining values in dis to have upper bounds of 0.0 and 1.0 to remove floating point error from LinearInterpolation extrapolate
     dis[dis .< 0.0] .= 0.0
     dis[dis .> 1.0] .= 1.0
 
