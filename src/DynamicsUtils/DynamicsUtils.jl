@@ -290,17 +290,10 @@ function DEBUG_sample_noneq_distribution(energies, nelectrons, available_states,
     return state, (total_iterations, count_UnoccupySource, count_OccupyDestination)
 end
 ### TEMP ###
-"""
-    simple_non_eq(ϵ, μ, β, Δf_β1, Δf_β2)
 
-Outputs a simple approximation to a non-equilibrium distribution, generated from finite temperature Fermi-Dirac distributions, that can be used for test purposes.
-"""
-function simple_non_eq(ϵ, μ, β, Δf_β1, Δf_β2)
-    β != Inf || throw(error("Non-equilibrium distribution needs to be a finite temperature, β cannot be Inf."))
-    Δf = fermi.(ϵ, μ, Δf_β1) - fermi.(ϵ, μ, Δf_β2) #  create perterbation from 2 finite temperature Fermi-Dirac distributions
-    F = fermi.(ϵ, μ, β) + Δf  # add perterbation to a finite temperature Fermi-Dirac distribution
-    return F
-end
+include("non_equilibrium_disributions.jl")
+export simple_non_eq
+export generate_NEQ_dist
 
 # ------------------------------------------------------------------------------------------------ #
 
