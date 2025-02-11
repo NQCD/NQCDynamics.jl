@@ -11,7 +11,7 @@ To use a MACE model, please load any pre-trained model into a given path you can
 First we load the model into an `ase` calculator and attach it to our diatomic
 hydrogen molecule.
 ```julia
-using PyCall
+using PythonCall
 
 ase = pyimport("ase")
 mace_calc = pyimport("mace.calculators")

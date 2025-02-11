@@ -37,7 +37,7 @@ using NQCDynamics
 using Unitful
 using NQCDynamics.InitialConditions: QuantisedDiatomic
 using JLD2
-using PyCall
+using PythonCall
 
 mace_calc = pyimport("mace.calculators")
 
