@@ -113,25 +113,27 @@ function Base.show(io::IO, sim::RingPolymerSimulation{M}) where {M}
 end
 
 """
-A Thermostat is defined by a temperature (either constant or time-dependent) as the atom indices within a structure that it is applied to. 
+A Temperature contains both temperature information and the atom indices within a Simulation that it is applied to. 
+
+**If you don't need to apply different temperatures to different parts of your Simulation, supply the Simulation with a number or function instead.**
 
 ## Parameters
 
-`temperature`: A temperature function. This can be a Number type for constant temperatures, or a function taking the time in Unitful `u"ps"` as input and giving a temperature in Unitful `u"K"` as output. 
+`value`: A temperature function. This can be a Number type for constant temperatures, or a function taking the time in Unitful `u"ps"` as input and giving a temperature in Unitful `u"K"` as output. 
 
 `indices`: Indices of the atoms to apply this thermostat to. Can be a range of indices, a single `Int`, or a `Vector{Int}`.
 
 """
-struct Thermostat{I}
-    temperature::Function
+struct Temperature{I}
+    value::Function
     indices::I
 end
 
-function Base.show(io::IO, thermostat::Thermostat)
-    print(io, "Thermostat:\n\tT(t=0) = $(get_temperature(thermostat, 0u"fs"))\n\tApplies to atoms: $(thermostat.indices)\n")
+function Base.show(io::IO, thermostat::Temperature)
+    print(io, "Temperature:\n\tT(t=0) = $(get_temperature(thermostat, 0u"fs"))\n\tApplies to atoms: $(thermostat.indices)\n")
 end
 
-function Thermostat(temperature, indices=:)
+function Temperature(temperature, indices=:)
     if isa(indices, UnitRange)
         indices=collect(indices)
     elseif isa(indices, Int)
@@ -139,28 +141,28 @@ function Thermostat(temperature, indices=:)
     end
     if !isa(temperature, Function)
         temperature_function(t)=temperature
-        return Thermostat(temperature_function, indices)
+        return Temperature(temperature_function, indices)
     else
-        return Thermostat(temperature, indices)
+        return Temperature(temperature, indices)
     end
 end
 
 """
-    Thermostat(temperature, subsystem::NQCModels.Subsystem)
+    Temperature(temperature, subsystem::NQCModels.Subsystem)
 
-Creates a `Thermostat` using the indices from a `Subsystem` (so indices only have to be provided once)
+Creates a `Temperature` using the indices from a `Subsystem` (so indices only have to be provided once)
 """
-function Thermostat(temperature, subsystem::NQCModels.Subsystem)
-    Thermostat(temperature, subsystem.indices)
+function Temperature(temperature, subsystem::NQCModels.Subsystem)
+    Temperature(temperature, subsystem.indices)
 end
 
-get_temperature(thermostat::Thermostat{<:Any}, t=0u"fs") = austrip(thermostat.temperature(t))
+get_temperature(thermostat::Temperature{<:Any}, t=0u"fs") = austrip(thermostat.value(t))
 
-function get_temperature(thermostats::Vector{<:Thermostat}, t=0u"fs")
+function get_temperature(thermostats::Vector{<:Temperature}, t=0u"fs")
     indices=vcat([thermostat.indices for thermostat in thermostats]...)
     temperature_vector=zeros(Number, length(indices))
     for thermostat in thermostats
-        temperature_vector[thermostat.indices] .= austrip(thermostat.temperature(t))
+        temperature_vector[thermostat.indices] .= austrip(thermostat.value(t))
     end
     return temperature_vector
 end
