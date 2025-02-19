@@ -17,9 +17,13 @@ include("simulations.jl")
 export Simulation,
        RingPolymerSimulation,
        natoms,
-       masses
+       masses,
+       Thermostat,
+       get_temperature
 
 @reexport using NQCDistributions
+# Simulation-aware version of nuclear Boltzmann distribution. 
+include("NQCDistributions-convenience.jl")
 
 include("DynamicsUtils/DynamicsUtils.jl")
 @reexport using .DynamicsUtils: get_positions, get_velocities

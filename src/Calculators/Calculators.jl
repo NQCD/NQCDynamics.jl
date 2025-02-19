@@ -19,7 +19,7 @@ using LinearAlgebra: LinearAlgebra, Hermitian, I, Eigen, tr
 using StaticArrays: SMatrix, SVector
 using RingPolymerArrays: get_centroid!
 
-using NQCModels: NQCModels, Model, nstates, mobileatoms, dofs
+using NQCModels: NQCModels, Model, nstates, mobileatoms, dofs, Subsystem, CompositeModel
 using NQCModels.AdiabaticModels: AdiabaticModel
 using NQCModels.DiabaticModels: DiabaticModel, DiabaticFrictionModel
 using NQCModels.FrictionModels: AdiabaticFrictionModel
@@ -35,10 +35,10 @@ Each concrete calculator contains the `Model` and the fields to store the quanti
 obtained from the model.
 """
 abstract type AbstractCalculator{T,M<:Model} end
-abstract type AbstractAdiabaticCalculator{T,M<:AdiabaticModel} <: AbstractCalculator{T,M} end
+abstract type AbstractAdiabaticCalculator{T,M<:Union{AdiabaticModel, CompositeModel}} <: AbstractCalculator{T,M} end
 abstract type AbstractDiabaticCalculator{T,M<:Union{DiabaticFrictionModel,DiabaticModel}} <: AbstractCalculator{T,M} end
 abstract type AbstractStaticDiabaticCalculator{T,M} <: AbstractDiabaticCalculator{T,M} end
-abstract type AbstractFrictionCalculator{T,M<:AdiabaticFrictionModel} <: AbstractCalculator{T,M} end
+abstract type AbstractFrictionCalculator{T,M<:Union{AdiabaticFrictionModel, CompositeModel}} <: AbstractCalculator{T,M} end
 
 NQCModels.nstates(calc::AbstractCalculator) = NQCModels.nstates(calc.model)
 NQCModels.eachstate(calc::AbstractCalculator) = NQCModels.eachstate(calc.model)

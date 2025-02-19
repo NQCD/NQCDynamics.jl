@@ -32,7 +32,7 @@ surface (`height` keyword) with a normal incidence.
     As usual, all quantities default to atomic units. Here we use [Unitful](https://painterqubits.github.io/Unitful.jl/stable/)
     to input the translational energy and height using different units, where they are later converted internally.
 
-```@example h2scatter
+```julia @example h2scatter
 using NQCDynamics
 using NNInterfaces
 using Unitful
@@ -79,7 +79,7 @@ terminate.
 This means we can set our time span relatively long since we expect most simulations to
 terminate before reaching the time limit.
 
-```@example h2scatter
+```julia @example h2scatter
 using Statistics: mean
 using LinearAlgebra: norm
 
@@ -117,7 +117,7 @@ This takes a `.cube` file containing the electron density and will provide the f
 during the dynamics.
 Here we have given the new model our model from above, which will provide the forces.
 
-```@example h2scatter
+```julia @example h2scatter
 using CubeLDFAModel
 model = LDFAModel(model, "../assets/friction/test.cube", atoms, friction_atoms=[1,2], cell)
 ```

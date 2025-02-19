@@ -8,7 +8,6 @@ start_time = time()
  
 A set of fundamental and technologically relevant chemical processes (surface scattering, dissociative chemisorption, surface diffusion, recombinative desorption, etc.) are often catalyzed at the metal surface of several late transition metals (Au, Ag, Cu, Pt, Pd, Rh, etc). These metallic surfaces, unlike other surfaces, are characterized by a dense manifold of electronic states at the Fermi level, which produce continuous conduction and valence bands without a band gap. A theoretical description of the chemical processes at these metal surfaces is often challenging due to the Born-Oppenheimer (BO) approximation no longer being valid. With the breakdown of the Born-Oppenheimer approximation,  nonadiabatic effects have to be considered to describe, e.g., the energy exchange that can take place between adsorbate and substrate degrees of freedom (DOF).
 
-
 A fully quantum dynamical approach of this complex scenario is currently unfeasible and the gas-surface reaction dynamics are often described using quasi-classical methods where nuclear motion is described classically.
 Molecular dynamics with electronic friction (MDEF) is one of main methods used to deal with the nonadiabaticity in gas-surface chemical reactions. MDEF has been widely employed to decribe and simulate the nuclear dynamics in several molecular systems. It is a theoretical model based on a ground-state Langevin equation of motion which introduces nonadiabatic effects by using frictional and stochastic forces. This approach was originally introduced by Head-Gordon and Tully and the nonadiabatic effects can be included through different electronic friction models (see section below, LDFA and TDPT).
 The nuclear coordinates of the adsorbate atoms evolve as follows:
@@ -101,7 +100,7 @@ Local density friction approximation (LDFA) is a theoretical model which describ
 of each atom.
 
 In our current LDFA implementation, a set of pre-calculated electronic friction coefficients (``\eta_{e,i}``) computed at different Wigner-Seitz radius (``r_s``) are used to fit and get an analytical expression to connect any ``r_s`` values with an single electronic friction coefficient by means of   
-cubic Spline functions. The Wigner-Sietz radius is connected to the metal substrate electron density by the following equation, 
+cubic Spline functions. The Wigner-Seitz radius is connected to the metal substrate electron density by the following equation, 
 
 ```math
    r_s(\rho) = (\frac{3}{4\pi \rho (\mathbf{r_{i}})})^{1/3}
@@ -125,3 +124,25 @@ View the [friction models page](@ref models-friction) to learn about how this ca
 runtime = round(time() - start_time; digits=2)
 @info "...done after $runtime s."
 ```
+
+## Use of Composite models for phonon thermostatting
+
+```julia
+# PES applies to all atoms
+pes_subsystem = Subsystem(pes_model)
+
+# Electronic friction applies to adsorbate atoms 55,56
+electronic_friction = Subsystem(adsorbate_friction_model, indices=[55,56])
+
+# Combine models and generate Simulation
+combined_model = CompositeModel(pes_subsystem, electronic_friction)
+
+sim_T_el_only = Simulation{MDEF}(
+   atoms, 
+   combined_model; 
+   temperature = T_el_function, 
+   cell=cell
+)
+```
+
+See the [example page](@ref mdef-ttm-example) for a longer explanation on how to compose multiple models. 

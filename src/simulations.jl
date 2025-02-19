@@ -3,7 +3,7 @@ using Unitful: @u_str
 using UnitfulAtomic: austrip, auconvert
 
 using .Calculators: AbstractCalculator, Calculator
-using NQCModels: Model
+using NQCModels: Model, Subsystem, CompositeModel
 
 abstract type AbstractSimulation{M} end
 
@@ -27,6 +27,18 @@ dynamics method, temperature and simulation cell.
 function Simulation(atoms::Atoms{T}, model::Model, method::M;
         temperature=0u"K", cell::AbstractCell=InfiniteCell()) where {M,T}
     calc = Calculator(model, length(atoms), T)
+    # If a thermostat is provided, check it covers the whole system. 
+    isa(temperature, Thermostat{Vector{Int}}) ? throw(DomainError(temperature, "Thermostat must apply to all atoms.")) : nothing
+    # If multiple Thermostats are provided, check that each atom only has one thermostat applied to it.
+    if isa(temperature, Vector{<:Thermostat})
+        indices = vcat([thermostat.indices for thermostat in temperature]...)
+        if length(unique(indices)) != length(atoms.masses)
+            throw(DomainError(temperature, "Every atom must have a Thermostat applied to it."))
+        end
+        if length(indices) != length(unique(indices))
+            throw(DomainError(temperature, "Atoms can only have one thermostat applied to them."))
+        end
+    end
     Simulation(temperature, cell, atoms, calc, method)
 end
 
@@ -88,7 +100,7 @@ get_temperature(temperature::Number, t=0) = austrip(temperature)
 get_temperature(temperature::Function, t=0) = austrip(temperature(t))
 
 function get_ring_polymer_temperature(sim::RingPolymerSimulation, t::Real=0)
-    return get_temperature(sim, t) * nbeads(sim)
+    return @. get_temperature(sim, t) * nbeads(sim)
 end
 
 function Base.show(io::IO, sim::Simulation{M}) where {M}
@@ -99,3 +111,64 @@ function Base.show(io::IO, sim::RingPolymerSimulation{M}) where {M}
     print(io, "RingPolymerSimulation{$M}:\n\n  ", sim.atoms, "\n\n  ", sim.calculator.model,
           "\n  with ", length(sim.beads), " beads.")
 end
+
+"""
+A Temperature contains both temperature information and the atom indices within a Simulation that it is applied to. 
+
+**If you don't need to apply different temperatures to different parts of your Simulation, assign the `temperature` keyword argument of your simulation to a number or function.**
+
+## Parameters
+
+`value`: A temperature function. This can be a Number type for constant temperatures, or a function taking the time in Unitful `u"ps"` as input and giving a temperature in Unitful `u"K"` as output. 
+
+`indices`: Indices of the atoms to which this thermostat is applied. Can be a range of indices, a single `Int`, or a `Vector{Int}`.
+
+"""
+struct Temperature{I}
+    value::Function
+    indices::I
+end
+
+function Base.show(io::IO, temperature::Temperature)
+    print(io, "Temperature:\n\tT(t=0) = $(get_temperature(temperature, 0u"fs"))\n\tApplies to atoms: $(temperature.indices)\n")
+end
+
+function Temperature(value, indices=:)
+    if isa(indices, UnitRange)
+        indices=collect(indices)
+    elseif isa(indices, Int)
+        indices=[indices]
+    end
+    if !isa(value, Function)
+        temperature_function(t)=value
+        return Temperature(temperature_function, indices)
+    else
+        return Temperature(value, indices)
+    end
+end
+
+"""
+    Temperature(temperature, subsystem::NQCModels.Subsystem)
+
+Apply a `Temperature` to all atoms in a `Subsystem`. 
+"""
+function Temperature(temperature, subsystem::NQCModels.Subsystem)
+    Temperature(temperature, subsystem.indices)
+end
+
+get_temperature(thermostat::Temperature{<:Any}, t=0u"fs") = austrip(thermostat.value(t))
+
+"""
+    get_temperature(thermostats::Vector{<:Temperature}, t=0u"fs")
+
+Gets the temperature from multiple `Temperature`s and returns a vector of the temperature applied to each atom. 
+"""
+function get_temperature(thermostats::Vector{<:Temperature}, t=0u"fs")
+    indices=vcat([thermostat.indices for thermostat in thermostats]...)
+    temperature_vector=zeros(Number, length(indices))
+    for thermostat in thermostats
+        temperature_vector[thermostat.indices] .= austrip(thermostat.value(t))
+    end
+    return temperature_vector
+end
+

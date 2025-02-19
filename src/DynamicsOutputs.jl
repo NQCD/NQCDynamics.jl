@@ -7,15 +7,16 @@ Defines a set of functions that can be used to calculate outputs for dynamics si
 module DynamicsOutputs
 
 using RingPolymerArrays: get_centroid
-using Unitful: @u_str
-using UnitfulAtomic: austrip
+using Unitful
+using UnitfulAtomic
 using LinearAlgebra: norm
 using ComponentArrays: ComponentVector
 
 using NQCDynamics:
     Estimators,
     DynamicsUtils,
-    Analysis
+    Analysis,
+    ndofs
 
 using NQCModels: NQCModels
 
@@ -40,7 +41,7 @@ export OutputVelocity
 """
     OutputCentroidVelocity(sol, i)
 
-Output the velocity of the ring polymer centroid at each timestep during the trajectory. 
+Output the velocity of the ring polymer centroid at each timestep during the trajectory.
 """
 OutputCentroidVelocity(sol, i) = [get_centroid(get_velocities(u)) for u in sol.u]
 export OutputCentroidVelocity
@@ -96,10 +97,13 @@ Evaluate the classical kinetic energy at each timestep during the trajectory.
 OutputKineticEnergy(sol, i) = DynamicsUtils.classical_kinetic_energy.(sol.prob.p, sol.u)
 export OutputKineticEnergy
 
+OutputFinalKineticEnergy(sol, i) = DynamicsUtils.classical_kinetic_energy(sol.prob.p, last(sol.u))
+export OutputFinalKineticEnergy
+
 """
     OutputSubsetKineticEnergy(sol, i)
 
-Evaluate the classical kinetic energy of a subset of the entire system at each save step. 
+Evaluate the classical kinetic energy of a subset of the entire system at each save step.
 
 The subset is defined by `OutputSubsetKineticEnergy(indices)`.
 """
@@ -107,9 +111,22 @@ struct OutputSubsetKineticEnergy{T}
     indices::T
 end
 function (output::OutputSubsetKineticEnergy)(sol, i)
-    return map(x->DynamicsUtils.classical_kinetic_energy(sol.prob.p.atoms.masses[output.indices], x[:, output.indices]), [DynamicsUtils.get_velocities(i) for i in sol.u])
+    return map(x -> DynamicsUtils.classical_kinetic_energy(sol.prob.p.atoms.masses[output.indices], x[:, output.indices]), [DynamicsUtils.get_velocities(i) for i in sol.u])
 end
 export OutputSubsetKineticEnergy
+
+"""
+Evaluate the classical kinetic energy of a subset of the entire system at the end of the simulation.
+
+The subset is defined by `OutputSubsetKineticEnergy(indices)`.
+"""
+struct OutputFinalSubsetKineticEnergy
+    indices
+end
+function (output::OutputFinalSubsetKineticEnergy)(sol, i)
+    return DynamicsUtils.classical_kinetic_energy(sol.prob.p.atoms.masses[output.indices], DynamicsUtils.get_velocities(last(sol.u))[:, output.indices])
+end
+export OutputFinalSubsetKineticEnergy
 
 OutputSpringEnergy(sol, i) = DynamicsUtils.classical_spring_energy.(sol.prob.p, sol.u)
 export OutputSpringEnergy
@@ -205,6 +222,13 @@ OutputFinal(sol, i) = last(sol.u)
 export OutputFinal
 
 """
+Outputs the final time point of a trajectory. This is useful if simulations are terminated by a callback.
+"""
+OutputFinalTime(sol, i) = last(sol.t)
+export OutputFinalTime
+
+
+"""
 Output the total number of surface hops during the trajectory
 """
 function OutputSurfaceHops(sol, i)::Int
@@ -232,24 +256,49 @@ export OutputDissociation
 
 function (output::OutputDissociation)(sol, i)
     R = DynamicsUtils.get_positions(last(sol.u))
-    dissociated = norm(R[:,output.atom_indices[1]] .- R[:,output.atom_indices[2]]) > output.distance
+    dissociated = norm(R[:, output.atom_indices[1]] .- R[:, output.atom_indices[2]]) > output.distance
     return dissociated ? 1 : 0
 end
 
 """
+Outputs a 1 if the molecule has moved a certain distance from all atoms in the surface, 0 otherwise.
+
+Distance is defined by the projected distance from the highest non-adsorbate atom along the surface normal.
+"""
+struct OutputSurfaceDesorption
+    distance::Number
+    adsorbate_indices::Vector{Int}
+    surface_normal::AbstractVector
+    OutputSurfaceDesorption(distance, adsorbate_indices; surface_normal=[0, 0, 1]) = new(distance, adsorbate_indices, surface_normal)
+end
+
+function (osd::OutputSurfaceDesorption)(sol, i)
+    desorption_frame = findfirst([Analysis.Diatomic.surface_distance_condition(
+        i,
+        osd.adsorbate_indices,
+        sol.prob.p;
+        surface_distance_threshold=osd.distance,
+        surface_normal=osd.surface_normal,
+    ) for i in sol.u]
+    )
+    return desorption_frame === nothing ? 0 : 1
+end
+
+export OutputSurfaceDesorption
+
+"""
 Output the vibrational and rotational quantum numbers of the final image.
 """
-struct OutputQuantisedDiatomic{S,H,V}
-    sim::S
+struct OutputQuantisedDiatomic{H,V}
     height::H
     normal_vector::V
 end
-OutputQuantisedDiatomic(sim; height=10, normal_vector=[0, 0, 1]) = OutputQuantisedDiatomic(sim, height, normal_vector)
+OutputQuantisedDiatomic(; height=10, normal_vector=[0, 0, 1]) = OutputQuantisedDiatomic(height, normal_vector)
 export OutputQuantisedDiatomic
 
 function (output::OutputQuantisedDiatomic)(sol, i)
-    final = last(sol.u) 
-    ν, J = QuantisedDiatomic.quantise_diatomic(output.sim,
+    final = last(sol.u)
+    ν, J = QuantisedDiatomic.quantise_diatomic(sol.prob.p,
         DynamicsUtils.get_velocities(final), DynamicsUtils.get_positions(final);
         height=output.height, normal_vector=output.normal_vector)
     return (ν, J)
@@ -279,7 +328,7 @@ function (output::OutputStateResolvedScattering1D)(sol, i)
         transmission=zeros(NQCModels.nstates(output.sim))
     )
     x = DynamicsUtils.get_positions(final)[1]
-    if x > 0 # If final position past 0 then we count as transmission 
+    if x > 0 # If final position past 0 then we count as transmission
         output.transmission .= populations
     else # If final position left of 0 then we count as reflection
         output.reflection .= populations
@@ -297,15 +346,15 @@ struct OutputDesorptionAngle{I<:Vector{Int},S<:Vector{Float64},D}
     surface_distance_threshold::D
 end
 """
-    OutputDesorptionAngle(indices; surface_normal = [0,0,1], surface_distance_threshold = 5.0u"Å")
+    OutputDesorptionAngle(indices; surface_normal=[0, 0, 1], surface_distance_threshold=austrip(5.0u"Å"))
 
-Outputs the desorption angle in degrees (relative to the surface normal) if a desorption event is detected. 
+Outputs the desorption angle in degrees (relative to the surface normal) if a desorption event is detected.
 Use `surface_normal` to define the direction "away" from the surface. Most commonly, this would be in positive z direction.
 
-A desorption is detected if the centre of mass of the molecule defined with `indices` is above `surface_distance_threshold` from the closest surface atom. 
-This is calculated with respect to `surface_normal` and will take into account periodic boundary conditions. 
+A desorption is detected if the centre of mass of the molecule defined with `indices` is above `surface_distance_threshold` from the closest surface atom.
+This is calculated with respect to `surface_normal` and will take into account periodic boundary conditions.
 """
-OutputDesorptionAngle(indices; surface_normal = [0,0,1], surface_distance_threshold = 5.0u"Å") = OutputDesorptionAngle(indices, convert(Vector{Float64},surface_normal), surface_distance_threshold)
+OutputDesorptionAngle(indices; surface_normal=[0, 0, 1], surface_distance_threshold=austrip(5.0u"Å")) = OutputDesorptionAngle(indices, convert(Vector{Float64}, surface_normal), surface_distance_threshold)
 export OutputDesorptionAngle
 
 """
@@ -317,25 +366,25 @@ function (output::OutputDesorptionAngle)(sol, i)
     return Analysis.Diatomic.get_desorption_angle(sol.u, output.indices, sol.prob.p; surface_normal=output.surface_normal, surface_distance_threshold=output.surface_distance_threshold)
 end
 
-struct OutputDesorptionTrajectory{I<:Vector{Int}, N<:Vector{Float64}, D, F<:Int}
+struct OutputDesorptionTrajectory{I<:Vector{Int},N<:Vector{Float64},D,F<:Int}
     indices::I
     surface_normal::N
     surface_distance_threshold::D
     extra_frames::F
 end
 """
-    `OutputDesorptionTrajectory(indices; surface_normal = [0,0,1], surface_distance_threshold = 5.0u"Å", extra_frames = 0)`
+    OutputDesorptionTrajectory(indices; surface_normal=[0, 0, 1], surface_distance_threshold=austrip(5.0u"Å"), extra_frames=0)
 
 Like OutputDynamicsVariables, but only saves parts of the trajectory where desorption is occurring.
 
-Use `surface_normal` to define the direction "away" from the surface. Most commonly, this would be in positive z direction. 
+Use `surface_normal` to define the direction "away" from the surface. Most commonly, this would be in positive z direction.
 
-Use `extra_frames` to save additional steps before the desorption event begins. 
+Use `extra_frames` to save additional steps before the desorption event begins.
 
-A desorption is detected if the centre of mass of the molecule defined with `indices` is above `surface_distance_threshold` from the closest surface atom. 
-This is calculated with respect to `surface_normal` and will take into account periodic boundary conditions. 
+A desorption is detected if the centre of mass of the molecule defined with `indices` is above `surface_distance_threshold` from the closest surface atom.
+This is calculated with respect to `surface_normal` and will take into account periodic boundary conditions.
 """
-OutputDesorptionTrajectory(indices; surface_normal = [0,0,1], surface_distance_threshold = 5.0u"Å", extra_frames = 0) = OutputDesorptionTrajectory(indices, convert(Vector{Float64},surface_normal), surface_distance_threshold, extra_frames)
+OutputDesorptionTrajectory(indices; surface_normal=[0, 0, 1], surface_distance_threshold=austrip(5.0u"Å"), extra_frames=0) = OutputDesorptionTrajectory(indices, convert(Vector{Float64}, surface_normal), surface_distance_threshold, extra_frames)
 """
     (output::OutputDesorptionTrajectory)(sol, i)
 
@@ -343,8 +392,104 @@ Only output parts of the trajectory where desorption is occurring.
 """
 function (output::OutputDesorptionTrajectory)(sol, i)
     desorption_frame = Analysis.Diatomic.get_desorption_frame(sol.u, output.indices, sol.prob.p; surface_distance_threshold=output.surface_distance_threshold, surface_normal=output.surface_normal)
-    return isa(desorption_frame, Int) ? sol.u[desorption_frame-output.extra_frames:end] : nothing
+    if isnothing(desorption_frame)
+        return nothing
+    end
+    start_save_frame = desorption_frame - output.extra_frames
+    if start_save_frame < 0
+        return sol.u
+    else
+        return sol.u[start_save_frame:desorption_frame]
+    end
 end
 export OutputDesorptionTrajectory
+
+struct OutputDesorptionSnapshot{I<:Vector{Int},N<:Vector{Float64},D}
+    indices::I
+    surface_normal::N
+    surface_distance_threshold::D
+end
+"""
+    OutputDesorptionSnapshot(indices; surface_normal=[0, 0, 1], surface_distance_threshold=austrip(5.0u"Å"))
+
+Save DynamicsVariables where desorption starts. (Same conditions as for OutputDesorptionTrajectory)
+
+Use `surface_normal` to define the direction "away" from the surface. Most commonly, this would be in positive z direction.
+
+Use `extra_frames` to save additional steps before the desorption event begins.
+
+A desorption is detected if the centre of mass of the molecule defined with `indices` is above `surface_distance_threshold` from the closest surface atom.
+This is calculated with respect to `surface_normal` and will take into account periodic boundary conditions.
+"""
+OutputDesorptionSnapshot(indices; surface_normal=[0, 0, 1], surface_distance_threshold=austrip(5.0u"Å")) = OutputDesorptionSnapshot(indices, convert(Vector{Float64}, surface_normal), surface_distance_threshold)
+"""
+    (output::OutputDesorptionTrajectory)(sol, i)
+
+Only output trajectory snapshot where desorption begins. (Centre of mass velocity projected onto surface
+normal changes sign)
+"""
+function (output::OutputDesorptionSnapshot)(sol, i)
+    desorption_frame = Analysis.Diatomic.get_desorption_frame(sol.u, output.indices, sol.prob.p; surface_distance_threshold=output.surface_distance_threshold, surface_normal=output.surface_normal)
+    return isa(desorption_frame, Int) ? sol.u[desorption_frame] : nothing
+end
+export OutputDesorptionSnapshot
+
+"""
+Outputs the instantaneous temperature of the selected atoms **in K** in the system at every save point.
+
+Invoke with `OutputKineticTemperature(:)` for the entire system, or with `OutputKineticTemperature([1,2,3...])` for a subset of atoms.
+
+"""
+struct OutputKineticTemperature
+    indices
+    OutputKineticTemperature(indices) = new(indices)
+end
+
+function (out::OutputKineticTemperature)(sol, i)
+    # Allocate output vector
+    kinetic_energies = zeros(typeof(DynamicsUtils.classical_kinetic_energy(sol.prob.p, sol.u[1])), length(sol.u))
+    # Determine number of atoms
+    if isa(out.indices, Colon)
+        n_atoms = length(sol.prob.p.atoms.masses)
+    elseif isa(out.indices, UnitRange)
+        n_atoms = length(collect(out.indices))
+    else
+        n_atoms = length(out.indices)
+    end
+    # Calculate kinetic temperatures.
+    for snapshot in eachindex(sol.u)
+        kinetic_energy = DynamicsUtils.classical_kinetic_energy(sol.prob.p.atoms.masses[out.indices], DynamicsUtils.get_velocities(sol.u[snapshot])[:, out.indices])
+        kinetic_energies[snapshot] = ustrip(uconvert(u"K", 2 * kinetic_energy * u"hartree/k_au") / ndofs(sol.prob.p) / n_atoms)
+    end
+    return kinetic_energies
+end
+
+export OutputKineticTemperature
+
+"""
+    OutputNoise(sol, i)
+
+Outputs the noise generated by the integrator at each time step in the trajectory.
+
+**Note:** This requires using the `run_dynamics` command with `save_noise=true`, otherwise noise won't be accessible to this output function.
+"""
+function OutputNoise(sol, i)
+    return sol.W
+end
+
+export OutputNoise
+
+"""
+    OutputEverything(sol,i)
+
+Outputs the full DifferentialEquations solution object.
+
+Storing this to disk is inefficient, but allows for full post-processing with
+any of the functions defined in this module.
+"""
+OutputEverything(sol, i) = sol
+OutputSolution(sol, i) = sol
+export OutputEverything
+export OutputSolution
 
 end # module
