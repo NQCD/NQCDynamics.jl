@@ -23,7 +23,7 @@ model = NQCModels.Free()
 @test Simulation{FSSH}(atoms, NQCModels.DoubleWell()) isa Simulation{<:FSSH}
 
 @testset "Thermostats" begin
-    # Init thermostat with unitful quality
+    # Init thermostat with Unitful quantity
     thermostat1=Thermostat(10u"K", [1,2])
     @test NQCDynamics.get_temperature(thermostat1, 0) == NQCDynamics.get_temperature(thermostat1, 100)
     # Init thermostat with function

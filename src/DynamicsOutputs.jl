@@ -346,7 +346,7 @@ struct OutputDesorptionAngle{I<:Vector{Int},S<:Vector{Float64},D}
     surface_distance_threshold::D
 end
 """
-    OutputDesorptionAngle(indices; surface_normal = [0,0,1], surface_distance_threshold = 5.0u"Å")
+    OutputDesorptionAngle(indices; surface_normal=[0, 0, 1], surface_distance_threshold=austrip(5.0u"Å"))
 
 Outputs the desorption angle in degrees (relative to the surface normal) if a desorption event is detected.
 Use `surface_normal` to define the direction "away" from the surface. Most commonly, this would be in positive z direction.
@@ -354,7 +354,7 @@ Use `surface_normal` to define the direction "away" from the surface. Most commo
 A desorption is detected if the centre of mass of the molecule defined with `indices` is above `surface_distance_threshold` from the closest surface atom.
 This is calculated with respect to `surface_normal` and will take into account periodic boundary conditions.
 """
-OutputDesorptionAngle(indices; surface_normal=[0, 0, 1], surface_distance_threshold=5.0u"Å") = OutputDesorptionAngle(indices, convert(Vector{Float64}, surface_normal), surface_distance_threshold)
+OutputDesorptionAngle(indices; surface_normal=[0, 0, 1], surface_distance_threshold=austrip(5.0u"Å")) = OutputDesorptionAngle(indices, convert(Vector{Float64}, surface_normal), surface_distance_threshold)
 export OutputDesorptionAngle
 
 """
@@ -373,7 +373,7 @@ struct OutputDesorptionTrajectory{I<:Vector{Int},N<:Vector{Float64},D,F<:Int}
     extra_frames::F
 end
 """
-    `OutputDesorptionTrajectory(indices; surface_normal = [0,0,1], surface_distance_threshold = 5.0u"Å", extra_frames = 0)`
+    OutputDesorptionTrajectory(indices; surface_normal=[0, 0, 1], surface_distance_threshold=austrip(5.0u"Å"), extra_frames=0)
 
 Like OutputDynamicsVariables, but only saves parts of the trajectory where desorption is occurring.
 
@@ -384,7 +384,7 @@ Use `extra_frames` to save additional steps before the desorption event begins.
 A desorption is detected if the centre of mass of the molecule defined with `indices` is above `surface_distance_threshold` from the closest surface atom.
 This is calculated with respect to `surface_normal` and will take into account periodic boundary conditions.
 """
-OutputDesorptionTrajectory(indices; surface_normal=[0, 0, 1], surface_distance_threshold=5.0u"Å", extra_frames=0) = OutputDesorptionTrajectory(indices, convert(Vector{Float64}, surface_normal), surface_distance_threshold, extra_frames)
+OutputDesorptionTrajectory(indices; surface_normal=[0, 0, 1], surface_distance_threshold=austrip(5.0u"Å"), extra_frames=0) = OutputDesorptionTrajectory(indices, convert(Vector{Float64}, surface_normal), surface_distance_threshold, extra_frames)
 """
     (output::OutputDesorptionTrajectory)(sol, i)
 
@@ -410,7 +410,7 @@ struct OutputDesorptionSnapshot{I<:Vector{Int},N<:Vector{Float64},D}
     surface_distance_threshold::D
 end
 """
-    `OutputDesorptionFrame(indices; surface_normal = [0,0,1], surface_distance_threshold = 5.0u"Å", extra_frames = 0)`
+    OutputDesorptionSnapshot(indices; surface_normal=[0, 0, 1], surface_distance_threshold=austrip(5.0u"Å"))
 
 Save DynamicsVariables where desorption starts. (Same conditions as for OutputDesorptionTrajectory)
 
@@ -421,7 +421,7 @@ Use `extra_frames` to save additional steps before the desorption event begins.
 A desorption is detected if the centre of mass of the molecule defined with `indices` is above `surface_distance_threshold` from the closest surface atom.
 This is calculated with respect to `surface_normal` and will take into account periodic boundary conditions.
 """
-OutputDesorptionSnapshot(indices; surface_normal=[0, 0, 1], surface_distance_threshold=5.0u"Å") = OutputDesorptionSnapshot(indices, convert(Vector{Float64}, surface_normal), surface_distance_threshold)
+OutputDesorptionSnapshot(indices; surface_normal=[0, 0, 1], surface_distance_threshold=austrip(5.0u"Å")) = OutputDesorptionSnapshot(indices, convert(Vector{Float64}, surface_normal), surface_distance_threshold)
 """
     (output::OutputDesorptionTrajectory)(sol, i)
 

@@ -16,12 +16,25 @@ surface_normal_height(x::AbstractVector, surface_normal::AbstractVector=[0, 0, 1
 
     Checks that the diatomic molecule is at least `surface_distance_threshold` away from the highest substrate atom in the simulation.
 """
-function surface_distance_condition(x::AbstractArray, indices::Vector{Int}, simulation::AbstractSimulation; surface_distance_threshold=5.0 * u"Å", surface_normal=Float64[0, 0, 1])
-    molecule_position = surface_normal_height(Structure.pbc_center_of_mass(x, indices..., simulation), surface_normal) # molecule position wrt surface normal
-    substrate_heights = surface_normal_height.(eachcol(get_positions(x)[:, symdiff(1:length(simulation.atoms.masses), indices)]), Ref(surface_normal)) # substrate positions along surface normal
-    highest_z = max(substrate_heights[substrate_heights.≤molecule_position]...) # Ignore substrate above molecule.
-    #? surface_distance_threshold must be < vacuum above surface and > distance between substrate layers.
-    if au_to_ang(molecule_position - highest_z) * u"Å" ≥ surface_distance_threshold
+function surface_distance_condition(
+    x::AbstractArray, # DynamicsVariables
+    indices::Vector{Int}, # Which indices are the diatomic species? All others are counted as substrate. 
+    simulation::AbstractSimulation; 
+    surface_distance_threshold=austrip(5.0 * u"Å"), # Condition is true when the centre of mass of the diatomic is farther than this distance from the highest other atom. 
+    surface_normal=Float64[0, 0, 1] # Unit direction orthogonal to the surface
+)
+    molecule_position = surface_normal_height(
+        Structure.pbc_center_of_mass(x, indices..., simulation), 
+        surface_normal
+    ) # Height of the molecule in the surface normal direction
+    
+    # Get the height of all substrate atoms in surface normal direction. 
+    substrate_heights = [surface_normal_height(get_positions(x)[:, substrate_atom_id]) for substrate_atom_id in symdiff(1:length(simulation.atoms.masses), indices, surface_normal)]
+    
+    # Ignore substrate above molecule in case PBC wrapping puts one above the diatomic
+    highest_z = max(substrate_heights[substrate_heights.≤molecule_position]...) 
+    
+    if molecule_position - highest_z ≥ surface_distance_threshold
         @debug "Surface distance condition evaluated true."
         return true
     else

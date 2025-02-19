@@ -26,7 +26,7 @@ Finally, the second term is a temperature and friction-dependent stochastic forc
 	Temperature profiles for the Two-temperature model can be generated using the [LightMatter.jl](https://github.com/maurergroup/LightMatter.jl) package. (Will be released soon)
 
 
-The two-temperature model (TTM) is a system of two coupled differential equations that describe the time evolution of the electronic and lattice temperatures, $T_{el}$ and $T_{ph}$. In this work, lateral heat diffusion across the metal surface is neglected, allowing for a simplified one-dimensional representation of the two-temperature model. The TTM is given by the following set of equations: 
+The two-temperature model (TTM) is a system of two coupled differential equations that describe the time evolution of the electronic and lattice temperatures, $T_{el}$ and $T_{ph}$. In this work, lateral heat transport across the metal surface is neglected, allowing for a simplified one-dimensional representation of the two-temperature model. The TTM is given by the following set of equations: 
 
 **Electronic heat capacity**
 ```math 
@@ -133,7 +133,7 @@ pes_model = MACEModel(
 	["mace-model.model"];
 	device="cpu",
 	default_dtype=Float32,
-	mobile_atoms::Vector{Int}=18:56, # Freeze the bottom two layers
+	mobile_atoms::Vector{Int}=18:56, # Keep the top 4 layers mobile, freeze the bottom 2. 
 )
 
 # Load adsorbate and surface friction models
@@ -185,7 +185,7 @@ combined_model = CompositeModel(
 # Manually specified indices
 electron_thermostat = Temperature(T_el_function, indices = [55,56]) 
 # Inherit indices from a Subsystem
-phonon_thermostat = Temperature(T_el_function, phononic_friction) 
+phonon_thermostat = Temperature(T_ph_function, phononic_friction) 
 
 sim_T_el_only = Simulation{MDEF}(
 	atoms, 

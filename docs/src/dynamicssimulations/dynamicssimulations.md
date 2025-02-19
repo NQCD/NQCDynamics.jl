@@ -47,9 +47,10 @@ This can be a number, either in atomic units or a Unitful quantity (e.g. `300u"K
 
 For time-dependent temperatures, the temperature can be set to a function. This function must take the time in Unitful `u"fs"` as an input and return a temperature in Unitful `u"K"`. 
 
-**A collection of Thermostats**
+**Different temperatures per atom**
 
-If different parts of the simulated system should be affected by different effective temperatures, a `Vector` of [`Thermostat`](@ref)s can be passed as the temperature argument. 
+If different parts of the simulated system should be affected by different effective temperatures, a `Vector` of [`Temperature`](@ref)s can be passed as the temperature argument. 
+However, only one temperature should be applied to each atom in the system. 
 
 ### DynamicsVariables
 

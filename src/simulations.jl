@@ -115,13 +115,13 @@ end
 """
 A Temperature contains both temperature information and the atom indices within a Simulation that it is applied to. 
 
-**If you don't need to apply different temperatures to different parts of your Simulation, supply the Simulation with a number or function instead.**
+**If you don't need to apply different temperatures to different parts of your Simulation, assign the `temperature` keyword argument of your simulation to a number or function.**
 
 ## Parameters
 
 `value`: A temperature function. This can be a Number type for constant temperatures, or a function taking the time in Unitful `u"ps"` as input and giving a temperature in Unitful `u"K"` as output. 
 
-`indices`: Indices of the atoms to apply this thermostat to. Can be a range of indices, a single `Int`, or a `Vector{Int}`.
+`indices`: Indices of the atoms to which this thermostat is applied. Can be a range of indices, a single `Int`, or a `Vector{Int}`.
 
 """
 struct Temperature{I}
@@ -129,28 +129,28 @@ struct Temperature{I}
     indices::I
 end
 
-function Base.show(io::IO, thermostat::Temperature)
-    print(io, "Temperature:\n\tT(t=0) = $(get_temperature(thermostat, 0u"fs"))\n\tApplies to atoms: $(thermostat.indices)\n")
+function Base.show(io::IO, temperature::Temperature)
+    print(io, "Temperature:\n\tT(t=0) = $(get_temperature(temperature, 0u"fs"))\n\tApplies to atoms: $(temperature.indices)\n")
 end
 
-function Temperature(temperature, indices=:)
+function Temperature(value, indices=:)
     if isa(indices, UnitRange)
         indices=collect(indices)
     elseif isa(indices, Int)
         indices=[indices]
     end
-    if !isa(temperature, Function)
-        temperature_function(t)=temperature
+    if !isa(value, Function)
+        temperature_function(t)=value
         return Temperature(temperature_function, indices)
     else
-        return Temperature(temperature, indices)
+        return Temperature(value, indices)
     end
 end
 
 """
     Temperature(temperature, subsystem::NQCModels.Subsystem)
 
-Creates a `Temperature` using the indices from a `Subsystem` (so indices only have to be provided once)
+Apply a `Temperature` to all atoms in a `Subsystem`. 
 """
 function Temperature(temperature, subsystem::NQCModels.Subsystem)
     Temperature(temperature, subsystem.indices)
@@ -158,6 +158,11 @@ end
 
 get_temperature(thermostat::Temperature{<:Any}, t=0u"fs") = austrip(thermostat.value(t))
 
+"""
+    get_temperature(thermostats::Vector{<:Temperature}, t=0u"fs")
+
+Gets the temperature from multiple `Temperature`s and returns a vector of the temperature applied to each atom. 
+"""
 function get_temperature(thermostats::Vector{<:Temperature}, t=0u"fs")
     indices=vcat([thermostat.indices for thermostat in thermostats]...)
     temperature_vector=zeros(Number, length(indices))

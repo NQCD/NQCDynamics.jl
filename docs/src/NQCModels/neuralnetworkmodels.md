@@ -74,9 +74,9 @@ derivative(model, r)
 
 !!! warning
 
-      A more direct interface for the use of MACE models is now available. @Alex link to example page and API docs here.
+      A [more direct interface](https://github.com/NQCD/MACEModels.jl) for the use of MACE models is now available. 
 
-      The following example is still valid but the new interface is recommended for new projects.
+      The following example is still valid but the new interface is recommended for new projects. ([Example here](@ref mdef-ttm-example))
 
 The following example shows how to connect a trained [MACE](https://github.com/ACEsuit/mace) model to NQCDynamics.jl using the [ASE interface](@ref).
 
