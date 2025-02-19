@@ -2,7 +2,7 @@ name = "NQCDynamics"
 uuid = "36248dfb-79eb-4f4d-ab9c-e29ea5f33e14"
 authors = ["James <james.gardner1421@gmail.com>"]
 
-version = "0.14.0"
+version = "0.15.0"
 
 
 [deps]
@@ -18,7 +18,7 @@ FastLapackInterface = "29a986be-02c6-4525-aec4-84b980013641"
 HDF5 = "f67ccb44-e63f-5c2f-98bd-6dc0ccc4ba2f"
 Interpolations = "a98d9a8b-a2ab-59e6-89dd-64a1c18fca59"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
-MKL_jll = "856f044c-d86e-5d09-b602-aeab76dc8ba7" # Added to maintain compatibility with MKL.jl - See #324
+MKL_jll = "856f044c-d86e-5d09-b602-aeab76dc8ba7"
 MuladdMacro = "46d2c3a1-f734-5fdb-9937-b9b9aeba4221"
 NQCBase = "78c76ebc-5665-4934-b512-82d81b5cbfb7"
 NQCDistributions = "657014a1-bd25-4aa2-92cb-cbcede0310ad"
@@ -74,13 +74,14 @@ PeriodicTable = "1"
 ProgressMeter = "1"
 QuadGK = "2"
 RecipesBase = "1"
-RecursiveArrayTools = "2"
+RecursiveArrayTools = "2, 3"
 Reexport = "1"
 RingPolymerArrays = "0.1"
 Roots = "1, 2"
 Rotations = "1"
 SciMLBase = "1, 2"
 StaticArrays = "1"
+Statistics = "1"
 StatsBase = "0.33, 0.34"
 StochasticDiffEq = "6"
 StructArrays = "0.6"
@@ -109,7 +110,8 @@ Symbolics = "0c5d862f-8b57-4792-8d23-62f2024744c7"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]
-test = ["Test",
+test = [
+    "Test",
     "SafeTestsets",
     "CSV",
     "DataFrames",
@@ -123,5 +125,5 @@ test = ["Test",
     "Symbolics",
     "Statistics",
     "Plots",
-    "JLD2"
+    "JLD2",
 ]
