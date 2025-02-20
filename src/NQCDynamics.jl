@@ -17,7 +17,9 @@ include("simulations.jl")
 export Simulation,
        RingPolymerSimulation,
        natoms,
-       masses
+       masses,
+       TemperatureSetting,
+       get_temperature
 
 @reexport using NQCDistributions
 # Simulation-aware version of nuclear Boltzmann distribution. 

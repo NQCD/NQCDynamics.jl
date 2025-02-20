@@ -4,10 +4,11 @@ start_time = time()
 ```
 # [Handling Atoms](@id atoms)
 
-This package makes the choice to separate the atomic parameters from their positions and
-velocities for ease of use with the differential equations solvers.
-This contrasts somewhat with most other software packages where these would be usually
-by joined together into a single object.
+!!! tip "Tip: NQCDynamics.jl handles atoms differently to `ase`"
+	This package makes the choice to separate the atomic parameters from their positions and
+	velocities for ease of use with the differential equations solvers.
+	This contrasts somewhat with most other software packages where these would be usually
+	be joined together into a single object.
 
 The atomic parameters here are contained within the
 [`Atoms`](@ref) type introduced earlier
@@ -40,19 +41,23 @@ When working with NQCDynamics, the most useful packages are [AtomsIO](https://gi
 for reading and writing structures and trajectories, and [ASEconvert](https://github.com/mfherbst/ASEconvert.jl)
 for working with [ASE](https://wiki.fysik.dtu.dk/ase/index.html) from within Julia.
 
-## Using ASE with ASEconvert.jl
+## Using Python's `ase` package from Julia
 
-This example shows how ASEconvert can be used to build a structure, then convert
-from the ASE format into an AtomsBase compatible system:
+Julia provides multiple options to run Python-based code from Julia scripts. The NQCD packages
+provide compatibility with [**PythonCall.jl**](https://github.com/JuliaPy/PythonCall.jl), and some deprecated interfaces for [**PyCall.jl**](https://github.com/JuliaPy/PyCall.jl) exist as well. 
+While both of these packages function similarly, PythonCall forces you as a user to think more about when data is copied in memory between Python and Julia, enabling more efficient code. 
+
+This example shows how `ase.build` can be used to build a structure from within Julia, then convert
+from the ASE format into the required objects for atoms, positions and unit cell for an NQCD simulation:
 
 ```julia
-using ASEconvert
+using PythonCall
+using NQCBase
+
+ase_build = pyimport("ase.build")
 
 # Make a silicon supercell using ASE
-atoms_ase = ase.build.bulk("Si") * pytuple((4, 1, 1))
-
-# Convert to an AtomsBase-compatible structure
-atoms_ab = pyconvert(AbstractSystem, atoms_ase)
+atoms_ase = ase_build.bulk("Si") * pytuple((4, 1, 1))
 ```
 
 It is currently not possible to use an AtomsBase system directly with NQCDynamics, but can
@@ -60,11 +65,14 @@ be quickly converted to the correct format:
 
 ```julia
 using NQCDynamics
-atoms_nqcd = Atoms(atoms_ab)
-r = Position(atoms_ab)
-v = Velocity(atoms_ab)
-c = Cell(atoms_ab)
+
+atoms_nqcd, positions_nqcd, cell_nqcd = convert_from_ase_atoms(atoms_ase)
+
+println(atoms_nqcd)
+println(positions_nqcd)
+println(cell_nqcd)
 ```
+
 
 ## Saving and loading with AtomsIO.jl
 

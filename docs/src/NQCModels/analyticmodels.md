@@ -101,3 +101,16 @@ contour!(x, z, v2, color=:red, levels=0:0.01:0.1, label="V22")
 runtime = round(time() - start_time; digits=2)
 @info "...done after $runtime s."
 ```
+### [`ErpenbeckThoss`](@ref)
+```@example
+using NQCModels, Plots
+
+model = ErpenbeckThoss(;Γ=0.01)
+ε₀(r) = potential(model, hcat(r))[1,1]
+ε₁(r) = potential(model, hcat(r))[2,2]
+Vₖ(r) = potential(model, hcat(r))[1,2]
+
+r = range(1.89, 9.45, length=200)
+
+plot(r, [ε₀, ε₁, Vₖ], label=["ε₀(r)" "ε₁(r)" "Vₖ(r)"], xlabel="r (a₀)", ylabel="V(r) (Eₕ)"; coupling=true)
+```

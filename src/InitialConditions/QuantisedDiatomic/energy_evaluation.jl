@@ -10,8 +10,10 @@ end
 Base.broadcastable(p::EvaluationEnvironment) = Ref(p)
 
 function EvaluationEnvironment(molecule_indices, system_size, other_atoms, height, surface_normal)
+    normalize!(surface_normal) # Normalise surface normal vector
+    # If surface atoms are explicitly included, find the height of the surface along `surface_normal` and adjust `height` accordingly.  
     if size(other_atoms, 2) != 0
-        height += maximum(other_atoms[3,:])
+        height += reduce(max, mapslices(norm, other_atoms, dims=1))
     end
     offset = surface_normal .* height
     orthogonal_vectors = nullspace(reshape(surface_normal, 1, :)) # Plane parallel to surface
@@ -49,9 +51,10 @@ end
 
 Returns potential energy of diatomic with `bond_length` at `height` from surface.
 
-Orients molecule parallel to the surface at the specified height, the surface is assumed
-to intersect the origin.
-This requires that the model implicitly provides the surface, or works fine without one.
+Orients molecule parallel to the surface at the specified height within the simulation cell, 
+assuming the height has already been adjusted to include that of the surface. 
+
+(this is checked in the EvaluationEnvironment constructor)
 """
 function calculate_diatomic_energy(
     bond_length::Real, model::AdiabaticModel, environment::EvaluationEnvironment

@@ -130,7 +130,7 @@ end
     # O
     Λ = integrator.g(u2,p,t+dt*half) # friction tensor
     # noise strength: σ = square root of (temperature / mass) for each atom 
-    σ = sqrt(get_temperature(p, t+dt*half)) ./ sqrt.(repeat(p.atoms.masses; inner=ndofs(p)))
+    σ = repeat(@. sqrt(get_temperature(p, t+dt*half) / p.atoms.masses);inner=ndofs(p))
     # eigen decomposition of Λ
     γ, c = LAPACK.syev!('V', 'U', Λ) # symmetric eigen
     clamp!(γ, 0, Inf)

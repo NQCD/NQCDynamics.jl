@@ -1,5 +1,6 @@
 """
-Add-on functions for NQCDistributions to make generating distributions more convenient.
+
+Add-on functions for NQCDistributions to make generating distributions more convenient. 
 
 """
 
@@ -7,6 +8,7 @@ import Distributions
 
 """
     VelocityBoltzmann(temperature, sim::AbstractSimulation; center = zeros(size(sim)))
+
 
 Generates a VelocityBoltzmann distribution covering an entire Simulation.
 If `NQCModels.mobileatoms` is modified, velocities for immobile atoms will always be zero.
@@ -32,4 +34,5 @@ function NQCDistributions.DynamicalDistribution(velocities, positions, simulatio
     simulation_dims = size(simulation)
     frozen_indices = symdiff(1:simulation_dims[2], mobile_atoms)
     return NQCDistributions.DynamicalDistribution(velocities, positions, simulation_dims; frozen_atoms=frozen_indices, classical=classical)
+
 end
