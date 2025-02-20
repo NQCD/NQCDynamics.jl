@@ -181,11 +181,11 @@ combined_model = CompositeModel(
 	phononic_friction
 )
 
-# Create Temperature objects to apply T_el to adsorbates, T_ph to surface
+# Create TemperatureSetting objects to apply T_el to adsorbates, T_ph to surface
 # Manually specified indices
-electron_thermostat = Temperature(T_el_function, indices = [55,56]) 
+electron_thermostat = TemperatureSetting(T_el_function, indices = [55,56]) 
 # Inherit indices from a Subsystem
-phonon_thermostat = Temperature(T_ph_function, phononic_friction) 
+phonon_thermostat = TemperatureSetting(T_ph_function, phononic_friction) 
 
 sim_T_el_only = Simulation{MDEF}(
 	atoms, 
