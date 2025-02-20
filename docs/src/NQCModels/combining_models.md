@@ -19,7 +19,7 @@ For example, in order to run [Molecular Dynamics with Electronic friction](@ref 
 However, most models for potential energy surfaces only provide `potential` and `derivative`, whereas `friction!` is provided by an `ElectronicFrictionProvider`. 
 
 To combine different models together for a system, we can use [`Subsystem`](@ref)s to define which atoms in the system a given model should be applied to, and a [`CompositeModel`](@ref) to combine the different models into one. 
-If different [`Subsystem`](@ref)s should experience different effective temperatures, a [`Thermostat`](@ref) can be provided when initialising a [`Simulation`](@ref). 
+If different [`Subsystem`](@ref)s should experience different effective temperatures, a [`TemperatureSetting`](@ref) can be provided when initialising a [`Simulation`](@ref). 
 
 ![An overview of the different components used to combine models in NQCModels.jl](../assets/compositemodels/struct-explainer.svg)
 

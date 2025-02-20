@@ -49,7 +49,7 @@ For time-dependent temperatures, the temperature can be set to a function. This 
 
 **Different temperatures per atom**
 
-If different parts of the simulated system should be affected by different effective temperatures, a `Vector` of [`Temperature`](@ref)s can be passed as the temperature argument. 
+If different parts of the simulated system should be affected by different effective temperatures, a `Vector` of [`TemperatureSetting`](@ref)s can be passed as the temperature argument. 
 However, only one temperature should be applied to each atom in the system. 
 
 ### DynamicsVariables
