@@ -24,17 +24,17 @@ model = NQCModels.Free()
 
 @testset "Thermostats" begin
     # Init thermostat with Unitful quantity
-    thermostat1=Thermostat(10u"K", [1,2])
+    thermostat1=TemperatureSetting(10u"K", [1,2])
     @test NQCDynamics.get_temperature(thermostat1, 0) == NQCDynamics.get_temperature(thermostat1, 100)
     # Init thermostat with function
-    thermostat2=Thermostat(x->(10+x*u"fs^-1")*u"K", [2,3])
+    thermostat2=TemperatureSetting(x->(10+x*u"fs^-1")*u"K", [2,3])
     @test NQCDynamics.get_temperature(thermostat2) == austrip(10u"K")
     @test NQCDynamics.get_temperature(thermostat2, 10u"fs") == austrip(20u"K")
     # Test that thermostats with overlapping indices throw an error
     @test_throws DomainError Simulation(atoms, model; temperature=[thermostat1, thermostat2])
     # Test system size / total thermostat size mismatch
     @test_throws DomainError Simulation(Atoms([:N, :H, :H, :H,]), model; temperature=thermostat1)
-    thermostat3=thermostat2=Thermostat(x->(10+x*u"fs^-1")*u"K", [3,4])
+    thermostat3=thermostat2=TemperatureSetting(x->(10+x*u"fs^-1")*u"K", [3,4])
     # Combined temperature evaluation
     sim = Simulation(Atoms([:N, :H, :H, :H,]), model; temperature=[thermostat1, thermostat3])
     @test NQCDynamics.get_temperature(sim, austrip(1u"fs")) == austrip.([10u"K", 10u"K", 11u"K", 11u"K"])

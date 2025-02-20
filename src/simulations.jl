@@ -28,12 +28,12 @@ function Simulation(atoms::Atoms{T}, model::Model, method::M;
         temperature=0u"K", cell::AbstractCell=InfiniteCell()) where {M,T}
     calc = Calculator(model, length(atoms), T)
     # If a thermostat is provided, check it covers the whole system. 
-    isa(temperature, Thermostat{Vector{Int}}) ? throw(DomainError(temperature, "Thermostat must apply to all atoms.")) : nothing
-    # If multiple Thermostats are provided, check that each atom only has one thermostat applied to it.
-    if isa(temperature, Vector{<:Thermostat})
+    isa(temperature, TemperatureSetting{Vector{Int}}) ? throw(DomainError(temperature, "TemperatureSetting must apply to all atoms.")) : nothing
+    # If multiple TemperatureSettings are provided, check that each atom only has one thermostat applied to it.
+    if isa(temperature, Vector{<:TemperatureSetting})
         indices = vcat([thermostat.indices for thermostat in temperature]...)
         if length(unique(indices)) != length(atoms.masses)
-            throw(DomainError(temperature, "Every atom must have a Thermostat applied to it."))
+            throw(DomainError(temperature, "Every atom must have a TemperatureSetting applied to it."))
         end
         if length(indices) != length(unique(indices))
             throw(DomainError(temperature, "Atoms can only have one thermostat applied to them."))
@@ -113,7 +113,7 @@ function Base.show(io::IO, sim::RingPolymerSimulation{M}) where {M}
 end
 
 """
-A Temperature contains both temperature information and the atom indices within a Simulation that it is applied to. 
+A TemperatureSetting contains both temperature information and the atom indices within a Simulation that it is applied to. 
 
 **If you don't need to apply different temperatures to different parts of your Simulation, assign the `temperature` keyword argument of your simulation to a number or function.**
 
@@ -124,16 +124,16 @@ A Temperature contains both temperature information and the atom indices within 
 `indices`: Indices of the atoms to which this thermostat is applied. Can be a range of indices, a single `Int`, or a `Vector{Int}`.
 
 """
-struct Temperature{I}
+struct TemperatureSetting{I}
     value::Function
     indices::I
 end
 
-function Base.show(io::IO, temperature::Temperature)
-    print(io, "Temperature:\n\tT(t=0) = $(get_temperature(temperature, 0u"fs"))\n\tApplies to atoms: $(temperature.indices)\n")
+function Base.show(io::IO, temperature::TemperatureSetting)
+    print(io, "TemperatureSetting:\n\tT(t=0) = $(get_temperature(temperature, 0u"fs"))\n\tApplies to atoms: $(temperature.indices)\n")
 end
 
-function Temperature(value, indices=:)
+function TemperatureSetting(value, indices=:)
     if isa(indices, UnitRange)
         indices=collect(indices)
     elseif isa(indices, Int)
@@ -141,29 +141,29 @@ function Temperature(value, indices=:)
     end
     if !isa(value, Function)
         temperature_function(t)=value
-        return Temperature(temperature_function, indices)
+        return TemperatureSetting(temperature_function, indices)
     else
-        return Temperature(value, indices)
+        return TemperatureSetting(value, indices)
     end
 end
 
 """
-    Temperature(temperature, subsystem::NQCModels.Subsystem)
+    TemperatureSetting(temperature, subsystem::NQCModels.Subsystem)
 
-Apply a `Temperature` to all atoms in a `Subsystem`. 
+Apply a `TemperatureSetting` to all atoms in a `Subsystem`. 
 """
-function Temperature(temperature, subsystem::NQCModels.Subsystem)
-    Temperature(temperature, subsystem.indices)
+function TemperatureSetting(temperature, subsystem::NQCModels.Subsystem)
+    TemperatureSetting(temperature, subsystem.indices)
 end
 
-get_temperature(thermostat::Temperature{<:Any}, t=0u"fs") = austrip(thermostat.value(t))
+get_temperature(thermostat::TemperatureSetting{<:Any}, t=0u"fs") = austrip(thermostat.value(t))
 
 """
-    get_temperature(thermostats::Vector{<:Temperature}, t=0u"fs")
+    get_temperature(thermostats::Vector{<:TemperatureSetting}, t=0u"fs")
 
-Gets the temperature from multiple `Temperature`s and returns a vector of the temperature applied to each atom. 
+Gets the temperature from multiple `TemperatureSetting`s and returns a vector of the temperature applied to each atom. 
 """
-function get_temperature(thermostats::Vector{<:Temperature}, t=0u"fs")
+function get_temperature(thermostats::Vector{<:TemperatureSetting}, t=0u"fs")
     indices=vcat([thermostat.indices for thermostat in thermostats]...)
     temperature_vector=zeros(Number, length(indices))
     for thermostat in thermostats
