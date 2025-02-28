@@ -3,7 +3,7 @@ uuid = "36248dfb-79eb-4f4d-ab9c-e29ea5f33e14"
 authors = ["James <james.gardner1421@gmail.com>"]
 
 
-version = "0.15.0"
+version = "0.15.1"
 
 
 [deps]
