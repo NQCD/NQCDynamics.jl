@@ -90,8 +90,11 @@ h2.set_calculator(calc)
 We can obtain the energies and forces from `ase` directly in the usual way, converting
 them to atomic units using [UnitfulAtomic](https://github.com/sostock/UnitfulAtomic.jl).
 
+
 ```julia-repl
 using Unitful, UnitfulAtomic;
+austrip(pyconvert(Float64,h2.get_total_energy()) * u"eV")
+austrip.(pyconvert(Matrix{Float64}, h2.get_forces()) .* u"eV/Å")
 austrip(pyconvert(Float64,h2.get_total_energy()) * u"eV")
 austrip.(pyconvert(Matrix{Float64}, h2.get_forces()) .* u"eV/Å")
 ```

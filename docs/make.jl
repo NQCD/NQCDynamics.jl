@@ -27,6 +27,8 @@ end
         assets=["assets/favicon.ico", "assets/citations.css"],
         size_threshold = 5000*1024,
         example_size_threshold = 8000*1024,
+        size_threshold = 5000*1024,
+        example_size_threshold = 8000*1024,
     ),
     authors="James Gardner and contributors.",
     pages=[
@@ -37,6 +39,7 @@ end
         "Saving and loading" => "saving_loading.md"
         "NQCModels.jl" => Any[
             "NQCModels/overview.md"
+            "NQCModels/combining_models.md"
             "NQCModels/combining_models.md"
             "NQCModels/analyticmodels.md"
             "NQCModels/machinelearningmodels.md"
