@@ -35,7 +35,7 @@ jobs:
         shell: julia --color=yes {0}
         
       - name: Install ase
-        run: python3 -m pip install ase
+        run: python3 -m pip install ase git+"https://github.com/ACEsuit/mace.git"
 
       - name: Dev dependencies
         run: |
