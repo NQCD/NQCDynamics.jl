@@ -84,7 +84,14 @@ using Unitful
 velocity = VelocityBoltzmann(300u"K", rand(10), (3, 10))
 rand(velocity)
 ```
-This can be handed directly to the [`DynamicalDistribution`](@ref) when Boltzmann
+
+[`VelocityBoltzmann`](@ref) can also be called with a [`Simulation`](@ref), since this contains 
+both the atomic masses and the desired dimensions of the system.
+
+If the `Simulation` was set up with a `Model` which implements `NQCModels.mobileatoms`, *immobile* atoms 
+are correctly initialised with zero velocity. 
+
+The resulting distribution can be handed directly to the [`DynamicalDistribution`](@ref) when Boltzmann
 velocities are required.
 ```@example boltzmannvelocity
 distribution = DynamicalDistribution(velocity, 1, (3, 10))
