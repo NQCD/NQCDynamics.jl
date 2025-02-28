@@ -7,10 +7,13 @@ using MACEModels
 bib = CitationBibliography(joinpath(@__DIR__, "references.bib"))
 
 function find_all_files(directory)
-    map(
-        s -> joinpath(directory, s),
-        sort(readdir(joinpath(@__DIR__, "src", directory)))
-    )
+    files = String[]
+    for potential_file in sort(readdir(joinpath(@__DIR__, "src", directory)))
+        if potential_file[1] != "." # Ensure we aren't adding any hidden files
+            push!(files, joinpath(directory, potential_file))
+        end
+    end
+    return files
 end
 
 @time makedocs(;
