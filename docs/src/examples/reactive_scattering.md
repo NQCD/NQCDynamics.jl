@@ -159,7 +159,7 @@ This takes a `.cube` file containing the electron density and will provide the f
 during the dynamics.
 Here we initialize the MACE-based interatomic potential, together with the cube-based calculator.
 
-```@example h2scatter
+```julia @example h2scatter
 # load PES model
 calculator = mace_calc.MACECalculator(model_path="../assets/mace/h2cu.model", device="cpu", default_dtype="float32")
 atoms_ase.set_calculator(calculator)
