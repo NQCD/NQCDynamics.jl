@@ -58,8 +58,8 @@ function FrictionCache(sim::RingPolymerSimulation{<:DynamicsMethods.ClassicalMet
     c1 = Diagonal(zeros(DoFs*atoms, DoFs*atoms))
     c2 = zero(c1)
     
-    sqrtmass = 1 ./ sqrt.(repeat(sim.atoms.masses; inner=DoFs))
-    σ = zero(sqrtmass)
+    sqrtmass = 1 ./ sqrt.(sim.atoms.masses)
+    σ = zero(repeat(sqrtmass; inner=DoFs))
 
     MDEFCache(flatvtmp, tmp1, tmp2, gtmp, noise, c1, c2, sqrtmass, σ)
 end
@@ -76,8 +76,8 @@ function FrictionCache(sim::RingPolymerSimulation{<:DynamicsMethods.ClassicalMet
     γ = [γ0, 2sqrt.(2sim.beads.normal_mode_springs[2:end])...]
     c1 = exp.(-dt.*γ)
     c2 = sqrt.(1 .- c1.^2)
-    sqrtmass = 1 ./ repeat(sqrt.(sim.atoms.masses'), ndofs(sim))
-    σ = zero(sqrtmass)
+    sqrtmass = 1 ./ sqrt.(sim.atoms.masses')
+    σ = zero(repeat(sqrtmass, ndofs(sim)))
 
     LangevinCache(c1, c2, sqrtmass, σ)
 end

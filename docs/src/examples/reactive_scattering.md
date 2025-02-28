@@ -32,7 +32,7 @@ surface (`height` keyword) with a normal incidence.
     As usual, all quantities default to atomic units. Here we use [Unitful](https://painterqubits.github.io/Unitful.jl/stable/)
     to input the translational energy and height using different units, where they are later converted internally.
 
-```@example h2scatter
+```julia @example h2scatter
 using NQCDynamics
 using Unitful
 using NQCDynamics.InitialConditions: QuantisedDiatomic
@@ -112,7 +112,7 @@ terminate.
 This means we can set our time span relatively long since we expect most simulations to
 terminate before reaching the time limit.
 
-```@example h2scatter
+```julia @example h2scatter
 using Statistics: mean
 using LinearAlgebra: norm
 

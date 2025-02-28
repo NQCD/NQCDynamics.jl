@@ -2,6 +2,7 @@ using Documenter
 using DocumenterCitations
 using NQCBase, NQCModels, NQCDistributions, NQCDynamics
 using FrictionProviders
+using MACEModels
 
 bib = CitationBibliography(joinpath(@__DIR__, "references.bib"))
 
@@ -15,12 +16,14 @@ end
 @time makedocs(;
     plugins=[bib],
     sitename="NQCDynamics.jl",
-    modules=[NQCDynamics, NQCDistributions, NQCModels, NQCBase, FrictionProviders],
+    modules=[NQCDynamics, NQCDistributions, NQCModels, NQCBase, MACEModels, FrictionProviders],
     doctest=false,
     format=Documenter.HTML(
         prettyurls=get(ENV, "CI", nothing) == "true",
         canonical="https://nqcd.github.io/NQCDynamics.jl/stable/",
         assets=["assets/favicon.ico", "assets/citations.css"],
+        size_threshold = 5000*1024,
+        example_size_threshold = 8000*1024,
     ),
     authors="James Gardner and contributors.",
     pages=[
@@ -31,9 +34,10 @@ end
         "Saving and loading" => "saving_loading.md"
         "NQCModels.jl" => Any[
             "NQCModels/overview.md"
+            "NQCModels/combining_models.md"
             "NQCModels/analyticmodels.md"
-            "NQCModels/ase.md"
             "NQCModels/machinelearningmodels.md"
+            "NQCModels/fullsizemodels.md"
             "NQCModels/frictionmodels.md"
         ]
         "NQCDistributions.jl" => Any[

@@ -1,13 +1,15 @@
 ```@setup logging
-@info "Expanding src/api/NQCModels/cubeldfamodel.md..."
+@info "Expanding src/api/NQCModels/mace.md..."
 start_time = time()
 ```
 
-# CubeLDFAModel
+# MACEModels.jl
 
 ```@autodocs
-Modules=[CubeLDFAModel]
+Modules = [MACEModels]
+Private = true
 ```
+
 ```@setup logging
 runtime = round(time() - start_time; digits=2)
 @info "...done after $runtime s."

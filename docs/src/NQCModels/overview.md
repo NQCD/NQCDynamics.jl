@@ -2,13 +2,20 @@
 @info "Expanding src/NQCModels/overview.md..."
 start_time = time()
 ```
+
 # NQCModels.jl
+
+!!! details "Overview of all model types currently implemented."
+
+    ```@raw html
+    <img src="../assets/figures/Model_types.svg"  width=100% caption="Overview of all Model types currently implemented.">
+    ```
 
 To perform nonadiabatic molecular dynamics simulations, it is necessary to define
 the system Hamiltonian.
 For simple models, this often comes in the form of small matrix in the diabatic
 representation but equally the electronic Hamiltonian could be obtained directly
-from *ab initio* electronic structure theory.
+from _ab initio_ electronic structure theory.
 
 `NQCModels.jl` is a package that aims to provide a common interface
 for defining these models that is flexible enough to allow for a wide range
@@ -30,8 +37,10 @@ and [`DiabaticModel`](@ref NQCModels.DiabaticModels.DiabaticModel).
 The [`AdiabaticModel`](@ref NQCModels.AdiabaticModels.AdiabaticModel)
 is used for adiabatic dynamics, providing only the potential
 and force used in classical mechanics.
-The [`DiabaticModel`](@ref NQCModels.DiabaticModels.DiabaticModel) is used for nonadiabatic dynamics, 
+The [`DiabaticModel`](@ref NQCModels.DiabaticModels.DiabaticModel) is used for nonadiabatic dynamics,
 where the potential is instead a `Hermitian` matrix.
+
+## Using `Model`s
 
 In the [Getting started](@ref) section we briefly touched on how the
 [`AdiabaticModel`](@ref NQCModels.AdiabaticModels.AdiabaticModel)
@@ -87,25 +96,18 @@ with respect to each degree of freedom.
 In this case, the `Matrix` has `size = (1, 2)`, but it should be clear how this can extend
 to arbitrary numbers of atoms and degrees of freedom for complex models.
 
-The models currently available can be seen in type tree of the
-[`Model`](@ref NQCModels.Model) below.
-The leaves of the tree are the concrete models, whereas each branch is one of the abstract
-types.
-Each of these models can be seen in the [Analytic model library](@ref) and
-many shall return later when we investigate the dynamics methods.
+## Included models
 
-```@example
-import AbstractTrees # hide
-import InteractiveUtils: subtypes # hide
-import NQCModels: Model # hide
-AbstractTrees.children(x::Type) = subtypes(x) # hide
-AbstractTrees.print_tree(Model) # hide
-```
+`NQCModels.jl` includes both analytical models as well as interfaces to connect to full-dimensional potential energy surfaces.
+An overview of the implemented analytical models can be seen in the [Analytic model library](@ref) and
+many shall return later when we investigate the dynamics methods.
+An overview of interfaces to full-dimensional potential energy surfaces can be seen in the [Full dimensional model library](@ref).
 
 !!! note "Contributing new models"
 
     To learn more about NQCModels.jl and learn how to implement new models,
     visit the [developer documentation](@ref devdocs-model).
+
 ```@setup logging
 runtime = round(time() - start_time; digits=2)
 @info "...done after $runtime s."

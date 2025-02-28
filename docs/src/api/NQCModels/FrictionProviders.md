@@ -1,12 +1,12 @@
 ```@setup logging
-@info "Expanding src/api/NQCModels/nninterfaces.md..."
+@info "Expanding src/api/NQCModels/frictionmodels.md..."
 start_time = time()
 ```
 
-# NNInterfaces
+# FrictionModels
 
 ```@autodocs
-Modules=[NNInterfaces]
+Modules=[NQCModels.FrictionModels]
 ```
 ```@setup logging
 runtime = round(time() - start_time; digits=2)
