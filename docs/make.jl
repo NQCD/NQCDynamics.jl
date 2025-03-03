@@ -27,8 +27,6 @@ end
         assets=["assets/favicon.ico", "assets/citations.css"],
         size_threshold = 5000*1024,
         example_size_threshold = 8000*1024,
-        size_threshold = 5000*1024,
-        example_size_threshold = 8000*1024,
     ),
     authors="James Gardner and contributors.",
     pages=[
