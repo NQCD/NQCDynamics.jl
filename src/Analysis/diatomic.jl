@@ -29,7 +29,7 @@ function surface_distance_condition(
     ) # Height of the molecule in the surface normal direction
     
     # Get the height of all substrate atoms in surface normal direction. 
-    substrate_heights = [surface_normal_height(get_positions(x)[:, substrate_atom_id]) for substrate_atom_id in symdiff(1:length(simulation.atoms.masses), indices, surface_normal)]
+    substrate_heights = [surface_normal_height(get_positions(x)[:, substrate_atom_id], surface_normal) for substrate_atom_id in symdiff(1:length(simulation.atoms.masses), indices)]
     
     # Ignore substrate above molecule in case PBC wrapping puts one above the diatomic
     highest_z = max(substrate_heights[substrate_heights.≤molecule_position]...) 
