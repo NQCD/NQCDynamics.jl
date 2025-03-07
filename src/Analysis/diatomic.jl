@@ -29,7 +29,7 @@ function surface_distance_condition(
     ) # Height of the molecule in the surface normal direction
     
     # Get the height of all substrate atoms in surface normal direction. 
-    substrate_heights = [surface_normal_height(get_positions(x)[:, substrate_atom_id]) for substrate_atom_id in symdiff(1:length(simulation.atoms.masses), indices, surface_normal)]
+    substrate_heights = [surface_normal_height(get_positions(x)[:, substrate_atom_id], surface_normal) for substrate_atom_id in symdiff(1:length(simulation.atoms.masses), indices)]
     
     # Ignore substrate above molecule in case PBC wrapping puts one above the diatomic
     highest_z = max(substrate_heights[substrate_heights.≤molecule_position]...) 
@@ -60,8 +60,8 @@ end
 
     Evaluate true if the diatomic bond length is below `threshold`.
 """
-function close_approach_condition(x::AbstractArray, indices::Vector{Int}, simulation::AbstractSimulation; threshold = 1.5u"Å")
-    if Structure.pbc_distance(x, indices..., simulation) ≤ threshold
+function close_approach_condition(x::AbstractArray, indices::Vector{Int}, simulation::AbstractSimulation; threshold = austrip(1.5u"Å"))
+    if austrip(Structure.pbc_distance(x, indices..., simulation)) ≤ threshold
         return true
     else
         return false
@@ -82,7 +82,7 @@ This is evaluated using two conditions:
 If the second condition is never reached (can happen for particularly quick desorptions), the `fallback_distance_threshold` is used to find the last point where the
 diatomic bond length is above the given value and saves from that point onwards. 
 """
-function get_desorption_frame(trajectory::AbstractVector, diatomic_indices::Vector{Int}, simulation::AbstractSimulation; surface_normal::Vector=[0, 0, 1], surface_distance_threshold=5.0 * u"Å", fallback_distance_threshold = 1.5u"Å")
+function get_desorption_frame(trajectory::AbstractVector, diatomic_indices::Vector{Int}, simulation::AbstractSimulation; surface_normal::Vector=[0, 0, 1], surface_distance_threshold=austrip(5.0 * u"Å"), fallback_distance_threshold = austrip(1.5u"Å"))
     desorbed_frame = findfirst(surface_distance_condition.(trajectory, Ref(diatomic_indices), Ref(simulation); surface_distance_threshold=surface_distance_threshold))
 
     if isa(desorbed_frame, Nothing)
