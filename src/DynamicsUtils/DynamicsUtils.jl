@@ -264,6 +264,10 @@ function DEBUG_sample_noneq_distribution(energies, nelectrons, available_states,
     # DOS = DOS_spline(energies) # Recast DOS and distribution onto new grid
     dis = dis_spline(energies)
 
+    # confining values in dis to have upper bounds of 0.0 and 1.0 to remove floating point error from LinearInterpolation extrapolate
+    dis[dis .< 0.0] .= 0.0
+    dis[dis .> 1.0] .= 1.0
+
     # counters for returning proportion successful
     count_UnoccupySource = 0
     count_OccupyDestination = 0
