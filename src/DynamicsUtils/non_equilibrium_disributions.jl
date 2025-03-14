@@ -85,11 +85,11 @@ end
 
 
 """
-    generate_NEQ_dist(excitation_energy::Float64, energy_grid, T_equivalent; T_ex = 300, T_base = 0.00001)
+    generate_NEQ_dist(excitation_energy::Float64, energy_grid, T_equivalent; T_ex = 300, T_base = 300)
 
 Generates a non-equilibrium distribution, with an excitation up to a chosen energy represented as a step.
 """
-function generate_NEQ_dist(excitation_energy::Float64, energy_grid, T_equivalent; T_ex=300, T_base=0.00001)
+function generate_NEQ_dist(excitation_energy::Float64, energy_grid, T_equivalent; T_ex=300, T_base=300)
 
     # step excitation
     exc_a = DynamicsUtils.fermi.(energy_grid, excitation_energy, 1/austrip(T_ex*u"K"))
