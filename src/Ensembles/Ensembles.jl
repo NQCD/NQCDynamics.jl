@@ -17,6 +17,7 @@ using NQCDynamics:
     DynamicsMethods
 
 export run_dynamics
+export detailed_run_dynamics
 
 include("selections.jl")
 
