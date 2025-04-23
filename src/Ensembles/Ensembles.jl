@@ -126,6 +126,72 @@ function run_dynamics(
     end
 end
 
+"""
+    detailed_run_dynamics(sim::AbstractSimulation, tspan, distribution;
+        output,
+        selection::Union{Nothing,AbstractVector}=nothing,
+        reduction=AppendReduction(),
+        ensemble_algorithm=SciMLBase.EnsembleSerial(),
+        algorithm=DynamicsMethods.select_algorithm(sim),
+        trajectories=1,
+        kwargs...
+        )
+
+Run trajectories for timespan `tspan` sampling from `distribution`.
+This function returns the full `DiffEq` `sol` object.
+
+# Keywords
+
+* `output` either a single function or a Tuple of functions with the signature `f(sol, i)` that takes the DifferentialEquations solution and returns the desired output quantity.
+* `selection` should be an `AbstractVector` containing the indices to sample from the `distribution`. By default, `nothing` leads to random sampling.
+* `reduction` defines how the data is reduced across trajectories. Options are `AppendReduction()`, `MeanReduction()`, `SumReduction` and `FileReduction(filename)`.
+* `ensemble_algorithm` is the algorithm from DifferentialEquations which determines which form of parallelism is used.
+* `algorithm` is the algorithm used to integrate the equations of motion.
+* `trajectories` is the number of trajectories to perform.
+* `kwargs...` any additional keywords are passed to DifferentialEquations `solve``.
+"""
+function detailed_run_dynamics(
+    sim::AbstractSimulation, tspan, distribution;
+    output,
+    selection::Union{Nothing,AbstractVector}=nothing,
+    reduction=AppendReduction(),
+    ensemble_algorithm=SciMLBase.EnsembleSerial(),
+    algorithm=DynamicsMethods.select_algorithm(sim),
+    trajectories=1,
+    savetime=true,
+    kwargs...
+)
+
+    if !(output isa Tuple)
+        output = (output,)
+    end
+
+    kwargs = NQCBase.austrip_kwargs(;kwargs...)
+    trajectories = convert(Int, trajectories)
+    tspan = austrip.(tspan)
+
+    prob_func = Selection(distribution, selection, trajectories)
+
+    u0 = sample_distribution(sim, distribution)
+    problem = DynamicsMethods.create_problem(u0, tspan, sim)
+
+    output_func = EnsembleSaver(output, savetime)
+
+    ensemble_problem = SciMLBase.EnsembleProblem(problem; prob_func, output_func, reduction)
+
+
+    if trajectories == 1
+        @info "Performing 1 trajectory."
+    else
+        @info "Performing $trajectories trajectories."
+    end
+
+    stats = @timed SciMLBase.solve(ensemble_problem, algorithm, ensemble_algorithm; trajectories, kwargs...)
+    log_simulation_duration(stats.time)
+
+    return stats
+end
+
 function log_simulation_duration(duration_seconds)
     if duration_seconds < 60
         @info "Finished after $duration_seconds seconds."
