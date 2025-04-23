@@ -76,7 +76,7 @@ Run trajectories for timespan `tspan` sampling from `distribution`.
 
 * `output` either a single function or a Tuple of functions with the signature `f(sol, i)` that takes the DifferentialEquations solution and returns the desired output quantity.
 * `selection` should be an `AbstractVector` containing the indices to sample from the `distribution`. By default, `nothing` leads to random sampling.
-* `reduction` defines how the data is reduced across trajectories. Options are `AppendReduction()`, `MeanReduction()`, `SumReduction` and `FileReduction(filename)`.
+* `reduction` defines how the data is reduced across trajectories. Options are `AppendReduction()` (required option for single trajectory), `MeanReduction()`, `SumReduction` and `FileReduction(filename)`.
 * `ensemble_algorithm` is the algorithm from DifferentialEquations which determines which form of parallelism is used.
 * `algorithm` is the algorithm used to integrate the equations of motion.
 * `trajectories` is the number of trajectories to perform.
@@ -121,7 +121,7 @@ function run_dynamics(
     log_simulation_duration(stats.time)
 
     if trajectories == 1
-        return stats.value.u[1] # this indexing doesn't work!!
+        return stats.value.u[1]
     else
         return stats.value.u
     end
@@ -145,7 +145,7 @@ This function returns the full `DiffEq` `sol` object.
 
 * `output` either a single function or a Tuple of functions with the signature `f(sol, i)` that takes the DifferentialEquations solution and returns the desired output quantity.
 * `selection` should be an `AbstractVector` containing the indices to sample from the `distribution`. By default, `nothing` leads to random sampling.
-* `reduction` defines how the data is reduced across trajectories. Options are `AppendReduction()`, `MeanReduction()`, `SumReduction` and `FileReduction(filename)`.
+* `reduction` defines how the data is reduced across trajectories. Options are `AppendReduction()` (required option for single trajectory), `MeanReduction()`, `SumReduction` and `FileReduction(filename)`.
 * `ensemble_algorithm` is the algorithm from DifferentialEquations which determines which form of parallelism is used.
 * `algorithm` is the algorithm used to integrate the equations of motion.
 * `trajectories` is the number of trajectories to perform.
