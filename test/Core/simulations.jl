@@ -1,6 +1,6 @@
 using Test
 using NQCDynamics
-using Unitful
+using Unitful, UnitfulAtomic
 using Distributions
 using PythonCall
 
