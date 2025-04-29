@@ -151,7 +151,7 @@ include("callbacks.jl")
 export CellBoundaryCallback
 export TerminatingCallback
 
-include("density_matrix_dynamics.jl")
+include("adiabatic_matrix_dynamics.jl")
 include("wavefunction_dynamics.jl")
 include("plot.jl")
 
