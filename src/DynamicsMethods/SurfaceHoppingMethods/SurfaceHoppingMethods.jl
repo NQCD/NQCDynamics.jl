@@ -11,6 +11,7 @@ using ComponentArrays: ComponentVector
 using DiffEqBase: DiffEqBase
 using LinearAlgebra: LinearAlgebra, lmul!
 using OrdinaryDiffEq: OrdinaryDiffEq
+# using RecursiveArrayTools: NamedArrayPartition
 
 using NQCDynamics:
     NQCDynamics,
@@ -28,6 +29,12 @@ mutable struct SurfaceHoppingVariables{T,A,Axes,S} <: DEDataArrays.DEDataVector{
     x::ComponentVector{T,A,Axes}
     state::S
 end
+
+# mutable struct SurfaceHoppingVariables{T,S} <: NamedArrayPartition{T}
+#     # x::ComponentVector{T,A,Axes}
+#     x::T
+#     state::S
+# end
 
 DynamicsUtils.get_velocities(u::SurfaceHoppingVariables) = DynamicsUtils.get_velocities(u.x)
 DynamicsUtils.get_positions(u::SurfaceHoppingVariables) = DynamicsUtils.get_positions(u.x)

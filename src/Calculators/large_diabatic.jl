@@ -46,17 +46,24 @@ struct LargeDiabaticCalculator{T,M} <: AbstractLargeDiabaticCalculators{T,M}
     end
 end
 
-function Calculator(model::LargeDiabaticModel, atoms::Integer, T::Type=Float64)
-    LargeDiabaticCalculator{T}(model, atoms)
+function Calculator(model::LargeDiabaticModel, atoms::Integer, T::Type=Float64, type::Symbol=:coefficient)
+    if type === :coefficient
+        return LargeDiabaticCalculator{T}(model, atoms)
+    elseif type === :densitymatrix
+        return DensityMatrixCalculator{T}(model, atoms)
+    else
+        throw(error("Only :coefficient and :densitymatrix are allowed types." ))
+    end    
+    
 end
 
-function evaluate_potential!(calc::LargeDiabaticCalculator, r)
+function evaluate_potential!(calc::AbstractLargeDiabaticCalculators, r)
     calc.stats[:potential] += 1
     NQCModels.potential!(calc.model, calc.potential, r)
     return nothing
 end
 
-function evaluate_eigen!(calc::LargeDiabaticCalculator, r)
+function evaluate_eigen!(calc::AbstractLargeDiabaticCalculators, r)
     calc.stats[:eigen] += 1
     potential = get_potential(calc, r)
     eig = LinearAlgebra.eigen(potential)
@@ -94,7 +101,7 @@ function evaluate_nonadiabatic_coupling!(calc::LargeDiabaticCalculator, r)
 
     @inbounds for i in NQCModels.mobileatoms(calc)
         for j in NQCModels.dofs(calc)
-            multiply_elementwise!(calc.nonadiabatic_coupling[j,i], adiabatic_derivative[j,i], calc.tmp_mat)
+            @inline @. calc.nonadiabatic_coupling[j,i] = adiabatic_derivative[j,i] * calc.tmp_mat
         end
     end
 end
@@ -109,7 +116,5 @@ function evaluate_inverse_difference_matrix!(out, eigenvalues)
 end
 
 function multiply_elementwise!(coupling::Matrix, adiabatic_derivative::Matrix, eigenvalue_difference_matrix::Matrix)
-    @inbounds for I in eachindex(coupling, adiabatic_derivative, eigenvalue_difference_matrix)
-        coupling[I] = adiabatic_derivative[I] * eigenvalue_difference_matrix[I]
-    end
+    @inline @. coupling = adiabatic_derivative * eigenvalue_difference_matrix
 end

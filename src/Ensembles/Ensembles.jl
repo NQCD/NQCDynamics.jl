@@ -171,14 +171,14 @@ function detailed_run_dynamics(
     trajectories = convert(Int, trajectories)
     tspan = austrip.(tspan)
 
-    prob_func = Selection(distribution, selection, trajectories)
+    # prob_func = Selection(distribution, selection, trajectories)
 
     u0 = sample_distribution(sim, distribution)
     problem = DynamicsMethods.create_problem(u0, tspan, sim)
 
-    output_func = EnsembleSaver(output, savetime)
+    # output_func = EnsembleSaver(output, savetime)
 
-    ensemble_problem = SciMLBase.EnsembleProblem(problem; prob_func, output_func, reduction)
+    # ensemble_problem = SciMLBase.EnsembleProblem(problem; prob_func, output_func, reduction) #  need to change this from being an ensemble problem to just a regular ODE problem
 
 
     if trajectories == 1
@@ -187,7 +187,8 @@ function detailed_run_dynamics(
         @info "Performing $trajectories trajectories."
     end
 
-    stats = @timed SciMLBase.solve(ensemble_problem, algorithm, ensemble_algorithm; trajectories, kwargs...)
+    # stats = @timed SciMLBase.solve(ensemble_problem, algorithm, ensemble_algorithm; trajectories, kwargs...)
+    stats = @timed SciMLBase.solve(problem, algorithm, dt=1.0, saveat=1.0)
     log_simulation_duration(stats.time)
 
     return stats
