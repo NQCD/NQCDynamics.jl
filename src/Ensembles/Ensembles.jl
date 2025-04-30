@@ -94,41 +94,47 @@ function run_dynamics(
     kwargs...,
 )
 
-    if !(output isa Tuple)
-        output = (output,)
-    end
-
-    kwargs = NQCBase.austrip_kwargs(; kwargs...)
-    trajectories = convert(Int, trajectories)
-    tspan = austrip.(tspan)
-
-    prob_func = Selection(distribution, selection, trajectories)
-
-    u0 = sample_distribution(sim, distribution)
-    problem = DynamicsMethods.create_problem(u0, tspan, sim)
-
-    output_func = EnsembleSaver(output, savetime)
-
-    ensemble_problem = SciMLBase.EnsembleProblem(problem; prob_func, output_func, reduction)
-
     """
-    Due to how Julia compiles code, running the same dynamics for a single time step forces precompilation, which will make subsequent simulations faster. This effect is negligible for smaller models, but begins to matter for more computationally intensive dynamics. 
-
+    Due to how Julia compiles code, running the same dynamics for a single time step forces precompilation, which will make subsequent simulations faster. 
+    This effect is negligible for smaller models, but begins to matter for more computationally intensive dynamics. 
+    
     See this GitHub issue for discussion: https://github.com/NQCD/NQCDynamics.jl/issues/365
     """
-    if precompile_dynamics
-        @debug "Beginning to precompilie dynamics"
-        # tspan is hardcoded to a small number since some integrators may not have a fixed time step. 
-        short_problem = DynamicsMethods.create_problem(u0, austrip.(0.0, 0.1), sim)
-        short_ensemble_problem =
-            SciMLBase.EnsembleProblem(short_problem; prob_func, output_func, reduction)
-        precompile_time = @timed SciMLBase.solve(
-            short_ensemble_problem,
+    function dynamics(tspan)
+        @debug "Setting up dynamics with" tspan = tspan
+        if !(output isa Tuple)
+            output = (output,)
+        end
+        
+        kwargs = NQCBase.austrip_kwargs(; kwargs...)
+        trajectories = convert(Int, trajectories)
+        tspan = austrip.(tspan)
+        prob_func = Selection(distribution, selection, trajectories)
+        
+        u0 = sample_distribution(sim, distribution)
+        problem = DynamicsMethods.create_problem(u0, tspan, sim)
+        
+        output_func = EnsembleSaver(output, savetime)
+        
+        ensemble_problem = SciMLBase.EnsembleProblem(
+            problem;
+            prob_func = prob_func,
+            output_func = output_func,
+            reduction = reduction,
+        )
+        return @timed SciMLBase.solve(
+            ensemble_problem,
             algorithm,
-            ensemble_algorithm,
+            ensemble_algorithm;
             trajectories,
             kwargs...,
         )
+    end
+
+    if precompile_dynamics
+        @debug "Beginning to precompile dynamics"
+        tspan_short = (0.0, get(kwargs, :dt, 1.0))
+        precompile_time = dynamics(tspan_short)
         @info "Pre-compiled dynamics in $(precompile_time.time) seconds."
     end
 
@@ -138,13 +144,7 @@ function run_dynamics(
         @info "Performing $trajectories trajectories."
     end
 
-    stats = @timed SciMLBase.solve(
-        ensemble_problem,
-        algorithm,
-        ensemble_algorithm;
-        trajectories,
-        kwargs...,
-    )
+    stats = dynamics(tspan)
     log_simulation_duration(stats.time)
 
     if trajectories == 1

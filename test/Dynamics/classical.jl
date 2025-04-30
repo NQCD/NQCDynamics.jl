@@ -56,6 +56,6 @@ end
     r = model.model.morse.x₀
     d = DynamicalDistribution(v, r, size(sim))
     u0 = rand(d)
-    sol = run_dynamics(sim, (0.0, 900.0u"fs"), u0; dt=1u"fs", output=(OutputTotalEnergy), precompile_dynamics=false)
+    sol = run_dynamics(sim, (0.0, 900.0u"fs"), u0; dt=1u"fs", output=(OutputTotalEnergy))
     @test sol[:OutputTotalEnergy][1] ≈ sol[:OutputTotalEnergy][end] rtol=1e-2
 end
