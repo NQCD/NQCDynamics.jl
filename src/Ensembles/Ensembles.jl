@@ -119,7 +119,7 @@ function run_dynamics(
     if precompile_dynamics
         @debug "Beginning to precompilie dynamics"
         # tspan is hardcoded to a small number since some integrators may not have a fixed time step. 
-        short_problem = DynamicsMethods.create_problem(u0, (0.0, 0.1), sim)
+        short_problem = DynamicsMethods.create_problem(u0, austrip.(0.0, 0.1), sim)
         short_ensemble_problem =
             SciMLBase.EnsembleProblem(short_problem; prob_func, output_func, reduction)
         precompile_time = @timed SciMLBase.solve(
