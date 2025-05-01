@@ -120,7 +120,7 @@ function run_dynamics(
             problem;
             prob_func = prob_func,
             output_func = output_func,
-            reduction = reduction,
+            reduction = deepcopy(reduction), # deepcopy reduction function because it's used twice
         )
         return @timed SciMLBase.solve(
             ensemble_problem,
@@ -133,8 +133,23 @@ function run_dynamics(
 
     if precompile_dynamics
         @debug "Beginning to precompile dynamics"
-        tspan_short = (0.0, get(kwargs, :dt, 1.0))
+        # Get a short time limit that runs through saving at least one time step of data
+        short_time = get( 
+            kwargs, 
+            :saveat, # Saveat will be an interval or a list. 
+            get(
+                kwargs,
+                :dt,
+                1.0 # dt should be a number / unitful qty
+            )
+        ) |> first # Get the number or the first list entry. 
+        tspan_short = (0.0, short_time)
         precompile_time = dynamics(tspan_short)
+        @debug "Reduction is" reduction=reduction
+        if isa(reduction, FileReduction)
+            @debug "FileReduction wrote files, which will now be deleted. "
+            rm(reduction.filename)
+        end
         @info "Pre-compiled dynamics in $(precompile_time.time) seconds."
     end
 
