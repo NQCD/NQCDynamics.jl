@@ -22,10 +22,9 @@ end
 end
 
 @testset "OutputQuantisedDiatomic" begin
-    sim = Simulation(Atoms(1), Harmonic())
-    output = OutputQuantisedDiatomic(sim; height=1, normal_vector = [1, 1, 1])
-    output = OutputQuantisedDiatomic(sim)
-    u = DynamicsVariables(sim, hcat(1), hcat(1))
+    # Maybe tack this onto a dynamics unit test. 
+    output = OutputQuantisedDiatomic(; height=1, normal_vector = [1, 1, 1])
+    output = OutputQuantisedDiatomic()
 end
 
 @testset "PopulationCorrelationFunction" begin

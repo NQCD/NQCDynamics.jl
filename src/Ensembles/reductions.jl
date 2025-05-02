@@ -25,7 +25,8 @@ end
 
 function sum_outputs!(u, batch)
     for b in batch
-        u .+= b
+        mergewith!(+, u, b)
+        # u .+= b
     end
 end
 
