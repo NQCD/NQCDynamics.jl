@@ -19,10 +19,7 @@ using LinearAlgebra: LinearAlgebra, Hermitian, I, Eigen, tr
 using StaticArrays: SMatrix, SVector
 using RingPolymerArrays: get_centroid!
 
-using NQCModels: NQCModels, Model, nstates, mobileatoms, dofs, Subsystem, CompositeModel
-using NQCModels.AdiabaticModels: AdiabaticModel
-using NQCModels.DiabaticModels: DiabaticModel, DiabaticFrictionModel
-using NQCModels.FrictionModels: AdiabaticFrictionModel
+using NQCModels
 
 using NQCDynamics: ndofs
 
@@ -548,6 +545,10 @@ end
 function update_centroid_electronics!(calculator::RingPolymerDiabaticCalculator, r::AbstractArray{T,3}) where {T}
     get_centroid_nonadiabatic_coupling(calculator, r)
     return nothing
+end
+
+function update_electronics!(calculator::AbstractDiabaticCalculator, r::AbstractArray)
+    NQCModels.potential!()
 end
 
 end # module

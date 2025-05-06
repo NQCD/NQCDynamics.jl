@@ -1,10 +1,10 @@
 
 function DynamicsMethods.motion!(du, u, sim::RingPolymerSimulation{<:ClassicalMasterEquation}, t)
-    dr = DynamicsUtils.get_positions(du.x)
-    dv = DynamicsUtils.get_velocities(du.x)
+    dr = du.r
+    dv = du.v
 
-    r = DynamicsUtils.get_positions(u.x)
-    v = DynamicsUtils.get_velocities(u.x)
+    r = u.r
+    v = u.v
 
     set_state!(u, sim.method.state) # Make sure the state variables match, 
 
@@ -14,7 +14,7 @@ function DynamicsMethods.motion!(du, u, sim::RingPolymerSimulation{<:ClassicalMa
 end
 
 function evaluate_hopping_probability!(sim::RingPolymerSimulation{<:ClassicalMasterEquation}, u, dt)
-    r = DynamicsUtils.get_positions(u)
+    r = u.r
     V = Calculators.get_centroid_potential(sim.calculator, r)
     ΔV = V[2,2] - V[1,1]
     Γ = 2π * V[2,1]^2
@@ -32,7 +32,7 @@ function RingPolymerSimulation{CME}(atoms::Atoms{T}, model, n_beads; kwargs...) 
 end
 
 function DynamicsUtils.classical_potential_energy(sim::RingPolymerSimulation{<:CME}, u)
-    r = DynamicsUtils.get_positions(u)
+    r = u.r
     V = Calculators.get_potential(sim.calculator, r)
 
     potential = zero(eltype(r))

@@ -52,13 +52,13 @@ See `fssh.jl` for an example implementation.
 abstract type SurfaceHopping <: DynamicsMethods.Method end
 
 function DynamicsMethods.motion!(du, u, sim::Simulation{<:SurfaceHopping}, t)
-    dr = DynamicsUtils.get_positions(du.x)
-    dv = DynamicsUtils.get_velocities(du.x)
-    dσ = DynamicsUtils.get_quantum_subsystem(du.x)
+    dr = du.r
+    dv = du.v
+    dσ = StructArray{Complex{eltype(u.σreal)}}((du.σreal, du.σimag))
 
-    r = DynamicsUtils.get_positions(u.x)
-    v = DynamicsUtils.get_velocities(u.x)
-    #σ = DynamicsUtils.get_quantum_subsystem(u.x)
+    r = u.r
+    v = u.v
+    σ = StructArray{Complex{eltype(u.σreal)}}((u.σreal, u.σimag))
 
     set_state!(u, sim.method.state) # Make sure the state variables match, 
 
@@ -69,9 +69,9 @@ function DynamicsMethods.motion!(du, u, sim::Simulation{<:SurfaceHopping}, t)
 end
 
 function DynamicsUtils.set_quantum_derivative!(dσ, u, sim::AbstractSimulation{<:SurfaceHopping})
-    v = DynamicsUtils.get_hopping_velocity(sim, DynamicsUtils.get_velocities(u))
-    σ = DynamicsUtils.get_quantum_subsystem(u.x)
-    r = DynamicsUtils.get_positions(u.x)
+    v = DynamicsUtils.get_hopping_velocity(sim, u.v)
+    σ = StructArray{Complex{eltype(u.σreal)}}((u.σreal, u.σimag))
+    r = u.r
     eigenvalues = DynamicsUtils.get_hopping_eigenvalues(sim, r)
     propagator = sim.method.density_propagator
     d = DynamicsUtils.get_hopping_nonadiabatic_coupling(sim, r)

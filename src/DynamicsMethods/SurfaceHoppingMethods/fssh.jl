@@ -68,10 +68,10 @@ Evaluates the probability of hopping from the current state to all other states
 - 'd' is skew-symmetric so here the indices are important.
 """
 function evaluate_hopping_probability!(sim::AbstractSimulation{<:FSSH}, u, dt)
-    v = DynamicsUtils.get_hopping_velocity(sim, DynamicsUtils.get_velocities(u))
-    σ = DynamicsUtils.get_quantum_subsystem(u)
+    v = DynamicsUtils.get_hopping_velocity(sim, u.v)
+    σ = StructArray{Complex{eltype(u.σreal)}}((u.σreal, u.σimag))
     s = sim.method.state
-    r = DynamicsUtils.get_positions(u)
+    r = u.r
     d = DynamicsUtils.get_hopping_nonadiabatic_coupling(sim, r)
 
     fewest_switches_probability!(sim.method.hopping_probability, v, σ, s, d, dt)
@@ -114,10 +114,10 @@ function unpack_states(sim::AbstractSimulation{<:FSSH})
 end
 
 function Estimators.diabatic_population(sim::AbstractSimulation{<:FSSH}, u)
-    r = DynamicsUtils.get_positions(u)
+    r = u.r
     U = DynamicsUtils.evaluate_transformation(sim.calculator, r)
 
-    σ = copy(DynamicsUtils.get_quantum_subsystem(u).re)
+    σ = copy(StructArray{Complex{eltype(u.σreal)}}((u.σreal, u.σimag)).re)
     σ[diagind(σ)] .= 0
     σ[u.state, u.state] = 1
 
@@ -131,7 +131,7 @@ function Estimators.adiabatic_population(sim::AbstractSimulation{<:FSSH}, u)
 end
 
 function DynamicsUtils.classical_potential_energy(sim::Simulation{<:FSSH}, u)
-    eigs = Calculators.get_eigen(sim.calculator, DynamicsUtils.get_positions(u))
+    eigs = Calculators.get_eigen(sim.calculator, u.r)
     potential = eigs.values[u.state]
     return potential
 end

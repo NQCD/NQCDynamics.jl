@@ -53,8 +53,8 @@ function rescale_velocity!(sim::AbstractSimulation{<:SurfaceHopping}, u)::Bool
     sim.method.rescaling === :off && return true #no rescaling so always accept hop
 
     new_state, old_state = unpack_states(sim)
-    velocity = DynamicsUtils.get_hopping_velocity(sim, DynamicsUtils.get_velocities(u))
-    r = DynamicsUtils.get_positions(u)
+    velocity = DynamicsUtils.get_hopping_velocity(sim, u.v)
+    r = Du.r
     eigs = DynamicsUtils.get_hopping_eigenvalues(sim, r)
     
     d = extract_nonadiabatic_coupling(DynamicsUtils.get_hopping_nonadiabatic_coupling(sim, r), new_state, old_state)
@@ -71,7 +71,7 @@ function rescale_velocity!(sim::AbstractSimulation{<:SurfaceHopping}, u)::Bool
         elseif sim.method.rescaling == :vinversion
             # Frustrated hop with insufficient kinetic energy
             # perform inversion of the velocity component along the nonadiabatic coupling vector
-            frustrated_hop_invert_velocity!(sim, DynamicsUtils.get_velocities(u), d)
+            frustrated_hop_invert_velocity!(sim, u.v, d)
             return false
         else   
             throw(error("This mode of rescaling is not implemented"))
@@ -83,7 +83,7 @@ function rescale_velocity!(sim::AbstractSimulation{<:SurfaceHopping}, u)::Bool
         else
             γ = (b - root) / 2a
         end
-        perform_rescaling!(sim, DynamicsUtils.get_velocities(u), γ, d)
+        perform_rescaling!(sim, u.v, γ, d)
 
         return true
     end
