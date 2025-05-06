@@ -5,7 +5,7 @@ using NQCDynamics: RingPolymers
 using NQCModels: nstates
 using RingPolymerArrays: get_centroid
 using NQCDistributions: ElectronicDistribution, Adiabatic, Diabatic, density_matrix, FermiDiracState
-using ..Calculators: AbstractDiabaticCalculator, DiabaticCalculator, LargeDiabaticCalculator, RingPolymerDiabaticCalculator
+using NQCCalculators
 
 function set_quantum_derivative! end
 
@@ -37,34 +37,34 @@ get_quantum_subsystem(u::ComponentArrays.ComponentVector{T}) where {T} =
 
 function initialise_adiabatic_density_matrix(
     electronics::ElectronicDistribution{Diabatic},
-    calculator::AbstractDiabaticCalculator,
+    cache::Abstract_ExactQuantumModel_Cache,
     r
 )
 
-    diabatic_density = density_matrix(electronics, nstates(calculator))
-    return transform_density!(diabatic_density, calculator, r, :to_adiabatic)
+    diabatic_density = density_matrix(electronics, nstates(cache))
+    return transform_density!(diabatic_density, cache, r, :to_adiabatic)
 end
 
 function initialise_adiabatic_density_matrix(
     electronics::ElectronicDistribution{Adiabatic},
-    calculator::AbstractDiabaticCalculator,
+    cache::Abstract_ExactQuantumModel_Cache,
     r
 )
 
     if electronics isa FermiDiracState
-        eigen = Calculators.get_eigen(calculator, r)
+        eigen = NQCCalculators.get_eigen(cache, r)
         adiabatic_density = density_matrix(electronics, eigen.values)
     else
-        adiabatic_density = density_matrix(electronics, nstates(calculator))
+        adiabatic_density = density_matrix(electronics, nstates(cache))
     end
 
     return adiabatic_density
 end
 
 function transform_density!(
-    density::AbstractMatrix, calculator::AbstractDiabaticCalculator, r, direction
+    density::AbstractMatrix, cache::Abstract_ExactQuantumModel_Cache, r, direction
 )
-    U = evaluate_transformation(calculator, r)
+    U = evaluate_transformation(cache, r)
     if direction === :to_diabatic
         U = U'
     elseif !(direction === :to_adiabatic)
@@ -74,12 +74,12 @@ function transform_density!(
     return density
 end
 
-function evaluate_transformation(calculator::Union{DiabaticCalculator, LargeDiabaticCalculator}, r)
-    eigs =  Calculators.get_eigen(calculator, r)
+function evaluate_transformation(cache::Union{SmallQuantumModel_Cache, LargeQuantumModel_Cache}, r)
+    eigs =  NQCCalculators.get_eigen(cache, r)
     return eigs.vectors
 end
 
-function evaluate_transformation(calculator::RingPolymerDiabaticCalculator, r)
-    centroid_eigs = Calculators.get_centroid_eigen(calculator, r)
+function evaluate_transformation(cache::RingPolymer_SmallQuantumModel_Cache, r)
+    centroid_eigs = NQCCalculators.get_centroid_eigen(cache, r)
     return centroid_eigs.vectors
 end

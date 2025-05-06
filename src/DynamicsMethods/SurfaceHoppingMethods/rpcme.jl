@@ -15,7 +15,7 @@ end
 
 function evaluate_hopping_probability!(sim::RingPolymerSimulation{<:ClassicalMasterEquation}, u, dt)
     r = DynamicsUtils.get_positions(u)
-    V = Calculators.get_centroid_potential(sim.calculator, r)
+    V = NQCCalculators.get_centroid_potential(sim.cache, r)
     ΔV = V[2,2] - V[1,1]
     Γ = 2π * V[2,1]^2
     f = DynamicsUtils.fermi(ΔV, NQCModels.fermilevel(sim), 1/get_temperature(sim))
@@ -33,7 +33,7 @@ end
 
 function DynamicsUtils.classical_potential_energy(sim::RingPolymerSimulation{<:CME}, u)
     r = DynamicsUtils.get_positions(u)
-    V = Calculators.get_potential(sim.calculator, r)
+    V = NQCCalculators.get_potential(sim.cache, r)
 
     potential = zero(eltype(r))
     for b in axes(r,3) # eachbead
@@ -47,8 +47,8 @@ function RingPolymerSimulation{BCME}(atoms::Atoms{T}, model, n_beads; bandwidth,
 end
 
 function DynamicsUtils.acceleration!(dv, v, r, sim::RingPolymerSimulation{<:BCME}, t)
-    ∂V = Calculators.get_derivative(sim.calculator, r)
-    V = Calculators.get_potential(sim.calculator, r)
+    ∂V = NQCCalculators.get_derivative(sim.cache, r)
+    V = NQCCalculators.get_potential(sim.cache, r)
     state = sim.method.state
 
     β = 1 / get_temperature(sim, t)

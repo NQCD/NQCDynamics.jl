@@ -1,6 +1,6 @@
 using Test
 using NQCDynamics
-using NQCDynamics: Calculators
+using NQCCalculators
 using OrdinaryDiffEq: Tsit5, MagnusMidpoint
 using Unitful, UnitfulAtomic
 
@@ -45,7 +45,7 @@ SurfaceHoppingMethods.set_unoccupied_states!(sim)
         avg[u.state] .+= 1
     end
     avg ./= samples
-    eigs = Calculators.get_centroid_eigen(sim.calculator, r)
+    eigs = NQCCalculators.get_centroid_eigen(sim.cache, r)
     occupations = NQCDistributions.fermi.(eigs.values, distribution.fermi_level, distribution.β)
 
     @test avg ≈ occupations atol = 0.2

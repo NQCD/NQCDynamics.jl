@@ -18,13 +18,13 @@ using NQCDynamics:
   get_ring_polymer_temperature,
   DynamicsUtils,
   RingPolymers,
-  Calculators,
   Estimators,
   DynamicsMethods,
   ndofs,
   nbeads,
   natoms,
   masses
+using NQCCalculators
 
 """
     run_advancedmh_sampling(sim, r, steps, σ; movement_ratio=nothing, movement_ratio_internal=nothing, kwargs...)
@@ -104,8 +104,8 @@ function get_deriv_function(sim::Simulation)
   temperature = get_temperature(sim)
   function density_deriv(r)
     lπ = -DynamicsUtils.classical_potential_energy(sim, reshape(r, size(sim))) / temperature
-    Calculators.evaluate_derivative!(sim.calculator, reshape(r, size(sim)))
-    lπ_grad = -sim.calculator.derivative / temperature
+    NQCCalculators.evaluate_derivative!(sim.cache, reshape(r, size(sim)))
+    lπ_grad = -sim.cache.derivative / temperature
     return (lπ, lπ_grad[:])
   end
 end

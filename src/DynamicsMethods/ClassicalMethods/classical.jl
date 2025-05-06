@@ -57,14 +57,14 @@ end
 `f1` in `DifferentialEquations.jl` docs.
 """
 function acceleration!(dv, v, r, sim::AbstractSimulation, t)
-    Calculators.evaluate_derivative!(sim.calculator, r)
-    dv .= -sim.calculator.derivative
+    NQCCalculators.evaluate_derivative!(sim.cache, r)
+    dv .= -sim.cache.derivative
     DynamicsUtils.divide_by_mass!(dv, sim.atoms.masses)
 end
 
 function ring_polymer_acceleration!(dv, v, r, sim::RingPolymerSimulation, t)
-    Calculators.evaluate_derivative!(sim.calculator, r)
-    dv .= -sim.calculator.derivative
+    NQCCalculators.evaluate_derivative!(sim.cache, r)
+    dv .= -sim.cache.derivative
     DynamicsUtils.divide_by_mass!(dv, sim.atoms.masses)
     DynamicsUtils.apply_interbead_coupling!(dv, r, sim)
 end

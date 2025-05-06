@@ -8,9 +8,8 @@ using NQCDynamics:
     RingPolymerSimulation,
     DynamicsMethods,
     DynamicsUtils,
-    Calculators,
     natoms, nbeads, ndofs
-
+using NQCCalculators
 using OrdinaryDiffEq: OrdinaryDiffEq, OrdinaryDiffEqAlgorithm
 using StochasticDiffEq: StochasticDiffEq
 

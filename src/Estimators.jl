@@ -10,7 +10,6 @@ using NQCDynamics:
     AbstractSimulation,
     Simulation,
     RingPolymerSimulation,
-    Calculators,
     DynamicsUtils,
     RingPolymers,
     ndofs,
@@ -18,7 +17,7 @@ using NQCDynamics:
     nbeads,
     masses,
     get_ring_polymer_temperature
-
+using NQCCalculators
 using StatsBase: mean
 using ComponentArrays: ComponentVector
 using RingPolymerArrays: get_centroid
@@ -61,13 +60,13 @@ function potential_energy(sim::AbstractSimulation, u)
 end
 
 function potential_energy(sim::Simulation, r::AbstractMatrix)
-    Calculators.evaluate_potential!(sim.calculator, r)
-    sim.calculator.potential
+    NQCCalculators.evaluate_potential!(sim.cache, r)
+    sim.cache.potential
 end
 
 function potential_energy(sim::RingPolymerSimulation, r::AbstractArray{T,3}) where {T}
-    Calculators.evaluate_potential!(sim.calculator, r)
-    mean(sim.calculator.potential)
+    NQCCalculators.evaluate_potential!(sim.cache, r)
+    mean(sim.cache.potential)
 end
 
 """
@@ -88,12 +87,12 @@ end
 function kinetic_energy(sim::RingPolymerSimulation, r::AbstractArray{T,3}) where {T}
     centroid = get_centroid(r)
 
-    Calculators.evaluate_derivative!(sim.calculator, r)
+    NQCCalculators.evaluate_derivative!(sim.cache, r)
 
     kinetic = ndofs(sim) * natoms(sim) * get_ring_polymer_temperature(sim)
 
     for I in CartesianIndices(r)
-        kinetic += (r[I] - centroid[I[1], I[2]]) * sim.calculator.derivative[I] 
+        kinetic += (r[I] - centroid[I[1], I[2]]) * sim.cache.derivative[I] 
     end
 
     return kinetic / 2nbeads(sim)

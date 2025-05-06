@@ -4,7 +4,8 @@ using OrdinaryDiffEq
 using StaticArrays
 using LinearAlgebra: Eigen
 using Random: seed!
-using NQCDynamics: DynamicsMethods, DynamicsUtils, Calculators
+using NQCDynamics: DynamicsMethods, DynamicsUtils
+using NQCCalculators
 using NQCDynamics.SurfaceHoppingMethods: SurfaceHoppingMethods
 using NQCDynamics.DynamicsUtils: get_positions, get_velocities
 using Unitful
@@ -25,7 +26,7 @@ atoms = Atoms(2)
 
     DynamicsMethods.motion!(du, u, sim, 0.0)
 
-    coupling = Calculators.get_nonadiabatic_coupling(sim.calculator, r)
+    coupling = NQCCalculators.get_nonadiabatic_coupling(sim.cache, r)
     @test coupling ≈ -coupling'
 
     problem = ODEProblem(DynamicsMethods.motion!, u, (0.0, 1.0), sim)
@@ -65,7 +66,7 @@ atoms = Atoms(2)
     end
 
     @testset "calculate_potential_energy_change" begin
-        integrator.p.calculator.eigen = Eigen(SVector{2}([0.9, -0.3]), SMatrix{2,2}(1, 0, 0.0, 1))
+        integrator.p.cache.eigen = Eigen(SVector{2}([0.9, -0.3]), SMatrix{2,2}(1, 0, 0.0, 1))
         eigs = DynamicsUtils.get_hopping_eigenvalues(integrator.p, DynamicsUtils.get_positions(integrator.u))
         @test 1.2 ≈ SurfaceHoppingMethods.calculate_potential_energy_change(eigs, 1, 2)
         @test -1.2 ≈ SurfaceHoppingMethods.calculate_potential_energy_change(eigs, 2, 1)
@@ -75,8 +76,8 @@ atoms = Atoms(2)
         r = get_positions(integrator.u)
         r .= rand()
         sim = integrator.p
-        calc = sim.calculator
-        Calculators.update_electronics!(calc, r)
+        calc = sim.cache
+        NQCCalculators.update_electronics!(calc, r)
         DynamicsUtils.get_velocities(integrator.u) .= 2 # Set high momentum to ensure successful hop
         integrator.u.state = 1
         integrator.p.method.new_state = 2
@@ -133,14 +134,14 @@ end
     end
 
     @testset "calculate_potential_energy_change" begin
-        integrator.p.calculator.centroid_eigen = Eigen(SVector{2}([0.9, -0.3]), SMatrix{2,2}(1, 0, 0.0, 1))
+        integrator.p.cache.centroid_eigen = Eigen(SVector{2}([0.9, -0.3]), SMatrix{2,2}(1, 0, 0.0, 1))
         eigs = DynamicsUtils.get_hopping_eigenvalues(integrator.p, DynamicsUtils.get_positions(integrator.u))
         @test 1.2 ≈ SurfaceHoppingMethods.calculate_potential_energy_change(eigs, 1, 2)
         @test -1.2 ≈ SurfaceHoppingMethods.calculate_potential_energy_change(eigs, 2, 1)
     end
 
     @testset "execute_hop!" begin
-        Calculators.update_electronics!(integrator.p.calculator, get_positions(integrator.u))
+        NQCCalculators.update_electronics!(integrator.p.cache, get_positions(integrator.u))
         get_velocities(integrator.u) .= 5 # Set high momentum to ensure successful hop
         integrator.u.state = 1
         integrator.p.method.new_state = 2

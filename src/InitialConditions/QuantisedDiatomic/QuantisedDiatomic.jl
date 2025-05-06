@@ -31,7 +31,8 @@ using TimerOutputs: TimerOutputs, @timeit
 using ProgressMeter
 using Interpolations: interpolate, BSpline, Cubic, Line, OnGrid, scale, hessian, knots
 
-using NQCDynamics: Simulation, Calculators, DynamicsUtils, masses
+using NQCDynamics: Simulation, DynamicsUtils, masses
+using NQCCalculators
 using NQCBase: Atoms, PeriodicCell, InfiniteCell
 using NQCModels: NQCModels
 using NQCModels.AdiabaticModels: AdiabaticModel
@@ -105,7 +106,7 @@ function generate_configurations(sim, ν, J;
     generation = GenerationParameters(direction, austrip(translational_energy), samples)
     environment = EvaluationEnvironment(atom_indices, size(sim), slab, austrip(height), surface_normal)
 
-    binding_curve = calculate_binding_curve(bond_lengths, sim.calculator.model, environment)
+    binding_curve = calculate_binding_curve(bond_lengths, sim.cache.model, environment)
     plot_binding_curve(binding_curve.bond_lengths, binding_curve.potential, binding_curve.fit)
 
     V = EffectivePotential(μ, J, binding_curve, langer_modification)
@@ -270,7 +271,7 @@ function binding_curve_from_structure(sim::Simulation, v::Matrix, r::Matrix;
     v, slab_v = separate_slab_and_molecule(atom_indices, v)
     environment = EvaluationEnvironment(atom_indices, size(sim), slab, austrip(height), surface_normal)
 
-    binding_curve = calculate_binding_curve(bond_lengths, sim.calculator.model, environment)
+    binding_curve = calculate_binding_curve(bond_lengths, sim.cache.model, environment)
     @debug "Finished generating binding curve for the given potential."
 
     return binding_curve
@@ -422,7 +423,7 @@ function quantise_diatomic(sim::Simulation, v::Matrix, r::Matrix, binding_curve:
 
     k = DynamicsUtils.classical_kinetic_energy(masses(sim)[atom_indices], v_com)
     @debug "Diatomic Kinetic energy: $(auconvert(u"eV", k))"
-    p = calculate_diatomic_energy(bond_length(r_com), sim.calculator.model, environment)
+    p = calculate_diatomic_energy(bond_length(r_com), sim.cache.model, environment)
     @debug "Diatomic Potential energy: $(auconvert(u"eV", p))"
     E = k + p
 

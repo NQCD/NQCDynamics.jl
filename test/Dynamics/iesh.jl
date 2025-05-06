@@ -3,7 +3,8 @@ using NQCDynamics
 using LinearAlgebra
 using Random: rand!
 using Distributions
-using NQCDynamics: DynamicsMethods, DynamicsUtils, Calculators
+using NQCDynamics: DynamicsMethods, DynamicsUtils
+using NQCCalculators
 using NQCDynamics.DynamicsMethods: SurfaceHoppingMethods
 using OrdinaryDiffEq
 using ComponentArrays
@@ -49,7 +50,7 @@ SurfaceHoppingMethods.set_unoccupied_states!(sim)
         avg[u.state] .+= 1
     end
     avg ./= samples
-    eigs = Calculators.get_eigen(sim.calculator, r)
+    eigs = NQCCalculators.get_eigen(sim.cache, r)
     occupations = NQCDistributions.fermi.(eigs.values, distribution.fermi_level, distribution.β)
 
     @test avg ≈ occupations atol = 0.2
@@ -72,7 +73,7 @@ end
 end
 
 @testset "evaluate_v_dot_d!" begin
-    d = Calculators.get_nonadiabatic_coupling(sim.calculator, r)
+    d = NQCCalculators.get_nonadiabatic_coupling(sim.cache, r)
     SurfaceHoppingMethods.evaluate_v_dot_d!(sim, v, d)
 end
 
@@ -101,7 +102,7 @@ end
 end
 
 @testset "evaluate_hopping_probability!" begin
-    Calculators.update_electronics!(sim.calculator, hcat(20.0))
+    NQCCalculators.update_electronics!(sim.cache, hcat(20.0))
     z = deepcopy(u)
     ψ = DynamicsUtils.get_quantum_subsystem(z)
     rand!(ψ)
@@ -119,7 +120,7 @@ end
     final_state = collect(1:n_electrons)
     final_state[end] = final_state[end] + 1
 
-    Calculators.update_electronics!(integrator.p.calculator, get_positions(integrator.u))
+    NQCCalculators.update_electronics!(integrator.p.cache, get_positions(integrator.u))
     DynamicsUtils.get_velocities(integrator.u) .= 2 # Set high momentum to ensure successful hop
     integrator.u.state .= initial_state
     integrator.p.method.new_state .= final_state

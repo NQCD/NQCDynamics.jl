@@ -76,20 +76,20 @@ end
 
 """
 
-function StochasticDiffEq.initialize!(integrator, cache::MDEF_BAOABConstantCache)
+function StochasticDiffEq.initialize!(integrator, integrator_cache::MDEF_BAOABConstantCache)
     @unpack t,uprev,p = integrator
     du1 = uprev.x[1]
     u1 = uprev.x[2]
 
-    cache.k .= integrator.f.f1(du1,u1,p,t)
+    integrator_cache.k .= integrator.f.f1(du1,u1,p,t)
 end
 
-function StochasticDiffEq.initialize!(integrator, cache::MDEF_BAOABCache)
+function StochasticDiffEq.initialize!(integrator, integrator_cache::MDEF_BAOABCache)
     @unpack t,uprev,p = integrator
     du1 = integrator.uprev.x[1]
     u1 = integrator.uprev.x[2]
 
-    integrator.f.f1(cache.k,du1,u1,p,t)
+    integrator.f.f1(integrator_cache.k,du1,u1,p,t)
 end
 
 """
@@ -115,9 +115,9 @@ end
              
 """
 
-@muladd function StochasticDiffEq.perform_step!(integrator,cache::MDEF_BAOABConstantCache,f=integrator.f)
+@muladd function StochasticDiffEq.perform_step!(integrator, integrator_cache::MDEF_BAOABConstantCache, f=integrator.f)
     @unpack t,dt,sqdt,uprev,p,W = integrator
-    @unpack k, half = cache
+    @unpack k, half = integrator_cache
     du1 = uprev.x[1]
     u1 = uprev.x[2]
 
@@ -156,9 +156,9 @@ end
     Before the checking, you are recommonded to read the function with ConstantCache input first.
 """
 
-@muladd function StochasticDiffEq.perform_step!(integrator,cache::MDEF_BAOABCache,f=integrator.f)
+@muladd function StochasticDiffEq.perform_step!(integrator, integrator_cache::MDEF_BAOABCache, f=integrator.f)
     @unpack t,dt,sqdt,uprev,u,p,W = integrator
-    @unpack utmp, dutmp, k, half, gtmp = cache
+    @unpack utmp, dutmp, k, half, gtmp = integrator_cache
     du1 = uprev.x[1]
     u1 = uprev.x[2]
 
@@ -167,7 +167,7 @@ end
     step_A!(utmp, u1, half*dt, dutmp)
 
     integrator.g(gtmp,utmp,p,t+dt*half)
-    step_O!(cache, integrator)
+    step_O!(integrator_cache, integrator)
 
     step_A!(u.x[2], utmp, half*dt, dutmp)
 

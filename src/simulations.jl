@@ -2,19 +2,20 @@
 using Unitful: @u_str
 using UnitfulAtomic: austrip, auconvert
 
-using .Calculators: AbstractCalculator, Calculator
+using NQCCalculators
 using NQCModels: Model, Subsystem, CompositeModel
 
 abstract type AbstractSimulation{M} end
 
 Base.broadcastable(sim::AbstractSimulation) = Ref(sim)
 
-struct Simulation{M,Calc,T,Ttype,C} <: AbstractSimulation{M}
+struct Simulation{M,Cache,T,Ttype,C,S} <: AbstractSimulation{M}
     temperature::Ttype
     cell::C
     atoms::Atoms{T}
-    calculator::Calc
+    cache::Cache
     method::M
+    solver::S
 end
 
 """
@@ -25,8 +26,8 @@ Simulation parameters that controls the types of atoms, interactions,
 dynamics method, temperature and simulation cell.
 """
 function Simulation(atoms::Atoms{T}, model::Model, method::M;
-        temperature=0u"K", cell::AbstractCell=InfiniteCell()) where {M,T}
-    calc = Calculator(model, length(atoms), T)
+        temperature=0u"K", cell::AbstractCell=InfiniteCell(), solver::Symbol=:exact) where {M,T}
+    cache = Create_Cache(model, length(atoms), T)
     # If a thermostat is provided, check it covers the whole system. 
     isa(temperature, TemperatureSetting{Vector{Int}}) ? throw(DomainError(temperature, "TemperatureSetting must apply to all atoms.")) : nothing
     # If multiple TemperatureSettings are provided, check that each atom only has one thermostat applied to it.
@@ -39,21 +40,22 @@ function Simulation(atoms::Atoms{T}, model::Model, method::M;
             throw(DomainError(temperature, "Atoms can only have one thermostat applied to them."))
         end
     end
-    Simulation(temperature, cell, atoms, calc, method)
+    Simulation(temperature, cell, atoms, cache, method, solver)
 end
 
-struct RingPolymerSimulation{M,Calc,T,Ttype,C,B} <: AbstractSimulation{M}
+struct RingPolymerSimulation{M,Cache,T,Ttype,C,B,S} <: AbstractSimulation{M}
     temperature::Ttype
     cell::C
     atoms::Atoms{T}
-    calculator::Calc
+    cache::Cache
     method::M
     beads::B
+    solver::S
 end
 
 function RingPolymerSimulation(temperature, cell::AbstractCell,
         atoms::Atoms{T}, model::Model, method::M,
-        n_beads::Integer, quantum_nuclei::Vector{Symbol}) where {M,T}
+        n_beads::Integer, quantum_nuclei::Vector{Symbol}; solver::Symbol=:exact) where {M,T}
         
     if isempty(quantum_nuclei)
         beads = RingPolymers.RingPolymerParameters{T}(n_beads, get_temperature(temperature), length(atoms))
@@ -61,25 +63,25 @@ function RingPolymerSimulation(temperature, cell::AbstractCell,
         beads = RingPolymers.RingPolymerParameters{T}(n_beads, get_temperature(temperature), atoms.types, quantum_nuclei)
     end
     
-    calc = Calculator(model, length(atoms), n_beads, T)
-    RingPolymerSimulation(temperature, cell, atoms, calc, method, beads)
+    cache = Create_Cache(model, length(atoms), n_beads, T)
+    RingPolymerSimulation(temperature, cell, atoms, cache, method, beads, solver)
 end
 
 function RingPolymerSimulation(atoms::Atoms, model::Model, method::M, n_beads::Integer;
         temperature=0,
-        cell::AbstractCell=InfiniteCell(), quantum_nuclei::Vector{Symbol}=Symbol[]) where {M}
-    RingPolymerSimulation(temperature, cell, atoms, model, method, n_beads, quantum_nuclei)
+        cell::AbstractCell=InfiniteCell(), quantum_nuclei::Vector{Symbol}=Symbol[], solver::Symbol=:exact) where {M}
+    RingPolymerSimulation(temperature, cell, atoms, model, method, n_beads, quantum_nuclei; solver=solver)
 end
 
-NQCModels.nstates(sim::AbstractSimulation) = NQCModels.nstates(sim.calculator)
-NQCModels.eachstate(sim::AbstractSimulation) = NQCModels.eachstate(sim.calculator)
-NQCModels.nelectrons(sim::AbstractSimulation) = NQCModels.nelectrons(sim.calculator)
-NQCModels.eachelectron(sim::AbstractSimulation) = NQCModels.eachelectron(sim.calculator)
-NQCModels.mobileatoms(sim::AbstractSimulation) = NQCModels.mobileatoms(sim.calculator)
-NQCModels.dofs(sim::AbstractSimulation) = NQCModels.dofs(sim.calculator)
-NQCModels.fermilevel(sim::AbstractSimulation) = NQCModels.fermilevel(sim.calculator)
+NQCModels.nstates(sim::AbstractSimulation) = NQCModels.nstates(sim.cache)
+NQCModels.eachstate(sim::AbstractSimulation) = NQCModels.eachstate(sim.cache)
+NQCModels.nelectrons(sim::AbstractSimulation) = NQCModels.nelectrons(sim.cache)
+NQCModels.eachelectron(sim::AbstractSimulation) = NQCModels.eachelectron(sim.cache)
+NQCModels.mobileatoms(sim::AbstractSimulation) = NQCModels.mobileatoms(sim.cache)
+NQCModels.dofs(sim::AbstractSimulation) = NQCModels.dofs(sim.cache)
+NQCModels.fermilevel(sim::AbstractSimulation) = NQCModels.fermilevel(sim.cache)
 
-NQCModels.ndofs(sim::AbstractSimulation) = NQCModels.ndofs(sim.calculator.model)
+NQCModels.ndofs(sim::AbstractSimulation) = NQCModels.ndofs(sim.cache.model)
 natoms(sim::AbstractSimulation) = length(sim.atoms)
 RingPolymers.nbeads(sim::RingPolymerSimulation) = RingPolymers.nbeads(sim.beads)
 masses(sim::AbstractSimulation) = sim.atoms.masses
@@ -104,11 +106,11 @@ function get_ring_polymer_temperature(sim::RingPolymerSimulation, t::Real=0)
 end
 
 function Base.show(io::IO, sim::Simulation{M}) where {M}
-    print(io, "Simulation{$M}:\n  ", sim.atoms, "\n  ", sim.calculator.model)
+    print(io, "Simulation{$M}:\n  ", sim.atoms, "\n  ", sim.cache.model)
 end
 
 function Base.show(io::IO, sim::RingPolymerSimulation{M}) where {M}
-    print(io, "RingPolymerSimulation{$M}:\n\n  ", sim.atoms, "\n\n  ", sim.calculator.model,
+    print(io, "RingPolymerSimulation{$M}:\n\n  ", sim.atoms, "\n\n  ", sim.cache.model,
           "\n  with ", length(sim.beads), " beads.")
 end
 

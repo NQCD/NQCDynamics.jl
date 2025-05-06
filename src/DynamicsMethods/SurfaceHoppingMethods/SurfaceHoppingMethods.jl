@@ -18,11 +18,11 @@ using NQCDynamics:
     AbstractSimulation,
     Simulation,
     RingPolymerSimulation,
-    Calculators,
     DynamicsMethods,
     DynamicsUtils,
     Estimators,
     ndofs
+using NQCCalculators
 using NQCModels: NQCModels, Model
 using NQCBase: Atoms
 
@@ -63,7 +63,7 @@ function DynamicsMethods.motion!(du, u, sim::Simulation{<:SurfaceHopping}, t)
     set_state!(u, sim.method.state) # Make sure the state variables match, 
 
     DynamicsUtils.velocity!(dr, v, r, sim, t) # Set the velocity
-    Calculators.update_electronics!(sim.calculator, r) # Calculate electronic quantities
+    NQCCalculators.update_electronics!(sim.cache, r) # Calculate electronic quantities
     DynamicsUtils.acceleration!(dv, v, r, sim, t, sim.method.state) # Set the acceleration
     DynamicsUtils.set_quantum_derivative!(dσ, u, sim)
 end
@@ -87,19 +87,19 @@ function DynamicsMethods.create_problem(u0, tspan, sim::AbstractSimulation{<:Sur
 end
 
 function DynamicsUtils.get_hopping_eigenvalues(sim::Simulation, r::AbstractMatrix)
-    return Calculators.get_eigen(sim.calculator, r).values
+    return NQCCalculators.get_eigen(sim.cache, r).values
 end
 
 function DynamicsUtils.get_hopping_eigenvalues(sim::RingPolymerSimulation, r::AbstractArray{T,3}) where {T}
-    return Calculators.get_centroid_eigen(sim.calculator, r).values
+    return NQCCalculators.get_centroid_eigen(sim.cache, r).values
 end
 
 function DynamicsUtils.get_hopping_nonadiabatic_coupling(sim::Simulation, r::AbstractMatrix)
-    return Calculators.get_nonadiabatic_coupling(sim.calculator, r)
+    return NQCCalculators.get_nonadiabatic_coupling(sim.cache, r)
 end
 
 function DynamicsUtils.get_hopping_nonadiabatic_coupling(sim::RingPolymerSimulation, r::AbstractArray{T,3}) where {T}
-    return Calculators.get_centroid_nonadiabatic_coupling(sim.calculator, r)
+    return NQCCalculators.get_centroid_nonadiabatic_coupling(sim.cache, r)
 end
 
 function DynamicsUtils.get_hopping_velocity(::Simulation, v::AbstractMatrix)
