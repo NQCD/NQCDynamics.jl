@@ -5,11 +5,11 @@ using QuadGK: QuadGK
 abstract type ClassicalMasterEquation <: SurfaceHopping end
 
 function DynamicsMethods.motion!(du, u, sim::Simulation{<:ClassicalMasterEquation}, t)
-    dr = du.r
-    dv = du.v
+    dr = DynamicsUtils.get_positions(du.x[1])
+    dv = DynamicsUtils.get_velocities(du.x[1])
 
-    r = u.r
-    v = u.v
+    r = DynamicsUtils.get_positions(u.x[1])
+    v = DynamicsUtils.get_velocities(u.x[1])
 
     set_state!(u, sim.method.state) # Make sure the state variables match, 
 
@@ -23,7 +23,7 @@ function DynamicsMethods.DynamicsVariables(::AbstractSimulation{<:ClassicalMaste
 end
 
 function evaluate_hopping_probability!(sim::Simulation{<:ClassicalMasterEquation}, u, dt)
-    r = u.r
+    r = DynamicsUtils.get_positions(u.x[1])
     V = Calculators.get_potential(sim.calculator, r)
     ΔV = V[2,2] - V[1,1]
     Γ = 2π * V[2,1]^2
@@ -89,7 +89,7 @@ function DynamicsUtils.acceleration!(dv, v, r, sim::AbstractSimulation{<:CME}, t
 end
 
 function DynamicsUtils.classical_potential_energy(sim::Simulation{<:CME}, u)
-    V = Calculators.get_potential(sim.calculator, u.r)
+    V = Calculators.get_potential(sim.calculator, DynamicsUtils.get_positions(u))
     return V[u.state, u.state]
 end
 

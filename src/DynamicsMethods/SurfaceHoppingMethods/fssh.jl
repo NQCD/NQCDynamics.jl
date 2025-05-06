@@ -44,8 +44,7 @@ function DynamicsMethods.DynamicsVariables(
 )
     σ = DynamicsUtils.initialise_adiabatic_density_matrix(electronic, sim.calculator, r)
     state = sample(Weights(diag(real.(σ))))
-    # nt = (x = ComponentVector(v=v, r=r, σreal=σ, σimag=zero(σ)), state = state)
-    nt = (v=v, r=r, σreal=σ, σimag=zero(σ), state = state)
+    nt = (x = ComponentVector(v=v, r=r, σreal=σ, σimag=zero(σ)), state = state)
     return NamedArrayPartition(nt)
 end
 
@@ -69,10 +68,10 @@ Evaluates the probability of hopping from the current state to all other states
 - 'd' is skew-symmetric so here the indices are important.
 """
 function evaluate_hopping_probability!(sim::AbstractSimulation{<:FSSH}, u, dt)
-    v = DynamicsUtils.get_hopping_velocity(sim, u.v)
-    σ = StructArray{Complex{eltype(u.σreal)}}((u.σreal, u.σimag))
+    v = DynamicsUtils.get_hopping_velocity(sim, DynamicsUtils.get_velocities(u.x[1]))
+    σ = DynamicsUtils.get_quantum_subsystem(u.x[1])
     s = sim.method.state
-    r = u.r
+    r = DynamicsUtils.get_positions(u.x[1])
     d = DynamicsUtils.get_hopping_nonadiabatic_coupling(sim, r)
 
     fewest_switches_probability!(sim.method.hopping_probability, v, σ, s, d, dt)
@@ -115,24 +114,24 @@ function unpack_states(sim::AbstractSimulation{<:FSSH})
 end
 
 function Estimators.diabatic_population(sim::AbstractSimulation{<:FSSH}, u)
-    r = u.r
+    r = DynamicsUtils.get_positions(u.x[1])
     U = DynamicsUtils.evaluate_transformation(sim.calculator, r)
 
-    σ = copy(StructArray{Complex{eltype(u.σreal)}}((u.σreal, u.σimag)).re)
+    σ = copy(DynamicsUtils.get_quantum_subsystem(u.x[1]).re)
     σ[diagind(σ)] .= 0
-    σ[u.state, u.state] = 1
+    σ[u.x[2], u.x[2]] = 1
 
     return diag(U * σ * U')
 end
 
 function Estimators.adiabatic_population(sim::AbstractSimulation{<:FSSH}, u)
     population = zeros(NQCModels.nstates(sim.calculator.model))
-    population[u.state] = 1
+    population[u.x[2]] = 1
     return population
 end
 
 function DynamicsUtils.classical_potential_energy(sim::Simulation{<:FSSH}, u)
-    eigs = Calculators.get_eigen(sim.calculator, u.r)
-    potential = eigs.values[u.state]
+    eigs = Calculators.get_eigen(sim.calculator, DynamicsUtils.get_positions(u.x[1]))
+    potential = eigs.values[u.x[2]]
     return potential
 end
