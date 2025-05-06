@@ -11,6 +11,7 @@ using ComponentArrays: ComponentVector
 using DiffEqBase: DiffEqBase
 using LinearAlgebra: LinearAlgebra, lmul!
 using OrdinaryDiffEq: OrdinaryDiffEq
+using RingPolymerArrays: get_centroid
 
 using NQCDynamics:
     NQCDynamics,
@@ -92,6 +93,23 @@ end
 function DynamicsUtils.get_hopping_eigenvalues(sim::RingPolymerSimulation, r::AbstractArray{T,3}) where {T}
     return Calculators.get_centroid_eigen(sim.calculator, r).values
 end
+
+function DynamicsUtils.get_hopping_nonadiabatic_coupling(sim::Simulation, r::AbstractMatrix)
+    return Calculators.get_nonadiabatic_coupling(sim.calculator, r)
+end
+
+function DynamicsUtils.get_hopping_nonadiabatic_coupling(sim::RingPolymerSimulation, r::AbstractArray{T,3}) where {T}
+    return Calculators.get_centroid_nonadiabatic_coupling(sim.calculator, r)
+end
+
+function DynamicsUtils.get_hopping_velocity(::Simulation, v::AbstractMatrix)
+    return v
+end
+
+function DynamicsUtils.get_hopping_velocity(::RingPolymerSimulation, v::AbstractArray{T,3}) where {T}
+    return get_centroid(v)
+end
+
 
 include("decoherence_corrections.jl")
 include("surface_hopping.jl")

@@ -1,7 +1,10 @@
 name = "NQCDynamics"
 uuid = "36248dfb-79eb-4f4d-ab9c-e29ea5f33e14"
 authors = ["James <james.gardner1421@gmail.com>"]
-version = "0.14.0"
+
+
+version = "0.15.1"
+
 
 [deps]
 AdvancedHMC = "0bf59076-c3b1-5ca4-86bd-e02cd72cde3d"
@@ -46,6 +49,9 @@ UnicodePlots = "b8865327-cd53-5732-bb35-84acbb429228"
 Unitful = "1986cc42-f94f-5a68-af5c-568840ba703d"
 UnitfulAtomic = "a7773ee8-282e-5fa2-be4e-bd808c38a91a"
 
+[weakdeps]
+MACEModels = "29bafc4c-4f38-420f-a153-8a5a5e0bd5f6"
+
 [compat]
 AdvancedHMC = "0.5, 0.6"
 AdvancedMH = "0.8"
@@ -54,11 +60,10 @@ DEDataArrays = "0.2"
 Dictionaries = "0.3, 0.4"
 DiffEqBase = "6"
 Distributions = "0.25"
-FastBroadcast = "0.1, 0.2"
+FastBroadcast = "0.1, 0.2, 0.3"
 FastLapackInterface = "1, 2"
 HDF5 = "0.15, 0.16, 0.17"
 Interpolations = "0.13, 0.14, 0.15"
-MKL_jll = "2023"
 MuladdMacro = "0.2"
 NQCBase = "0.2"
 NQCDistributions = "0.1"
@@ -80,13 +85,13 @@ StaticArrays = "1"
 Statistics = "1"
 StatsBase = "0.33, 0.34"
 StochasticDiffEq = "6"
-StructArrays = "0.6"
+StructArrays = "0.6, 0.7"
 TimerOutputs = "0.5"
 UnPack = "1"
 UnicodePlots = "2, 3"
 Unitful = "1"
 UnitfulAtomic = "1"
-julia = "1.7"
+julia = "≥1.9"
 
 [extras]
 CSV = "336ed68f-0bac-5ca0-87d4-7b16caf5d00b"
@@ -106,20 +111,4 @@ Symbolics = "0c5d862f-8b57-4792-8d23-62f2024744c7"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]
-test = [
-    "Test",
-    "SafeTestsets",
-    "CSV",
-    "DataFrames",
-    "DiffEqNoiseProcess",
-    "FiniteDiff",
-    "DiffEqDevTools",
-    "Logging",
-    "MKL",
-    "PythonCall",
-    "JuLIP",
-    "Symbolics",
-    "Statistics",
-    "Plots",
-    "JLD2",
-]
+test = ["Test", "SafeTestsets", "CSV", "DataFrames", "DiffEqNoiseProcess", "FiniteDiff", "DiffEqDevTools", "Logging", "MKL", "PythonCall", "JuLIP", "Symbolics", "Statistics", "Plots", "JLD2"]

@@ -32,6 +32,28 @@ sim = Simulation{Ehrenfest}(atoms, TullyModelOne(); temperature=0, cell=Infinite
 Here we have initialised the simulation parameters, including the default temperature and cell explicitly.
 `sim` takes the place of the `p` parameter seen throughout [DifferentialEquations](https://diffeq.sciml.ai/stable/).
 
+### Simulation Temperature
+
+The temperature of a simulation isn't used by some dynamics methods, but can always be included. 
+Methods such as [Langevin dynamics](@ref langevin-dynamics) or [MDEF](@ref mdef-dynamics) use temperature to determine the magnitude of random flucturations to preserve detailed balance. 
+
+The temperature for a simulation can be provided in three ways:
+
+**Fixed temperature**
+
+This can be a number, either in atomic units or a Unitful quantity (e.g. `300u"K"`). 
+
+**Temperature function**
+
+For time-dependent temperatures, the temperature can be set to a function. This function must take the time in Unitful `u"fs"` as an input and return a temperature in Unitful `u"K"`. 
+
+**Different temperatures per atom**
+
+If different parts of the simulated system should be affected by different effective temperatures, a `Vector` of [`TemperatureSetting`](@ref)s can be passed as the temperature argument. 
+However, only one temperature should be applied to each atom in the system. 
+
+### DynamicsVariables
+
 For [DifferentialEquations](https://diffeq.sciml.ai/stable/) to allow for a wide variety of solvers, 
 the input arrays [`DynamicsVariables`](@ref) must be [`AbstractArray`](https://docs.julialang.org/en/v1/manual/interfaces/#man-interface-array)s.
 In nonadiabatic dynamics simulations, we usually have different groups of variables that behave in particular ways.
@@ -56,6 +78,8 @@ structure.
 This helps to ensure each method follows a similar workflow, making it easy to switch between different methods.
 The output of this function takes the place of the `u` argument seen throughout
 [DifferentialEquations](https://diffeq.sciml.ai/stable/).
+
+### Running dynamics
 
 With both the [`Simulation`](@ref) and [`DynamicsVariables`](@ref) in hand,
 the central function is [`run_dynamics`](@ref) which allows us to perform a single dynamics trajectory.
