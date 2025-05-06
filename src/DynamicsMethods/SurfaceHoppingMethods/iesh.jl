@@ -93,8 +93,7 @@ function DynamicsMethods.DynamicsVariables(sim::AbstractSimulation{<:AdiabaticIE
         ψ[i,i] = 1
     end
     state = collect(eachelectron(sim))
-    nt = (x = ComponentVector(v=v, r=r, σreal=ψ, σimag=zero(ψ)), state = state)
-    NamedArrayPartition(nt)
+    ArrayPartition(ComponentVector(v=v, r=r, σreal=ψ, σimag=zero(ψ)), state)
 end
 
 function DynamicsMethods.DynamicsVariables(sim::AbstractSimulation{<:AdiabaticIESH}, v, r, electronic::FermiDiracState{Adiabatic})
@@ -119,8 +118,7 @@ function DynamicsMethods.DynamicsVariables(sim::AbstractSimulation{<:AdiabaticIE
         ψ[j,i] = 1
     end
 
-    nt = (x = ComponentVector(v=v, r=r, σreal=ψ, σimag=zero(ψ)), state = state)
-    NamedArrayPartition(nt)
+    ArrayPartition(ComponentVector(v=v, r=r, σreal=ψ, σimag=zero(ψ)), state)
 end
 
 function DynamicsMethods.create_problem(u0, tspan, sim::AbstractSimulation{<:AbstractIESH})
@@ -175,8 +173,7 @@ function DynamicsMethods.DynamicsVariables(sim::Simulation{<:AdiabaticIESH}, v, 
 
     sort!(adiabatic_state)
 
-    nt = (x = ComponentVector(v=v, r=r, σreal=ψ, σimag=zero(ψ)), state = adiabatic_state)
-    NamedArrayPartition(nt)
+    ArrayPartition(ComponentVector(v=v, r=r, σreal=ψ, σimag=zero(ψ)), adiabatic_state)
 end
 
 """
