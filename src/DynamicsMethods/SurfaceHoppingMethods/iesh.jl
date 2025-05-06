@@ -3,7 +3,7 @@ using Unitful, UnitfulAtomic
 using MuladdMacro: @muladd
 using NQCDynamics: FastDeterminant
 using NQCModels: eachelectron, eachstate, mobileatoms, dofs
-using NQCDistributions: FermiDiracState, Adiabatic, Diabatic, NonEqState
+using NQCDistributions: FermiDiracState, Adiabatic, Diabatic, NonEqState, DensityMatrix, Binary
 using StatsBase: sample, Weights
 using FastLapackInterface: FastLapackInterface
 using SciMLBase: SciMLBase
@@ -157,6 +157,9 @@ function DynamicsMethods.create_problem(u0, tspan, sim::AbstractSimulation{<:Abs
         callback=DynamicsMethods.get_callbacks(sim))
 end
 
+"""
+!! Unsupported !!.
+"""
 function DynamicsMethods.DynamicsVariables(sim::Simulation{<:AdiabaticIESH}, v, r, electronic::FermiDiracState{Diabatic})
     ef_model = NQCModels.fermilevel(sim)
     ef_distribution = electronic.fermi_level
@@ -169,10 +172,8 @@ function DynamicsMethods.DynamicsVariables(sim::Simulation{<:AdiabaticIESH}, v, 
         """
     ))
 
-    available_states = get_available_states(electronic.available_states, NQCModels.nstates(sim))
-
     potential = Calculators.get_potential(sim.calculator, r)
-    energies = @view potential[diagind(potential)]
+    energies = @view potential[diagind(potential)] # obtains diagonal of potential
 
     available_states = get_available_states(electronic.available_states, NQCModels.nstates(sim))
     diabatic_state = sample_fermi_dirac_distribution(energies, NQCModels.nelectrons(sim), available_states, electronic.β)
@@ -204,6 +205,42 @@ function DynamicsMethods.DynamicsVariables(sim::Simulation{<:AdiabaticIESH}, v, 
 
     SurfaceHoppingVariables(ComponentVector(v=v, r=r, σreal=ψ, σimag=zero(ψ)), adiabatic_state)
 end
+
+# ------------------------------------------------------------------------------------------------ #
+# Want to create another version of this that takes statistical occupation 
+
+function DynamicsMethods.DynamicsVariables(sim::Simulation{<:AdiabaticIESH}, v, r, electronic::DenseMatrix{Binary})
+    ef_model = NQCModels.fermilevel(sim)
+    ef_distribution = electronic.fermi_level
+    ef_model ≈ ef_distribution || throw(error(
+        """
+        Fermi level of model and distribution do not match:
+            Distribution: $(ef_distribution)
+            Model: $(ef_model)
+        Change one of them to make them the same.
+        """
+    ))
+
+    eigs =  Calculators.get_eigen(sim.calculator, r)
+    U = eigs.vectors # use this for transforming from diabatic to adiabaitic
+    λ = eigs.values # use this as energies for sampling the fermi dirac distribution
+
+
+    available_states = get_available_states(electronic.available_states, NQCModels.nstates(sim))
+    adiabatic_state = sample_fermi_dirac_distribution(λ, NQCModels.nelectrons(sim), available_states, electronic.β) # creates binary sample of Fermi-Dirac distribution based on adiabatic eigenvalues
+
+
+    ρ_adiabaitc = zeros(available_states, available_states) # adiabatic density matrix
+    for i in adiabatic_state 
+        ρ_adiabatic[i,i] = 1
+    end
+
+    ρ_diabatic = Complex.(U * ρ_adiabaitc * U') # tranform adiabaitic ρ to diabatic representation
+
+
+    SurfaceHoppingVariables(ComponentVector(v=v, r=r, σreal=ρ_diabatic, σimag=zero(ρ_diabatic)), adiabatic_state)
+end
+# ------------------------------------------------------------------------------------------------ #
 
 """
 Set the acceleration due to the force from the currently occupied states.

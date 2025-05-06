@@ -47,12 +47,14 @@ end
 
 
 
+# ----------------------------------- from `large_diabatic.jl` ----------------------------------- #
 
+# `get_adiabatic_derivative()` calls this function when updating
 function evaluate_adiabatic_derivative!(calc::DensityMatrixCalculator, r)
     calc.stats[:adiabatic_derivative] += 1
     eigen = get_eigen(calc, r)
-    derivative = get_derivative(calc, r)
-    @inbounds for i in NQCModels.mobileatoms(calc)
+    derivative = get_derivative(calc, r) # calculate derivated of chosen model
+    @inbounds for i in NQCModels.(calc)
         for j in NQCModels.dofs(calc)
             LinearAlgebra.mul!(calc.tmp_mat, derivative[j,i], eigen.vectors)
             LinearAlgebra.mul!(calc.adiabatic_derivative[j,i], eigen.vectors', calc.tmp_mat)
@@ -60,6 +62,7 @@ function evaluate_adiabatic_derivative!(calc::DensityMatrixCalculator, r)
     end
 end
 
+# `get_nonadiabatic_coupling()` calls this function when updating
 function evaluate_nonadiabatic_coupling!(calc::DensityMatrixCalculator, r)
     calc.stats[:nonadiabatic_coupling] += 1
     eigen = get_eigen(calc, r)
@@ -73,3 +76,4 @@ function evaluate_nonadiabatic_coupling!(calc::DensityMatrixCalculator, r)
         end
     end
 end
+# ------------------------------------------------------------------------------------------------ #

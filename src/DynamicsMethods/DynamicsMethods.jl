@@ -51,6 +51,9 @@ function motion! end
 create_problem(u0, tspan, sim) =
     OrdinaryDiffEq.ODEProblem(motion!, u0, tspan, sim; callback=get_callbacks(sim))
 
+create_problem(u0, tspan, sim, ::Any) =  
+    OrdinaryDiffEq.ODEProblem(frozen_nuclei!, u0, tspan, sim; callback=get_callbacks(sim))
+
 "Choose a default algorithm for solving the differential equation."
 select_algorithm(::AbstractSimulation) = OrdinaryDiffEq.VCABM5()
 

@@ -91,6 +91,7 @@ function run_dynamics(
     algorithm=DynamicsMethods.select_algorithm(sim),
     trajectories=1,
     savetime=true,
+    freeze_nuclei = false,
     kwargs...
 )
 
@@ -160,6 +161,7 @@ function detailed_run_dynamics(
     algorithm=DynamicsMethods.select_algorithm(sim),
     trajectories=1,
     savetime=true,
+    freeze_nuclei = false,
     kwargs...
 )
 

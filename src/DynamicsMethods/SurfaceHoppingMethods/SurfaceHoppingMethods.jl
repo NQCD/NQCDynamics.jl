@@ -6,12 +6,12 @@ Implementation for surface hopping methods.
 """
 module SurfaceHoppingMethods
 
-using DEDataArrays: DEDataArrays
+#using DEDataArrays: DEDataArrays
 using ComponentArrays: ComponentVector
 using DiffEqBase: DiffEqBase
 using LinearAlgebra: LinearAlgebra, lmul!
 using OrdinaryDiffEq: OrdinaryDiffEq
-# using RecursiveArrayTools: NamedArrayPartition
+#using RecursiveArrayTools: NamedArrayPartition
 
 using NQCDynamics:
     NQCDynamics,
@@ -25,20 +25,23 @@ using NQCDynamics:
 using NQCModels: NQCModels, Model
 using NQCBase: Atoms
 
-mutable struct SurfaceHoppingVariables{T,A,Axes,S} <: DEDataArrays.DEDataVector{T}
+#= mutable struct SurfaceHoppingVariables{T,A,Axes,S} <: DEDataArrays.DEDataVector{T}
     x::ComponentVector{T,A,Axes}
     state::S
-end
+end =#
 
-# mutable struct SurfaceHoppingVariables{T,S} <: NamedArrayPartition{T}
-#     # x::ComponentVector{T,A,Axes}
-#     x::T
-#     state::S
-# end
+#= mutable struct SurfaceHoppingVariables{T,A,Axes,S}
+    x::ComponentVector{T,A,Axes}
+    state::S
+end =#
 
 DynamicsUtils.get_velocities(u::SurfaceHoppingVariables) = DynamicsUtils.get_velocities(u.x)
 DynamicsUtils.get_positions(u::SurfaceHoppingVariables) = DynamicsUtils.get_positions(u.x)
 DynamicsUtils.get_quantum_subsystem(u::SurfaceHoppingVariables) = DynamicsUtils.get_quantum_subsystem(u.x)
+
+DynamicsUtils.get_velocities(u::NamedArrayPartition) = DynamicsUtils.get_velocities(u.x)
+DynamicsUtils.get_positions(u::NamedArrayPartition) = DynamicsUtils.get_positions(u.x)
+DynamicsUtils.get_quantum_subsystem(u::NamedArrayPartition) = DynamicsUtils.get_quantum_subsystem(u.x)
 
 """
 Abstract type for all surface hopping methods.
