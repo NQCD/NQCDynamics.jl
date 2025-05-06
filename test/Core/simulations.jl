@@ -1,8 +1,8 @@
 using Test
 using NQCDynamics
-using Unitful
+using Unitful, UnitfulAtomic
 using Distributions
-using PyCall
+using PythonCall
 
 atoms = Atoms([:C, :H])
 cell = InfiniteCell()

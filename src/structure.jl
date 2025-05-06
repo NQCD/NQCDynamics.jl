@@ -152,32 +152,32 @@ function minimum_distance_translation(config::AbstractVector, ind1::Int, ind2::I
     return minimum_distance_translation(get_positions(config),ind1,ind2,simulation.cell;cutoff=cutoff)
 end
 
-function pbc_distance(config::Matrix, ind1, ind2, sim::AbstractSimulation; args...)
+function pbc_distance(config::Matrix, ind1::int_or_index, ind2::int_or_index, sim::AbstractSimulation; args...)
     return pbc_distance(config,ind1,ind2,sim.cell; args...)
 end
 
-function pbc_distance(config::AbstractVector, ind1, ind2, sim::AbstractSimulation; args...)
+function pbc_distance(config::AbstractVector, ind1::int_or_index, ind2::int_or_index, sim::AbstractSimulation; args...)
     return pbc_distance(get_positions(config),ind1,ind2,sim.cell; args...)
 end
 
-function pbc_center_of_mass(config::Matrix, ind1, ind2, sim::AbstractSimulation; args...)
+function pbc_center_of_mass(config::Matrix, ind1::int_or_index, ind2::int_or_index, sim::AbstractSimulation; args...)
     return pbc_center_of_mass(config,ind1,ind2,sim.cell, sim.atoms; args...)
 end
 
-function pbc_center_of_mass(config::AbstractVector, ind1, ind2, sim::AbstractSimulation; args...)
+function pbc_center_of_mass(config::AbstractVector, ind1::int_or_index, ind2::int_or_index, sim::AbstractSimulation; args...)
     return pbc_center_of_mass(get_positions(config),ind1,ind2,sim.cell, sim.atoms; args...)
 end
 
-function velocity_center_of_mass(config::Matrix, ind1, ind2, sim::AbstractSimulation)
+function velocity_center_of_mass(config::Matrix, ind1::int_or_index, ind2::int_or_index, sim::AbstractSimulation)
     return velocity_center_of_mass(config,ind1,ind2, sim.atoms)
 end
 
-function velocity_center_of_mass(config::AbstractVector, ind1, ind2, sim::AbstractSimulation)
+function velocity_center_of_mass(config::AbstractVector, ind1::int_or_index, ind2::int_or_index, sim::AbstractSimulation)
     return velocity_center_of_mass(get_velocities(config),ind1,ind2, sim.atoms)
 end
 
 
-export minimum_distance_translation, pbc_distance, distance, angle_between, pbc_center_of_mass, velocity_center_of_mass, center_of_mass, OutputSubsetKineticEnergy, reduced_mass, fractional_mass
+export minimum_distance_translation, pbc_distance, distance, angle_between, pbc_center_of_mass, velocity_center_of_mass, center_of_mass, reduced_mass, fractional_mass
 
 
 end
