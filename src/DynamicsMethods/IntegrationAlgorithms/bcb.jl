@@ -18,7 +18,7 @@ function OrdinaryDiffEq.alg_cache(::BCB,u,rate_prototype,::Type{uEltypeNoUnits},
     BCBCache(u, uprev, k, tmp, fsalfirst, halfdt, cayley)
 end
 
-function OrdinaryDiffEq.verify_f2(f, res, p, q, pa, t, integrator, ::BCBCache)
+function OrdinaryDiffEq.OrdinaryDiffEqSymplecticRK.verify_f2(f, res, p, q, pa, t, integrator, ::BCBCache)
     f(res, p, q, pa, t)
     res == p ? res : OrdinaryDiffEq.throwex(integrator)
 end
