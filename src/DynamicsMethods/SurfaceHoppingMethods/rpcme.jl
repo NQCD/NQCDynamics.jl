@@ -1,10 +1,10 @@
 
 function DynamicsMethods.motion!(du, u, sim::RingPolymerSimulation{<:ClassicalMasterEquation}, t)
-    dr = DynamicsUtils.get_positions(du)
-    dv = DynamicsUtils.get_velocities(du)
+    dr = DynamicsUtils.get_positions(du.x)
+    dv = DynamicsUtils.get_velocities(du.x)
 
-    r = DynamicsUtils.get_positions(u)
-    v = DynamicsUtils.get_velocities(u)
+    r = DynamicsUtils.get_positions(u.x)
+    v = DynamicsUtils.get_velocities(u.x)
 
     set_state!(u, sim.method.state) # Make sure the state variables match, 
 

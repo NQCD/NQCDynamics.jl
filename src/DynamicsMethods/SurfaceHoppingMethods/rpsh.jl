@@ -10,13 +10,13 @@ function RingPolymerSimulation{FSSH}(atoms::Atoms{T}, model::Model, n_beads::Int
 end
 
 function DynamicsMethods.motion!(du, u, sim::RingPolymerSimulation{<:SurfaceHopping}, t)
-    dr = DynamicsUtils.get_positions(du)
-    dv = DynamicsUtils.get_velocities(du)
-    dσ = DynamicsUtils.get_quantum_subsystem(du)
+    dr = DynamicsUtils.get_positions(du.x)
+    dv = DynamicsUtils.get_velocities(du.x)
+    dσ = DynamicsUtils.get_quantum_subsystem(du.x)
 
-    r = DynamicsUtils.get_positions(u)
-    v = DynamicsUtils.get_velocities(u)
-    σ = DynamicsUtils.get_quantum_subsystem(u)
+    r = DynamicsUtils.get_positions(u.x)
+    v = DynamicsUtils.get_velocities(u.x)
+    σ = DynamicsUtils.get_quantum_subsystem(u.x)
 
     set_state!(u, sim.method.state) # Make sure the state variables match, 
 

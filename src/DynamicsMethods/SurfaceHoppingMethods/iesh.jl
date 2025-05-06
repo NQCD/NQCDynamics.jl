@@ -92,8 +92,8 @@ function DynamicsMethods.DynamicsVariables(sim::AbstractSimulation{<:AdiabaticIE
         ψ[i,i] = 1
     end
     state = collect(eachelectron(sim))
-
-    SurfaceHoppingVariables(ComponentVector(v=v, r=r, σreal=ψ, σimag=zero(ψ)), state)
+    nt = (x = ComponentVector(v=v, r=r, σreal=ψ, σimag=zero(ψ)), state = state)
+    NamedArrayPartition(nt)
 end
 
 function DynamicsMethods.DynamicsVariables(sim::AbstractSimulation{<:AdiabaticIESH}, v, r, electronic::FermiDiracState{Adiabatic})
@@ -118,7 +118,8 @@ function DynamicsMethods.DynamicsVariables(sim::AbstractSimulation{<:AdiabaticIE
         ψ[j,i] = 1
     end
 
-    SurfaceHoppingVariables(ComponentVector(v=v, r=r, σreal=ψ, σimag=zero(ψ)), state)
+    nt = (x = ComponentVector(v=v, r=r, σreal=ψ, σimag=zero(ψ)), state = state)
+    NamedArrayPartition(nt)
 end
 
 function DynamicsMethods.create_problem(u0, tspan, sim::AbstractSimulation{<:AbstractIESH})
@@ -173,7 +174,8 @@ function DynamicsMethods.DynamicsVariables(sim::Simulation{<:AdiabaticIESH}, v, 
 
     sort!(adiabatic_state)
 
-    SurfaceHoppingVariables(ComponentVector(v=v, r=r, σreal=ψ, σimag=zero(ψ)), adiabatic_state)
+    nt = (x = ComponentVector(v=v, r=r, σreal=ψ, σimag=zero(ψ)), state = adiabatic_state)
+    NamedArrayPartition(nt)
 end
 
 """
@@ -207,8 +209,8 @@ derivative one at a time, in the standard way for FSSH.
 """
 function DynamicsUtils.set_quantum_derivative!(dσ, u, sim::AbstractSimulation{<:AdiabaticIESH})
     v = DynamicsUtils.get_hopping_velocity(sim, DynamicsUtils.get_velocities(u))
-    σ = DynamicsUtils.get_quantum_subsystem(u)
-    r = DynamicsUtils.get_positions(u)
+    σ = DynamicsUtils.get_quantum_subsystem(u.x)
+    r = DynamicsUtils.get_positions(u.x)
     V = DynamicsUtils.get_hopping_eigenvalues(sim, r)
     d = DynamicsUtils.get_hopping_nonadiabatic_coupling(sim, r)
     @views for i in eachelectron(sim)
