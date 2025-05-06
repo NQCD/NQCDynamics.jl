@@ -7,6 +7,7 @@ using NQCDistributions: FermiDiracState, Adiabatic, Diabatic
 using StatsBase: sample, Weights
 using FastLapackInterface: FastLapackInterface
 using SciMLBase: SciMLBase
+using RecursiveArrayTools
 
 export AdiabaticIESH
 

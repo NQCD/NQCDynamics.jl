@@ -1,6 +1,7 @@
 using StatsBase: mean
 using NQCDynamics: masses
 using NQCDistributions: ElectronicDistribution
+using RecursiveArrayTools
 
 export FSSH
 
