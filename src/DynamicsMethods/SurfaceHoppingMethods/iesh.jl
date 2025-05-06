@@ -93,7 +93,8 @@ function DynamicsMethods.DynamicsVariables(sim::AbstractSimulation{<:AdiabaticIE
         ψ[i,i] = 1
     end
     state = collect(eachelectron(sim))
-    nt = (x = ComponentVector(v=v, r=r, σreal=ψ, σimag=zero(ψ)), state = state)
+    # nt = (x = ComponentVector(v=v, r=r, σreal=ψ, σimag=zero(ψ)), state = state)
+    nt = (v=v, r=r, σreal=ψ, σimag=zero(ψ), state = state)
     NamedArrayPartition(nt)
 end
 
@@ -119,7 +120,8 @@ function DynamicsMethods.DynamicsVariables(sim::AbstractSimulation{<:AdiabaticIE
         ψ[j,i] = 1
     end
 
-    nt = (x = ComponentVector(v=v, r=r, σreal=ψ, σimag=zero(ψ)), state = state)
+    # nt = (x = ComponentVector(v=v, r=r, σreal=ψ, σimag=zero(ψ)), state = state)
+    nt = (v=v, r=r, σreal=ψ, σimag=zero(ψ), state = state)
     NamedArrayPartition(nt)
 end
 
@@ -175,7 +177,8 @@ function DynamicsMethods.DynamicsVariables(sim::Simulation{<:AdiabaticIESH}, v, 
 
     sort!(adiabatic_state)
 
-    nt = (x = ComponentVector(v=v, r=r, σreal=ψ, σimag=zero(ψ)), state = adiabatic_state)
+    # nt = (x = ComponentVector(v=v, r=r, σreal=ψ, σimag=zero(ψ)), state = adiabatic_state)
+    nt = (v=v, r=r, σreal=ψ, σimag=zero(ψ), state = state)
     NamedArrayPartition(nt)
 end
 
