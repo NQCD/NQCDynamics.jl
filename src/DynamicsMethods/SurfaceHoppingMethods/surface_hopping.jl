@@ -16,7 +16,7 @@ function execute_hop!(integrator)
 end
 
 set_state!(container, new_state::Integer) = container.x[2] = new_state
-set_state!(container, new_state::AbstractVector) = copyto!(container.x[2], new_state)
+set_state!(container, new_state::AbstractVector) = copyto!(container.state, new_state)
 set_new_state!(container, new_state::Integer) = container.new_state = new_state
 set_new_state!(container, new_state::AbstractVector) = copyto!(container.new_state, new_state)
 
