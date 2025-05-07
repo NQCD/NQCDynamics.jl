@@ -6,7 +6,7 @@ Implementation for surface hopping methods.
 """
 module SurfaceHoppingMethods
 
-using RecursiveArrayTools
+using RecursiveArrayTools # possibly redundant as import when `SurfaceHoppingVariables.jl` is included
 using ComponentArrays: ComponentVector
 using DiffEqBase: DiffEqBase
 using LinearAlgebra: LinearAlgebra, lmul!
@@ -101,6 +101,7 @@ function DynamicsUtils.get_hopping_velocity(::RingPolymerSimulation, v::Abstract
     return get_centroid(v)
 end
 
+include("SurfaceHoppingVariables.jl")
 include("decoherence_corrections.jl")
 include("surface_hopping.jl")
 include("fssh.jl")
