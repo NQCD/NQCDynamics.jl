@@ -164,15 +164,16 @@ DynamicsUtils.get_quantum_subsystem(u::SurfaceHoppingVariables) = StructArray{Co
 
 
 # -------------------------------------------- TESTING ------------------------------------------- #
-# function int(du,u,p,t)
-#     y = convert(Vector{Int},u.int)
-#     println(y)
-#     y.+=1
-#     du.x .= u.x.+1.0
-#     convert(Vector{Float64},y)
-#     du.int .= y
-# end
+#= function int(du,u,p,t)
+    du.y .= u.y .+ t/10
+    du.x .= u.x.+1.0
+end
 
-# prob = ODEProblem(int, u0, (0.0,2.0))
-# sol = solve(prob, Tsit5())
+function int2(du,u,p,t)
+    du.x[2] .= u.x[2] .+ t/10
+    du.x[1] .= u.x[1].+1.0
+end
+
+prob = ODEProblem(int, u0, (0.0,2.0))
+sol = solve(prob, Tsit5()) =#
 # ------------------------------------------------------------------------------------------------ #

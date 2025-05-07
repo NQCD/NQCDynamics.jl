@@ -97,6 +97,9 @@ function DynamicsMethods.DynamicsVariables(sim::AbstractSimulation{<:AdiabaticIE
 end
 
 function DynamicsMethods.DynamicsVariables(sim::AbstractSimulation{<:AdiabaticIESH}, v, r, electronic::FermiDiracState{Adiabatic})
+    tmp_v = copy(v)
+    tmp_r = copy(r)
+    
     ef_model = NQCModels.fermilevel(sim)
     ef_distribution = electronic.fermi_level
     ef_model ≈ ef_distribution || throw(error(
@@ -108,7 +111,7 @@ function DynamicsMethods.DynamicsVariables(sim::AbstractSimulation{<:AdiabaticIE
         """
     ))
 
-    eigenvalues = DynamicsUtils.get_hopping_eigenvalues(sim, r)
+    eigenvalues = DynamicsUtils.get_hopping_eigenvalues(sim, tmp_r)
 
     available_states = DynamicsUtils.get_available_states(electronic.available_states, NQCModels.nstates(sim))
     state = DynamicsUtils.sample_fermi_dirac_distribution(eigenvalues, NQCModels.nelectrons(sim), available_states, electronic.β)
@@ -118,7 +121,7 @@ function DynamicsMethods.DynamicsVariables(sim::AbstractSimulation{<:AdiabaticIE
         ψ[j,i] = 1
     end
 
-    SurfaceHoppingVariables((v=v, r=r, σreal=ψ, σimag=zero(ψ), state=convert(Vector{Float64},state)))
+    SurfaceHoppingVariables((v=tmp_v, r=tmp_r, σreal=ψ, σimag=zero(ψ), state=convert(Vector{Float64},state)))
 end
 
 function DynamicsMethods.create_problem(u0, tspan, sim::AbstractSimulation{<:AbstractIESH})

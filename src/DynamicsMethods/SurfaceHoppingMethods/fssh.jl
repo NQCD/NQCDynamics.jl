@@ -44,7 +44,7 @@ function DynamicsMethods.DynamicsVariables(
 )
     σ = DynamicsUtils.initialise_adiabatic_density_matrix(electronic, sim.calculator, r)
     state = sample(Weights(diag(real.(σ))))
-    return SurfaceHoppingVariables((v=v, r=r, σreal=σ, σimag=zero(σ), state=state))
+    return SurfaceHoppingVariables((v=v, r=r, σreal=σ, σimag=zero(σ), state=convert(Vector{Float64},state)))
 end
 
 function DynamicsUtils.acceleration!(dv, v, r, sim::AbstractSimulation{<:FSSH}, t, state)
