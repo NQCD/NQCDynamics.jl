@@ -93,7 +93,7 @@ function DynamicsMethods.DynamicsVariables(sim::AbstractSimulation{<:AdiabaticIE
         ψ[i,i] = 1
     end
     state = collect(eachelectron(sim))
-    SurfaceHoppingVariables((v=v, r=r, σreal=ψ, σimag=zero(ψ), state=state))
+    SurfaceHoppingVariables((v=v, r=r, σreal=ψ, σimag=zero(ψ), state=convert(Vector{Float64},state)))
 end
 
 function DynamicsMethods.DynamicsVariables(sim::AbstractSimulation{<:AdiabaticIESH}, v, r, electronic::FermiDiracState{Adiabatic})
@@ -118,7 +118,7 @@ function DynamicsMethods.DynamicsVariables(sim::AbstractSimulation{<:AdiabaticIE
         ψ[j,i] = 1
     end
 
-    SurfaceHoppingVariables((v=v, r=r, σreal=ψ, σimag=zero(ψ), state=state))
+    SurfaceHoppingVariables((v=v, r=r, σreal=ψ, σimag=zero(ψ), state=convert(Vector{Float64},state)))
 end
 
 function DynamicsMethods.create_problem(u0, tspan, sim::AbstractSimulation{<:AbstractIESH})
@@ -172,7 +172,7 @@ function DynamicsMethods.DynamicsVariables(sim::Simulation{<:AdiabaticIESH}, v, 
     end
 
     sort!(adiabatic_state)
-    SurfaceHoppingVariables((v=v, r=r, σreal=ψ, σimag=zero(ψ), state=adiabatic_state))
+    SurfaceHoppingVariables((v=v, r=r, σreal=ψ, σimag=zero(ψ), state=convert(Vector{Float64},adiabatic_state)))
 end
 
 """
