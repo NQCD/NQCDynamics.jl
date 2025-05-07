@@ -10,13 +10,13 @@ function RingPolymerSimulation{FSSH}(atoms::Atoms{T}, model::Model, n_beads::Int
 end
 
 function DynamicsMethods.motion!(du, u, sim::RingPolymerSimulation{<:SurfaceHopping}, t)
-    dr = DynamicsUtils.get_positions(du.x[1])
-    dv = DynamicsUtils.get_velocities(du.x[1])
-    dσ = DynamicsUtils.get_quantum_subsystem(du.x[1])
+    dr = DynamicsUtils.get_positions(du)
+    dv = DynamicsUtils.get_velocities(du)
+    dσ = DynamicsUtils.get_quantum_subsystem(du)
 
-    r = DynamicsUtils.get_positions(u.x[1])
-    v = DynamicsUtils.get_velocities(u.x[1])
-    σ = DynamicsUtils.get_quantum_subsystem(u.x[1])
+    r = DynamicsUtils.get_positions(u)
+    v = DynamicsUtils.get_velocities(u)
+    σ = DynamicsUtils.get_quantum_subsystem(u)
 
     set_state!(u, sim.method.state) # Make sure the state variables match, 
 
@@ -50,13 +50,13 @@ function frustrated_hop_invert_velocity!(
 end
 
 function DynamicsUtils.classical_potential_energy(sim::RingPolymerSimulation{<:FSSH}, u)
-    all_eigs = Calculators.get_eigen(sim.calculator, DynamicsUtils.get_positions(u.x[1]))
-    potential = sum(eigs.values[u.x[2]] for eigs in all_eigs)
+    all_eigs = Calculators.get_eigen(sim.calculator, DynamicsUtils.get_positions(u))
+    potential = sum(eigs.values[u.state] for eigs in all_eigs)
     return potential
 end
 
 function DynamicsUtils.centroid_classical_potential_energy(sim::RingPolymerSimulation{<:FSSH}, u)
-    centroid_eigs = Calculators.get_centroid_eigen(sim.calculator, DynamicsUtils.get_positions(u.x[1]))
-    potential = centroid_eigs.values[u.x[2]]
+    centroid_eigs = Calculators.get_centroid_eigen(sim.calculator, DynamicsUtils.get_positions(u))
+    potential = centroid_eigs.values[u.state]
     return potential
 end

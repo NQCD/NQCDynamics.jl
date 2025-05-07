@@ -38,12 +38,12 @@ function DynamicsUtils.acceleration!(dv, v, r, sim::RingPolymerSimulation{<:Abst
 end
 
 function DynamicsUtils.classical_potential_energy(sim::RingPolymerSimulation{<:AbstractIESH}, u)
-    r = DynamicsUtils.get_positions(u.x[1])
+    r = DynamicsUtils.get_positions(u)
     eigs = Calculators.get_eigen(sim.calculator, r)
     potential = zero(eltype(r))
     for b in axes(r,3) # eachbead
         potential += NQCModels.state_independent_potential(sim.calculator.model, view(r,:,:,b))
-        for i in u.x[2]
+        for i in u.state
             potential += eigs[b].values[i]
         end
     end

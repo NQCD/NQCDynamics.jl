@@ -26,15 +26,6 @@ using NQCDynamics:
 using NQCModels: NQCModels, Model
 using NQCBase: Atoms
 
-#= mutable struct SurfaceHoppingVariables{T,A,Axes,S} <: DEDataArrays.DEDataVector{T}
-    x::ComponentVector{T,A,Axes}
-    state::S
-end =#
-
-#= DynamicsUtils.get_velocities(u::SurfaceHoppingVariables) = DynamicsUtils.get_velocities(u.x)
-DynamicsUtils.get_positions(u::SurfaceHoppingVariables) = DynamicsUtils.get_positions(u.x)
-DynamicsUtils.get_quantum_subsystem(u::SurfaceHoppingVariables) = DynamicsUtils.get_quantum_subsystem(u.x) =#
-
 """
 Abstract type for all surface hopping methods.
 
@@ -52,13 +43,13 @@ See `fssh.jl` for an example implementation.
 abstract type SurfaceHopping <: DynamicsMethods.Method end
 
 function DynamicsMethods.motion!(du, u, sim::Simulation{<:SurfaceHopping}, t)
-    dr = DynamicsUtils.get_positions(du.x)
-    dv = DynamicsUtils.get_velocities(du.x)
-    dσ = DynamicsUtils.get_quantum_subsystem(du.x)
+    dr = DynamicsUtils.get_positions(du)
+    dv = DynamicsUtils.get_velocities(du)
+    dσ = DynamicsUtils.get_quantum_subsystem(du)
 
-    r = DynamicsUtils.get_positions(u.x)
-    v = DynamicsUtils.get_velocities(u.x)
-    #σ = DynamicsUtils.get_quantum_subsystem(u.x)
+    r = DynamicsUtils.get_positions(u)
+    v = DynamicsUtils.get_velocities(u)
+    #σ = DynamicsUtils.get_quantum_subsystem(u)
 
     set_state!(u, sim.method.state) # Make sure the state variables match, 
 
@@ -70,8 +61,8 @@ end
 
 function DynamicsUtils.set_quantum_derivative!(dσ, u, sim::AbstractSimulation{<:SurfaceHopping})
     v = DynamicsUtils.get_hopping_velocity(sim, DynamicsUtils.get_velocities(u))
-    σ = DynamicsUtils.get_quantum_subsystem(u.x)
-    r = DynamicsUtils.get_positions(u.x)
+    σ = DynamicsUtils.get_quantum_subsystem(u)
+    r = DynamicsUtils.get_positions(u)
     eigenvalues = DynamicsUtils.get_hopping_eigenvalues(sim, r)
     propagator = sim.method.density_propagator
     d = DynamicsUtils.get_hopping_nonadiabatic_coupling(sim, r)

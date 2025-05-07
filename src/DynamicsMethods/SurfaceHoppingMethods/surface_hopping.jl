@@ -15,7 +15,7 @@ function execute_hop!(integrator)
     return nothing
 end
 
-set_state!(container, new_state::Integer) = container.x[2] = new_state
+set_state!(container, new_state::Integer) = container.state = new_state
 set_state!(container, new_state::AbstractVector) = copyto!(container.state, new_state)
 set_new_state!(container, new_state::Integer) = container.new_state = new_state
 set_new_state!(container, new_state::AbstractVector) = copyto!(container.new_state, new_state)
@@ -53,8 +53,8 @@ function rescale_velocity!(sim::AbstractSimulation{<:SurfaceHopping}, u)::Bool
     sim.method.rescaling === :off && return true #no rescaling so always accept hop
 
     new_state, old_state = unpack_states(sim)
-    velocity = DynamicsUtils.get_hopping_velocity(sim, DynamicsUtils.get_velocities(u.x[1]))
-    r = DynamicsUtils.get_positions(u.x[1])
+    velocity = DynamicsUtils.get_hopping_velocity(sim, DynamicsUtils.get_velocities(u))
+    r = DynamicsUtils.get_positions(u)
     eigs = DynamicsUtils.get_hopping_eigenvalues(sim, r)
     
     d = extract_nonadiabatic_coupling(DynamicsUtils.get_hopping_nonadiabatic_coupling(sim, r), new_state, old_state)
@@ -71,7 +71,7 @@ function rescale_velocity!(sim::AbstractSimulation{<:SurfaceHopping}, u)::Bool
         elseif sim.method.rescaling == :vinversion
             # Frustrated hop with insufficient kinetic energy
             # perform inversion of the velocity component along the nonadiabatic coupling vector
-            frustrated_hop_invert_velocity!(sim, DynamicsUtils.get_velocities(u.x[1]), d)
+            frustrated_hop_invert_velocity!(sim, DynamicsUtils.get_velocities(u), d)
             return false
         else   
             throw(error("This mode of rescaling is not implemented"))
@@ -83,7 +83,7 @@ function rescale_velocity!(sim::AbstractSimulation{<:SurfaceHopping}, u)::Bool
         else
             γ = (b - root) / 2a
         end
-        perform_rescaling!(sim, DynamicsUtils.get_velocities(u.x[1]), γ, d)
+        perform_rescaling!(sim, DynamicsUtils.get_velocities(u), γ, d)
 
         return true
     end
