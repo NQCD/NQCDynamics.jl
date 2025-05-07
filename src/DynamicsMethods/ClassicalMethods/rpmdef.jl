@@ -57,7 +57,7 @@ function evaluate_friction!(Λ::AbstractArray{T,3}, sim::RingPolymerSimulation{<
 end
 
 function DynamicsUtils.classical_potential_energy(
-    sim::RingPolymerSimulation{<:Union{Classical,DiabaticMDEF},<:NQCCalculators.RingPolymerLargeDiabaticCalculator},
+    sim::RingPolymerSimulation{<:Union{Classical,DiabaticMDEF},<:NQCCalculators.RingPolymer_LargeQuantumModel_Cache},
     r::AbstractArray{T,3}
 ) where {T}
     eigen = NQCCalculators.get_eigen(sim.cache, r)
