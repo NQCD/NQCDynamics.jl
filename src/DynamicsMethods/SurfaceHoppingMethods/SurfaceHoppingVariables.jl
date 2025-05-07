@@ -1,10 +1,9 @@
 using RecursiveArrayTools
 using StructArrays
 
-#= DynamicsUtils.get_velocities(u::SurfaceHoppingVariables) = u.v
+DynamicsUtils.get_velocities(u::SurfaceHoppingVariables) = u.v
 DynamicsUtils.get_positions(u::SurfaceHoppingVariables) = u.r
 DynamicsUtils.get_quantum_subsystem(u::SurfaceHoppingVariables) = StructArray{Complex{eltype(u.σreal)}}((u.σreal, u.σimag))
-get_state_index(u::SurfaceHoppingVariables) =  =#
 
 """
     Due to the need to multiple dispatch this type mirrors that of NamedArrayPartition from the great 

@@ -122,7 +122,7 @@ function DynamicsMethods.DynamicsVariables(sim::AbstractSimulation{<:AdiabaticIE
 end
 
 function DynamicsMethods.create_problem(u0, tspan, sim::AbstractSimulation{<:AbstractIESH})
-    set_state!(sim.method, u0.x[2]) # state 
+    set_state!(sim.method, convert(Vector{Int},u0.state)) # state 
     set_unoccupied_states!(sim)
     OrdinaryDiffEq.ODEProblem(DynamicsMethods.motion!, u0, tspan, sim;
         callback=DynamicsMethods.get_callbacks(sim))
@@ -358,7 +358,7 @@ end
 
 function Estimators.adiabatic_population(sim::Simulation{<:AdiabaticIESH}, u)
     population = zeros(NQCModels.nstates(sim.calculator.model))
-    population[u.state] .= 1 # ?? this shouldn't work anyway ??
+    population[u.state] .= 1 # ?? this must hav ebeen copied over from FSSH as it assumes that state is an integer 
     return population
 end
 

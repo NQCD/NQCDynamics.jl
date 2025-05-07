@@ -113,24 +113,25 @@ function unpack_states(sim::AbstractSimulation{<:FSSH})
 end
 
 function Estimators.diabatic_population(sim::AbstractSimulation{<:FSSH}, u)
+    int_state = convert(Int, u.state)
     r = DynamicsUtils.get_positions(u)
     U = DynamicsUtils.evaluate_transformation(sim.calculator, r)
 
     σ = copy(DynamicsUtils.get_quantum_subsystem(u).re)
     σ[diagind(σ)] .= 0
-    σ[u.state, u.state] = 1
+    σ[int_state, int_state] = 1
 
     return diag(U * σ * U')
 end
 
 function Estimators.adiabatic_population(sim::AbstractSimulation{<:FSSH}, u)
     population = zeros(NQCModels.nstates(sim.calculator.model))
-    population[u.state] = 1
+    population[convert(Int, u.state)] = 1
     return population
 end
 
 function DynamicsUtils.classical_potential_energy(sim::Simulation{<:FSSH}, u)
     eigs = Calculators.get_eigen(sim.calculator, DynamicsUtils.get_positions(u))
-    potential = eigs.values[u.state]
+    potential = eigs.values[convert(Int, u.state)]
     return potential
 end

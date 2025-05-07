@@ -174,7 +174,7 @@ Requires that the dynamics variable has a field `state`.
 
 Use [`OutputDiabaticPopulation`](@ref) or [`OutputAdiabaticPopulation`](@ref) to get the population estimators.
 """
-OutputDiscreteState(sol, i) = [copy(u.state) for u in sol.u]
+OutputDiscreteState(sol, i) = [copy(convert(Int, u.state)) for u in sol.u]
 export OutputDiscreteState
 
 """
