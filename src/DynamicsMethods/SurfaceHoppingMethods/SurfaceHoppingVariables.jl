@@ -1,9 +1,6 @@
 using RecursiveArrayTools
 using StructArrays
 
-DynamicsUtils.get_velocities(u::SurfaceHoppingVariables) = u.v
-DynamicsUtils.get_positions(u::SurfaceHoppingVariables) = u.r
-DynamicsUtils.get_quantum_subsystem(u::SurfaceHoppingVariables) = StructArray{Complex{eltype(u.σreal)}}((u.σreal, u.σimag))
 
 """
     Due to the need to multiple dispatch this type mirrors that of NamedArrayPartition from the great 
@@ -160,14 +157,22 @@ find_SurfaceHoppingVariables(::Tuple{}) = nothing
 find_SurfaceHoppingVariables(x::SurfaceHoppingVariables, rest) = x
 find_SurfaceHoppingVariables(::Any, rest) = find_SurfaceHoppingVariables(rest)
 
-function int(du,u,p,t)
-    y = convert(Vector{Int},u.int)
-    println(y)
-    y.+=1
-    du.x .= u.x.+1.0
-    convert(Vector{Float64},y)
-    du.int .= y
-end
 
-prob = ODEProblem(int, u0, (0.0,2.0))
-sol = solve(prob, Tsit5())
+DynamicsUtils.get_velocities(u::SurfaceHoppingVariables) = u.v
+DynamicsUtils.get_positions(u::SurfaceHoppingVariables) = u.r
+DynamicsUtils.get_quantum_subsystem(u::SurfaceHoppingVariables) = StructArray{Complex{eltype(u.σreal)}}((u.σreal, u.σimag))
+
+
+# -------------------------------------------- TESTING ------------------------------------------- #
+# function int(du,u,p,t)
+#     y = convert(Vector{Int},u.int)
+#     println(y)
+#     y.+=1
+#     du.x .= u.x.+1.0
+#     convert(Vector{Float64},y)
+#     du.int .= y
+# end
+
+# prob = ODEProblem(int, u0, (0.0,2.0))
+# sol = solve(prob, Tsit5())
+# ------------------------------------------------------------------------------------------------ #
