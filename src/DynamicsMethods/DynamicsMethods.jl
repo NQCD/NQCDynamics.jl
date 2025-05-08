@@ -21,7 +21,6 @@ using UnitfulAtomic: austrip
 using Reexport: @reexport
 using OrdinaryDiffEq: OrdinaryDiffEq
 using ComponentArrays: ComponentVector
-using RecursiveArrayTools: NamedArrayPartition
 
 using NQCDynamics: AbstractSimulation, Simulation, RingPolymerSimulation
 using NQCBase: austrip_kwargs
