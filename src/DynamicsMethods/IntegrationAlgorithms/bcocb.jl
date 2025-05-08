@@ -4,6 +4,7 @@ using DiffEqBase: @..
 using LinearAlgebra: Diagonal
 using NQCDynamics: RingPolymers, ndofs
 using RingPolymerArrays: RingPolymerArray
+using OrdinaryDiffEq.OrdinaryDiffEqCore: get_fsalfirstlast
 
 StochasticDiffEq.alg_compatible(prob::DiffEqBase.AbstractSDEProblem, alg::BCOCB) = true
 
@@ -16,6 +17,10 @@ struct BCOCBCache{U,A,K,uEltypeNoUnits,F} <: StochasticDiffEq.StochasticDiffEqMu
     halfdt::uEltypeNoUnits
     friction::F
 end
+
+OrdinaryDiffEq.isfsal(::BCOCB) = false
+
+OrdinaryDiffEq.get_fsalfirstlast(cache::BCOCBCache, u::Any) = (nothing, nothing)
 
 function StochasticDiffEq.alg_cache(::BCOCB,prob,u,ΔW,ΔZ,p,rate_prototype,noise_rate_prototype,jump_rate_prototype,uEltypeNoUnits,uBottomEltypeNoUnits,tTypeNoUnits,uprev,f,t,dt,::Type{Val{true}})
     tmp = zero(u)

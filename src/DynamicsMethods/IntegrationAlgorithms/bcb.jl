@@ -1,3 +1,4 @@
+using OrdinaryDiffEq.OrdinaryDiffEqCore: get_fsalfirstlast
 
 mutable struct BCBCache{uType,rateType,uEltypeNoUnits} <: OrdinaryDiffEq.OrdinaryDiffEqMutableCache
     u::uType
@@ -8,6 +9,10 @@ mutable struct BCBCache{uType,rateType,uEltypeNoUnits} <: OrdinaryDiffEq.Ordinar
     halfdt::uEltypeNoUnits
     cayley::Vector{Matrix{uEltypeNoUnits}}
 end
+
+OrdinaryDiffEq.isfsal(::BCB) = false
+
+OrdinaryDiffEq.get_fsalfirstlast(cache::BCBCache, u::Any) = (nothing, nothing)
 
 function OrdinaryDiffEq.alg_cache(::BCB,u,rate_prototype,::Type{uEltypeNoUnits},::Type{uBottomEltypeNoUnits},::Type{tTypeNoUnits},uprev,uprev2,f,t,dt,reltol,p,calck,::Val{true}) where {uEltypeNoUnits,uBottomEltypeNoUnits,tTypeNoUnits}
     tmp = zero(rate_prototype)

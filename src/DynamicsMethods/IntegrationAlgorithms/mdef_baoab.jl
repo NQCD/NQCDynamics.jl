@@ -4,10 +4,14 @@ using DiffEqBase: DiffEqBase
 using FastBroadcast: @..
 using LinearAlgebra: LAPACK, diagm, diag, mul!, diagind
 using RecursiveArrayTools: ArrayPartition
-
+using OrdinaryDiffEq.OrdinaryDiffEqCore: get_fsalfirstlast
 using NQCDynamics: get_temperature
 
 StochasticDiffEq.alg_compatible(::DiffEqBase.AbstractSDEProblem,::MDEF_BAOAB) = true
+
+OrdinaryDiffEq.isfsal(::MDEF_BAOAB) = false
+
+OrdinaryDiffEq.get_fsalfirstlast(cache::MDEF_BAOABCache::Any) = (nothing, nothing)
 
 """
     MDEF_BAOAB():

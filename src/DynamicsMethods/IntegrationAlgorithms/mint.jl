@@ -3,11 +3,14 @@ using UnPack: @unpack
 using MuladdMacro: @muladd
 using StaticArrays: SMatrix
 using LinearAlgebra: Hermitian, tr, Eigen, dot
-
+using OrdinaryDiffEq.OrdinaryDiffEqCore: get_fsalfirstlast
 using NQCDynamics.DynamicsMethods: MappingVariableMethods
 using NQCModels: nstates, NQCModels
 
 OrdinaryDiffEq.isfsal(::MInt) = false
+
+OrdinaryDiffEq.get_fsalfirstlast(cache::MIntCache, u::Any) = (nothing, nothing)
+
 
 mutable struct MIntCache{uType,T} <: OrdinaryDiffEq.OrdinaryDiffEqMutableCache
     u::uType

@@ -3,11 +3,13 @@ using UnPack: @unpack
 using MuladdMacro: @muladd
 using StaticArrays: SMatrix
 using LinearAlgebra: Hermitian, tr
-
+using OrdinaryDiffEq.OrdinaryDiffEqCore: get_fsalfirstlast
 using NQCDynamics.DynamicsMethods: MappingVariableMethods
 using NQCModels: nstates
 
 OrdinaryDiffEq.isfsal(::RingPolymerMInt) = false
+
+OrdinaryDiffEq.get_fsalfirstlast(cache::RingPolymerMIntCache, u::Any) = (nothing, nothing)
 
 mutable struct RingPolymerMIntCache{uType,uEltypeNoUnits} <: OrdinaryDiffEq.OrdinaryDiffEqMutableCache
     u::uType

@@ -1,6 +1,5 @@
 using RingPolymerArrays: RingPolymerArrays
-
-OrdinaryDiffEq.isfsal(::BCBwithTsit5) = false
+using OrdinaryDiffEq.OrdinaryDiffEqCore: get_fsalfirstlast
 
 mutable struct BCBwithTsit5Cache{uType,rType,vType,rateType,uEltypeNoUnits,E} <: OrdinaryDiffEq.OrdinaryDiffEqMutableCache
     u::uType
@@ -12,6 +11,10 @@ mutable struct BCBwithTsit5Cache{uType,rType,vType,rateType,uEltypeNoUnits,E} <:
     cayley::Vector{Matrix{uEltypeNoUnits}}
     electronic_integrator::E
 end
+
+OrdinaryDiffEq.isfsal(::BCBwithTsit5) = false
+
+OrdinaryDiffEq.get_fsalfirstlast(cache::BCBwithTsit5Cache, u::Any) = (nothing, nothing)
 
 function OrdinaryDiffEq.alg_cache(alg::BCBwithTsit5,u,rate_prototype,::Type{uEltypeNoUnits},::Type{uBottomEltypeNoUnits},::Type{tTypeNoUnits},uprev,uprev2,f,t,dt,reltol,p,calck,inplace::Val{true}) where {uEltypeNoUnits,uBottomEltypeNoUnits,tTypeNoUnits}
     electronic_problem = DynamicsMethods.DensityMatrixODEProblem(
