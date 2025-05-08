@@ -9,9 +9,6 @@ using NQCModels: nstates, NQCModels
 
 OrdinaryDiffEq.isfsal(::MInt) = false
 
-OrdinaryDiffEq.get_fsalfirstlast(cache::MIntCache, u::Any) = (nothing, nothing)
-
-
 mutable struct MIntCache{uType,T} <: OrdinaryDiffEq.OrdinaryDiffEqMutableCache
     u::uType
     uprev::uType
@@ -24,6 +21,8 @@ mutable struct MIntCache{uType,T} <: OrdinaryDiffEq.OrdinaryDiffEqMutableCache
     tmp_vec1::Vector{T}
     tmp_vec2::Vector{T}
 end
+
+OrdinaryDiffEq.get_fsalfirstlast(cache::MIntCache, u::Any) = (nothing, nothing)
 
 function OrdinaryDiffEq.alg_cache(::MInt,u,rate_prototype,::Type{uEltypeNoUnits},::Type{uBottomEltypeNoUnits},::Type{tTypeNoUnits},uprev,uprev2,f,t,dt,reltol,p,calck,::Val{true}) where {uEltypeNoUnits,uBottomEltypeNoUnits,tTypeNoUnits}
     tmp = zero(u)

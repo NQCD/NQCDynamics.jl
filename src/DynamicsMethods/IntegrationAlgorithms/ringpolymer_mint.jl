@@ -9,14 +9,14 @@ using NQCModels: nstates
 
 OrdinaryDiffEq.isfsal(::RingPolymerMInt) = false
 
-OrdinaryDiffEq.get_fsalfirstlast(cache::RingPolymerMIntCache, u::Any) = (nothing, nothing)
-
 mutable struct RingPolymerMIntCache{uType,uEltypeNoUnits} <: OrdinaryDiffEq.OrdinaryDiffEqMutableCache
     u::uType
     uprev::uType
     tmp::uType
     cayley::Vector{Matrix{uEltypeNoUnits}}
 end
+
+OrdinaryDiffEq.get_fsalfirstlast(cache::RingPolymerMIntCache, u::Any) = (nothing, nothing)
 
 function OrdinaryDiffEq.alg_cache(::RingPolymerMInt,u,rate_prototype,::Type{uEltypeNoUnits},::Type{uBottomEltypeNoUnits},::Type{tTypeNoUnits},uprev,uprev2,f,t,dt,reltol,p,calck,::Val{true}) where {uEltypeNoUnits,uBottomEltypeNoUnits,tTypeNoUnits}
     tmp = zero(u)

@@ -11,8 +11,6 @@ StochasticDiffEq.alg_compatible(::DiffEqBase.AbstractSDEProblem,::MDEF_BAOAB) = 
 
 OrdinaryDiffEq.isfsal(::MDEF_BAOAB) = false
 
-OrdinaryDiffEq.get_fsalfirstlast(cache::MDEF_BAOABCache::Any) = (nothing, nothing)
-
 """
     MDEF_BAOAB():
     We define two types of variables structure in the cache:
@@ -43,6 +41,8 @@ struct MDEF_BAOABCache{uType,rType,vType,uTypeFlat,uEltypeNoUnits,rateNoiseType,
     c1::Matrix{uEltypeNoUnits}
     c2::Matrix{uEltypeNoUnits}
 end
+
+OrdinaryDiffEq.get_fsalfirstlast(cache::MDEF_BAOABCache, u::Any) = (nothing, nothing)
 
 """
     Insecting the inputs into a Cache structure.
