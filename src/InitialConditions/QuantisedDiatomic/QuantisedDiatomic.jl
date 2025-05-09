@@ -35,7 +35,7 @@ using NQCDynamics: Simulation, DynamicsUtils, masses
 using NQCCalculators
 using NQCBase: Atoms, PeriodicCell, InfiniteCell
 using NQCModels: NQCModels
-using NQCModels.AdiabaticModels: AdiabaticModel
+using NQCModels.ClassicalModels: ClassicalModel
 
 export generate_configurations
 export quantise_diatomic
@@ -123,7 +123,7 @@ function generate_configurations(sim, ν, J;
     configure_diatomic.(sim, bonds, velocities, J, environment, generation, μ)
 end
 
-function generate_1D_vibrations(model::AdiabaticModel, μ::Real, ν::Integer;
+function generate_1D_vibrations(model::ClassicalModel, μ::Real, ν::Integer;
     samples=1000, bond_lengths=0.5:0.01:5.0, langer_modification=false
 )
 
@@ -473,7 +473,7 @@ function quantise_diatomic(sim::Simulation, v::Matrix, r::Matrix, binding_curve:
     end
 end
 
-function quantise_1D_vibration(model::AdiabaticModel, μ::Real, r::Real, v::Real;
+function quantise_1D_vibration(model::ClassicalModel, μ::Real, r::Real, v::Real;
     bond_lengths=0.5:0.01:5.0, reset_timer=false, show_timer=false, langer_modification=false
 )
     reset_timer && TimerOutputs.reset_timer!(TIMER)
