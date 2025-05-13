@@ -99,6 +99,7 @@ DiffEqDevTools = "f3b72e0c-5b89-59e1-b016-84e28bfd966d"
 DiffEqNoiseProcess = "77a26b50-5914-5dd7-bc55-306e6241c503"
 FiniteDiff = "6a86dc24-6348-571c-b903-95158fe2bd41"
 JLD2 = "033835bb-8acc-5ee8-8aae-3f567f8a3819"
+JSON = "682c06a0-de6a-54ab-a142-c8b1cf79cde6"
 JuLIP = "945c410c-986d-556a-acb1-167a618e0462"
 Logging = "56ddb016-857b-54e1-b83d-db4d58db5568"
 MKL = "33e6dc65-8f57-5167-99aa-e5a354878fb2"
@@ -110,4 +111,4 @@ Symbolics = "0c5d862f-8b57-4792-8d23-62f2024744c7"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]
-test = ["Test", "SafeTestsets", "CSV", "DataFrames", "DiffEqNoiseProcess", "FiniteDiff", "DiffEqDevTools", "Logging", "MKL", "PythonCall", "JuLIP", "Symbolics", "Statistics", "Plots", "JLD2"]
+test = ["Test", "SafeTestsets", "CSV", "DataFrames", "DiffEqNoiseProcess", "FiniteDiff", "DiffEqDevTools", "Logging", "MKL", "PythonCall", "JuLIP", "Symbolics", "Statistics", "Plots", "JLD2", "JSON"]

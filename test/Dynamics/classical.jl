@@ -2,13 +2,14 @@ using NQCDynamics
 using Test
 using Unitful
 using ComponentArrays
+import JSON
 
 include("utils.jl")
 
 atoms = Atoms([:H])
 model = NQCModels.Harmonic()
 
-benchmark_dir = get(ENV, "BENCHMARK_OUTPUT_DIR", "/tmp/nqcd_benchmark/")
+benchmark_dir = get(ENV, "BENCHMARK_OUTPUT_DIR", "/tmp/nqcd_benchmark")
 benchmark_results = Dict{String, Any}("title_for_plotting" => "Classical Tests")
 
 @testset "Classical" begin
@@ -70,3 +71,9 @@ end
     @test sol[:OutputTotalEnergy][1] ≈ sol[:OutputTotalEnergy][end] rtol=1e-2
     benchmark_dict["Fermion model ring polymer adiabatic dynamics"] = Dict("Time" => dyn_test.time, "Allocs" => dyn_test.bytes)
 end
+
+# Output benchmarking dict
+output_file = open("$(benchmark_dir)/classical.json", "w")
+JSON.print(output_file, benchmark_results)
+close(output_file)
+
