@@ -8,6 +8,9 @@ include("utils.jl")
 atoms = Atoms([:H])
 model = NQCModels.Harmonic()
 
+benchmark_dir = get(ENV, "BENCHMARK_OUTPUT_DIR", "/tmp/nqcd_benchmark/")
+benchmark_results = Dict{String, Any}("title_for_plotting" => "Classical Tests")
+
 @testset "Classical" begin
     sim = Simulation{Classical}(atoms, model)
 
@@ -19,8 +22,10 @@ model = NQCModels.Harmonic()
     r = get_blank(sim)
     u0 = ComponentVector(v=v, r=r)
 
-    sol = run_dynamics(sim, (0.0, 1000.0), u0; dt=0.1, output=(OutputTotalEnergy))
+    dyn_test = @timed run_dynamics(sim, (0.0, 1000.0), u0; dt=0.1, output=(OutputTotalEnergy))
+    sol = dyn_test.value
     @test sol[:OutputTotalEnergy][1] ≈ sol[:OutputTotalEnergy][end] rtol=1e-2
+    benchmark_dict["Classical"] = Dict("Time" => dyn_test.time, "Allocs" => dyn_test.bytes)
 end
 
 @testset "Ring polymer classical" begin
@@ -34,8 +39,10 @@ end
     r = get_blank(sim)
     u0 = ComponentVector(v=v, r=r)
 
-    sol = run_dynamics(sim, (0.0, 1000.0), u0; dt=0.1, output=(OutputTotalEnergy))
+    dyn_test = @timed run_dynamics(sim, (0.0, 1000.0), u0; dt=0.1, output=(OutputTotalEnergy))
+    sol = dyn_test.value
     @test sol[:OutputTotalEnergy][1] ≈ sol[:OutputTotalEnergy][end] rtol=1e-2
+    benchmark_dict["Ring Polymer Classical"] = Dict("Time" => dyn_test.time, "Allocs" => dyn_test.bytes)
 end
 
 @testset "Fermion model classical adiabatic dynamics" begin
@@ -44,8 +51,10 @@ end
     v = rand(VelocityBoltzmann(300u"K", atoms.masses, size(sim)))
     r = [model.model.morse.x₀;;]
     u0 = DynamicsVariables(sim, v, r)
-    sol = run_dynamics(sim, (0.0, 900.0u"fs"), u0; dt=1u"fs", output=(OutputTotalEnergy))
+    dyn_test = @timed run_dynamics(sim, (0.0, 900.0u"fs"), u0; dt=1u"fs", output=(OutputTotalEnergy))
+    sol = dyn_test.value
     @test sol[:OutputTotalEnergy][1] ≈ sol[:OutputTotalEnergy][end] rtol=1e-2
+    benchmark_dict["Fermion model classical adiabatic dynamics"] = Dict("Time" => dyn_test.time, "Allocs" => dyn_test.bytes)
 end
 
 @testset "Fermion model ring polymer adiabatic dynamics" begin
@@ -56,6 +65,8 @@ end
     r = model.model.morse.x₀
     d = DynamicalDistribution(v, r, size(sim))
     u0 = rand(d)
-    sol = run_dynamics(sim, (0.0, 900.0u"fs"), u0; dt=1u"fs", output=(OutputTotalEnergy))
+    dyn_test = @timed run_dynamics(sim, (0.0, 900.0u"fs"), u0; dt=1u"fs", output=(OutputTotalEnergy))
+    sol = dyn_test.value
     @test sol[:OutputTotalEnergy][1] ≈ sol[:OutputTotalEnergy][end] rtol=1e-2
+    benchmark_dict["Fermion model ring polymer adiabatic dynamics"] = Dict("Time" => dyn_test.time, "Allocs" => dyn_test.bytes)
 end

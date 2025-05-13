@@ -1,6 +1,7 @@
 using Test
 using SafeTestsets
 using NQCDynamics
+using JSON
 
 const GROUP = get(ENV, "GROUP", "All")
 
@@ -45,6 +46,8 @@ if GROUP == "All" || GROUP == "InitialConditions"
 end
 
 if GROUP == "All" || GROUP == "dynamics_classical"
+    # Benchmarking information
+    benchmark_dict = Dict(String, Any)
     @safetestset "DynamicsUtils Tests" begin
         include("Dynamics/DynamicsUtils.jl")
     end
