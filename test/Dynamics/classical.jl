@@ -26,7 +26,7 @@ benchmark_results = Dict{String, Any}("title_for_plotting" => "Classical Tests")
     dyn_test = @timed run_dynamics(sim, (0.0, 1000.0), u0; dt=0.1, output=(OutputTotalEnergy))
     sol = dyn_test.value
     @test sol[:OutputTotalEnergy][1] ≈ sol[:OutputTotalEnergy][end] rtol=1e-2
-    benchmark_dict["Classical"] = Dict("Time" => dyn_test.time, "Allocs" => dyn_test.bytes)
+    benchmark_results["Classical"] = Dict("Time" => dyn_test.time, "Allocs" => dyn_test.bytes)
 end
 
 @testset "Ring polymer classical" begin
@@ -43,7 +43,7 @@ end
     dyn_test = @timed run_dynamics(sim, (0.0, 1000.0), u0; dt=0.1, output=(OutputTotalEnergy))
     sol = dyn_test.value
     @test sol[:OutputTotalEnergy][1] ≈ sol[:OutputTotalEnergy][end] rtol=1e-2
-    benchmark_dict["Ring Polymer Classical"] = Dict("Time" => dyn_test.time, "Allocs" => dyn_test.bytes)
+    benchmark_results["Ring Polymer Classical"] = Dict("Time" => dyn_test.time, "Allocs" => dyn_test.bytes)
 end
 
 @testset "Fermion model classical adiabatic dynamics" begin
@@ -55,7 +55,7 @@ end
     dyn_test = @timed run_dynamics(sim, (0.0, 900.0u"fs"), u0; dt=1u"fs", output=(OutputTotalEnergy))
     sol = dyn_test.value
     @test sol[:OutputTotalEnergy][1] ≈ sol[:OutputTotalEnergy][end] rtol=1e-2
-    benchmark_dict["Fermion model classical adiabatic dynamics"] = Dict("Time" => dyn_test.time, "Allocs" => dyn_test.bytes)
+    benchmark_results["Fermion model classical adiabatic dynamics"] = Dict("Time" => dyn_test.time, "Allocs" => dyn_test.bytes)
 end
 
 @testset "Fermion model ring polymer adiabatic dynamics" begin
@@ -69,7 +69,7 @@ end
     dyn_test = @timed run_dynamics(sim, (0.0, 900.0u"fs"), u0; dt=1u"fs", output=(OutputTotalEnergy))
     sol = dyn_test.value
     @test sol[:OutputTotalEnergy][1] ≈ sol[:OutputTotalEnergy][end] rtol=1e-2
-    benchmark_dict["Fermion model ring polymer adiabatic dynamics"] = Dict("Time" => dyn_test.time, "Allocs" => dyn_test.bytes)
+    benchmark_results["Fermion model ring polymer adiabatic dynamics"] = Dict("Time" => dyn_test.time, "Allocs" => dyn_test.bytes)
 end
 
 # Output benchmarking dict

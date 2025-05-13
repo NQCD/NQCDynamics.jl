@@ -8,6 +8,9 @@ using NQCDynamics: DynamicsMethods, DynamicsUtils, Calculators
 using NQCDynamics.SurfaceHoppingMethods: SurfaceHoppingMethods
 using NQCDynamics.DynamicsUtils: get_positions, get_velocities
 using Unitful
+import JSON
+benchmark_dir = get(ENV, "BENCHMARK_OUTPUT_DIR", "/tmp/nqcd_benchmark")
+benchmark_results = Dict{String, Any}("title_for_plotting" => "FSSH Tests")
 
 @test SurfaceHoppingMethods.FSSH{Float64}(2, :standard) isa SurfaceHoppingMethods.FSSH
 atoms = Atoms(2)
@@ -104,8 +107,10 @@ atoms = Atoms(2)
         v = hcat(100 / 2000)
         r = hcat(-10.0)
         u = DynamicsVariables(sim, v, r, PureState(1, Adiabatic()))
-        solution = run_dynamics(sim, (0.0, 500.0), u, output=OutputTotalEnergy, reltol=1e-6)
+        dyn_test = @timed run_dynamics(sim, (0.0, 500.0), u, output=OutputTotalEnergy, reltol=1e-6)
+        solution =  dyn_test.value
         @test solution[:OutputTotalEnergy][1] ≈ solution[:OutputTotalEnergy][end] rtol=1e-2
+        benchmark_results["FSSH"] = Dict("Time" => dyn_test.time, "Allocs" => dyn_test.bytes)
     end
 end
 
@@ -173,11 +178,18 @@ end
         r = fill(-10.0, size(sim)) .+ randn(1,1,5)
         u = DynamicsVariables(sim, v, r, PureState(1, Adiabatic()))
         seed!(1)
-        solution = run_dynamics(sim, (0.0, 1000.0), u, output=OutputTotalEnergy, dt=0.1)
+        dyn_test = @timed run_dynamics(sim, (0.0, 1000.0), u, output=OutputTotalEnergy, dt=0.1)
+        solution = dyn_test.value
         seed!(1)
         solution2 = run_dynamics(sim, (0.0, 1000.0), u, output=OutputTotalEnergy, algorithm=Tsit5(), abstol=1e-10, reltol=1e-10, saveat=0:0.1:1000.0)
         # Ring polymer Hamiltonian is not strictly conserved during hoppping
         @test solution[:OutputTotalEnergy][1] ≈ solution[:OutputTotalEnergy][end] rtol=1e-2
+        benchmark_results["RPSH"] = Dict("Time" => dyn_test.time, "Allocs" => dyn_test.bytes)
     end
 
 end
+
+# Output benchmarking dict
+output_file = open("$(benchmark_dir)/FSSH.json", "w")
+JSON.print(output_file, benchmark_results)
+close(output_file)
