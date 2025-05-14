@@ -27,9 +27,11 @@ jobs:
       fail-fast: false
 
     steps:
+      - id: workspace
+        run: echo $GITHUB_WORKSPACE
       - uses: actions/checkout@v4
         with:
-          path: $GITHUB_WORKSPACE/NQCDynamics.jl
+          path: NQCDynamics.jl
       - id: save_tag
         run: |
           cd $GITHUB_WORKSPACE/NQCDynamics.jl
