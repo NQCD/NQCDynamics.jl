@@ -8,6 +8,9 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    outputs:
+      newest_release_version: ${{ jobs.test.steps.save_tag.current_version }}
+      previous_release_version: ${{ jobs.test.steps.save_tag.last_version }}
     strategy:
       matrix:
         group:
@@ -25,6 +28,11 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
+      - id: save_tag
+        run: |
+          cd $GITHUB_WORKSPACE/NQCDynamics.jl
+          echo "current_version=$(git describe --tags --abbrev=0)" >> "$GITHUB_OUTPUT"
+          echo "last_version=$(git for-each-ref --sort=-taggerdate --format '%(tag)' refs/tags | sed -n 2p)" >> "$GITHUB_OUTPUT"
       - uses: julia-actions/setup-julia@latest
 
       - uses: actions/cache@v3
@@ -47,7 +55,7 @@ jobs:
         run: julia -e 'using Pkg; Pkg.Registry.add(RegistrySpec(url="https://github.com/ACEsuit/ACEregistry"))'
         shell: bash
       - name: Make benchmark directory
-        run: mkdir /home/runner/benchmarks
+        run: mkdir $GITHUB_WORKSPACE/benchmarks
         shell: bash
 
       - name: Install ase for IO tests
@@ -66,7 +74,72 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.group }}-timings
-          path: /home/runner/benchmarks/*.json
+          path: $GITHUB_WORKSPACE/benchmarks/*.json
           retention-days: 21
-
+  upload_benchmarks:
+    runs-on: ubuntu-latest
+    needs: [test]
+    if: ${{ always() }}
+    steps: 
+      - name: Download any artifacts from test steps
+        uses: actions/download-artifact@v4
+        with:
+          path: $GITHUB_WORKSPACE/benchmarks
+          pattern: *-timings
+      - name: Get benchmark results repo
+        uses: actions/checkout
+        with:
+          repo: NQCD/performance-tracking
+          path: performance-tracking
+      - uses: julia-actions/setup-julia@latest
+      - name: Initialise Julia environment
+        run: |
+          mkdir -p $GITHUB_WORKSPACE/benchmark-graphics
+          cd $GITHUB_WORKSPACE/performance-tracking
+          julia -e 'using Pkg; Pkg.activate("."); Pkg.instantiate()'
+      - name: Update Benchmark repo (Commit)
+        if: ${{ github.event_name != 'release' }}
+        run: |
+          date > generated.txt
+          mkdir -p $GITHUB_WORKSPACE/performance-tracking/NQCDynamics.jl/commits/$NEW_VERSION
+          mv $GITHUB_WORKSPACE/benchmarks/*.json $GITHUB_WORKSPACE/performance-tracking/NQCDynamics.jl/commits/$NEW_VERSION/
+          # Generate benchmark time comparison graphics
+          julia --project=. benchmark_plots.jl
+          # Note: the following account information will not work on GHES
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add $GITHUB_WORKSPACE/performance-tracking/NQCDynamics.jl/commits/$NEW_VERSION/*.json
+          git commit -m "generated"
+          git push
+        env:
+          NEW_VERSION: ${{ github.sha }}
+          GRAPHICS_PATH: $GITHUB_WORKSPACE/benchmark-graphics
+          CURRENT_VERSION: ${{ needs.test.outputs.newest_release_version }}
+      - name: Update Benchmark repo (Release)
+        if: ${{ github.event_name == 'release' }}
+        run: |
+          date > generated.txt
+          mkdir -p $GITHUB_WORKSPACE/performance-tracking/NQCDynamics.jl/tags/$VERSION
+          mv $GITHUB_WORKSPACE/benchmarks/*.json $GITHUB_WORKSPACE/performance-tracking/NQCDynamics.jl/tags/$VERSION/
+          # Note: the following account information will not work on GHES
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add $GITHUB_WORKSPACE/performance-tracking/NQCDynamics.jl/tags/$VERSION/*.json
+          git commit -m "generated"
+          git push
+        env:
+          NEW_VERSION: ${{ needs.test.outputs.newest_release_version }}
+          GRAPHICS_PATH: $GITHUB_WORKSPACE/benchmark-graphics
+          CURRENT_VERSION: ${{ needs.test.outputs.previous_release_version }}
+      - id: upload-artifact
+        uses: actions/upload-artifact@v4
+        with:
+          path: $GITHUB_WORKSPACE/benchmark-graphics/*.png
+          name: Benchmark version comparison
+          retention-days: 21
+      - id: post
+        run: |
+          echo "### Unit test benchmark :rocket:" >> "$GITHUB_STEP_SUMMARY"
+          echo "Compared dynamics test timings between ${{ needs.test.outputs.newest_release_version }}" and {{ github.sha }}." >> "$GITHUB_STEP_SUMMARY"
+          echo "Download the results [here](${{ steps.upload-artifact.outputs.artifact-url }})" >> "$GITHUB_STEP_SUMMARY"
 
