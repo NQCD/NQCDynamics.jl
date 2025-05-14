@@ -9,8 +9,8 @@ jobs:
   test:
     runs-on: ubuntu-latest
     outputs:
-      newest_release_version: ${{ jobs.test.steps.save_tag.current_version }}
-      previous_release_version: ${{ jobs.test.steps.save_tag.last_version }}
+      newest_release_version: ${{ steps.save_tag.current_version }}
+      previous_release_version: ${{ steps.save_tag.last_version }}
     strategy:
       matrix:
         group:
