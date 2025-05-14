@@ -27,9 +27,12 @@ jobs:
       fail-fast: false
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+        with:
+          path: $GITHUB_WORKSPACE/NQCDynamics.jl
       - id: save_tag
         run: |
+          cd $GITHUB_WORKSPACE/NQCDynamics.jl
           echo "current_version=$(git describe --tags --abbrev=0)" >> "$GITHUB_OUTPUT"
           echo "last_version=$(git for-each-ref --sort=-taggerdate --format '%(tag)' refs/tags | sed -n 2p)" >> "$GITHUB_OUTPUT"
       - uses: julia-actions/setup-julia@latest
