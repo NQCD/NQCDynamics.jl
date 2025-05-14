@@ -31,11 +31,11 @@ jobs:
         run: echo $GITHUB_WORKSPACE
       - uses: actions/checkout@v4
         with:
-          path: NQCDynamics.jl
+          path: $GITHUB_ACTION_PATH/NQCDynamics.jl
           fetch-tags: true
       - id: save_tag
         run: |
-          cd $GITHUB_WORKSPACE/NQCDynamics.jl
+          cd $GITHUB_ACTION_PATH/NQCDynamics.jl
           echo "current_version=$(git describe --tags --abbrev=0)" >> "$GITHUB_OUTPUT"
           echo "last_version=$(git for-each-ref --sort=-taggerdate --format '%(tag)' refs/tags | sed -n 2p)" >> "$GITHUB_OUTPUT"
       - uses: julia-actions/setup-julia@latest
