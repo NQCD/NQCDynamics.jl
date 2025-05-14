@@ -87,7 +87,7 @@ jobs:
           path: $GITHUB_WORKSPACE/benchmarks
           pattern: '*-timings'
       - name: Get benchmark results repo
-        uses: actions/checkout
+        uses: actions/checkout@v4
         with:
           repo: NQCD/performance-tracking
           path: performance-tracking
