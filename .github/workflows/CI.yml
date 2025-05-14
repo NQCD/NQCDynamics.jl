@@ -34,6 +34,7 @@ jobs:
           fetch-tags: true
       - id: save_tag
         run: |
+          echo "$(pwd)"
           echo "current_version=$(git describe --tags --abbrev=0)" >> "$GITHUB_OUTPUT"
           echo "last_version=$(git for-each-ref --sort=-taggerdate --format '%(tag)' refs/tags | sed -n 2p)" >> "$GITHUB_OUTPUT"
       - uses: julia-actions/setup-julia@latest
@@ -60,7 +61,6 @@ jobs:
       - name: Make benchmark directory
         run: |
           mkdir $GITHUB_WORKSPACE/benchmarks
-          cd $GITHUB_WORKSPACE/NQCDynamics.jl
         shell: bash
 
       - name: Install ase for IO tests
@@ -69,7 +69,7 @@ jobs:
       - uses: julia-actions/julia-runtest@v1
         env:
           GROUP: ${{ matrix.group }}
-          BENCHMARK_OUTPUT_DIR: /home/runner/benchmarks
+          BENCHMARK_OUTPUT_DIR: $GITHUB_WORKSPACE/benchmarks
       - uses: julia-actions/julia-processcoverage@v1
       - uses: codecov/codecov-action@v3
         with:
