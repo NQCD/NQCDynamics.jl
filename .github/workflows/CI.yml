@@ -105,6 +105,7 @@ jobs:
       - name: Update Benchmark repo (Commit)
         if: ${{ github.event_name != 'release' }}
         run: |
+          export GRAPHICS_PATH=$(GITHUB_WORKSPACE)/$(GRAPHICS_PATH)
           date > generated.txt
           mkdir -p $GITHUB_WORKSPACE/performance-tracking/NQCDynamics.jl/commits/$NEW_VERSION
           mv $GITHUB_WORKSPACE/benchmarks/*.json $GITHUB_WORKSPACE/performance-tracking/NQCDynamics.jl/commits/$NEW_VERSION/
@@ -118,7 +119,7 @@ jobs:
           git push
         env:
           NEW_VERSION: ${{ github.sha }}
-          GRAPHICS_PATH: $GITHUB_WORKSPACE/benchmark-graphics
+          GRAPHICS_PATH: benchmark-graphics
           CURRENT_VERSION: ${{ needs.test.outputs.newest_release_version }}
       - name: Update Benchmark repo (Release)
         if: ${{ github.event_name == 'release' }}
@@ -134,7 +135,7 @@ jobs:
           git push
         env:
           NEW_VERSION: ${{ needs.test.outputs.newest_release_version }}
-          GRAPHICS_PATH: $GITHUB_WORKSPACE/benchmark-graphics
+          GRAPHICS_PATH: $(GITHUB_WORKSPACE)/benchmark-graphics
           CURRENT_VERSION: ${{ needs.test.outputs.previous_release_version }}
       - id: upload-artifact
         uses: actions/upload-artifact@v4
