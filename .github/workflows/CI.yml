@@ -70,7 +70,7 @@ jobs:
       - uses: julia-actions/julia-runtest@v1
         env:
           GROUP: ${{ matrix.group }}
-          BENCHMARK_OUTPUT_DIR: $GITHUB_WORKSPACE/benchmarks
+          BENCHMARK_OUTPUT_DIR: $(GITHUB_WORKSPACE)/benchmarks
       - uses: julia-actions/julia-processcoverage@v1
       - uses: codecov/codecov-action@v3
         with:
