@@ -32,6 +32,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           path: NQCDynamics.jl
+          fetch-tags: true
       - id: save_tag
         run: |
           cd $GITHUB_WORKSPACE/NQCDynamics.jl
@@ -59,12 +60,13 @@ jobs:
         run: julia -e 'using Pkg; Pkg.Registry.add(RegistrySpec(url="https://github.com/ACEsuit/ACEregistry"))'
         shell: bash
       - name: Make benchmark directory
-        run: mkdir $GITHUB_WORKSPACE/benchmarks
+        run: |
+          mkdir $GITHUB_WORKSPACE/benchmarks
+          cd $GITHUB_WORKSPACE/NQCDynamics.jl
         shell: bash
 
       - name: Install ase for IO tests
         run: pip3 install ase
-
       - uses: julia-actions/julia-buildpkg@v1
       - uses: julia-actions/julia-runtest@v1
         env:
