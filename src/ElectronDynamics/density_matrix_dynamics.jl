@@ -47,33 +47,33 @@ end
 
 
 
-# ----------------------------------- from `large_diabatic.jl` ----------------------------------- #
+# # ----------------------------------- from `large_diabatic.jl` ----------------------------------- #
 
-# `get_adiabatic_derivative()` calls this function when updating
-function evaluate_adiabatic_derivative!(calc::DensityMatrixCalculator, r)
-    calc.stats[:adiabatic_derivative] += 1
-    eigen = get_eigen(calc, r)
-    derivative = get_derivative(calc, r) # calculate derivated of chosen model
-    @inbounds for i in NQCModels.(calc)
-        for j in NQCModels.dofs(calc)
-            LinearAlgebra.mul!(calc.tmp_mat, derivative[j,i], eigen.vectors)
-            LinearAlgebra.mul!(calc.adiabatic_derivative[j,i], eigen.vectors', calc.tmp_mat)
-        end
-    end
-end
+# # `get_adiabatic_derivative()` calls this function when updating
+# function evaluate_adiabatic_derivative!(calc::DensityMatrixCalculator, r)
+#     calc.stats[:adiabatic_derivative] += 1
+#     eigen = get_eigen(calc, r)
+#     derivative = get_derivative(calc, r) # calculate derivated of chosen model
+#     @inbounds for i in NQCModels.(calc)
+#         for j in NQCModels.dofs(calc)
+#             LinearAlgebra.mul!(calc.tmp_mat, derivative[j,i], eigen.vectors)
+#             LinearAlgebra.mul!(calc.adiabatic_derivative[j,i], eigen.vectors', calc.tmp_mat)
+#         end
+#     end
+# end
 
-# `get_nonadiabatic_coupling()` calls this function when updating
-function evaluate_nonadiabatic_coupling!(calc::DensityMatrixCalculator, r)
-    calc.stats[:nonadiabatic_coupling] += 1
-    eigen = get_eigen(calc, r)
-    adiabatic_derivative = get_adiabatic_derivative(calc, r)
+# # `get_nonadiabatic_coupling()` calls this function when updating
+# function evaluate_nonadiabatic_coupling!(calc::DensityMatrixCalculator, r)
+#     calc.stats[:nonadiabatic_coupling] += 1
+#     eigen = get_eigen(calc, r)
+#     adiabatic_derivative = get_adiabatic_derivative(calc, r)
 
-    evaluate_inverse_difference_matrix!(calc.tmp_mat, eigen.values)
+#     evaluate_inverse_difference_matrix!(calc.tmp_mat, eigen.values)
 
-    @inbounds for i in NQCModels.mobileatoms(calc)
-        for j in NQCModels.dofs(calc)
-            multiply_elementwise!(calc.nonadiabatic_coupling[j,i], adiabatic_derivative[j,i], calc.tmp_mat)
-        end
-    end
-end
-# ------------------------------------------------------------------------------------------------ #
+#     @inbounds for i in NQCModels.mobileatoms(calc)
+#         for j in NQCModels.dofs(calc)
+#             multiply_elementwise!(calc.nonadiabatic_coupling[j,i], adiabatic_derivative[j,i], calc.tmp_mat) # will be replaced
+#         end
+#     end
+# end
+# # ------------------------------------------------------------------------------------------------ #

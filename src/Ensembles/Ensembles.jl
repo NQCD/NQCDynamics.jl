@@ -89,9 +89,9 @@ function run_dynamics(
     reduction=AppendReduction(),
     ensemble_algorithm=SciMLBase.EnsembleSerial(),
     algorithm=DynamicsMethods.select_algorithm(sim),
-    trajectories=1,
-    savetime=true,
-    freeze_nuclei = false,
+    trajectories::Int = 1,
+    savetime::Bool = true,
+    freeze_nuclei::Bool = false,
     kwargs...
 )
 
@@ -106,8 +106,12 @@ function run_dynamics(
     prob_func = Selection(distribution, selection, trajectories)
 
     u0 = sample_distribution(sim, distribution)
-    problem = DynamicsMethods.create_problem(u0, tspan, sim)
-
+    problem = DynamicsMethods.create_problem(u0, tspan, sim)   
+    if freeze_nuclei == true
+        r = DynamicsUtils.get_positions(u0)
+        u0 = DynamicsUtils.get_quantum_subsystem(du)
+        problem = ODEProblem(frozennuclei!, u0, tspan, (r, sim))
+    end
     output_func = EnsembleSaver(output, savetime)
 
     ensemble_problem = SciMLBase.EnsembleProblem(problem; prob_func, output_func, reduction)
@@ -118,7 +122,12 @@ function run_dynamics(
         @info "Performing $trajectories trajectories."
     end
 
-    stats = @timed SciMLBase.solve(ensemble_problem, algorithm, ensemble_algorithm; trajectories, kwargs...)
+    if frozen_nuclei == false
+        stats = @timed SciMLBase.solve(ensemble_problem, algorithm, ensemble_algorithm; trajectories, kwargs...)
+    elseif frozen_nuclei == true
+        stats = @timed SciMLBase.solve(ensemble_problem, Vern7(), ensemble_algorithm; trajectories, kwargs...)
+    end
+    
     log_simulation_duration(stats.time)
 
     if trajectories == 1
