@@ -106,6 +106,7 @@ jobs:
         if: ${{ github.event_name != 'release' }}
         run: |
           export GRAPHICS_PATH=$GITHUB_WORKSPACE/$GRAPHICS_PATH
+          cd $GITHUB_WORKSPACE/performance-tracking
           date > generated.txt
           mkdir -p $GITHUB_WORKSPACE/performance-tracking/NQCDynamics.jl/commits/$NEW_VERSION
           mv $GITHUB_WORKSPACE/benchmarks/*-timings/*.json $GITHUB_WORKSPACE/performance-tracking/NQCDynamics.jl/commits/$NEW_VERSION/
@@ -125,6 +126,7 @@ jobs:
         if: ${{ github.event_name == 'release' }}
         run: |
           export GRAPHICS_PATH=$GITHUB_WORKSPACE/$GRAPHICS_PATH
+          cd $GITHUB_WORKSPACE/performance-tracking
           date > generated.txt
           mkdir -p $GITHUB_WORKSPACE/performance-tracking/NQCDynamics.jl/tags/$VERSION
           mv $GITHUB_WORKSPACE/benchmarks/*-timings/*.json $GITHUB_WORKSPACE/performance-tracking/NQCDynamics.jl/tags/$VERSION/
