@@ -114,16 +114,15 @@ jobs:
         if: ${{ github.event_name != 'release' }}
         run: |
           export BENCHMARK_REPO=$(pwd)
-          export GRAPHICS_PATH=$GITHUB_WORKSPACE/$GRAPHICS_PATH
           date > generated.txt
-          mkdir -p $GITHUB_WORKSPACE/performance-tracking/NQCDynamics.jl/commits/$NEW_VERSION
+          mkdir -p NQCDynamics.jl/commits/$NEW_VERSION
           # Generate benchmark time comparison graphics
           julia --project=. benchmark_plots.jl
-          mv $GITHUB_WORKSPACE/benchmarks/*-timings/*.json $GITHUB_WORKSPACE/performance-tracking/NQCDynamics.jl/commits/$NEW_VERSION/
+          mv $GITHUB_WORKSPACE/benchmarks/*-timings/*.json NQCDynamics.jl/commits/$NEW_VERSION/
           # Note: the following account information will not work on GHES
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add $GITHUB_WORKSPACE/performance-tracking/NQCDynamics.jl/commits/$NEW_VERSION/*.json
+          git add NQCDynamics.jl/commits/$NEW_VERSION/*.json
           git commit -m "generated"
           git push
         env:
@@ -136,16 +135,15 @@ jobs:
           export CURRENT_VERSION=$LAST_VERSION
           cd $GITHUB_WORKSPACE/performance-tracking
           export BENCHMARK_REPO=$(pwd)
-          export GRAPHICS_PATH=$GITHUB_WORKSPACE/$GRAPHICS_PATH
           date > generated.txt
-          mkdir -p $GITHUB_WORKSPACE/performance-tracking/NQCDynamics.jl/tags/$VERSION
+          mkdir -p NQCDynamics.jl/tags/$VERSION
           # Generate benchmark time comparison graphics
           julia --project=. benchmark_plots.jl
-          mv $GITHUB_WORKSPACE/benchmarks/*-timings/*.json $GITHUB_WORKSPACE/performance-tracking/NQCDynamics.jl/tags/$VERSION/
+          mv $GITHUB_WORKSPACE/benchmarks/*-timings/*.json NQCDynamics.jl/tags/$VERSION/
           # Note: the following account information will not work on GHES
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add $GITHUB_WORKSPACE/performance-tracking/NQCDynamics.jl/tags/$VERSION/*.json
+          git add NQCDynamics.jl/tags/$VERSION/*.json
           git commit -m "generated"
           git push
         env:
