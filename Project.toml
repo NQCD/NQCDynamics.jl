@@ -1,0 +1,4 @@
+[deps]
+CairoMakie = "13f3f980-e62b-5c42-98c6-ff1f3baf88f0"
+Glob = "c27321d9-0574-5035-807b-f59d2c89b15c"
+JSON = "682c06a0-de6a-54ab-a142-c8b1cf79cde6"
