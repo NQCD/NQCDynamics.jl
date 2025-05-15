@@ -96,7 +96,9 @@ jobs:
         run: |
           echo "$(pwd)"
           echo "current_version=$(git describe --tags --abbrev=0)" >> "$GITHUB_OUTPUT"
+          echo "CURRENT_VERSION=$(git describe --tags --abbrev=0)" >> "$GITHUB_ENV"
           echo "last_version=$(git for-each-ref --sort=-taggerdate --format '%(tag)' refs/tags | sed -n 2p)" >> "$GITHUB_OUTPUT"
+          echo "LAST_VERSION=$(git for-each-ref --sort=-taggerdate --format '%(tag)' refs/tags | sed -n 2p)" >> "$GITHUB_ENV"
       - uses: julia-actions/setup-julia@latest
       - name: Download any artifacts from test steps
         uses: actions/download-artifact@v4
@@ -127,10 +129,11 @@ jobs:
         env:
           NEW_VERSION: ${{ github.sha }}
           GRAPHICS_PATH: benchmark-graphics
-          CURRENT_VERSION: ${{ outputs.newest_release_version }}
       - name: Update Benchmark repo (Release)
         if: ${{ github.event_name == 'release' }}
         run: |
+          export NEW_VERSION=$CURRENT_VERSION
+          export CURRENT_VERSION=$LAST_VERSION
           cd $GITHUB_WORKSPACE/performance-tracking
           export BENCHMARK_REPO=$(pwd)
           export GRAPHICS_PATH=$GITHUB_WORKSPACE/$GRAPHICS_PATH
@@ -144,9 +147,7 @@ jobs:
           git commit -m "generated"
           git push
         env:
-          NEW_VERSION: ${{ outputs.newest_release_version }}
           GRAPHICS_PATH: benchmark-graphics
-          CURRENT_VERSION: ${{ outputs.previous_release_version }}
       - id: upload-artifact
         uses: actions/upload-artifact@v4
         with:
