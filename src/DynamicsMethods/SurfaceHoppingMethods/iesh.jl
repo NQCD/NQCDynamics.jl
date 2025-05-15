@@ -209,7 +209,7 @@ end
 # ------------------------------------------------------------------------------------------------ #
 # Want to create another version of this that takes statistical occupation 
 
-function DynamicsMethods.DynamicsVariables(sim::Simulation{<:AdiabaticIESH}, v, r, electronic::DenseMatrix{Binary})
+function DynamicsMethods.DynamicsVariables(sim::Simulation{<:AdiabaticIESH}, v, r, electronic::DensityMatrix{Binary})
     ef_model = NQCModels.fermilevel(sim)
     ef_distribution = electronic.fermi_level
     ef_model ≈ ef_distribution || throw(error(
