@@ -89,7 +89,7 @@ jobs:
       - name: Download any artifacts from test steps
         uses: actions/download-artifact@v4
         with:
-          path: $GITHUB_WORKSPACE/benchmarks
+          path: benchmarks
           pattern: '*-timings'
       - name: Get benchmark results repo
         uses: actions/checkout@v4
