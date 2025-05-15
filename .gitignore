@@ -1,0 +1,9 @@
+.codeedit/
+.codeedit/*
+.nova
+.nova/*
+.vscode
+.vscode/*
+Manifest.toml
+benchmark-graphics
+
