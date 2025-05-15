@@ -117,9 +117,9 @@ jobs:
           export GRAPHICS_PATH=$GITHUB_WORKSPACE/$GRAPHICS_PATH
           date > generated.txt
           mkdir -p $GITHUB_WORKSPACE/performance-tracking/NQCDynamics.jl/commits/$NEW_VERSION
-          mv $GITHUB_WORKSPACE/benchmarks/*-timings/*.json $GITHUB_WORKSPACE/performance-tracking/NQCDynamics.jl/commits/$NEW_VERSION/
           # Generate benchmark time comparison graphics
           julia --project=. benchmark_plots.jl
+          mv $GITHUB_WORKSPACE/benchmarks/*-timings/*.json $GITHUB_WORKSPACE/performance-tracking/NQCDynamics.jl/commits/$NEW_VERSION/
           # Note: the following account information will not work on GHES
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -139,6 +139,8 @@ jobs:
           export GRAPHICS_PATH=$GITHUB_WORKSPACE/$GRAPHICS_PATH
           date > generated.txt
           mkdir -p $GITHUB_WORKSPACE/performance-tracking/NQCDynamics.jl/tags/$VERSION
+          # Generate benchmark time comparison graphics
+          julia --project=. benchmark_plots.jl
           mv $GITHUB_WORKSPACE/benchmarks/*-timings/*.json $GITHUB_WORKSPACE/performance-tracking/NQCDynamics.jl/tags/$VERSION/
           # Note: the following account information will not work on GHES
           git config user.name "github-actions[bot]"
