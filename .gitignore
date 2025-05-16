@@ -4,6 +4,8 @@
 .nova/*
 .vscode
 .vscode/*
+.CondaPkg/*
+.CondaPkg/
 Manifest.toml
 benchmark-graphics
 
