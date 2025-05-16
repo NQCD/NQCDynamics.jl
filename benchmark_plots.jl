@@ -12,7 +12,7 @@ benchmark_path = ENV["BENCHMARK_REPO"]
 
 # Find all JSON files for current and new versions
 newest_path = "$(benchmark_path)/NQCDynamics.jl/commits/$(github_context)/"
-current_path = "$(benchmark_path)/NQCDynamics.jl/versions/$(newest_version)/"
+current_path = "$(benchmark_path)/NQCDynamics.jl/tags/$(newest_version)/"
 
 if isdir(newest_path)
 	newest_files = split.(Glob.glob("*.json", "$(newest_path)"), "/") .|> last
