@@ -108,20 +108,20 @@ jobs:
       - uses: julia-actions/setup-julia@latest
       - name: Initialise Julia environment
         run: |
-          mkdir -p /home/runner/NQCDynamics.jl/NQCDynamics.jl/benchmark-graphics
+          mkdir -p /home/runner/work/NQCDynamics.jl/NQCDynamics.jl/benchmark-graphics
           julia -e 'using Pkg; Pkg.activate("."); Pkg.instantiate()'
       - name: Update Benchmark repo (Commit)
         if: ${{ github.event_name != 'release' }}
         run: |
           export BENCHMARK_REPO=$(pwd)
           mkdir -p NQCDynamics.jl/commits/$NEW_VERSION
-          mv /home/runner/NQCDynamics.jl/NQCDynamics.jl/benchmarks/*-timings/*.json /home/runner/NQCDynamics.jl/NQCDynamics.jl/commits/$NEW_VERSION/
+          mv /home/runner/work/NQCDynamics.jl/NQCDynamics.jl/benchmarks/*-timings/*.json /home/runner/work/NQCDynamics.jl/NQCDynamics.jl/commits/$NEW_VERSION/
           # Generate benchmark time comparison graphics
           julia --project=. benchmark_plots.jl
           # Note: the following account information will not work on GHES
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add /home/runner/NQCDynamics.jl/NQCDynamics.jl/NQCDynamics.jl/commits/$NEW_VERSION/*.json
+          git add /home/runner/work/NQCDynamics.jl/NQCDynamics.jl/NQCDynamics.jl/commits/$NEW_VERSION/*.json
           git commit -m "Stored test performance"
           git push
         env:
@@ -136,13 +136,13 @@ jobs:
           export BENCHMARK_REPO=$(pwd)
           date > generated.txt
           mkdir -p NQCDynamics.jl/tags/$VERSION
-          mv /home/runner/NQCDynamics.jl/NQCDynamics.jl/benchmarks/*-timings/*.json /home/runner/NQCDynamics.jl/NQCDynamics.jl/tags/$NEW_VERSION/
+          mv /home/runner/work/NQCDynamics.jl/NQCDynamics.jl/benchmarks/*-timings/*.json /home/runner/work/NQCDynamics.jl/NQCDynamics.jl/tags/$NEW_VERSION/
           # Generate benchmark time comparison graphics
           julia --project=. benchmark_plots.jl
           # Note: the following account information will not work on GHES
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add /home/runner/NQCDynamics.jl/NQCDynamics.jl/NQCDynamics.jl/tags/$VERSION/*.json
+          git add /home/runner/work/NQCDynamics.jl/NQCDynamics.jl/NQCDynamics.jl/tags/$VERSION/*.json
           git commit -m "Stored test performance"
           git push
         env:
