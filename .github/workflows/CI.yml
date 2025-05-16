@@ -58,7 +58,7 @@ jobs:
         shell: bash
       - name: Make benchmark directory
         run: |
-          mkdir -p /home/runner/NQCDynamics/NQCDynamics/benchmarks
+          mkdir -p /home/runner/NQCDynamics.jl/NQCDynamics.jl/benchmarks
         shell: bash
 
       - name: Install ase for IO tests
@@ -67,7 +67,7 @@ jobs:
       - uses: julia-actions/julia-runtest@v1
         env:
           GROUP: ${{ matrix.group }}
-          BENCHMARK_OUTPUT_DIR: /home/runner/NQCDynamics/NQCDynamics/benchmarks
+          BENCHMARK_OUTPUT_DIR: /home/runner/NQCDynamics.jl/NQCDynamics.jl/benchmarks
       - uses: julia-actions/julia-processcoverage@v1
       - uses: codecov/codecov-action@v3
         with:
@@ -76,7 +76,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.group }}-timings
-          path: /home/runner/NQCDynamics/NQCDynamics/benchmarks/*.json
+          path: /home/runner/NQCDynamics.jl/NQCDynamics.jl/benchmarks/*.json
           retention-days: 21
   upload_benchmarks:
     runs-on: ubuntu-latest
@@ -108,22 +108,21 @@ jobs:
       - uses: julia-actions/setup-julia@latest
       - name: Initialise Julia environment
         run: |
-          mkdir -p $GITHUB_WORKSPACE/benchmark-graphics
+          mkdir -p /home/runner/NQCDynamics.jl/NQCDynamics.jl/benchmark-graphics
           julia -e 'using Pkg; Pkg.activate("."); Pkg.instantiate()'
       - name: Update Benchmark repo (Commit)
         if: ${{ github.event_name != 'release' }}
         run: |
           export BENCHMARK_REPO=$(pwd)
-          date > generated.txt
           mkdir -p NQCDynamics.jl/commits/$NEW_VERSION
+          mv /home/runner/NQCDynamics.jl/NQCDynamics.jl/benchmarks/*-timings/*.json /home/runner/NQCDynamics.jl/NQCDynamics.jl/commits/$NEW_VERSION/
           # Generate benchmark time comparison graphics
           julia --project=. benchmark_plots.jl
-          mv $GITHUB_WORKSPACE/benchmarks/*-timings/*.json NQCDynamics.jl/commits/$NEW_VERSION/
           # Note: the following account information will not work on GHES
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add NQCDynamics.jl/commits/$NEW_VERSION/*.json
-          git commit -m "generated"
+          git add /home/runner/NQCDynamics.jl/NQCDynamics.jl/NQCDynamics.jl/commits/$NEW_VERSION/*.json
+          git commit -m "Stored test performance"
           git push
         env:
           NEW_VERSION: ${{ github.sha }}
@@ -137,14 +136,14 @@ jobs:
           export BENCHMARK_REPO=$(pwd)
           date > generated.txt
           mkdir -p NQCDynamics.jl/tags/$VERSION
+          mv /home/runner/NQCDynamics.jl/NQCDynamics.jl/benchmarks/*-timings/*.json /home/runner/NQCDynamics.jl/NQCDynamics.jl/tags/$NEW_VERSION/
           # Generate benchmark time comparison graphics
           julia --project=. benchmark_plots.jl
-          mv $GITHUB_WORKSPACE/benchmarks/*-timings/*.json NQCDynamics.jl/tags/$VERSION/
           # Note: the following account information will not work on GHES
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add NQCDynamics.jl/tags/$VERSION/*.json
-          git commit -m "generated"
+          git add /home/runner/NQCDynamics.jl/NQCDynamics.jl/NQCDynamics.jl/tags/$VERSION/*.json
+          git commit -m "Stored test performance"
           git push
         env:
           GRAPHICS_PATH: benchmark-graphics
@@ -157,6 +156,6 @@ jobs:
       - id: post
         run: |
           echo "### Unit test benchmark :rocket:" >> "$GITHUB_STEP_SUMMARY"
-          echo "Compared dynamics test timings between ${{ steps.save_tag.outputs.newest_release_version }} and {{ github.sha }}." >> "$GITHUB_STEP_SUMMARY"
+          echo "Compared dynamics test timings between ${{ steps.save_tag.outputs.newest_release_version }} and ${{ github.sha }}." >> "$GITHUB_STEP_SUMMARY"
           echo "Download the results [here](${{ steps.upload-artifact.outputs.artifact-url }})" >> "$GITHUB_STEP_SUMMARY"
 
