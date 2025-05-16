@@ -95,17 +95,17 @@ jobs:
       - id: save_tag
         run: |
           echo "$(pwd)"
-          echo "current_version=$(git describe --tags --abbrev=0)" >> "$GITHUB_OUTPUT"
-          echo "CURRENT_VERSION=$(git describe --tags --abbrev=0)" >> "$GITHUB_ENV"
-          echo "last_version=$(git for-each-ref --sort=-taggerdate --format '%(tag)' refs/tags | sed -n 2p)" >> "$GITHUB_OUTPUT"
-          echo "LAST_VERSION=$(git for-each-ref --sort=-taggerdate --format '%(tag)' refs/tags | sed -n 2p)" >> "$GITHUB_ENV"
+          echo "current_version=$(git tag --list --sort=-taggerdate | sed -n 1p)" >> "$GITHUB_OUTPUT"
+          echo "CURRENT_VERSION=$(git tag --list --sort=-taggerdate | sed -n 1p)" >> "$GITHUB_ENV"
+          echo "last_version=$(git tag --list --sort=-taggerdate | sed -n 2p)" >> "$GITHUB_OUTPUT"
+          echo "LAST_VERSION=$(git tag --sort=-taggerdate | sed -n 2p)" >> "$GITHUB_ENV"
       - uses: julia-actions/setup-julia@latest
       - name: Download any artifacts from test steps
         uses: actions/download-artifact@v4
         with:
           path: benchmarks
           pattern: '*-timings'
-          merge_multiple: true
+          merge-multiple: true
       - run: ls -l /home/runner/work/NQCDynamics.jl/NQCDynamics.jl/benchmarks/
       - uses: julia-actions/setup-julia@latest
       - name: Initialise Julia environment
