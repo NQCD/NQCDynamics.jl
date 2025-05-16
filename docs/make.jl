@@ -19,7 +19,7 @@ end
 @time makedocs(;
     plugins=[bib],
     sitename="NQCDynamics.jl",
-    modules=[NQCDynamics, NQCDistributions, NQCModels, NQCBase, MACEModels, FrictionProviders],
+    modules=[NQCDynamics, NQCDistributions, NQCModels, NQCBase, MACEModels, FrictionProviders, NQCDInterfASE],
     doctest=false,
     format=Documenter.HTML(
         prettyurls=get(ENV, "CI", nothing) == "true",
@@ -61,6 +61,7 @@ end
             "NQCModels" => find_all_files("api/NQCModels")
             "NQCDistributions" => find_all_files("api/NQCDistributions")
             "NQCDynamics" => find_all_files("api/NQCDynamics")
+            "NQCDInterfASE" => find_all_files("api/NQCDInterfASE")
         ]
         "References" => "references.md"
     ])

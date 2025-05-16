@@ -43,8 +43,8 @@ for working with [ASE](https://wiki.fysik.dtu.dk/ase/index.html) from within Jul
 
 ## Using Python's `ase` package from Julia
 
-Julia provides multiple options to run Python-based code from Julia scripts. The NQCD packages
-provide compatibility with [**PythonCall.jl**](https://github.com/JuliaPy/PythonCall.jl), and some deprecated interfaces for [**PyCall.jl**](https://github.com/JuliaPy/PyCall.jl) exist as well. 
+Julia provides multiple options to run Python-based code from Julia scripts. [NQCDInterfASE](@ref) 
+provides compatibility with [**PythonCall.jl**](https://github.com/JuliaPy/PythonCall.jl).
 While both of these packages function similarly, PythonCall forces you as a user to think more about when data is copied in memory between Python and Julia, enabling more efficient code. 
 
 This example shows how `ase.build` can be used to build a structure from within Julia, then convert
@@ -65,6 +65,7 @@ be quickly converted to the correct format:
 
 ```julia
 using NQCDynamics
+using NQCDInterfASE # Import python interface functionality
 
 atoms_nqcd, positions_nqcd, cell_nqcd = convert_from_ase_atoms(atoms_ase)
 

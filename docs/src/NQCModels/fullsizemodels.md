@@ -18,12 +18,12 @@ Several examples for connecting common machine-learning interatomic potentials t
 !!! note
 
     The interface works by calling the relevant Python functions using
-    [PyCall](https://github.com/JuliaPy/PyCall.jl).
-    To use PyCall, you must make sure that your `python` version contains all the
+    [PythonCall](https://github.com/JuliaPy/PythonCall.jl).
+    To use PythonCall, you must make sure that your `python` version contains all the
     relevant packages, such as ase.
-    [PyCall](https://github.com/JuliaPy/PyCall.jl) can be configured to use a particular
+    [PythonCall](https://github.com/JuliaPy/PythonCall.jl) can be configured to use a particular
     pre-installed Python or install its own.
-    Refer to the [PyCall README](https://github.com/JuliaPy/PyCall.jl) for installation
+    Refer to the [PythonCall README](https://github.com/JuliaPy/PythonCall.jl) for installation
     and configuration instructions.
 
 ### Example
@@ -33,11 +33,11 @@ the desired calculator. This works exactly as in Python:
 
 ```@example ase
 using PythonCall: pyimport, pylist
-using ASEconvert
 
+ase_build = pyimport("ase.build")
 emt = pyimport("ase.calculators.emt")
 
-h2 = ase.Atoms("H2", pylist([(0, 0, 0), (0, 0, 0.74)]))
+h2 = ase_build.molecule("H2")
 h2.calc = emt.EMT()
 nothing # hide
 ```
@@ -47,6 +47,7 @@ to the model:
 
 ```@repl ase
 using NQCModels
+using NQCDInterfASE # This module contains all Python interface functionality. 
 model = AdiabaticASEModel(h2)
 ```
 
