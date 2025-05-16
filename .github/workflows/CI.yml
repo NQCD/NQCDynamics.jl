@@ -105,6 +105,8 @@ jobs:
         with:
           path: benchmarks
           pattern: '*-timings'
+          merge_multiple: true
+      - run: ls -l /home/runner/work/NQCDynamics.jl/NQCDynamics.jl/benchmarks/
       - uses: julia-actions/setup-julia@latest
       - name: Initialise Julia environment
         run: |
@@ -115,7 +117,7 @@ jobs:
         run: |
           export BENCHMARK_REPO=$(pwd)
           mkdir -p NQCDynamics.jl/commits/$NEW_VERSION
-          mv /home/runner/work/NQCDynamics.jl/NQCDynamics.jl/benchmarks/*-timings/*.json /home/runner/work/NQCDynamics.jl/NQCDynamics.jl/commits/$NEW_VERSION/
+          mv /home/runner/work/NQCDynamics.jl/NQCDynamics.jl/benchmarks/*.json /home/runner/work/NQCDynamics.jl/NQCDynamics.jl/NQCDynamics.jl/commits/$NEW_VERSION/
           # Generate benchmark time comparison graphics
           julia --project=. benchmark_plots.jl
           # Note: the following account information will not work on GHES
@@ -136,7 +138,7 @@ jobs:
           export BENCHMARK_REPO=$(pwd)
           date > generated.txt
           mkdir -p NQCDynamics.jl/tags/$VERSION
-          mv /home/runner/work/NQCDynamics.jl/NQCDynamics.jl/benchmarks/*-timings/*.json /home/runner/work/NQCDynamics.jl/NQCDynamics.jl/tags/$NEW_VERSION/
+          mv /home/runner/work/NQCDynamics.jl/NQCDynamics.jl/benchmarks/*.json /home/runner/work/NQCDynamics.jl/NQCDynamics.jl/NQCDynamics.jl/tags/$NEW_VERSION/
           # Generate benchmark time comparison graphics
           julia --project=. benchmark_plots.jl
           # Note: the following account information will not work on GHES
