@@ -1,6 +1,10 @@
 using Test
 using NQCDynamics
 using Unitful, UnitfulAtomic
+import JSON
+
+benchmark_dir = get(ENV, "BENCHMARK_OUTPUT_DIR", "/tmp/nqcd_benchmark")
+benchmark_results = Dict{String, Any}("title_for_plotting" => "DiabaticMDEF Tests")
 
 atoms = Atoms(1u"u")
 nstates = 100
@@ -38,12 +42,21 @@ end
 @testset "Simulation{DiabaticMDEF}" begin
     sim = Simulation{DiabaticMDEF}(atoms, model; temperature=T, friction_method=ClassicalMethods.WideBandExact(model.ρ, 1/T))
     u = DynamicsVariables(sim, rand(1,1), rand(1,1))
-    run_dynamics(sim, (0.0, 1.0), u; dt=0.1, output=OutputDynamicsVariables)
+    dyn_test = @timed run_dynamics(sim, (0.0, 1.0), u; dt=0.1, output=OutputDynamicsVariables)
+    sol = dyn_test.value
+    benchmark_results["Simulation{DiabaticMDEF}"] = Dict("Time" => dyn_test.time, "Allocs" => dyn_test.bytes)
 end
 
 @testset "RingPolymerSimulation{DiabaticMDEF}" begin
     n_beads = 10
     sim = RingPolymerSimulation{DiabaticMDEF}(atoms, model, n_beads; temperature=T, friction_method=ClassicalMethods.WideBandExact(model.ρ, 1/T))
     u = DynamicsVariables(sim, rand(1,1,n_beads), rand(1,1,n_beads))
-    run_dynamics(sim, (0.0, 1.0), u; dt=0.1, output=OutputDynamicsVariables)
+    dyn_test = @timed run_dynamics(sim, (0.0, 1.0), u; dt=0.1, output=OutputDynamicsVariables)
+    sol = dyn_test.value
+    benchmark_results["RingPolymerSimulation{DiabaticMDEF}"] = Dict("Time" => dyn_test.time, "Allocs" => dyn_test.bytes)
 end
+
+# Output benchmarking dict
+output_file = open("$(benchmark_dir)/diabaticMDEF.json", "w")
+JSON.print(output_file, benchmark_results)
+close(output_file)

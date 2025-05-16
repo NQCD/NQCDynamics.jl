@@ -4,6 +4,10 @@ using Unitful
 using UnitfulAtomic
 using LinearAlgebra: diag
 using ComponentArrays
+using JSON
+
+benchmark_dir = get(ENV, "BENCHMARK_OUTPUT_DIR", "/tmp/nqcd_benchmark")
+benchmark_results = Dict{String, Any}("title_for_plotting" => "MDEF Tests")
 
 atoms = Atoms([:H, :H])
 model = CompositeFrictionModel(Free(), ConstantFriction(1, atoms.masses[1]))
@@ -20,11 +24,20 @@ du = zero(u)
     @test all(diag(gtmp) .≈ 1.0)
 end
 
-sol = run_dynamics(sim, (0.0, 100.0), u; output=OutputDynamicsVariables, dt=1)
+dyn_test = @timed run_dynamics(sim, (0.0, 100.0), u; output=OutputDynamicsVariables, dt=1)
+sol = dyn_test.value
 @test sol[:OutputDynamicsVariables][1] ≈ u
+benchmark_results["MDEF with ConstantFriction"] = Dict("Time" => dyn_test.time, "Allocs" => dyn_test.bytes)
 
 f(t) = 100u"K"*exp(-ustrip(t))
 model = CompositeFrictionModel(Harmonic(), RandomFriction(1))
 sim = Simulation{MDEF}(atoms, model; temperature=f)
-sol = run_dynamics(sim, (0.0, 100.0), u; output=OutputDynamicsVariables, dt=1)
- 
+
+dyn_test = @timed run_dynamics(sim, (0.0, 100.0), u; output=OutputDynamicsVariables, dt=1)
+sol = dyn_test.value
+benchmark_results["MDEF with RandomFriction"] = Dict("Time" => dyn_test.time, "Allocs" => dyn_test.bytes)
+
+# Output benchmarking dict
+output_file = open("$(benchmark_dir)/mdef.json", "w")
+JSON.print(output_file, benchmark_results)
+close(output_file)
