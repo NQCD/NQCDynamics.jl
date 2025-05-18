@@ -33,6 +33,10 @@ function NQCDistributions.DynamicalDistribution(velocities, positions, simulatio
     mobile_atoms = NQCModels.mobileatoms(simulation.calculator.model, 1)
     simulation_dims = size(simulation)
     frozen_indices = symdiff(1:simulation_dims[2], mobile_atoms)
-    return NQCDistributions.DynamicalDistribution(velocities, positions, simulation_dims; frozen_atoms=frozen_indices, classical=classical)
+    if isempty(classical)
+        return NQCDistributions.DynamicalDistribution(velocities, positions, simulation_dims; frozen_atoms=frozen_indices)
+    else
+        return NQCDistributions.DynamicalDistribution(velocities, positions, simulation_dims; frozen_atoms=frozen_indices, classical = classical)
+    end
 
 end

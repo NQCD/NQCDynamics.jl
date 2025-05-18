@@ -107,6 +107,11 @@ we can provide a function to the output argument as described in the
 The advantage of this approach is that memory can be saved by reducing the data as the trajectories accumulate,
 it also allows greater flexibility when modifying the output.
 
+!!! note Optimising performance
+
+    Due to how Julia's code precompilation works, running a function for the first time will take longer than subsequent calls to it. As a result, it's advantageous to run dynamics for a single time step to force the Julia compiler to precompile everything needed to propagate dynamics. 
+    NQCDynamics does this automatically, and you can disable this for shorter simulations by setting `precompile_dynamics=false` in the `run_dynamics` command. 
+
 Inside the [`Ensembles`](@ref) submodule we define a few premade functions of this sort, but here
 we can demonstrate how to reformulate the previous simulation using the alternative format.
 ```@example ensemble
