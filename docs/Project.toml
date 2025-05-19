@@ -31,6 +31,9 @@ UnitfulAtomic = "a7773ee8-282e-5fa2-be4e-bd808c38a91a"
 
 [sources]
 NQCDInterfASE = {url = "https://github.com/NQCD/NQCDInterfASE.jl"}
+NQCModels = {rev = "remove-python"}
+FrictionProviders = {rev = "friction_rework"}
+NQCBase = {rev = "remove-python"}
 
 [compat]
 Documenter = "1"
