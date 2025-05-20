@@ -24,7 +24,7 @@ function NQCDynamics.Simulation{DiabaticMDEF}(atoms::Atoms, model::Model;
     )
 end
 
-function acceleration!(dv, v, r, sim::Simulation{<:Union{DiabaticMDEF,Classical},<:NQCCalculators.LargeQuantumModel_Cache}, t)
+function acceleration!(dv, v, r, sim::Simulation{<:Union{DiabaticMDEF,Classical},<:NQCCalculators.Abstract_QuantumModel_Cache}, t)
 
     adiabatic_derivative = NQCCalculators.get_adiabatic_derivative(sim.cache, r)
     eigen = NQCCalculators.get_eigen(sim.cache, r)
@@ -186,7 +186,7 @@ function determine_fermi_level(nelectrons, β, eigenvalues)
 end
 
 function DynamicsUtils.classical_potential_energy(
-    sim::Simulation{<:Union{DiabaticMDEF,Classical},<:NQCCalculators.LargeQuantumModel_Cache},
+    sim::Simulation{<:Union{DiabaticMDEF,Classical},<:NQCCalculators.Abstract_QuantumModel_Cache},
     r::AbstractMatrix
 )
     eigen = NQCCalculators.get_eigen(sim.cache, r)

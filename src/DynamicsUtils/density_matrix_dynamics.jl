@@ -36,7 +36,7 @@ get_quantum_subsystem(u::ComponentArrays.ComponentVector{T}) where {T} = StructA
 
 function initialise_adiabatic_density_matrix(
     electronics::ElectronicDistribution{Diabatic},
-    cache::Abstract_ExactQuantumModel_Cache,
+    cache::Abstract_QuantumModel_Cache,
     r
 )
 
@@ -46,7 +46,7 @@ end
 
 function initialise_adiabatic_density_matrix(
     electronics::ElectronicDistribution{Adiabatic},
-    cache::Abstract_ExactQuantumModel_Cache,
+    cache::Abstract_QuantumModel_Cache,
     r
 )
 
@@ -61,7 +61,7 @@ function initialise_adiabatic_density_matrix(
 end
 
 function transform_density!(
-    density::AbstractMatrix, cache::Abstract_ExactQuantumModel_Cache, r, direction
+    density::AbstractMatrix, cache::Abstract_QuantumModel_Cache, r, direction
 )
     U = evaluate_transformation(cache, r)
     if direction === :to_diabatic
@@ -73,12 +73,17 @@ function transform_density!(
     return density
 end
 
-function evaluate_transformation(cache::Union{SmallQuantumModel_Cache, LargeQuantumModel_Cache}, r)
+function evaluate_transformation(cache::Abstract_QuantumModel_Cache, r)
     eigs =  NQCCalculators.get_eigen(cache, r)
     return eigs.vectors
 end
 
-function evaluate_transformation(cache::RingPolymer_SmallQuantumModel_Cache, r)
+function evaluate_transformation(cache::RingPolymer_QuantumModel_Cache, r)
+    centroid_eigs = NQCCalculators.get_centroid_eigen(cache, r)
+    return centroid_eigs.vectors
+end
+
+function evaluate_transformation(cache::RingPolymer_QuantumFrictionModel_Cache, r)
     centroid_eigs = NQCCalculators.get_centroid_eigen(cache, r)
     return centroid_eigs.vectors
 end

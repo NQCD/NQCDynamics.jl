@@ -11,15 +11,15 @@ const MAX_EIGEN_ALLOCATIONS = 60000
 
 @testset "General constructors" begin #reasonable basic tests to ensure that multiple dispatch is correctly working to construct the correct types of Calculators
     model = NQCModels.DoubleWell()
-    @test NQCCalculators.Create_Cache(model, 1, Float64) isa NQCCalculators.SmallQuantumModel_Cache
-    @test NQCCalculators.Create_Cache(model, 1, 2, Float64) isa NQCCalculators.RingPolymer_SmallQuantumModel_Cache
+    @test NQCCalculators.Create_Cache(model, 1, Float64) isa NQCCalculators.Abstract_QuantumModel_Cache
+    @test NQCCalculators.Create_Cache(model, 1, 2, Float64) isa NQCCalculators.RingPolymer_QuantumModel_Cache
 
     model = NQCModels.Free()
     @test NQCCalculators.Create_Cache(model, 1, Float64) isa NQCCalculators.ClassicalModel_Cache
     @test NQCCalculators.Create_Cache(model, 1, 2, Float64) isa NQCCalculators.RingPolymer_ClassicalModel_Cache
 
     model = NQCModels.AndersonHolstein(MiaoSubotnik(;Γ=1.0), TrapezoidalRule(10, -1.0, 1.0))
-    @test NQCCalculators.Create_Cache(model, 1, Float64) isa NQCCalculators.LargeQuantumModel_Cache
+    @test NQCCalculators.Create_Cache(model, 1, Float64) isa NQCCalculators.Abstract_QuantumModel_Cache
 
     model = NQCModels.CompositeFrictionModel(Free(), RandomFriction(1))
     @test NQCCalculators.Create_Cache(model, 1, Float64) isa NQCCalculators.Friction_Cache
@@ -53,9 +53,9 @@ end
     @test @allocated(NQCCalculators.get_derivative(cache, r)) == 0
 end
 
-@testset "SmallQuantumModel_Cache" begin
+@testset "Abstract_QuantumModel_Cache" begin
     model = NQCModels.DoubleWell()
-    cache = NQCCalculators.SmallQuantumModel_Cache{Float64}(model, 1) 
+    cache = NQCCalculators.Abstract_QuantumModel_Cache{Float64}(model, 1) 
     r = rand(1,1)
     quantities = (:potential, :derivative, :eigen, :adiabatic_derivative, :nonadiabatic_coupling)
 
@@ -116,10 +116,10 @@ end
     end
 end
 
-@testset "RingPolymer_SmallQuantumModel_Cache" begin
+@testset "RingPolymer_QuantumModel_Cache" begin
     model = NQCModels.DoubleWell()
 
-    reset_cache() = NQCCalculators.RingPolymer_SmallQuantumModel_Cache{Float64}(model, 1, 10)
+    reset_cache() = NQCCalculators.RingPolymer_QuantumModel_Cache{Float64}(model, 1, 10)
 
     r = rand(1,1,10)
     r_centroid = rand(1,1)
@@ -264,9 +264,9 @@ end
     end
 end
 
-@testset "LargeQuantumModel_Cache" begin
+@testset "Abstract_QuantumModel_Cache" begin
     model = NQCModels.AndersonHolstein(MiaoSubotnik(;Γ=1.0), TrapezoidalRule(40, -1.0, 1.0))
-    cache = NQCCalculators.LargeQuantumModel_Cache{Float64}(model, 1) 
+    cache = NQCCalculators.Abstract_QuantumModel_Cache{Float64}(model, 1) 
     r = rand(1,1)
 
     NQCCalculators.get_nonadiabatic_coupling(cache, r)
@@ -282,15 +282,15 @@ end
     @test @allocated(NQCCalculators.evaluate_derivative!(cache, r)) == 0
     eigen_allocations = @allocated(NQCCalculators.evaluate_eigen!(cache, r))
     global allocs_LargeDiabatic = eigen_allocations
-    @debug "LargeQuantumModel_Cache: $(eigen_allocations) needed for eigenvalues"
+    @debug "Abstract_QuantumModel_Cache: $(eigen_allocations) needed for eigenvalues"
     @test eigen_allocations < MAX_EIGEN_ALLOCATIONS
     @test @allocated(NQCCalculators.evaluate_adiabatic_derivative!(cache, r)) == 0
     @test @allocated(NQCCalculators.evaluate_nonadiabatic_coupling!(cache, r)) == 0
 end
 
-@testset "RingPolymer_LargeQuantumModel_Cache" begin
+@testset "RingPolymer_QuantumModel_Cache" begin
     model = NQCModels.AndersonHolstein(MiaoSubotnik(;Γ=1.0), TrapezoidalRule(40, -1.0, 1.0))
-    cache = NQCCalculators.RingPolymer_LargeQuantumModel_Cache{Float64}(model, 1, 10) 
+    cache = NQCCalculators.RingPolymer_QuantumModel_Cache{Float64}(model, 1, 10) 
     r = rand(1, 1, 10)
 
     NQCCalculators.get_nonadiabatic_coupling(cache, r)

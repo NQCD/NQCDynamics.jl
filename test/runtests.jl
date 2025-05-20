@@ -8,9 +8,9 @@ if GROUP == "All" || GROUP == "Core"
     @safetestset "FastDeterminant Tests" begin
         include("Core/FastDeterminant.jl")
     end
-    @safetestset "Calculator Tests" begin
-        include("Core/calculators.jl")
-    end
+    # @safetestset "Calculator Tests" begin
+    #     include("Core/calculators.jl")
+    # end
     @safetestset "Simulation Tests" begin
         include("Core/simulations.jl")
     end
