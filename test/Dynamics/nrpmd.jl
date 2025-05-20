@@ -6,6 +6,11 @@ using OrdinaryDiffEq
 using DiffEqDevTools
 using NQCDynamics: DynamicsMethods, DynamicsUtils
 using NQCDynamics.DynamicsMethods.MappingVariableMethods
+import JSON
+
+benchmark_dir = get(ENV, "BENCHMARK_OUTPUT_DIR", "/tmp/nqcd_benchmark")
+benchmark_results = Dict{String, Any}("title_for_plotting" => "NRPMD Tests")
+
 Random.seed!(1)
 
 @test MappingVariableMethods.NRPMD{Float64}(10, 0.0) isa MappingVariableMethods.NRPMD
@@ -51,9 +56,12 @@ end
 end
 
 algs = (DynamicsMethods.IntegrationAlgorithms.RingPolymerMInt(), Tsit5())
-@testset "Energy conservation $alg" for alg in algs
-    sol = run_dynamics(sim, (0, 10.0), u; output=OutputTotalEnergy, dt=1e-2, algorithm=alg, abstol=1e-8, reltol=1e-8)
+names = ["RingPolymerMInt", "Tsit5"]
+@testset "Energy conservation $(algs[idx])" for idx in eachindex(algs)
+    dyn_test = @timed run_dynamics(sim, (0, 10.0), u; output=OutputTotalEnergy, dt=1e-2, algorithm=algs[idx], abstol=1e-8, reltol=1e-8)
+    sol = dyn_test.value
     @test sol[:OutputTotalEnergy][1] ≈ sol[:OutputTotalEnergy][end] rtol=1e-2
+    benchmark_results[names[idx]] = Dict("Time" => dyn_test.time, "Allocs" => dyn_test.bytes)
 end
 
 @testset "Algorithm comparison" begin
@@ -73,3 +81,8 @@ end
     res = analyticless_test_convergence(dts, prob, alg, setup)
     @test res.𝒪est[:final] ≈ 2 atol=0.1
 end
+
+# Output benchmarking dict
+output_file = open("$(benchmark_dir)/NRPMD.json", "w")
+JSON.print(output_file, benchmark_results)
+close(output_file)
