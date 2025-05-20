@@ -7,6 +7,10 @@ using Statistics: mean
 using StatsBase: sem
 using DataFrames, CSV
 using Interpolations
+import JSON
+
+benchmark_dir = get(ENV, "BENCHMARK_OUTPUT_DIR", "/tmp/nqcd_benchmark")
+benchmark_results = Dict{String, Any}("title_for_plotting" => "BCME Tests")
 
 ħω = 0.003
 Γ = 0.1
@@ -60,7 +64,9 @@ model = TestModel(ħω, Ed, g, Γ)
     v = VelocityBoltzmann(kT, atoms.masses[1])
     distribution = DynamicalDistribution(v, r, (1,1)) * PureState(1, Diabatic())
 
-    output = run_dynamics(sim, (0.0, 10000.0), distribution; trajectories=100, output=(OutputPosition), abstol=1e-12, reltol=1e-12, saveat=100)
+    dyn_test = @timed run_dynamics(sim, (0.0, 10000.0), distribution; trajectories=100, output=(OutputPosition), abstol=1e-12, reltol=1e-12, saveat=100)
+    output = dyn_test.value
+    
     avg = zeros(101)
     for i in eachindex(output)
         for j in eachindex(avg)
@@ -88,5 +94,10 @@ model = TestModel(ħω, Ed, g, Γ)
     # plot!(output[1][:Time], itp.(output[1][:Time]))
     # xlims!(0, 1e4)
     # display(p)
+    benchmark_results["BCME"] = Dict("Time" => dyn_test.time, "Allocs" => dyn_test.bytes)
 end
 
+# Output benchmarking dict
+output_file = open("$(benchmark_dir)/BCME.json", "w")
+JSON.print(output_file, benchmark_results)
+close(output_file)

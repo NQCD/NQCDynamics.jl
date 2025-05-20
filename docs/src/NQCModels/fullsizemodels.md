@@ -13,17 +13,17 @@ use the interfaces implemented in [ASE](https://wiki.fysik.dtu.dk/ase/).
 We provide the [`AdiabaticASEModel`](@ref) which wraps an ASE atoms object and its
 associated calculator to implement the required [`potential`](@ref) and
 [`derivative`](@ref) functions.
-Several examples for connecting common machine-learning interatomic potentials to NQCModels.jl through the ASE interface are shown in the [MLIP examples](@ref) section.
+Several examples for connecting common machine-learning interatomic potentials to NQCModels.jl through the ASE interface are shown in the [MLIP examples](@ref ml-pes-models) section.
 
 !!! note
 
     The interface works by calling the relevant Python functions using
-    [PyCall](https://github.com/JuliaPy/PyCall.jl).
-    To use PyCall, you must make sure that your `python` version contains all the
+    [PythonCall](https://github.com/JuliaPy/PythonCall.jl).
+    To use PythonCall, you must make sure that your `python` version contains all the
     relevant packages, such as ase.
-    [PyCall](https://github.com/JuliaPy/PyCall.jl) can be configured to use a particular
+    [PythonCall](https://github.com/JuliaPy/PythonCall.jl) can be configured to use a particular
     pre-installed Python or install its own.
-    Refer to the [PyCall README](https://github.com/JuliaPy/PyCall.jl) for installation
+    Refer to the [PythonCall README](https://github.com/JuliaPy/PythonCall.jl) for installation
     and configuration instructions.
 
 ### Example
@@ -33,11 +33,11 @@ the desired calculator. This works exactly as in Python:
 
 ```@example ase
 using PythonCall: pyimport, pylist
-using ASEconvert
 
+ase_build = pyimport("ase.build")
 emt = pyimport("ase.calculators.emt")
 
-h2 = ase.Atoms("H2", pylist([(0, 0, 0), (0, 0, 0.74)]))
+h2 = ase_build.molecule("H2")
 h2.calc = emt.EMT()
 nothing # hide
 ```
@@ -47,6 +47,7 @@ to the model:
 
 ```@repl ase
 using NQCModels
+using NQCDInterfASE # This module contains all Python interface functionality. 
 model = AdiabaticASEModel(h2)
 ```
 
@@ -64,7 +65,7 @@ derivative(model, rand(3, 2))
     the `get_potential_energy` and `get_forces` functions. For instance, you can use
     [SchNetPack (SPK)](https://github.com/atomistic-machine-learning/schnetpack) by
     passing their ASE calculator to the `AdiabaticASEModel`.
-    Take a look at [MLIP examples](@ref) to learn more.
+    Take a look at [MLIP examples](@ref ml-pes-models) to learn more.
 
 ## MACE interface
 

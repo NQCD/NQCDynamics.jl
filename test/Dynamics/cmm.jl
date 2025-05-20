@@ -3,6 +3,10 @@ using Test
 using NQCDynamics
 using FiniteDiff
 using LinearAlgebra: norm
+import JSON
+
+benchmark_dir = get(ENV, "BENCHMARK_OUTPUT_DIR", "/tmp/nqcd_benchmark")
+benchmark_results = Dict{String, Any}("title_for_plotting" => "CMM Tests")
 
 function test_motion!(sim::Simulation{<:eCMM}, u)
     f(x) = DynamicsUtils.classical_hamiltonian(sim, x)
@@ -29,15 +33,19 @@ u1 = DynamicsVariables(sim1, v, r, PureState(1))
 test_motion!(sim, u)
 test_motion!(sim1, u1)
 
-sol = run_dynamics(sim, (0, 100.0), u; output=(OutputTotalEnergy, OutputPosition, OutputDynamicsVariables), reltol=1e-10, abstol=1e-10)
+dyn_test = @timed run_dynamics(sim, (0, 100.0), u; output=(OutputTotalEnergy, OutputPosition, OutputDynamicsVariables), reltol=1e-10, abstol=1e-10)
+sol = dyn_test.value
 @test sol[:OutputTotalEnergy][1] ≈ sol[:OutputTotalEnergy][end] rtol=1e-3
+benchmark_results["eCMM γ=0.0"] = Dict("Time" => dyn_test.time, "Allocs" => dyn_test.bytes)
 qmap = [u.qmap for u in sol[:OutputDynamicsVariables]]
 pmap = [u.pmap for u in sol[:OutputDynamicsVariables]]
 total_population = sum.(DynamicsMethods.MappingVariableMethods.mapping_kernel.(qmap, pmap, sim.method.γ))
 @test all(isapprox.(total_population, 1, rtol=1e-3))
 
-sol = run_dynamics(sim1, (0, 100.0), u1; output=(OutputTotalEnergy, OutputPosition, OutputDynamicsVariables), reltol=1e-10, abstol=1e-10)
+dyn_test = @timed run_dynamics(sim1, (0, 100.0), u1; output=(OutputTotalEnergy, OutputPosition, OutputDynamicsVariables), reltol=1e-10, abstol=1e-10)
+sol = dyn_test.value
 @test sol[:OutputTotalEnergy][1] ≈ sol[:OutputTotalEnergy][end] rtol=1e-3
+benchmark_results["eCMM γ=0.5"] = Dict("Time" => dyn_test.time, "Allocs" => dyn_test.bytes)
 qmap = [u.qmap for u in sol[:OutputDynamicsVariables]]
 pmap = [u.pmap for u in sol[:OutputDynamicsVariables]]
 total_population = sum.(DynamicsMethods.MappingVariableMethods.mapping_kernel.(qmap, pmap, sim1.method.γ))
@@ -72,3 +80,7 @@ end
     end
 end
 
+# Output benchmarking dict
+output_file = open("$(benchmark_dir)/CMM.json", "w")
+JSON.print(output_file, benchmark_results)
+close(output_file)
