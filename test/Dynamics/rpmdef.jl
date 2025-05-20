@@ -9,6 +9,10 @@ using StochasticDiffEq
 using ComponentArrays
 using NQCDynamics: DynamicsMethods, DynamicsUtils
 using NQCDynamics.DynamicsMethods: ClassicalMethods, IntegrationAlgorithms
+import JSON
+
+benchmark_dir = get(ENV, "BENCHMARK_OUTPUT_DIR", "/tmp/nqcd_benchmark")
+benchmark_results = Dict{String, Any}("title_for_plotting" => "RPMDEF Tests")
 
 atoms = Atoms([:H, :C])
 model = CompositeFrictionModel(Free(3), ConstantFriction(3, 1))
@@ -57,8 +61,9 @@ end
     v = RingPolymerArray(zeros(size(sim)))
     r = RingPolymerArray(zeros(size(sim)))
 
-    sol = run_dynamics(sim, (0.0, 1e4), ArrayPartition(v,r); dt=1, output=OutputKineticEnergy)
-    # @test mean(sol.kinetic) ≈ austrip(100u"K") * length(sim.beads) rtol=5e-1
+    dyn_test = @timed run_dynamics(sim, (0.0, 1e4), ArrayPartition(v,r); dt=1, output=OutputKineticEnergy)
+    sol = dyn_test.value
+    benchmark_results["ThermalLangevin"] = Dict("Time" => dyn_test.time, "Allocs" => dyn_test.bytes)
 end
 
 @testset "MDEF" begin
@@ -69,5 +74,12 @@ end
     v = RingPolymerArray(zeros(size(sim)))
     r = RingPolymerArray(zeros(size(sim)))
 
-    sol = run_dynamics(sim, (0.0, 1e2), ArrayPartition(v,r); dt=1, output=OutputKineticEnergy)
+    dyn_test = @timed run_dynamics(sim, (0.0, 1e2), ArrayPartition(v,r); dt=1, output=OutputKineticEnergy)
+    sol = dyn_test.value
+    benchmark_results["RPMDEF"] = Dict("Time" => dyn_test.time, "Allocs" => dyn_test.bytes)
 end
+
+# Output benchmarking dict
+output_file = open("$(benchmark_dir)/RPMDEF.json", "w")
+JSON.print(output_file, benchmark_results)
+close(output_file)

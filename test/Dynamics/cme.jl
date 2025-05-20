@@ -7,6 +7,10 @@ using Statistics: mean
 using StatsBase: sem
 using DataFrames, CSV
 using Interpolations
+import JSON
+
+benchmark_dir = get(ENV, "BENCHMARK_OUTPUT_DIR", "/tmp/nqcd_benchmark")
+benchmark_results = Dict{String, Any}("title_for_plotting" => "CME Tests")
 
 ħω = 0.003
 Γ = 0.003
@@ -62,7 +66,9 @@ model = TestModel(ħω, Ed, g, Γ)
     v = VelocityBoltzmann(kTinitial, atoms.masses[1])
     distribution = DynamicalDistribution(v, r, (1,1)) * PureState(1, Diabatic())
 
-    output = run_dynamics(sim, (0.0, 200 / Γ), distribution; trajectories=1000, output=(OutputKineticEnergy, OutputTotalEnergy, OutputDiscreteState), abstol=1e-8, reltol=1e-8, saveat=2/Γ)
+    dyn_test = @timed run_dynamics(sim, (0.0, 200 / Γ), distribution; trajectories=1000, output=(OutputKineticEnergy, OutputTotalEnergy, OutputDiscreteState), abstol=1e-8, reltol=1e-8, saveat=2/Γ)
+    output = dyn_test.value
+    
     avg = mean(o[:OutputKineticEnergy] for o in output) ./ kT
     err = zero(avg)
     for i in eachindex(err)
@@ -76,6 +82,7 @@ model = TestModel(ħω, Ed, g, Γ)
         true_value = itp(t)
         @test isapprox(true_value, avg[i]; atol=5err[i], rtol=0.2)
     end
+    benchmark_results["Phonon relaxation"] = Dict("Time" => dyn_test.time, "Allocs" => dyn_test.bytes)
     # Uncomment to see the comparison if the tests start failing
     # using Plots
     # p = plot()
@@ -84,4 +91,9 @@ model = TestModel(ħω, Ed, g, Γ)
     # plot!(output[1][:Time] .* Γ, itp.(output[1][:Time] .* Γ))
     # display(p)
 end
+
+# Output benchmarking dict
+output_file = open("$(benchmark_dir)/cme.json", "w")
+JSON.print(output_file, benchmark_results)
+close(output_file)
 
