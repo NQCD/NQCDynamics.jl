@@ -37,7 +37,7 @@ end
 Evaluates friction tensor
 """
 function friction!(g, r, sim::AbstractSimulation{<:AbstractMDEF}, t)
-    friction = Calculators.get_friction(sim.calculator, r)
+    friction = NQCCalculators.get_friction(sim.cache, r)
     g .= friction ./ sim.method.mass_scaling
 end
 

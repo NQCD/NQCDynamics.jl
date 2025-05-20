@@ -19,21 +19,21 @@ function OrdinaryDiffEq.alg_cache(::BCBWavefunction,u,rate_prototype,::Type{uElt
     BCBWavefunctionCache(u, uprev, tmp, vtmp, k, cayley)
 end
 
-function OrdinaryDiffEq.initialize!(integrator, cache::BCBWavefunctionCache)
+function OrdinaryDiffEq.initialize!(integrator, integrator_cache::BCBWavefunctionCache)
     r = DynamicsUtils.get_positions(integrator.u)
     v = DynamicsUtils.get_velocities(integrator.u)
     σprev = DynamicsUtils.get_quantum_subsystem(integrator.u)
-    Calculators.update_electronics!(integrator.p.calculator, r)
+    NQCCalculators.update_electronics!(integrator.p.cache, r)
     if integrator.p.method isa DynamicsMethods.EhrenfestMethods.AbstractEhrenfest
-        DynamicsUtils.acceleration!(cache.k, v, r, integrator.p, integrator.t, σprev)
+        DynamicsUtils.acceleration!(integrator_cache.k, v, r, integrator.p, integrator.t, σprev)
     elseif integrator.p.method isa DynamicsMethods.SurfaceHoppingMethods.SurfaceHopping
-        DynamicsUtils.acceleration!(cache.k, v, r, integrator.p, integrator.t, integrator.p.method.state)
+        DynamicsUtils.acceleration!(integrator_cache.k, v, r, integrator.p, integrator.t, integrator.p.method.state)
     end
 end
 
-@muladd function OrdinaryDiffEq.perform_step!(integrator, cache::BCBWavefunctionCache, repeat_step=false)
+@muladd function OrdinaryDiffEq.perform_step!(integrator, integrator_cache::BCBWavefunctionCache, repeat_step=false)
     @unpack t, dt, uprev, u, p = integrator
-    @unpack k, vtmp, cayley = cache
+    @unpack k, vtmp, cayley = integrator_cache
 
     rprev = DynamicsUtils.get_positions(uprev)
     vprev = DynamicsUtils.get_velocities(uprev)
@@ -53,7 +53,7 @@ end
     RingPolymerArrays.transform_from_normal_modes!(rfinal, p.beads.transformation)
     RingPolymerArrays.transform_from_normal_modes!(vtmp, p.beads.transformation)
 
-    Calculators.update_electronics!(p.calculator, rfinal)
+    NQCCalculators.update_electronics!(p.cache, rfinal)
     if p.method isa DynamicsMethods.EhrenfestMethods.AbstractEhrenfest
         DynamicsUtils.acceleration!(k, vtmp, rfinal, p, t, σprev)
     elseif p.method isa DynamicsMethods.SurfaceHoppingMethods.SurfaceHopping

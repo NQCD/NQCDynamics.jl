@@ -24,7 +24,7 @@ end
 
 function OrdinaryDiffEq.alg_cache(::MInt,u,rate_prototype,::Type{uEltypeNoUnits},::Type{uBottomEltypeNoUnits},::Type{tTypeNoUnits},uprev,uprev2,f,t,dt,reltol,p,calck,::Val{true}) where {uEltypeNoUnits,uBottomEltypeNoUnits,tTypeNoUnits}
     tmp = zero(u)
-    n = NQCModels.nstates(p.calculator.model)
+    n = NQCModels.nstates(p.cache.model)
     C = zeros(n,n)
     D = zeros(n,n)
     Γ = zeros(n,n)
@@ -37,11 +37,11 @@ end
 
 function OrdinaryDiffEq.initialize!(_, ::MIntCache) end
 
-@muladd function OrdinaryDiffEq.perform_step!(integrator, cache::MIntCache, repeat_step=false)
+@muladd function OrdinaryDiffEq.perform_step!(integrator, integrator_cache::MIntCache, repeat_step=false)
     @unpack dt,uprev,u,p = integrator
-    @unpack tmp, Γ, Ξ = cache
+    @unpack tmp, Γ, Ξ = integrator_cache
 
-    calc = p.calculator
+    cache = p.cache
 
     rtmp = DynamicsUtils.get_positions(tmp)
     vprev = DynamicsUtils.get_velocities(uprev)
@@ -56,27 +56,27 @@ function OrdinaryDiffEq.initialize!(_, ::MIntCache) end
 
     step_A!(rtmp, rprev, dt/2, v)
 
-    propagate_mapping_variables!(cache, calc, X, P, rtmp, dt)
+    propagate_mapping_variables!(integrator_cache, cache, X, P, rtmp, dt)
 
-    eigs = Calculators.get_eigen(calc, rtmp)
-    adiabatic_derivative = Calculators.get_adiabatic_derivative(calc, rtmp)
+    eigs = NQCCalculators.get_eigen(cache, rtmp)
+    adiabatic_derivative = NQCCalculators.get_adiabatic_derivative(cache, rtmp)
     state_independent_derivative = zero(rtmp)
-    NQCModels.state_independent_derivative!(calc.model, state_independent_derivative, rtmp)
+    NQCModels.state_independent_derivative!(cache.model, state_independent_derivative, rtmp)
     X = MappingVariableMethods.get_mapping_positions(u)
     P = MappingVariableMethods.get_mapping_momenta(u)
-    ∂V = Calculators.get_derivative(calc, rtmp)
+    ∂V = NQCCalculators.get_derivative(cache, rtmp)
     for i=1:natoms(p)
         for j=1:ndofs(p)
 
             set_gamma!(Γ, adiabatic_derivative[j,i], eigs.values, dt)
-            transform_matrix!(Γ, eigs.vectors, cache.tmp_mat)
+            transform_matrix!(Γ, eigs.vectors, integrator_cache.tmp_mat)
             E = Γ
 
             set_xi!(Ξ, adiabatic_derivative[j,i], eigs.values, dt)
-            transform_matrix!(Ξ, eigs.vectors, cache.tmp_mat)
+            transform_matrix!(Ξ, eigs.vectors, integrator_cache.tmp_mat)
             F = Ξ
 
-            force = get_mapping_nuclear_force(X, P, E, F, cache.tmp_vec1)
+            force = get_mapping_nuclear_force(X, P, E, F, integrator_cache.tmp_vec1)
             v[j,i] -= force / p.atoms.masses[i]
             v[j,i] -= state_independent_derivative[j,i] / p.atoms.masses[i] * dt
             v[j,i] += tr(∂V[j,i]) * p.method.γ / p.atoms.masses[i] * dt / 2
@@ -88,14 +88,14 @@ function OrdinaryDiffEq.initialize!(_, ::MIntCache) end
     return nothing
 end
 
-function propagate_mapping_variables!(cache, calc, X, P, rtmp, dt)
+function propagate_mapping_variables!(integrator_cache, cache, X, P, rtmp, dt)
 
-    @unpack C, D, tmp_vec1, tmp_vec2 = cache
+    @unpack C, D, tmp_vec1, tmp_vec2 = integrator_cache
 
-    eigen = Calculators.get_eigen(calc, rtmp)
+    eigen = NQCCalculators.get_eigen(cache, rtmp)
 
-    set_C_propagator!(C, cache, eigen, dt)
-    set_D_propagator!(D, cache, eigen, dt)
+    set_C_propagator!(C, integrator_cache, eigen, dt)
+    set_D_propagator!(D, integrator_cache, eigen, dt)
 
     # tmp_vec1 = C*X - D*P
     mul!(tmp_vec1, C, X)
@@ -110,21 +110,21 @@ function propagate_mapping_variables!(cache, calc, X, P, rtmp, dt)
 end
 
 "Get the `C` propagator for the mapping variables."
-function set_C_propagator!(C, cache, eigen::Eigen, dt::Real)
+function set_C_propagator!(C, integrator_cache, eigen::Eigen, dt::Real)
     fill!(C, zero(eltype(C)))
     for i in axes(C,1)
         C[i,i] = cos(eigen.values[i] * dt)
     end
-    transform_matrix!(C, eigen.vectors, cache.tmp_mat)
+    transform_matrix!(C, eigen.vectors, integrator_cache.tmp_mat)
 end
 
 "Get the `D` propagator for the mapping variables."
-function set_D_propagator!(D, cache, eigen::Eigen, dt::Real)
+function set_D_propagator!(D, integrator_cache, eigen::Eigen, dt::Real)
     fill!(D, zero(eltype(D)))
     for i in axes(D,1)
         D[i,i] = sin(-eigen.values[i] * dt)
     end
-    transform_matrix!(D, eigen.vectors, cache.tmp_mat)
+    transform_matrix!(D, eigen.vectors, integrator_cache.tmp_mat)
 end
 
 function transform_matrix!(M, transform, tmp_mat)

@@ -24,15 +24,15 @@ function NQCDynamics.Simulation{DiabaticMDEF}(atoms::Atoms, model::Model;
     )
 end
 
-function acceleration!(dv, v, r, sim::Simulation{<:Union{DiabaticMDEF,Classical},<:Calculators.LargeDiabaticCalculator}, t)
+function acceleration!(dv, v, r, sim::Simulation{<:Union{DiabaticMDEF,Classical},<:NQCCalculators.LargeQuantumModel_Cache}, t)
 
-    adiabatic_derivative = Calculators.get_adiabatic_derivative(sim.calculator, r)
-    eigen = Calculators.get_eigen(sim.calculator, r)
-    μ = NQCModels.fermilevel(sim.calculator.model)
+    adiabatic_derivative = NQCCalculators.get_adiabatic_derivative(sim.cache, r)
+    eigen = NQCCalculators.get_eigen(sim.cache, r)
+    μ = NQCModels.fermilevel(sim.cache.model)
     β = 1 / get_temperature(sim, t)
 
     fill!(dv, zero(eltype(dv)))
-    NQCModels.state_independent_derivative!(sim.calculator.model, dv, r)
+    NQCModels.state_independent_derivative!(sim.cache.model, dv, r)
     for I in eachindex(dv)
         for i in eachindex(eigen.values)
             ϵ = eigen.values[i]
@@ -63,14 +63,14 @@ gauss(x, σ) = exp(-0.5 * x^2 / σ^2) / (σ*sqrt(2π))
 gauss(x, friction_method::FrictionEvaluationMethod) = gauss(x, friction_method.σ)
 
 function evaluate_friction!(Λ::AbstractMatrix, sim::Simulation{<:DiabaticMDEF}, r::AbstractMatrix, t::Real)
-    μ = NQCModels.fermilevel(sim.calculator.model)
+    μ = NQCModels.fermilevel(sim.cache.model)
     if sim.method.friction_method isa WideBandExact
-        potential = Calculators.get_potential(sim.calculator, r)
-        derivative = Calculators.get_derivative(sim.calculator, r)
+        potential = NQCCalculators.get_potential(sim.cache, r)
+        derivative = NQCCalculators.get_derivative(sim.cache, r)
         fill_friction_tensor!(Λ, sim.method.friction_method, potential, derivative, r, μ)
     else
-        ∂H = Calculators.get_adiabatic_derivative(sim.calculator, r)
-        eigen = Calculators.get_eigen(sim.calculator, r)
+        ∂H = NQCCalculators.get_adiabatic_derivative(sim.cache, r)
+        eigen = NQCCalculators.get_eigen(sim.cache, r)
         fill_friction_tensor!(Λ, sim.method.friction_method, ∂H, eigen, r, μ)
     end
     return Λ
@@ -186,14 +186,14 @@ function determine_fermi_level(nelectrons, β, eigenvalues)
 end
 
 function DynamicsUtils.classical_potential_energy(
-    sim::Simulation{<:Union{DiabaticMDEF,Classical},<:Calculators.LargeDiabaticCalculator},
+    sim::Simulation{<:Union{DiabaticMDEF,Classical},<:NQCCalculators.LargeQuantumModel_Cache},
     r::AbstractMatrix
 )
-    eigen = Calculators.get_eigen(sim.calculator, r)
-    μ = NQCModels.fermilevel(sim.calculator.model)
+    eigen = NQCCalculators.get_eigen(sim.cache, r)
+    μ = NQCModels.fermilevel(sim.cache.model)
     β = 1 / get_temperature(sim)
 
-    potential = NQCModels.state_independent_potential(sim.calculator.model, r)
+    potential = NQCModels.state_independent_potential(sim.cache.model, r)
     for ϵ in eigen.values
         potential += ϵ * fermi(ϵ, μ, β)
     end

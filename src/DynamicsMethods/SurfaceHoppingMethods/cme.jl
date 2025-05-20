@@ -23,7 +23,7 @@ end
 
 function evaluate_hopping_probability!(sim::Simulation{<:ClassicalMasterEquation}, u, dt)
     r = DynamicsUtils.get_positions(u)
-    V = Calculators.get_potential(sim.calculator, r)
+    V = NQCCalculators.get_potential(sim.cache, r)
     ΔV = V[2,2] - V[1,1]
     Γ = 2π * V[2,1]^2
     f = DynamicsUtils.fermi(ΔV, NQCModels.fermilevel(sim), 1/get_temperature(sim))
@@ -78,7 +78,7 @@ function Simulation{CME}(atoms::Atoms{T}, model; kwargs...) where {T}
 end
 
 function DynamicsUtils.acceleration!(dv, v, r, sim::AbstractSimulation{<:CME}, t)
-    derivative = Calculators.get_derivative(sim.calculator, r)
+    derivative = NQCCalculators.get_derivative(sim.cache, r)
     state = sim.method.state
     for I in eachindex(dv, derivative)
         dv[I] = -derivative[I][state, state]
@@ -88,7 +88,7 @@ function DynamicsUtils.acceleration!(dv, v, r, sim::AbstractSimulation{<:CME}, t
 end
 
 function DynamicsUtils.classical_potential_energy(sim::Simulation{<:CME}, u)
-    V = Calculators.get_potential(sim.calculator, DynamicsUtils.get_positions(u))
+    V = NQCCalculators.get_potential(sim.cache, DynamicsUtils.get_positions(u))
     return V[u.state, u.state]
 end
 
@@ -124,8 +124,8 @@ end
 
 function DynamicsUtils.acceleration!(dv, v, r, sim::Simulation{<:BCME}, t)
     state = sim.method.state
-    ∂V = Calculators.get_derivative(sim.calculator, r)
-    V = Calculators.get_potential(sim.calculator, r)
+    ∂V = NQCCalculators.get_derivative(sim.cache, r)
+    V = NQCCalculators.get_potential(sim.cache, r)
     Γ = 2π * V[2,1]^2
     β = 1 / get_temperature(sim, t)
     μ = NQCModels.fermilevel(sim)

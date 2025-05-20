@@ -46,7 +46,7 @@ function combine_slab_and_molecule(atom_indices, molecule, slab)
 end
 
 """
-    calculate_diatomic_energy(model::AdiabaticModel, bond_length::Real;
+    calculate_diatomic_energy(model::ClassicalModel, bond_length::Real;
         height=10, normal_vector=[0, 0, 1])
 
 Returns potential energy of diatomic with `bond_length` at `height` from surface.
@@ -57,7 +57,7 @@ assuming the height has already been adjusted to include that of the surface.
 (this is checked in the EvaluationEnvironment constructor)
 """
 function calculate_diatomic_energy(
-    bond_length::Real, model::AdiabaticModel, environment::EvaluationEnvironment
+    bond_length::Real, model::ClassicalModel, environment::EvaluationEnvironment
 )
     r = assemble_evaluation_geometry(bond_length, environment)
     return NQCModels.potential(model, r)

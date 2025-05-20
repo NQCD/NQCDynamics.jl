@@ -24,11 +24,11 @@ end
 
 function OrdinaryDiffEq.initialize!(_, ::RingPolymerMIntCache) end
 
-@muladd function OrdinaryDiffEq.perform_step!(integrator, cache::RingPolymerMIntCache, repeat_step=false)
+@muladd function OrdinaryDiffEq.perform_step!(integrator, integrator_cache::RingPolymerMIntCache, repeat_step=false)
     @unpack dt,uprev,u,p = integrator
-    @unpack cayley = cache
+    @unpack cayley = integrator_cache
 
-    calc = p.calculator
+    cache = p.cache
 
     copyto!(u, uprev)
 
@@ -41,29 +41,29 @@ function OrdinaryDiffEq.initialize!(_, ::RingPolymerMIntCache) end
     RingPolymerArrays.transform_from_normal_modes!(r, p.beads.transformation)
     RingPolymerArrays.transform_from_normal_modes!(v, p.beads.transformation)
 
-    Calculators.update_electronics!(calc, r)
-    Calculators.evaluate_V̄!(calc, r)
-    Calculators.evaluate_D̄!(calc, r)
-    Calculators.evaluate_traceless_adiabatic_derivative!(calc, r)
+    NQCCalculators.update_electronics!(cache, r)
+    NQCCalculators.evaluate_V̄!(cache, r)
+    NQCCalculators.evaluate_D̄!(cache, r)
+    NQCCalculators.evaluate_traceless_adiabatic_derivative!(cache, r)
 
-    propagate_mapping_variables!(calc, u, dt)
+    propagate_mapping_variables!(cache, u, dt)
 
     for i=1:nbeads(p)
-        traceless_eigs = calc.eigen[i].values .- calc.V̄[i]
+        traceless_eigs = cache.eigen[i].values .- cache.V̄[i]
         for j=1:natoms(p)
             for k=1:ndofs(p)
 
-                Γ = get_gamma(calc.traceless_adiabatic_derivative[k,j,i], traceless_eigs, dt)
-                E = transform_matrix(calc.eigen[i].vectors, Γ)
+                Γ = get_gamma(cache.traceless_adiabatic_derivative[k,j,i], traceless_eigs, dt)
+                E = transform_matrix(cache.eigen[i].vectors, Γ)
 
-                Ξ = get_xi(calc.traceless_adiabatic_derivative[k,j,i], traceless_eigs, dt)
-                F = transform_matrix(calc.eigen[i].vectors, Ξ)
+                Ξ = get_xi(cache.traceless_adiabatic_derivative[k,j,i], traceless_eigs, dt)
+                F = transform_matrix(cache.eigen[i].vectors, Ξ)
 
                 qmap = MappingVariableMethods.get_mapping_positions(u, i)
                 pmap = MappingVariableMethods.get_mapping_momenta(u, i)
                 force = get_mapping_nuclear_force(qmap, pmap, E, F)
                 DynamicsUtils.get_velocities(u)[k,j,i] -= force / p.atoms.masses[j]
-                DynamicsUtils.get_velocities(u)[k,j,i] -= calc.D̄[k,j,i] / p.atoms.masses[j] * dt
+                DynamicsUtils.get_velocities(u)[k,j,i] -= cache.D̄[k,j,i] / p.atoms.masses[j] * dt
             end
         end
     end
@@ -76,12 +76,12 @@ function OrdinaryDiffEq.initialize!(_, ::RingPolymerMIntCache) end
 
 end
 
-function propagate_mapping_variables!(calc, u, dt)
-    for i=1:length(calc.eigen)
-        V̄ = tr(calc.potential[i]) / nstates(calc.model)
-        traceless_eigs = calc.eigen[i].values .- V̄
-        C = get_C_propagator(traceless_eigs, calc.eigen[i].vectors, dt)
-        D = get_D_propagator(traceless_eigs, calc.eigen[i].vectors, dt)
+function propagate_mapping_variables!(cache, u, dt)
+    for i=1:length(cache.eigen)
+        V̄ = tr(cache.potential[i]) / nstates(cache.model)
+        traceless_eigs = cache.eigen[i].values .- V̄
+        C = get_C_propagator(traceless_eigs, cache.eigen[i].vectors, dt)
+        D = get_D_propagator(traceless_eigs, cache.eigen[i].vectors, dt)
         qmap = MappingVariableMethods.get_mapping_positions(u, i)
         pmap = MappingVariableMethods.get_mapping_momenta(u, i)
         q = C * qmap - D * pmap

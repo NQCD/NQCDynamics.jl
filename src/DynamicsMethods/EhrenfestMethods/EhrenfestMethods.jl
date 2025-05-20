@@ -8,11 +8,10 @@ using NQCDynamics:
     AbstractSimulation,
     Simulation,
     RingPolymerSimulation,
-    Calculators,
     DynamicsMethods,
     DynamicsUtils,
     Estimators
-
+using NQCCalculators
 using NQCModels: NQCModels, Model
 using NQCBase: Atoms
 
@@ -31,7 +30,7 @@ function DynamicsMethods.motion!(du, u, sim::Simulation{<:AbstractEhrenfest}, t)
     σ = DynamicsUtils.get_quantum_subsystem(u)
 
     DynamicsUtils.velocity!(dr, v, r, sim, t)
-    Calculators.update_electronics!(sim.calculator, r)
+    NQCCalculators.update_electronics!(sim.cache, r)
     DynamicsUtils.acceleration!(dv, v, r, sim, t, σ)
     DynamicsUtils.set_quantum_derivative!(dσ, u, sim)
 end
