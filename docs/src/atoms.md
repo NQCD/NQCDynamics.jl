@@ -37,8 +37,8 @@ Atoms(auno)
 representing atomic geometries, facilitating interoperability between a collection of
 different packages.
 
-When working with NQCDynamics, the most useful packages are [AtomsIO](https://github.com/mfherbst/AtomsIO.jl)
-for reading and writing structures and trajectories, and [ASEconvert](https://github.com/mfherbst/ASEconvert.jl)
+When working with NQCDynamics, the most useful packages are [NQCBase](@ref)
+for reading and writing structures and trajectories, and [PythonCall](https://github.com/JuliaPy/PythonCall.jl)
 for working with [ASE](https://wiki.fysik.dtu.dk/ase/index.html) from within Julia.
 
 ## Using Python's `ase` package from Julia
@@ -75,7 +75,7 @@ println(cell_nqcd)
 ```
 
 
-## Saving and loading with AtomsIO.jl
+## Saving and loading with AtomsBase
 
 After running a simulation it often desirable to save the trajectory in a standard format for visualization.
 For this, convert the NQCDynamics output into the AtomsBase format,
