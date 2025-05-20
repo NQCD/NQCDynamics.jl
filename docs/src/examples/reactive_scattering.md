@@ -35,6 +35,7 @@ surface (`height` keyword) with a normal incidence.
 ```julia @example h2scatter
 ```julia @example h2scatter
 using NQCDynamics
+using NQCDInterfASE
 using Unitful
 using NQCDynamics.InitialConditions: QuantisedDiatomic
 using JLD2
@@ -45,7 +46,7 @@ mace_calc = pyimport("mace.calculators")
 atoms = Atoms([:H, :H])
 cell = PeriodicCell([11.1175 -5.5588 0.0; 0.0 9.628 0.0; 0.0 0.0 70.3079])
 positions = [0.0 0.0; 0.0 0.0; 0.0 0.73]
-atoms_ase = NQCDynamics.convert_from_ase_atoms(atoms, positions, cell)
+atoms_ase = convert_from_ase_atoms(atoms, positions, cell)
 ids_adsorbate = [55,56]
 
 # load PES model
@@ -77,7 +78,7 @@ v = [zeros(dof,n_atoms) for i=1:length(r_h2)]
 r = [zeros(dof,n_atoms) for i=1:length(r_h2)]
 
 for i in 1:length(r_h2)
-    surf_atoms, surf_positions, surf_cell = NQCDynamics.convert_from_ase_atoms(surface_ase[i])
+    surf_atoms, surf_positions, surf_cell = convert_from_ase_atoms(surface_ase[i])
     r[i][:,1:n_atoms-2] .= surf_positions
     r[i][:,n_atoms-1:n_atoms] .= r_h2[i]  
 
