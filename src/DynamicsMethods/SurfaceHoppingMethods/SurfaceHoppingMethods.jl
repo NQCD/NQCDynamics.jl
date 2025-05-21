@@ -72,7 +72,7 @@ function DynamicsUtils.set_quantum_derivative!(dσ, u, sim::AbstractSimulation{<
 end
 
 function DynamicsMethods.create_problem(u0, tspan, sim::AbstractSimulation{<:SurfaceHopping})
-    set_state!(sim.method, convert(Vector{Int},u0.state))
+    set_state!(sim.method, u0.state)
     OrdinaryDiffEq.ODEProblem(DynamicsMethods.motion!, u0, tspan, sim;
         callback=DynamicsMethods.get_callbacks(sim))
 end
