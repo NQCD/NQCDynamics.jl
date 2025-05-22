@@ -20,7 +20,7 @@ end
 function DynamicsMethods.DynamicsVariables(::AbstractSimulation{<:ClassicalMasterEquation}, v, r, electronic::PureState{Diabatic})
     electronic_state = similar(v, 1)
     electronic_state[1] = electronic.state
-    return SurfaceHoppingVariables(v=v, r=r, state = electronic_state)
+    return SurfaceHoppingVariables(r=r, v=v, state = electronic_state)
 end
 
 function evaluate_hopping_probability!(sim::Simulation{<:ClassicalMasterEquation}, u, dt)
@@ -94,7 +94,7 @@ end
 
 function DynamicsUtils.classical_potential_energy(sim::Simulation{<:CME}, u)
     V = Calculators.get_potential(sim.calculator, DynamicsUtils.get_positions(u))
-    int_state = convert(Int, u.state)
+    int_state = convert(Int, first(u.state))
     return V[int_state, int_state]
 end
 

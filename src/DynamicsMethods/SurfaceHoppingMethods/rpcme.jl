@@ -36,7 +36,7 @@ function DynamicsUtils.classical_potential_energy(sim::RingPolymerSimulation{<:C
     V = Calculators.get_potential(sim.calculator, r)
 
     potential = zero(eltype(r))
-    int_state = convert(Int, u.state)
+    int_state = convert(Int, first(u.state))
     for b in axes(r,3) # eachbead
         potential += V[b][int_state, int_state]
     end

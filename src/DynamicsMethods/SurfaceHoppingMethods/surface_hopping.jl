@@ -18,6 +18,9 @@ end
 function set_state!(container, new_state::Number)
     container.state = convert(typeof(container.state), new_state)
 end
+function set_state!(container::SurfaceHoppingVariables, new_state::Number)
+    container.state[1] = convert(eltype(container.state), new_state)
+end
 function set_state!(container, new_state::AbstractVector)
     copyto!(container.state, convert(typeof(container.state), new_state))
 end
