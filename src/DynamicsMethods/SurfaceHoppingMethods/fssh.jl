@@ -35,16 +35,32 @@ mutable struct FSSH{T} <: SurfaceHopping
     end
 end
 
-function Simulation{FSSH}(atoms::Atoms{T}, model::Model; rescaling=:standard, kwargs...) where {T}
+function Simulation{FSSH}(
+    atoms::Atoms{T},
+    model::Model;
+    rescaling = :standard,
+    kwargs...,
+) where {T}
     Simulation(atoms, model, FSSH{T}(NQCModels.nstates(model), rescaling); kwargs...)
 end
 
 function DynamicsMethods.DynamicsVariables(
-    sim::AbstractSimulation{<:SurfaceHopping}, v, r, electronic::ElectronicDistribution
+    sim::AbstractSimulation{<:SurfaceHopping},
+    v,
+    r,
+    electronic::ElectronicDistribution,
 )
     σ = DynamicsUtils.initialise_adiabatic_density_matrix(electronic, sim.calculator, r)
     state = sample(Weights(diag(real.(σ))))
-    return SurfaceHoppingVariables((v=v, r=r, σreal=σ, σimag=zero(σ), state=convert(Float64,state)))
+    electronic_state = similar(r, 1)
+    electronic_state[1] = state
+    return SurfaceHoppingVariables((
+        v = v,
+        r = r,
+        σreal = σ,
+        σimag = zero(σ),
+        state = electronic_state,
+    ))
 end
 
 function DynamicsUtils.acceleration!(dv, v, r, sim::AbstractSimulation{<:FSSH}, t, state)
@@ -81,7 +97,7 @@ function fewest_switches_probability!(probability, v, σ, s, d, dt)
     for m in axes(σ, 1)
         if m != s
             for I in eachindex(v)
-                probability[m] += 2v[I]*real(σ[m,s]/σ[s,s])*d[I][s,m] * dt
+                probability[m] += 2v[I] * real(σ[m, s] / σ[s, s]) * d[I][s, m] * dt
             end
         end
     end

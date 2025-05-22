@@ -1,5 +1,5 @@
 using RingPolymerArrays: RingPolymerArrays
-using OrdinaryDiffEq.OrdinaryDiffEqCore: get_fsalfirstlast
+
 
 mutable struct BCBwithTsit5Cache{uType,rType,vType,rateType,uEltypeNoUnits,E} <: OrdinaryDiffEq.OrdinaryDiffEqMutableCache
     u::uType
