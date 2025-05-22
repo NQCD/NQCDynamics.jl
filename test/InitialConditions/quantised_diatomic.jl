@@ -134,7 +134,8 @@ end
     μ = 1.0
     J = 2
     ν = 1
-    V = QuantisedDiatomic.EffectivePotential(μ, J, binding_curve)
+    langer_modification=false
+    V = QuantisedDiatomic.EffectivePotential(μ, J, binding_curve, langer_modification)
     E, bounds = QuantisedDiatomic.find_total_energy(V, ν)
 end
 
@@ -146,8 +147,9 @@ end
     total_energy = 1
     J = 0
     μ = 1.0
+    langer_modification = false
     equilibrium_bond_length = 2
-    V = QuantisedDiatomic.EffectivePotential(μ, J, binding_curve)
+    V = QuantisedDiatomic.EffectivePotential(μ, J, binding_curve, langer_modification)
     r₁, r₂ = QuantisedDiatomic.find_integral_bounds(total_energy, V)
     @test r₁ < equilibrium_bond_length
     @test r₂ > equilibrium_bond_length
@@ -156,7 +158,7 @@ end
 @testset "calculate_binding_curve" begin
     model = Morse()
     bond_lengths = 0.5:0.01:5.0
-    environment = QuantisedDiatomic.EvaluationEnvironment([1], (1, 1), zeros(1, 0), 0.0, [0.0])
+    environment = QuantisedDiatomic.EvaluationEnvironment([1], (1, 1), zeros(1, 0), 0.0, [1.0]) # 5th argument cannot have a value of 0.0 as normalising this gives a NaN
     binding_curve = QuantisedDiatomic.calculate_binding_curve(bond_lengths, model, environment)
     @test binding_curve.equilibrium_bond_length ≈ model.x₀
 end
@@ -172,7 +174,7 @@ end
     @testset "1D, no slab" begin
         model = Harmonic(dofs=1)
         bond_length = 1.5
-        environment = QuantisedDiatomic.EvaluationEnvironment([1], (1, 1), zeros(1, 0), 0.0, [0.0])
+        environment = QuantisedDiatomic.EvaluationEnvironment([1], (1, 1), zeros(1, 0), 0.0, [1.0])
         @test QuantisedDiatomic.calculate_diatomic_energy(bond_length, model, environment) ≈ bond_length^2 / 2
     end
 end
@@ -187,7 +189,7 @@ end
     end
 
     @testset "1D, no slab" begin
-        environment = QuantisedDiatomic.EvaluationEnvironment([1], (1, 1), zeros(1, 0), 0.0, [0.0])
+        environment = QuantisedDiatomic.EvaluationEnvironment([1], (1, 1), zeros(1, 0), 0.0, [1.0])
         r = QuantisedDiatomic.assemble_evaluation_geometry(bond_length, environment)
         @test r == [4.3;;]
     end
@@ -203,7 +205,7 @@ end
     end
 
     @testset "1D, no slab" begin
-        environment = QuantisedDiatomic.EvaluationEnvironment([1], (1, 1), zeros(0, 0), 0.0, [0.0])
+        environment = QuantisedDiatomic.EvaluationEnvironment([1], (1, 1), zeros(0, 0), 0.0, [1.0])
         r = QuantisedDiatomic.build_molecule(bond_length, environment)
         @test r == [4.3;;]
     end

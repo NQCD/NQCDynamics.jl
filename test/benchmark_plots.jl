@@ -7,5 +7,5 @@ newest_version = get(ENV, "CURRENT_VERSION", "v0.15.1") # A known tested version
 github_context = get(ENV, "NEW_VERSION", "new") # The new thing to test. 
 
 # Base path of the benchmark repository
-benchmark_path = 
+benchmark_path = get(ENV, "BENCHMARK_OUTPUTS_DIR")
 
