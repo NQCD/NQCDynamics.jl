@@ -122,7 +122,7 @@ end
 @inline RecursiveArrayTools.unpack(x::SurfaceHoppingVariables, i) = RecursiveArrayTools.unpack(ArrayPartition(x), i)
 
 function Base.copy(A::SurfaceHoppingVariables{T, S, NT}) where {T, S, NT}
-    SurfaceHoppingVariables{T, S, NT}(copy(ArrayPartition(A)), getfield(A, :names_to_indices))
+    SurfaceHoppingVariables{T, S, NT}(deepcopy(ArrayPartition(A)), getfield(A, :names_to_indices))
 end
 
 @inline SurfaceHoppingVariables(f::F, N, names_to_indices) where {F <: Function} = SurfaceHoppingVariables(

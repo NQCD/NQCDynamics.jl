@@ -18,8 +18,9 @@ function DynamicsMethods.motion!(du, u, sim::Simulation{<:ClassicalMasterEquatio
 end
 
 function DynamicsMethods.DynamicsVariables(::AbstractSimulation{<:ClassicalMasterEquation}, v, r, electronic::PureState{Diabatic})
-    nt = (x = ComponentVector(v=v, r=r), state = electronic.state)
-    return NamedArrayPartition(nt)
+    electronic_state = similar(v, 1)
+    electronic_state[1] = electronic.state
+    return SurfaceHoppingVariables(v=v, r=r, state = electronic_state)
 end
 
 function evaluate_hopping_probability!(sim::Simulation{<:ClassicalMasterEquation}, u, dt)
@@ -52,6 +53,9 @@ function rescale_velocity!(::AbstractSimulation{<:ClassicalMasterEquation}, u)::
     return true
 end
 
+function set_state!(container::ClassicalMasterEquation, new_state::AbstractVector) # SurfaceHoppingVariables --> Single state methods
+    container.state = first(new_state)
+end
 """
     CME{T} <: ClassicalMasterEquation
 
