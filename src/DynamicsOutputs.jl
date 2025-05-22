@@ -174,7 +174,7 @@ The DynamicsVariables need to contain a `state` field which is either an `Abstra
 
 Use [`OutputDiabaticPopulation`](@ref) or [`OutputAdiabaticPopulation`](@ref) to get the population estimators.
 """
-OutputDiscreteState(sol, i) = [length(u.state) > 1 ? convert(Int, first(u.state)) : convert.(Int, u.state) for u in sol.u]
+OutputDiscreteState(sol, i) = [length(u.state) > 1 ? round(Int, first(u.state)) : round.(Int, u.state) for u in sol.u]
 export OutputDiscreteState
 
 """
