@@ -49,24 +49,24 @@ end
     total_energy(sim, u)
 """
 function total_energy(sim::AbstractSimulation, u)
-    kinetic_energy(sim, u) + potential_energy(sim, u)
+    return kinetic_energy(sim, u) + potential_energy(sim, u)
 end
 
 """
     potential_energy(sim, u)
 """
 function potential_energy(sim::AbstractSimulation, u)
-    potential_energy(sim, DynamicsUtils.get_positions(u))
+    return potential_energy(sim, DynamicsUtils.get_positions(u))
 end
 
 function potential_energy(sim::Simulation, r::AbstractMatrix)
     NQCCalculators.evaluate_potential!(sim.cache, r)
-    sim.cache.potential
+    return sim.cache.potential[1]
 end
 
 function potential_energy(sim::RingPolymerSimulation, r::AbstractArray{T,3}) where {T}
     NQCCalculators.evaluate_potential!(sim.cache, r)
-    mean(sim.cache.potential)
+    return mean(sim.cache.potential)[1]
 end
 
 """

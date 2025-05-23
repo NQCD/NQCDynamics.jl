@@ -38,6 +38,7 @@ caches = (
     NQCCalculators.Create_Cache(DoubleWell(), 1, 1, Float64),
     )
 @testset "transform_density!" for (r, cache) ∈ zip(rs, caches)
+    NQCCalculators.update_cache!(cache, r)
     density = [1.0 0; 0 0]
     DynamicsUtils.transform_density!(density, cache, r, :to_adiabatic)
     @test density ≈ [0.5 0.5; 0.5 0.5]

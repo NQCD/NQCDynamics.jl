@@ -98,6 +98,7 @@ function get_temperature(sim::AbstractSimulation, t::Real=0)
     t = auconvert(u"fs", t)
     get_temperature(sim.temperature, t)
 end
+
 get_temperature(temperature::Number, t=0) = austrip(temperature)
 get_temperature(temperature::Function, t=0) = austrip(temperature(t))
 

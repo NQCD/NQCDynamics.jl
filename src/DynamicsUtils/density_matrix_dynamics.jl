@@ -73,17 +73,12 @@ function transform_density!(
     return density
 end
 
-function evaluate_transformation(cache::Abstract_QuantumModel_Cache, r)
-    eigs =  NQCCalculators.get_eigen(cache, r)
-    return eigs.vectors
+function evaluate_transformation(cache::Abstract_QuantumModel_Cache, r::AbstractMatrix)
+    #NQCCalculators.evaluate_eigen!(cache, r)
+    return cache.eigen.vectors
 end
 
-function evaluate_transformation(cache::RingPolymer_QuantumModel_Cache, r)
-    centroid_eigs = NQCCalculators.get_centroid_eigen(cache, r)
-    return centroid_eigs.vectors
-end
-
-function evaluate_transformation(cache::RingPolymer_QuantumFrictionModel_Cache, r)
-    centroid_eigs = NQCCalculators.get_centroid_eigen(cache, r)
-    return centroid_eigs.vectors
+function evaluate_transformation(cache::Abstract_QuantumModel_Cache, r::AbstractArray{T,3}) where {T}
+    #centroid_eigs = NQCCalculators.get_centroid_eigen(cache, r)
+    return cache.centroid_eigen.vectors
 end

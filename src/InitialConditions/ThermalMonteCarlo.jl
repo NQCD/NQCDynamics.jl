@@ -96,30 +96,37 @@ end
 function get_density_function(sim::Simulation)
   temperature = get_temperature(sim)
   function density(r)
+    NQCCalculators.update_cache!(sim.cache, reshape(r, size(sim)))
     -DynamicsUtils.classical_potential_energy(sim, reshape(r, size(sim))) / temperature
   end
 end
 
 function get_deriv_function(sim::Simulation)
   temperature = get_temperature(sim)
-  function density_deriv(r)
+
+  return function density_deriv(r)
+    NQCCalculators.update_cache!(sim.cache, reshape(r, size(sim)))
     lπ = -DynamicsUtils.classical_potential_energy(sim, reshape(r, size(sim))) / temperature
     NQCCalculators.evaluate_derivative!(sim.cache, reshape(r, size(sim)))
     lπ_grad = -sim.cache.derivative / temperature
     return (lπ, lπ_grad[:])
   end
+
 end
 
 function get_density_function(sim::RingPolymerSimulation)
   temperature = get_ring_polymer_temperature(sim)
-  function density(r)
-    r_local = reshape(copy(r), size(sim))
-    RingPolymerArrays.transform_from_normal_modes!(r_local, sim.beads.transformation)
-    potential = DynamicsUtils.classical_potential_energy(sim, r_local)
-    spring = DynamicsUtils.classical_spring_energy(sim, r_local)
+
+  return function density(r)
+    #r_local = reshape(r, size(sim))
+    NQCCalculators.update_cache!(sim.cache, reshape(r, size(sim)))
+    RingPolymerArrays.transform_from_normal_modes!(reshape(r, size(sim)), sim.beads.transformation)
+    potential = DynamicsUtils.classical_potential_energy(sim, reshape(r, size(sim)))
+    spring = DynamicsUtils.classical_spring_energy(sim, reshape(r, size(sim)))
     total = potential + spring
     return -total / temperature
   end
+
 end
 
 get_proposal(sim::Simulation, σ, move_ratio, internal_ratio) = ClassicalProposal(sim, σ, move_ratio)

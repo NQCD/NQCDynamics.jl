@@ -87,20 +87,13 @@ end
 Calculate the ring polymer spring potential.
 """
 function get_spring_energy(beads::RingPolymerParameters, masses, R)
-    E = zero(eltype(R))
+    E = sum(masses' .* (R[:, :, end] .- R[:, :, 1]).^2)
+
     for bead=1:nbeads(beads)-1
-        for i in beads.quantum_atoms # Only for quantum nuclei
-            for j in axes(R, 1)
-                E += masses[i] * (R[j, i, bead] - R[j, i, bead+1])^2
-            end
-        end
+        E += sum(masses' .* (R[:, :, bead] .- R[:, :, bead+1]).^2)
     end
-    for i in beads.quantum_atoms
-        for j in axes(R, 1)
-            E += masses[i] * (R[j, i, end] - R[j, i, 1])^2
-        end
-    end
-    E * beads.ω_n^2/2
+
+    return E * beads.ω_n^2/2
 end
 
 function NQCBase.apply_cell_boundaries!(cell::PeriodicCell, R::AbstractArray{T,3}, beads::RingPolymerParameters) where {T}
@@ -110,4 +103,5 @@ function NQCBase.apply_cell_boundaries!(cell::PeriodicCell, R::AbstractArray{T,3
     R[:,beads.quantum_atoms,1] .*= sqrt(length(beads))
     RingPolymerArrays.transform_from_normal_modes!(R, beads.transformation)
 end
+
 NQCBase.apply_cell_boundaries!(::InfiniteCell, ::AbstractArray{T,3}, ::RingPolymerParameters) where {T} = nothing
