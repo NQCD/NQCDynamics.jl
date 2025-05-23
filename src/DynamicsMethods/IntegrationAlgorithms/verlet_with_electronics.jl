@@ -87,6 +87,8 @@ mutable struct VerletwithElectronics2Cache{uType,vType,rateType,E} <: OrdinaryDi
     electronic_integrator::E
 end
 
+OrdinaryDiffEq.get_fsalfirstlast(cache::VerletwithElectronics2Cache, u::Any) = (nothing, nothing)
+
 function OrdinaryDiffEq.alg_cache(alg::VerletwithElectronics2,u,rate_prototype,::Type{uEltypeNoUnits},::Type{uBottomEltypeNoUnits},::Type{tTypeNoUnits},uprev,uprev2,f,t,dt,reltol,p,calck,inplace::Val{true}) where {uEltypeNoUnits,uBottomEltypeNoUnits,tTypeNoUnits}
     tmp = zero(u)
     vtmp = zero(DynamicsUtils.get_velocities(u))

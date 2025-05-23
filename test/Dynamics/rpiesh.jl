@@ -46,7 +46,7 @@ SurfaceHoppingMethods.set_unoccupied_states!(sim)
     samples = 5000
     for i = 1:samples
         u = DynamicsVariables(sim, v, r, distribution)
-        avg[u.state] .+= 1
+        avg[round.(Int, u.state)] .+= 1
     end
     avg ./= samples
     eigs = Calculators.get_centroid_eigen(sim.calculator, r)
