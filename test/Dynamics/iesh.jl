@@ -10,7 +10,7 @@ using ComponentArrays
 using Unitful, UnitfulAtomic
 import JSON
 
-benchmark_dir = get(ENV, "BENCHMARK_OUTPUT_DIR", "/tmp/nqcd_benchmark")
+benchmark_dir = get(ENV, "BENCHMARK_OUTPUT_DIR", "tmp/nqcd_benchmark")
 benchmark_results = Dict{String, Any}("title_for_plotting" => "IESH Tests")
 
 kT = 9.5e-4
@@ -50,7 +50,7 @@ SurfaceHoppingMethods.set_unoccupied_states!(sim)
     samples = 5000
     for i = 1:samples
         u = DynamicsVariables(sim, v, r, distribution)
-        avg[u.state] .+= 1
+        avg[round.(Int, u.state)] .+= 1
     end
     avg ./= samples
     eigs = Calculators.get_eigen(sim.calculator, r)
@@ -187,6 +187,14 @@ end
     end
     @test all(i -> isapprox(i, n_electrons; rtol=1e-3), norms) # Test that decoherence conserves norm
     benchmark_results["DecoherenceCorrectionEDC"] = Dict("Time" => dyn_test.time, "Allocs" => dyn_test.bytes)
+end
+
+# Make benchmark directory if it doesn't already exist.
+if !isdir(benchmark_dir)
+    mkpath(benchmark_dir)
+    @info "Benchmark data ouput directory created at $(benchmark_dir)."
+else
+    @info "Benchmark data ouput directory exists at $(benchmark_dir)."
 end
 
 # Output benchmarking dict

@@ -146,7 +146,7 @@ function evaluate_nonadiabatic_coupling!(calc::RingPolymerLargeDiabaticCalculato
         evaluate_inverse_difference_matrix!(calc.tmp_mat, eigen[i].values)
         for j in mobileatoms(calc)
             for k in dofs(calc)
-                multiply_elementwise!(calc.nonadiabatic_coupling[k,j,i], adiabatic_derivative[k,j,i], calc.tmp_mat)
+                @. calc.nonadiabatic_coupling[k,j,i] = adiabatic_derivative[k,j,i] * calc.tmp_mat
             end
         end
     end
@@ -159,7 +159,7 @@ function evaluate_centroid_nonadiabatic_coupling!(calc::RingPolymerLargeDiabatic
     evaluate_inverse_difference_matrix!(calc.tmp_mat, eigen.values)
     @inbounds for j in mobileatoms(calc)
         for k in dofs(calc)
-            multiply_elementwise!(calc.centroid_nonadiabatic_coupling[j,k], adiabatic_derivative[j,k], calc.tmp_mat)
+            @. calc.centroid_nonadiabatic_coupling[j,k] = adiabatic_derivative[j,k] * calc.tmp_mat
         end
     end
 end

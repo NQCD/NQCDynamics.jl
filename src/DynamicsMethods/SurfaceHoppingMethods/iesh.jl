@@ -7,6 +7,7 @@ using NQCDistributions: FermiDiracState, Adiabatic, Diabatic
 using StatsBase: sample, Weights
 using FastLapackInterface: FastLapackInterface
 using SciMLBase: SciMLBase
+using RecursiveArrayTools
 
 export AdiabaticIESH
 
@@ -92,11 +93,13 @@ function DynamicsMethods.DynamicsVariables(sim::AbstractSimulation{<:AdiabaticIE
         ψ[i,i] = 1
     end
     state = collect(eachelectron(sim))
-
-    SurfaceHoppingVariables(ComponentVector(v=v, r=r, σreal=ψ, σimag=zero(ψ)), state)
+    SurfaceHoppingVariables(v=Float64.(v), r=Float64.(r), σreal=Float64.(ψ), σimag=Float64.(zero(ψ)), state=Float64.(state))
 end
 
 function DynamicsMethods.DynamicsVariables(sim::AbstractSimulation{<:AdiabaticIESH}, v, r, electronic::FermiDiracState{Adiabatic})
+    tmp_v = copy(v)
+    tmp_r = copy(r)
+    
     ef_model = NQCModels.fermilevel(sim)
     ef_distribution = electronic.fermi_level
     ef_model ≈ ef_distribution || throw(error(
@@ -108,7 +111,7 @@ function DynamicsMethods.DynamicsVariables(sim::AbstractSimulation{<:AdiabaticIE
         """
     ))
 
-    eigenvalues = DynamicsUtils.get_hopping_eigenvalues(sim, r)
+    eigenvalues = DynamicsUtils.get_hopping_eigenvalues(sim, tmp_r)
 
     available_states = DynamicsUtils.get_available_states(electronic.available_states, NQCModels.nstates(sim))
     state = DynamicsUtils.sample_fermi_dirac_distribution(eigenvalues, NQCModels.nelectrons(sim), available_states, electronic.β)
@@ -118,11 +121,11 @@ function DynamicsMethods.DynamicsVariables(sim::AbstractSimulation{<:AdiabaticIE
         ψ[j,i] = 1
     end
 
-    SurfaceHoppingVariables(ComponentVector(v=v, r=r, σreal=ψ, σimag=zero(ψ)), state)
+    SurfaceHoppingVariables(v=Float64.(tmp_v), r=Float64.(tmp_r), σreal=Float64.(ψ), σimag=Float64.(zero(ψ)), state=Float64.(state))
 end
 
 function DynamicsMethods.create_problem(u0, tspan, sim::AbstractSimulation{<:AbstractIESH})
-    set_state!(sim.method, u0.state)
+    set_state!(sim.method, convert(Vector{Int},u0.state)) # state 
     set_unoccupied_states!(sim)
     OrdinaryDiffEq.ODEProblem(DynamicsMethods.motion!, u0, tspan, sim;
         callback=DynamicsMethods.get_callbacks(sim))
@@ -172,8 +175,7 @@ function DynamicsMethods.DynamicsVariables(sim::Simulation{<:AdiabaticIESH}, v, 
     end
 
     sort!(adiabatic_state)
-
-    SurfaceHoppingVariables(ComponentVector(v=v, r=r, σreal=ψ, σimag=zero(ψ)), adiabatic_state)
+    SurfaceHoppingVariables(v=Float64.(v), r=Float64.(r), σreal=Float64.(ψ), σimag=Float64.(zero(ψ)), state=Float64.(adiabatic_state))
 end
 
 """
@@ -328,8 +330,8 @@ function Estimators.diabatic_population(sim::Simulation{<:AdiabaticIESH}, u)
 
     eigen = Calculators.get_eigen(sim.calculator, DynamicsUtils.get_positions(u))
     transformation = eigen.vectors
-
-    return iesh_diabatic_population(ψ, transformation, u.state)
+    
+    return iesh_diabatic_population(ψ, transformation, convert(Vector{Int},u.state))
 end
 
 """
@@ -359,7 +361,7 @@ end
 
 function Estimators.adiabatic_population(sim::Simulation{<:AdiabaticIESH}, u)
     population = zeros(NQCModels.nstates(sim.calculator.model))
-    population[u.state] .= 1
+    population[u.state] .= 1 # ?? this must hav ebeen copied over from FSSH as it assumes that state is an integer 
     return population
 end
 
@@ -369,7 +371,7 @@ ishoppingdisabled(method::AbstractIESH) = method.disable_hopping
 function DynamicsUtils.classical_potential_energy(sim::Simulation{<:AbstractIESH}, u)
     eigen = Calculators.get_eigen(sim.calculator, DynamicsUtils.get_positions(u))
     potential = NQCModels.state_independent_potential(sim.calculator.model, DynamicsUtils.get_positions(u))
-    for i in u.state
+    for i in convert(Vector{Int},u.state)
         potential += eigen.values[i]
     end
     return potential

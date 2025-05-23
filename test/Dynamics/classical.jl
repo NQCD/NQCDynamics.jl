@@ -9,7 +9,7 @@ include("utils.jl")
 atoms = Atoms([:H])
 model = NQCModels.Harmonic()
 
-benchmark_dir = get(ENV, "BENCHMARK_OUTPUT_DIR", "/tmp/nqcd_benchmark")
+benchmark_dir = get(ENV, "BENCHMARK_OUTPUT_DIR", "tmp/nqcd_benchmark") # have made this director explicitly, if we want to be able to change this directory will need to put in a mkdir check
 benchmark_results = Dict{String, Any}("title_for_plotting" => "Classical Tests")
 
 @testset "Classical" begin
@@ -70,6 +70,14 @@ end
     sol = dyn_test.value
     @test sol[:OutputTotalEnergy][1] ≈ sol[:OutputTotalEnergy][end] rtol=1e-2
     benchmark_results["Fermion model ring polymer adiabatic dynamics"] = Dict("Time" => dyn_test.time, "Allocs" => dyn_test.bytes)
+end
+
+# Make benchmark directory if it doesn't already exist.
+if !isdir(benchmark_dir)
+    mkpath(benchmark_dir)
+    @info "Benchmark data ouput directory created at $(benchmark_dir)."
+else
+    @info "Benchmark data ouput directory exists at $(benchmark_dir)."
 end
 
 # Output benchmarking dict

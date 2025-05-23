@@ -1,5 +1,4 @@
-
-OrdinaryDiffEq.isfsal(::BABwithTsit5) = false
+using OrdinaryDiffEq.OrdinaryDiffEqCore: get_fsalfirstlast
 
 mutable struct BABwithTsit5Cache{uType,vType,rateType,E} <: OrdinaryDiffEq.OrdinaryDiffEqMutableCache
     u::uType
@@ -9,6 +8,10 @@ mutable struct BABwithTsit5Cache{uType,vType,rateType,E} <: OrdinaryDiffEq.Ordin
     k::rateType
     electronic_integrator::E
 end
+
+OrdinaryDiffEq.isfsal(::BABwithTsit5) = false
+
+OrdinaryDiffEq.get_fsalfirstlast(cache::BABwithTsit5Cache, u::Any) = (nothing, nothing)
 
 function OrdinaryDiffEq.alg_cache(alg::BABwithTsit5,u,rate_prototype,::Type{uEltypeNoUnits},::Type{uBottomEltypeNoUnits},::Type{tTypeNoUnits},uprev,uprev2,f,t,dt,reltol,p,calck,inplace::Val{true}) where {uEltypeNoUnits,uBottomEltypeNoUnits,tTypeNoUnits}
     tmp = zero(u)

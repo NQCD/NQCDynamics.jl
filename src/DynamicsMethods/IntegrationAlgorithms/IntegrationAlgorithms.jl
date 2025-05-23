@@ -12,6 +12,7 @@ using NQCDynamics:
     natoms, nbeads, ndofs
 
 using OrdinaryDiffEq: OrdinaryDiffEq, OrdinaryDiffEqAlgorithm
+using OrdinaryDiffEq.OrdinaryDiffEqCore: get_fsalfirstlast
 using StochasticDiffEq: StochasticDiffEq
 
 struct BCB <: OrdinaryDiffEqAlgorithm end
