@@ -20,7 +20,7 @@ end
 function DynamicsMethods.DynamicsVariables(::AbstractSimulation{<:ClassicalMasterEquation}, v, r, electronic::PureState{Diabatic})
     electronic_state = similar(v, 1)
     electronic_state[1] = electronic.state
-    return SurfaceHoppingVariables(r=r, v=v, state = electronic_state)
+    return SurfaceHoppingVariables(r=Float64.(r), v=Float64.(v), state = Float64.(electronic_state))
 end
 
 function evaluate_hopping_probability!(sim::Simulation{<:ClassicalMasterEquation}, u, dt)

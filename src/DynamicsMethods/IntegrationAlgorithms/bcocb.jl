@@ -99,7 +99,7 @@ end
 
     vprev, rprev = integrator.uprev.x
     acceleration = cache.k
-    v, r, vtmp = OrdinaryDiffEq.alloc_symp_state(integrator)
+    v, r, vtmp = OrdinaryDiffEq.OrdinaryDiffEqSymplecticRK.alloc_symp_state(integrator)
 
     copy!(r, rprev)
 

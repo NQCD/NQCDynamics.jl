@@ -52,14 +52,12 @@ function DynamicsMethods.DynamicsVariables(
 )
     σ = DynamicsUtils.initialise_adiabatic_density_matrix(electronic, sim.calculator, r)
     state = sample(Weights(diag(real.(σ))))
-    electronic_state = similar(r, 1)
-    electronic_state[1] = state
     return SurfaceHoppingVariables((
-        v = v,
-        r = r,
-        σreal = σ,
-        σimag = zero(σ),
-        state = electronic_state,
+        v = v .|> Float64,
+        r = r .|> Float64,
+        σreal = σ .|> Float64,
+        σimag = zero(σ) .|> Float64,
+        state = state .|> Float64,
     ))
 end
 
