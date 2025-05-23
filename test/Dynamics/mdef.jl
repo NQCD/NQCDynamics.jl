@@ -40,9 +40,9 @@ benchmark_results["MDEF with RandomFriction"] = Dict("Time" => dyn_test.time, "A
 # Make benchmark directory if it doesn't already exist.
 if !isdir(benchmark_dir)
     mkpath(benchmark_dir)
-    @Info "Benchmark data ouput directory created at $(benchmark_dir)."
+    @info "Benchmark data ouput directory created at $(benchmark_dir)."
 else
-    @Info "Benchmark data ouput directory exists at $(benchmark_dir)."
+    @info "Benchmark data ouput directory exists at $(benchmark_dir)."
 end
 
 # Output benchmarking dict
