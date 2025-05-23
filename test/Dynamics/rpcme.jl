@@ -8,7 +8,7 @@ using DataFrames, CSV
 using Interpolations
 import JSON
 
-benchmark_dir = get(ENV, "BENCHMARK_OUTPUT_DIR", "/tmp/nqcd_benchmark")
+benchmark_dir = get(ENV, "BENCHMARK_OUTPUT_DIR", "tmp/nqcd_benchmark")
 benchmark_results = Dict{String, Any}("title_for_plotting" => "RPCME Tests")
 
 ħω = 0.003
@@ -92,6 +92,14 @@ n_beads = 4
     # plot!(output[1][:Time] .* Γ, itp.(output[1][:Time] .* Γ))
     # display(p)
     benchmark_results["Phonon relaxation"] = Dict("Time" => dyn_test.time, "Allocs" => dyn_test.bytes)
+end
+
+# Make benchmark directory if it doesn't already exist.
+if !isdir(benchmark_dir)
+    mkpath(benchmark_dir)
+    @Info "Benchmark data ouput directory created at $(benchmark_dir)."
+else
+    @Info "Benchmark data ouput directory exists at $(benchmark_dir)."
 end
 
 # Output benchmarking dict

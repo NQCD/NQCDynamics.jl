@@ -11,7 +11,7 @@ using NQCDynamics: DynamicsMethods, DynamicsUtils
 using NQCDynamics.DynamicsMethods: ClassicalMethods, IntegrationAlgorithms
 import JSON
 
-benchmark_dir = get(ENV, "BENCHMARK_OUTPUT_DIR", "/tmp/nqcd_benchmark")
+benchmark_dir = get(ENV, "BENCHMARK_OUTPUT_DIR", "tmp/nqcd_benchmark")
 benchmark_results = Dict{String, Any}("title_for_plotting" => "RPMDEF Tests")
 
 atoms = Atoms([:H, :C])
@@ -77,6 +77,14 @@ end
     dyn_test = @timed run_dynamics(sim, (0.0, 1e2), ArrayPartition(v,r); dt=1, output=OutputKineticEnergy)
     sol = dyn_test.value
     benchmark_results["RPMDEF"] = Dict("Time" => dyn_test.time, "Allocs" => dyn_test.bytes)
+end
+
+# Make benchmark directory if it doesn't already exist.
+if !isdir(benchmark_dir)
+    mkpath(benchmark_dir)
+    @Info "Benchmark data ouput directory created at $(benchmark_dir)."
+else
+    @Info "Benchmark data ouput directory exists at $(benchmark_dir)."
 end
 
 # Output benchmarking dict

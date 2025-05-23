@@ -6,7 +6,7 @@ using LinearAlgebra: diag
 using ComponentArrays
 using JSON
 
-benchmark_dir = get(ENV, "BENCHMARK_OUTPUT_DIR", "/tmp/nqcd_benchmark")
+benchmark_dir = get(ENV, "BENCHMARK_OUTPUT_DIR", "tmp/nqcd_benchmark")
 benchmark_results = Dict{String, Any}("title_for_plotting" => "MDEF Tests")
 
 atoms = Atoms([:H, :H])
@@ -36,6 +36,14 @@ sim = Simulation{MDEF}(atoms, model; temperature=f)
 dyn_test = @timed run_dynamics(sim, (0.0, 100.0), u; output=OutputDynamicsVariables, dt=1)
 sol = dyn_test.value
 benchmark_results["MDEF with RandomFriction"] = Dict("Time" => dyn_test.time, "Allocs" => dyn_test.bytes)
+
+# Make benchmark directory if it doesn't already exist.
+if !isdir(benchmark_dir)
+    mkpath(benchmark_dir)
+    @Info "Benchmark data ouput directory created at $(benchmark_dir)."
+else
+    @Info "Benchmark data ouput directory exists at $(benchmark_dir)."
+end
 
 # Output benchmarking dict
 output_file = open("$(benchmark_dir)/mdef.json", "w")

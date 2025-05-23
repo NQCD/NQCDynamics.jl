@@ -8,7 +8,7 @@ using NQCDynamics: DynamicsMethods, DynamicsUtils
 using NQCDynamics.DynamicsMethods.MappingVariableMethods
 import JSON
 
-benchmark_dir = get(ENV, "BENCHMARK_OUTPUT_DIR", "/tmp/nqcd_benchmark")
+benchmark_dir = get(ENV, "BENCHMARK_OUTPUT_DIR", "tmp/nqcd_benchmark")
 benchmark_results = Dict{String, Any}("title_for_plotting" => "NRPMD Tests")
 
 Random.seed!(1)
@@ -80,6 +80,14 @@ end
     setup = Dict(:alg => test_alg, :adaptive=>true, :abstol=>1e-8, :reltol=>1e-8)
     res = analyticless_test_convergence(dts, prob, alg, setup)
     @test res.𝒪est[:final] ≈ 2 atol=0.1
+end
+
+# Make benchmark directory if it doesn't already exist.
+if !isdir(benchmark_dir)
+    mkpath(benchmark_dir)
+    @Info "Benchmark data ouput directory created at $(benchmark_dir)."
+else
+    @Info "Benchmark data ouput directory exists at $(benchmark_dir)."
 end
 
 # Output benchmarking dict

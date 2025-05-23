@@ -2,7 +2,7 @@ using Test
 using NQCDynamics
 using JSON
 
-benchmark_dir = get(ENV, "BENCHMARK_OUTPUT_DIR", "/tmp/nqcd_benchmark")
+benchmark_dir = get(ENV, "BENCHMARK_OUTPUT_DIR", "tmp/nqcd_benchmark")
 benchmark_results = Dict{String, Any}("title_for_plotting" => "Langevin")
 
 atoms = Atoms([:H])
@@ -15,6 +15,14 @@ z = DynamicsVariables(sim, randn(1,1), randn(1,1))
 dyn_test = @timed run_dynamics(sim, (0.0, 500.0), z; output=OutputDynamicsVariables, dt=1)
 solution = dyn_test.value
 benchmark_results["Langevin"] = Dict("Time" => dyn_test.time, "Allocs" => dyn_test.bytes)
+
+# Make benchmark directory if it doesn't already exist.
+if !isdir(benchmark_dir)
+    mkpath(benchmark_dir)
+    @Info "Benchmark data ouput directory created at $(benchmark_dir)."
+else
+    @Info "Benchmark data ouput directory exists at $(benchmark_dir)."
+end
 
 # Output benchmarking dict
 output_file = open("$(benchmark_dir)/langevin.json", "w")

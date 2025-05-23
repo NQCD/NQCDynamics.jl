@@ -9,7 +9,7 @@ using NQCDynamics.SurfaceHoppingMethods: SurfaceHoppingMethods
 using NQCDynamics.DynamicsUtils: get_positions, get_velocities
 using Unitful
 import JSON
-benchmark_dir = get(ENV, "BENCHMARK_OUTPUT_DIR", "/tmp/nqcd_benchmark")
+benchmark_dir = get(ENV, "BENCHMARK_OUTPUT_DIR", "tmp/nqcd_benchmark")
 benchmark_results = Dict{String, Any}("title_for_plotting" => "FSSH Tests")
 
 @test SurfaceHoppingMethods.FSSH{Float64}(2, :standard) isa SurfaceHoppingMethods.FSSH
@@ -187,6 +187,14 @@ end
         benchmark_results["RPSH"] = Dict("Time" => dyn_test.time, "Allocs" => dyn_test.bytes)
     end
 
+end
+
+# Make benchmark directory if it doesn't already exist.
+if !isdir(benchmark_dir)
+    mkpath(benchmark_dir)
+    @Info "Benchmark data ouput directory created at $(benchmark_dir)."
+else
+    @Info "Benchmark data ouput directory exists at $(benchmark_dir)."
 end
 
 # Output benchmarking dict
