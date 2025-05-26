@@ -545,15 +545,6 @@ function update_electronics!(calculator::RingPolymerDiabaticCalculator, r::Abstr
     return nothing
 end
 
-#function update_electronics!(calculator::AbstractDiabaticCalculator, r::AbstractArray)
-#   evaluate_potential
-#   evaluate_derivative
-#   evaluate_eigen
-#   evaluate_adiabatic_derivative
-#   evaluate_nonadiabatic_coupling
-# end
-
-
 function update_centroid_electronics!(calculator::RingPolymerDiabaticCalculator, r::AbstractArray{T,3}) where {T}
     get_centroid_nonadiabatic_coupling(calculator, r)
     return nothing
