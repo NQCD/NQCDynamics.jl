@@ -47,7 +47,7 @@ end
 
 function sample_distribution(sim::AbstractSimulation, distribution::ProductDistribution, i)
     u = distribution.nuclear[i]
-    DynamicsMethods.DynamicsVariables(sim, u.v, u.r, distribution.electronic)
+    DynamicsMethods.DynamicsVariables(sim, copy(u.v), copy(u.r), distribution.electronic)
 end
 
 function (select::RandomSelection)(prob, i, repeat)
@@ -62,7 +62,7 @@ end
 
 function sample_distribution(sim::AbstractSimulation, distribution::ProductDistribution)
     u = rand(distribution.nuclear)
-    DynamicsMethods.DynamicsVariables(sim, u.v, u.r, distribution.electronic)
+    DynamicsMethods.DynamicsVariables(sim, copy(u.v), copy(u.r), distribution.electronic)
 end
 
 sample_distribution(::AbstractSimulation, distribution) = copy(distribution)

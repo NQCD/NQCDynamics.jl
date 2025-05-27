@@ -1,5 +1,6 @@
 
-using SciMLBase: ODEProblem, DiffEqArrayOperator
+using SciMLBase: ODEProblem
+using SciMLOperators: MatrixOperator
 using LinearAlgebra: rmul!, diagind
 using NQCDynamics: DynamicsUtils
 
@@ -89,7 +90,7 @@ function ElectronicODEProblem(c0, tspan, nstates::Integer)
         rmul!(diagonal, im)
     end
 
-    A = DiffEqArrayOperator(zeros(ComplexF64, nstates, nstates); update_func)
+    A = MatrixOperator(zeros(ComplexF64, nstates, nstates); update_func)
     return ODEProblem(A, c0, tspan, buffer)
 end
 
