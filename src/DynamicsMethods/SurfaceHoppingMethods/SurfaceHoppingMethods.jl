@@ -6,7 +6,7 @@ Implementation for surface hopping methods.
 """
 module SurfaceHoppingMethods
 
-using DEDataArrays: DEDataArrays
+using RecursiveArrayTools # possibly redundant as import when `SurfaceHoppingVariables.jl` is included
 using ComponentArrays: ComponentVector
 using DiffEqBase: DiffEqBase
 using LinearAlgebra: LinearAlgebra, lmul!
@@ -25,15 +25,6 @@ using NQCDynamics:
     ndofs
 using NQCModels: NQCModels, Model
 using NQCBase: Atoms
-
-mutable struct SurfaceHoppingVariables{T,A,Axes,S} <: DEDataArrays.DEDataVector{T}
-    x::ComponentVector{T,A,Axes}
-    state::S
-end
-
-DynamicsUtils.get_velocities(u::SurfaceHoppingVariables) = DynamicsUtils.get_velocities(u.x)
-DynamicsUtils.get_positions(u::SurfaceHoppingVariables) = DynamicsUtils.get_positions(u.x)
-DynamicsUtils.get_quantum_subsystem(u::SurfaceHoppingVariables) = DynamicsUtils.get_quantum_subsystem(u.x)
 
 """
 Abstract type for all surface hopping methods.
@@ -58,7 +49,7 @@ function DynamicsMethods.motion!(du, u, sim::Simulation{<:SurfaceHopping}, t)
 
     r = DynamicsUtils.get_positions(u)
     v = DynamicsUtils.get_velocities(u)
-    σ = DynamicsUtils.get_quantum_subsystem(u)
+    #σ = DynamicsUtils.get_quantum_subsystem(u)
 
     set_state!(u, sim.method.state) # Make sure the state variables match, 
 
@@ -110,6 +101,7 @@ function DynamicsUtils.get_hopping_velocity(::RingPolymerSimulation, v::Abstract
     return get_centroid(v)
 end
 
+include("SurfaceHoppingVariables.jl")
 include("decoherence_corrections.jl")
 include("surface_hopping.jl")
 include("fssh.jl")

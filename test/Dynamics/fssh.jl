@@ -9,7 +9,7 @@ using NQCDynamics.SurfaceHoppingMethods: SurfaceHoppingMethods
 using NQCDynamics.DynamicsUtils: get_positions, get_velocities
 using Unitful
 import JSON
-benchmark_dir = get(ENV, "BENCHMARK_OUTPUT_DIR", "/tmp/nqcd_benchmark")
+benchmark_dir = get(ENV, "BENCHMARK_OUTPUT_DIR", "tmp/nqcd_benchmark")
 benchmark_results = Dict{String, Any}("title_for_plotting" => "FSSH Tests")
 
 @test SurfaceHoppingMethods.FSSH{Float64}(2, :standard) isa SurfaceHoppingMethods.FSSH
@@ -88,7 +88,7 @@ atoms = Atoms(2)
 
         KE_initial = DynamicsUtils.classical_kinetic_energy(integrator.p, get_velocities(integrator.u))
         H_initial = DynamicsUtils.classical_hamiltonian(integrator.p, integrator.u)
-        @test integrator.u.state == 1
+        @test first(integrator.u.state) == 1
 
         SurfaceHoppingMethods.execute_hop!(integrator)
 
@@ -96,7 +96,7 @@ atoms = Atoms(2)
         H_final = DynamicsUtils.classical_hamiltonian(integrator.p, integrator.u)
         ΔKE = KE_final - KE_initial
 
-        @test integrator.u.state == 2 # Check state has changed
+        @test first(integrator.u.state) == 2 # Check state has changed
         @test H_final ≈ H_initial
         @test ΔKE ≈ -ΔE rtol=1e-3 # Test for energy conservation
     end
@@ -120,7 +120,7 @@ end
     r = RingPolymerArray(randn(size(sim)))
     v = RingPolymerArray(randn(size(sim)))
     u = DynamicsVariables(sim, v, r, PureState(1, Adiabatic()))
-    sim.method.state = u.state
+    sim.method.state = first(u.state)
 
     problem = ODEProblem(DynamicsMethods.motion!, u, (0.0, 1.0), sim)
     integrator = init(problem, Tsit5(), callback=SurfaceHoppingMethods.HoppingCallback)
@@ -147,8 +147,8 @@ end
     @testset "execute_hop!" begin
         Calculators.update_electronics!(integrator.p.calculator, get_positions(integrator.u))
         get_velocities(integrator.u) .= 5 # Set high momentum to ensure successful hop
-        integrator.u.state = 1
-        integrator.p.method.new_state = 2
+        integrator.u.state = [1] # Modifying SurfaceHoppingVariables, so supply a vector
+        integrator.p.method.new_state = 2 # Modifying RPSH, so supply an Int. 
         eigs = DynamicsUtils.get_hopping_eigenvalues(integrator.p, DynamicsUtils.get_positions(integrator.u))
         ΔE = SurfaceHoppingMethods.calculate_potential_energy_change(eigs, 2, 1)
 
@@ -156,9 +156,9 @@ end
         V_initial = DynamicsUtils.centroid_classical_potential_energy(integrator.p, integrator.u)
         H_initial = DynamicsUtils.centroid_classical_hamiltonian(integrator.p, integrator.u)
 
-        @test integrator.u.state == 1
+        @test first(integrator.u.state) == 1
         SurfaceHoppingMethods.execute_hop!(integrator)
-        @test integrator.u.state == 2 # Check state has changed
+        @test first(integrator.u.state) == 2 # Check state has changed
 
         KE_final = DynamicsUtils.centroid_classical_kinetic_energy(integrator.p, integrator.u)
         V_final = DynamicsUtils.centroid_classical_potential_energy(integrator.p, integrator.u)
@@ -187,6 +187,14 @@ end
         benchmark_results["RPSH"] = Dict("Time" => dyn_test.time, "Allocs" => dyn_test.bytes)
     end
 
+end
+
+# Make benchmark directory if it doesn't already exist.
+if !isdir(benchmark_dir)
+    mkpath(benchmark_dir)
+    @info "Benchmark data ouput directory created at $(benchmark_dir)."
+else
+    @info "Benchmark data ouput directory exists at $(benchmark_dir)."
 end
 
 # Output benchmarking dict

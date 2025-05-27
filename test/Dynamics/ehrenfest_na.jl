@@ -4,7 +4,7 @@ using Statistics: var
 using OrdinaryDiffEq: Vern9
 import JSON
 
-benchmark_dir = get(ENV, "BENCHMARK_OUTPUT_DIR", "/tmp/nqcd_benchmark")
+benchmark_dir = get(ENV, "BENCHMARK_OUTPUT_DIR", "tmp/nqcd_benchmark")
 benchmark_results = Dict{String, Any}("title_for_plotting" => "EhrenfestNA Tests")
 
 kT = 9.5e-4
@@ -47,6 +47,14 @@ n_electrons = M ÷ 2
     @test traj1[:OutputVelocity] ≈ traj2[:OutputVelocity] rtol=1e-3
     @test traj1[:OutputPosition] ≈ traj2[:OutputPosition] rtol=1e-3
     @test traj1[:OutputQuantumSubsystem] ≈ traj2[:OutputQuantumSubsystem] rtol=1e-2
+end
+
+# Make benchmark directory if it doesn't already exist.
+if !isdir(benchmark_dir)
+    mkpath(benchmark_dir)
+    @info "Benchmark data ouput directory created at $(benchmark_dir)."
+else
+    @info "Benchmark data ouput directory exists at $(benchmark_dir)."
 end
 
 # Output benchmarking dict

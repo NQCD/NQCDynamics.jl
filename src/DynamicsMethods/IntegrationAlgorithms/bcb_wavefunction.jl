@@ -1,6 +1,5 @@
 using RingPolymerArrays: RingPolymerArrays
-
-OrdinaryDiffEq.isfsal(::BCBWavefunction) = false
+using OrdinaryDiffEq.OrdinaryDiffEqCore: get_fsalfirstlast
 
 mutable struct BCBWavefunctionCache{uType,vType,rateType,uEltypeNoUnits} <: OrdinaryDiffEq.OrdinaryDiffEqMutableCache
     u::uType
@@ -10,6 +9,10 @@ mutable struct BCBWavefunctionCache{uType,vType,rateType,uEltypeNoUnits} <: Ordi
     k::rateType
     cayley::Vector{Matrix{uEltypeNoUnits}}
 end
+
+OrdinaryDiffEq.isfsal(::BCBWavefunction) = false
+
+OrdinaryDiffEq.get_fsalfirstlast(cache::BCBWavefunctionCache, u::Any) = (nothing, nothing)
 
 function OrdinaryDiffEq.alg_cache(::BCBWavefunction,u,rate_prototype,::Type{uEltypeNoUnits},::Type{uBottomEltypeNoUnits},::Type{tTypeNoUnits},uprev,uprev2,f,t,dt,reltol,p,calck,inplace::Val{true}) where {uEltypeNoUnits,uBottomEltypeNoUnits,tTypeNoUnits}
     tmp = zero(u)

@@ -94,7 +94,7 @@ function evaluate_nonadiabatic_coupling!(calc::LargeDiabaticCalculator, r)
 
     @inbounds for i in NQCModels.mobileatoms(calc)
         for j in NQCModels.dofs(calc)
-            multiply_elementwise!(calc.nonadiabatic_coupling[j,i], adiabatic_derivative[j,i], calc.tmp_mat)
+            @. calc.nonadiabatic_coupling[j,i] = adiabatic_derivative[j,i] * calc.tmp_mat
         end
     end
 end
@@ -105,11 +105,5 @@ function evaluate_inverse_difference_matrix!(out, eigenvalues)
             out[j,i] = 1 / (eigenvalues[i] - eigenvalues[j])
         end
         out[i,i] = zero(eltype(out))
-    end
-end
-
-function multiply_elementwise!(coupling::Matrix, adiabatic_derivative::Matrix, eigenvalue_difference_matrix::Matrix)
-    @inbounds for I in eachindex(coupling, adiabatic_derivative, eigenvalue_difference_matrix)
-        coupling[I] = adiabatic_derivative[I] * eigenvalue_difference_matrix[I]
     end
 end
