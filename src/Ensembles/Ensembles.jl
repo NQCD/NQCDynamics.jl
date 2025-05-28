@@ -141,16 +141,14 @@ function run_dynamics(
                 kwargs,
                 :dt,
                 1.0 # dt should be a number / unitful qty
-            )
+            )::Float64
         ) |> first # Get the number or the first list entry. 
         tspan_short = (0.0, short_time)
-        precompile_time = dynamics(tspan_short)
-        @debug "Reduction is" reduction=reduction
+        dynamics(tspan_short)
         if isa(reduction, FileReduction)
-            @debug "FileReduction wrote files, which will now be deleted. "
             rm(reduction.filename)
         end
-        @info "Pre-compiled dynamics in $(precompile_time.time) seconds."
+        # @info "Pre-compiled dynamics in $(precompile_time.time) seconds."
     end
 
     if trajectories == 1
