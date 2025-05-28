@@ -115,16 +115,16 @@ function run_dynamics(
             get(
                 kwargs,
                 :dt,
-                1.0 # dt should be a number / unitful qty
+                1.0 # dt should be a number
             )::Float64
         ) |> first # Get the number or the first list entry. 
         tspan_short = (0.0, short_time)
         temp_prob = DynamicsMethods.create_problem(u0, tspan_short, sim)
-        precomp = SciMLBase.solve(temp_prob, algorithm, kwargs...,)
+        precomp = SciMLBase.solve(temp_prob, algorithm; kwargs...)
         if isa(reduction, FileReduction)
             rm(reduction.filename)
         end
-        @info "Pre-compiled dynamics in $(precompile_time.time) seconds."
+        #@info "Pre-compiled dynamics in $(precompile_time.time) seconds."
     end
 
     problem = DynamicsMethods.create_problem(u0, tspan, sim)
@@ -146,9 +146,9 @@ function run_dynamics(
     stats = @timed SciMLBase.solve(
             ensemble_problem,
             algorithm,
-            ensemble_algorithm;
-            trajectories,
-            kwargs...,
+            ensemble_algorithm,
+            trajectories;
+            kwargs...
         )
     log_simulation_duration(stats.time)
 
