@@ -121,9 +121,9 @@ function run_dynamics(
         tspan_short = (0.0, short_time)
         temp_prob = DynamicsMethods.create_problem(u0, tspan_short, sim)
         precomp = SciMLBase.solve(temp_prob, algorithm; kwargs...)
-        if isa(reduction, FileReduction)
+#=         if isa(reduction, FileReduction)
             rm(reduction.filename)
-        end
+        end =#
         #@info "Pre-compiled dynamics in $(precompile_time.time) seconds."
     end
 
