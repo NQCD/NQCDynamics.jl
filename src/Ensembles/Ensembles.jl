@@ -116,7 +116,7 @@ function run_dynamics(
                 kwargs,
                 :dt,
                 1.0 # dt should be a number
-            )<:Real
+            )::Real
         ) |> first # Get the number or the first list entry. 
         tspan_short = (0.0, short_time)
         temp_prob = DynamicsMethods.create_problem(u0, tspan_short, sim)
