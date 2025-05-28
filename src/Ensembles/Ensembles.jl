@@ -146,8 +146,8 @@ function run_dynamics(
     stats = @timed SciMLBase.solve(
             ensemble_problem,
             algorithm,
-            ensemble_algorithm,
-            trajectories;
+            ensemble_algorithm;
+            trajectories,
             kwargs...
         )
     log_simulation_duration(stats.time)
