@@ -120,7 +120,7 @@ function run_dynamics(
         ) |> first # Get the number or the first list entry. 
         tspan_short = (0.0, short_time)
         temp_prob = DynamicsMethods.create_problem(u0, tspan_short, sim)
-        precomp = SciMLBase.solve(temp_prob, algorithm, kwargs...)
+        precomp = SciMLBase.solve(temp_prob, algorithm, kwargs...,)
         if isa(reduction, FileReduction)
             rm(reduction.filename)
         end
