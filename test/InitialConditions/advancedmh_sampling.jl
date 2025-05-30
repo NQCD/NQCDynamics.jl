@@ -85,11 +85,11 @@ end
             end
 
             mean_energy = mean_energy/length(chain)
-            @test mean_energy / (DoFs*natoms*nbeads) ≈ nbeads*T/2 rtol=1e-1 #tests if the energy per particle is correct
+            @test mean_energy / (DoFs*natoms*nbeads) ≈ nbeads*T/2 rtol=1e-1 #tests if the energy per particle is correct 
         end
     end
 
-#=     @testset "Quantum harmonic oscillator" begin
+#=  @testset "Quantum harmonic oscillator" begin
         ω = 100
         T = 1
         sim = RingPolymerSimulation(Atoms(1), Harmonic(ω=ω), 200; temperature=T)
@@ -99,7 +99,8 @@ end
         exact = ω/2 * coth(ω / 2T)
         estimate = Estimators.@estimate total_energy(sim, chain)
         @test exact ≈ estimate rtol=1e-1
-    end =#
+    end 
+=#
 
     @testset "Free ring polymer radius_of_gyration" begin
         T = 3.0

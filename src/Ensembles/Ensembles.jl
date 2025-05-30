@@ -122,6 +122,7 @@ function run_dynamics(
             output_func = output_func,
             reduction = deepcopy(reduction), # deepcopy reduction function because it's used twice
         )
+        
         return @timed SciMLBase.solve(
             ensemble_problem,
             algorithm,

@@ -42,7 +42,7 @@ end
     model = WideBandBath(ErpenbeckThoss(;Γ=0.1u"eV"), bandmin=-5u"eV", bandmax=5u"eV", step=0.2u"eV")
     sim = Simulation{Classical}(atoms, model; temperature=300u"K")
     v = rand(VelocityBoltzmann(300u"K", atoms.masses, size(sim)))
-    r = [model.model.morse.x₀;;]
+    r = [model.Hamiltonian.morse.x₀;;]
     u0 = DynamicsVariables(sim, v, r)
     sol = run_dynamics(sim, (0.0, 900.0u"fs"), u0; dt=1u"fs", output=(OutputTotalEnergy))
     @test sol[:OutputTotalEnergy][1] ≈ sol[:OutputTotalEnergy][end] rtol=1e-2
@@ -53,7 +53,7 @@ end
     n_beads = 10
     sim = RingPolymerSimulation{Classical}(atoms, model, n_beads; temperature=300u"K")
     v = VelocityBoltzmann(n_beads*300u"K", atoms.masses, size(sim)[1:2])
-    r = model.model.morse.x₀
+    r = model.Hamiltonian.morse.x₀
     d = DynamicalDistribution(v, r, size(sim))
     u0 = rand(d)
     sol = run_dynamics(sim, (0.0, 900.0u"fs"), u0; dt=1u"fs", output=(OutputTotalEnergy))
