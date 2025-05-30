@@ -88,49 +88,23 @@ function run_dynamics(
     reduction = AppendReduction(),
     ensemble_algorithm = SciMLBase.EnsembleSerial(),
     algorithm = DynamicsMethods.select_algorithm(sim),
-    trajectories = 1,
+    trajectories::Int = 1,
     savetime = true,
     precompile_dynamics = true,
     kwargs...,
 )
 
-    """
-    Due to how Julia compiles code, running the same dynamics for a single time step forces precompilation, which will make subsequent simulations faster. 
-    This effect is negligible for smaller models, but begins to matter for more computationally intensive dynamics. 
-    
-    See this GitHub issue for discussion: https://github.com/NQCD/NQCDynamics.jl/issues/365
-    """
-    function dynamics(tspan)
-        @debug "Setting up dynamics with" tspan = tspan
-        if !(output isa Tuple)
-            output = (output,)
-        end
-        
-        kwargs = NQCBase.austrip_kwargs(; kwargs...)
-        trajectories = convert(Int, trajectories)
-        tspan = austrip.(tspan)
-        prob_func = Selection(distribution, selection, trajectories)
-        
-        u0 = sample_distribution(sim, distribution)
-        problem = DynamicsMethods.create_problem(u0, tspan, sim)
-        
-        output_func = EnsembleSaver(output, savetime)
-        
-        ensemble_problem = SciMLBase.EnsembleProblem(
-            problem;
-            prob_func = prob_func,
-            output_func = output_func,
-            reduction = deepcopy(reduction), # deepcopy reduction function because it's used twice
-        )
-        return @timed SciMLBase.solve(
-            ensemble_problem,
-            algorithm,
-            ensemble_algorithm;
-            trajectories,
-            kwargs...,
-        )
+    #@debug "Setting up dynamics with" tspan = tspan
+    if !(output isa Tuple)
+        output = (output,)
     end
-
+    
+    kwargs = NQCBase.austrip_kwargs(; kwargs...)
+    tspan = austrip.(tspan)
+    prob_func = Selection(distribution, selection, trajectories)
+    
+    u0 = sample_distribution(sim, distribution)
+        
     if precompile_dynamics
         @debug "Beginning to precompile dynamics"
         # Get a short time limit that runs through saving at least one time step of data
@@ -140,18 +114,27 @@ function run_dynamics(
             get(
                 kwargs,
                 :dt,
-                1.0 # dt should be a number / unitful qty
-            )
-        ) |> first # Get the number or the first list entry. 
+                1.0 # dt should be a number
+            )::Real
+        )::Union{Vector{Real}, Real} |> first # Get the number or the first list entry. 
         tspan_short = (0.0, short_time)
-        precompile_time = dynamics(tspan_short)
-        @debug "Reduction is" reduction=reduction
-        if isa(reduction, FileReduction)
-            @debug "FileReduction wrote files, which will now be deleted. "
+        temp_prob = DynamicsMethods.create_problem(u0, tspan_short, sim)
+        precomp = SciMLBase.solve(temp_prob, algorithm; kwargs...)
+#=         if isa(reduction, FileReduction)
             rm(reduction.filename)
-        end
-        @info "Pre-compiled dynamics in $(precompile_time.time) seconds."
+        end =#
+        #@info "Pre-compiled dynamics in $(precompile_time.time) seconds."
     end
+
+    problem = DynamicsMethods.create_problem(u0, tspan, sim)
+    output_func = EnsembleSaver(output, savetime)
+        
+    ensemble_problem = SciMLBase.EnsembleProblem(
+        problem;
+        prob_func = prob_func,
+        output_func = output_func,
+        reduction = deepcopy(reduction), # deepcopy reduction function because it's used twice
+    )
 
     if trajectories == 1
         @info "Performing 1 trajectory."
@@ -159,13 +142,21 @@ function run_dynamics(
         @info "Performing $trajectories trajectories."
     end
 
-    stats = dynamics(tspan)
-    log_simulation_duration(stats.time)
+    stats = @timed SciMLBase.solve(
+            ensemble_problem,
+            algorithm,
+            ensemble_algorithm;
+            trajectories,
+            kwargs...
+        )
+    output = stats.value
+    time = stats.time
+    log_simulation_duration(time)
 
     if trajectories == 1
-        return stats.value.u[1]
+        return output.u[1]
     else
-        return stats.value.u
+        return output.u
     end
 end
 
