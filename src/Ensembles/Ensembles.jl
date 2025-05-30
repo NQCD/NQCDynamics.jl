@@ -88,7 +88,7 @@ function run_dynamics(
     reduction = AppendReduction(),
     ensemble_algorithm = SciMLBase.EnsembleSerial(),
     algorithm = DynamicsMethods.select_algorithm(sim),
-    trajectories = 1,
+    trajectories::Int = 1,
     savetime = true,
     precompile_dynamics = true,
     kwargs...,
@@ -100,7 +100,6 @@ function run_dynamics(
     end
     
     kwargs = NQCBase.austrip_kwargs(; kwargs...)
-    trajectories = convert(Int, trajectories)
     tspan = austrip.(tspan)
     prob_func = Selection(distribution, selection, trajectories)
     
@@ -117,7 +116,7 @@ function run_dynamics(
                 :dt,
                 1.0 # dt should be a number
             )::Real
-        ) |> first # Get the number or the first list entry. 
+        )::Union{Vector{Real}, Real} |> first # Get the number or the first list entry. 
         tspan_short = (0.0, short_time)
         temp_prob = DynamicsMethods.create_problem(u0, tspan_short, sim)
         precomp = SciMLBase.solve(temp_prob, algorithm; kwargs...)
@@ -150,12 +149,14 @@ function run_dynamics(
             trajectories,
             kwargs...
         )
-    log_simulation_duration(stats.time)
+    output = stats.value
+    time = stats.time
+    log_simulation_duration(time)
 
     if trajectories == 1
-        return stats.value.u[1]
+        return output.u[1]
     else
-        return stats.value.u
+        return output.u
     end
 end
 
