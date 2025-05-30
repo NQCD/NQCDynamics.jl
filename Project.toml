@@ -92,8 +92,8 @@ julia = "≥1.9"
 
 [sources]
 NQCDInterfASE = {url = "https://github.com/NQCD/NQCDInterfASE.jl"}
-NQCModels = {rev="main"}
-NQCBase = {rev="main"}
+NQCModels = {url="https://github.com/NQCD/NQCModels.jl", rev="main"}
+NQCBase = {url="https://github.com/NQCD/NQCBase.jl", rev="main"}
 
 [extras]
 CairoMakie = "13f3f980-e62b-5c42-98c6-ff1f3baf88f0"
