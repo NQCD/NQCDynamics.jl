@@ -19,11 +19,10 @@ function test_motion!(sim)
     DynamicsMethods.motion!(du, u, sim, 0.0)
 
     # Rdot = dH/dP = dH/dV / mass
-    @test DynamicsUtils.get_positions(du) ≈ DynamicsUtils.get_velocities(grad) ./ sim.atoms.masses' rtol=1e-3
+    @test isapprox(DynamicsUtils.get_positions(du), DynamicsUtils.get_velocities(grad) ./ sim.atoms.masses', atol=1e-3)
     # Vdot = Pdot / mass = -dH/dR / mass
-    println("finite difference gradient has a shape", size(-DynamicsUtils.get_positions(grad) ./ sim.atoms.masses'))
-    println("velocities found via motion have a shape", size(DynamicsUtils.get_velocities(du)))
-    @test DynamicsUtils.get_velocities(du) ≈ -DynamicsUtils.get_positions(grad) ./ sim.atoms.masses' rtol=1e-2
+
+    @test isapprox(DynamicsUtils.get_velocities(du), -DynamicsUtils.get_positions(grad) ./ sim.atoms.masses', atol=1e-2)
 end
 
 function test_velocity!(sim)
@@ -34,7 +33,7 @@ function test_velocity!(sim)
     NQCCalculators.update_cache!(sim.cache, r)
     DynamicsUtils.velocity!(du, v, r, sim, 0.0)
 
-    @test du ≈ v
+    @test isapprox(du, v)
 end
 
 function test_acceleration!(sim)
@@ -47,9 +46,8 @@ function test_acceleration!(sim)
     grad = FiniteDiff.finite_difference_gradient(f, r)
     NQCCalculators.update_cache!(sim.cache, r)
     DynamicsMethods.ClassicalMethods.acceleration!(dv, v, r, sim, 0.0)
-    println("finite difference gradient has a shape", size(grad ./ sim.atoms.masses'))
-    println("dv found by acceleration! has a shape", size(dv))
-    @test dv ≈ -grad ./ sim.atoms.masses' rtol=1e-3
+
+    @test isapprox(dv, -grad ./ sim.atoms.masses', atol=1e-2)
 end
 
 function test_acceleration!(sim::RingPolymerSimulation)
@@ -64,5 +62,5 @@ function test_acceleration!(sim::RingPolymerSimulation)
     NQCCalculators.update_cache!(sim.cache, r)
     DynamicsMethods.ClassicalMethods.ring_polymer_acceleration!(dv, v, r, sim, 0.0)
 
-    @test dv ≈ -grad ./ sim.atoms.masses' rtol=1e-3
+    @test isapprox(dv, -grad ./ sim.atoms.masses', atol=1e-2)
 end

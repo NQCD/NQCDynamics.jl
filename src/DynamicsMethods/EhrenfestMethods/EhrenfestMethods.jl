@@ -29,8 +29,8 @@ function DynamicsMethods.motion!(du, u, sim::Simulation{<:AbstractEhrenfest}, t)
     v = DynamicsUtils.get_velocities(u)
     σ = DynamicsUtils.get_quantum_subsystem(u)
 
-    DynamicsUtils.velocity!(dr, v, r, sim, t)
     NQCCalculators.update_cache!(sim.cache, r)
+    DynamicsUtils.velocity!(dr, v, r, sim, t)
     DynamicsUtils.acceleration!(dv, v, r, sim, t, σ)
     DynamicsUtils.set_quantum_derivative!(dσ, u, sim)
 end

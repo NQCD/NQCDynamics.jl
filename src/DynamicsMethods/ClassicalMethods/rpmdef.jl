@@ -12,7 +12,8 @@ function NQCDynamics.RingPolymerSimulation{DiabaticMDEF}(atoms::Atoms, model::Mo
 end
 
 function acceleration!(dv, v, r, sim::RingPolymerSimulation{<:Union{DiabaticMDEF,Classical},<:NQCCalculators.RingPolymer_QuantumModel_Cache}, t)
-
+    
+    NQCCalculators.update_cache!(sim.cache, r)
     adiabatic_derivative = NQCCalculators.get_adiabatic_derivative(sim.cache, r)
     eigen = NQCCalculators.get_eigen(sim.cache, r)
     μ = NQCModels.fermilevel(sim.cache.model)
