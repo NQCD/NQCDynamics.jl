@@ -108,6 +108,7 @@ function DynamicsMethods.DynamicsVariables(sim::AbstractSimulation{<:AdiabaticIE
         """
     ))
 
+    NQCDynamics.NQCCalculators.update_cache!(sim.cache, r) # Ensure hopping eigenvalues are up to date
     eigenvalues = DynamicsUtils.get_hopping_eigenvalues(sim, r)
 
     available_states = DynamicsUtils.get_available_states(electronic.available_states, NQCModels.nstates(sim))
@@ -185,6 +186,7 @@ function DynamicsUtils.acceleration!(dv, v, r, sim::Simulation{<:AbstractIESH}, 
     NQCModels.state_independent_derivative!(sim.cache.model, dv, r)
     LinearAlgebra.lmul!(-1, dv)
 
+    NQCDynamics.NQCCalculators.update_cache!(sim.cache, r)
     adiabatic_derivative = NQCCalculators.get_adiabatic_derivative(sim.cache, r)
     @inbounds for i in mobileatoms(sim)
         for j in dofs(sim)

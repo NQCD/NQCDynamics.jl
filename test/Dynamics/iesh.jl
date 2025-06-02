@@ -50,6 +50,7 @@ SurfaceHoppingMethods.set_unoccupied_states!(sim)
         avg[u.state] .+= 1
     end
     avg ./= samples
+    NQCDynamics.NQCCalculators.update_cache!(sim.cache, r) # Calculate all fields. 
     eigs = NQCCalculators.get_eigen(sim.cache, r)
     occupations = NQCDistributions.fermi.(eigs.values, distribution.fermi_level, distribution.β)
 
@@ -113,6 +114,7 @@ end
 end
 
 @testset "execute_hop!" begin
+    NQCCalculators.update_cache!(sim.cache, get_positions(u))
     problem = ODEProblem(DynamicsMethods.motion!, u, (0.0, 1.0), sim)
     integrator = init(problem, Tsit5(), callback=SurfaceHoppingMethods.HoppingCallback)
 
@@ -120,10 +122,10 @@ end
     final_state = collect(1:n_electrons)
     final_state[end] = final_state[end] + 1
 
-    NQCCalculators.update_cache!(integrator.p.cache, get_positions(integrator.u))
     DynamicsUtils.get_velocities(integrator.u) .= 2 # Set high momentum to ensure successful hop
     integrator.u.state .= initial_state
     integrator.p.method.new_state .= final_state
+    NQCCalculators.update_cache!(integrator.p.cache, get_positions(integrator.u))
     eigs = DynamicsUtils.get_hopping_eigenvalues(integrator.p, DynamicsUtils.get_positions(integrator.u))
     new_state, old_state = SurfaceHoppingMethods.unpack_states(sim)
     ΔE = SurfaceHoppingMethods.calculate_potential_energy_change(eigs, new_state, old_state)
@@ -158,7 +160,7 @@ end
 
 @testset "DecoherenceCorrectionEDC" begin
     sim = Simulation{AdiabaticIESH}(atoms, model; decoherence=SurfaceHoppingMethods.DecoherenceCorrectionEDC())
-    u = DynamicsVariables(sim, zeros(1, 1), 1000randn(1, 1))
+    u = DynamicsVariables(sim, zeros(1, 1), 1000*randn(1, 1))
     tspan = (0.0, 100000.0)
     dt = 100.0
     traj = run_dynamics(sim, tspan, u; dt, output=(OutputQuantumSubsystem, OutputSurfaceHops))
