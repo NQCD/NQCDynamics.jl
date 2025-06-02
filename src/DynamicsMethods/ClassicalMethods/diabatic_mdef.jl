@@ -25,7 +25,7 @@ function NQCDynamics.Simulation{DiabaticMDEF}(atoms::Atoms, model::Model;
 end
 
 function acceleration!(dv, v, r, sim::Simulation{<:Union{DiabaticMDEF,Classical},<:NQCCalculators.Abstract_QuantumModel_Cache}, t)
-
+    NQCCalculators.update_cache!(sim.cache, r)
     adiabatic_derivative = NQCCalculators.get_adiabatic_derivative(sim.cache, r)
     eigen = NQCCalculators.get_eigen(sim.cache, r)
     μ = NQCModels.fermilevel(sim.cache.model)

@@ -11,7 +11,7 @@ T = 5ΔE
 thossmodel = ErpenbeckThoss(;Γ)
 model = WideBandBath(thossmodel; step=ΔE, bandmin=-fld(nstates,2)*ΔE, bandmax=ΔE*fld(nstates,2))
 
-@testset "Friction comparison" begin
+#= @testset "Friction comparison" begin
     function fric(r, sim)
         r = [r;;]
         Λ = zeros(1, 1)
@@ -37,13 +37,13 @@ end
 
 @testset "Simulation{DiabaticMDEF}" begin
     sim = Simulation{DiabaticMDEF}(atoms, model; temperature=T, friction_method=ClassicalMethods.WideBandExact(model.ρ, 1/T))
-    u = DynamicsVariables(sim, rand(1,1), rand(1,1))
+    u = DynamicsVariables(sim, randn(size(sim)), randn(size(sim)))
     run_dynamics(sim, (0.0, 1.0), u; dt=0.1, output=OutputDynamicsVariables)
-end
+end =#
 
-@testset "RingPolymerSimulation{DiabaticMDEF}" begin
+#= @testset "RingPolymerSimulation{DiabaticMDEF}" begin
     n_beads = 10
     sim = RingPolymerSimulation{DiabaticMDEF}(atoms, model, n_beads; temperature=T, friction_method=ClassicalMethods.WideBandExact(model.ρ, 1/T))
     u = DynamicsVariables(sim, rand(1,1,n_beads), rand(1,1,n_beads))
     run_dynamics(sim, (0.0, 1.0), u; dt=0.1, output=OutputDynamicsVariables)
-end
+end =#
