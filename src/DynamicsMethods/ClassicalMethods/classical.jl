@@ -61,12 +61,14 @@ end
 `f1` in `DifferentialEquations.jl` docs.
 """
 function acceleration!(dv, v, r, sim::AbstractSimulation, t)
+    NQCCalculators.update_cache!(sim.cache, r)
     NQCCalculators.evaluate_derivative!(sim.cache, r)
     dv .= -sim.cache.derivative
     DynamicsUtils.divide_by_mass!(dv, sim.atoms.masses)
 end
 
 function ring_polymer_acceleration!(dv, v, r, sim::RingPolymerSimulation, t)
+    NQCCalculators.update_cache!(sim.cache, r)
     NQCCalculators.evaluate_derivative!(sim.cache, r)
     dv .= -sim.cache.derivative
     DynamicsUtils.divide_by_mass!(dv, sim.atoms.masses)
