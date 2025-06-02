@@ -21,7 +21,7 @@ end
 function OrdinaryDiffEq.initialize!(integrator, integrator_cache::BCBFullCache)
     r = DynamicsUtils.get_positions(integrator.u)
     v = DynamicsUtils.get_velocities(integrator.u)
-    NQCCalculators.update_electronics!(integrator.p.cache, r)
+    NQCCalculators.update_cache!(integrator.p.cache, r)
     DynamicsUtils.acceleration!(integrator_cache.k, v, r, integrator.p, integrator.t)
 end
 
@@ -46,7 +46,7 @@ end
     RingPolymerArrays.transform_from_normal_modes!(rfinal, p.beads.transformation)
     RingPolymerArrays.transform_from_normal_modes!(vtmp, p.beads.transformation)
 
-    NQCCalculators.update_electronics!(p.cache, rfinal)
+    NQCCalculators.update_cache!(p.cache, rfinal)
     DynamicsUtils.acceleration!(k, vtmp, rfinal, p, t)
 
     step_B!(vfinal, vtmp, halfdt, k)

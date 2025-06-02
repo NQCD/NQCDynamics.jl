@@ -77,7 +77,7 @@ atoms = Atoms(2)
         r .= rand()
         sim = integrator.p
         calc = sim.cache
-        NQCCalculators.update_electronics!(calc, r)
+        NQCCalculators.update_cache!(calc, r)
         DynamicsUtils.get_velocities(integrator.u) .= 2 # Set high momentum to ensure successful hop
         integrator.u.state = 1
         integrator.p.method.new_state = 2
@@ -141,7 +141,7 @@ end
     end
 
     @testset "execute_hop!" begin
-        NQCCalculators.update_electronics!(integrator.p.cache, get_positions(integrator.u))
+        NQCCalculators.update_cache!(integrator.p.cache, get_positions(integrator.u))
         get_velocities(integrator.u) .= 5 # Set high momentum to ensure successful hop
         integrator.u.state = 1
         integrator.p.method.new_state = 2

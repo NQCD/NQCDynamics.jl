@@ -102,7 +102,7 @@ end
 end
 
 @testset "evaluate_hopping_probability!" begin
-    NQCCalculators.update_electronics!(sim.cache, hcat(20.0))
+    NQCCalculators.update_cache!(sim.cache, hcat(20.0))
     z = deepcopy(u)
     ψ = DynamicsUtils.get_quantum_subsystem(z)
     rand!(ψ)
@@ -120,7 +120,7 @@ end
     final_state = collect(1:n_electrons)
     final_state[end] = final_state[end] + 1
 
-    NQCCalculators.update_electronics!(integrator.p.cache, get_positions(integrator.u))
+    NQCCalculators.update_cache!(integrator.p.cache, get_positions(integrator.u))
     DynamicsUtils.get_velocities(integrator.u) .= 2 # Set high momentum to ensure successful hop
     integrator.u.state .= initial_state
     integrator.p.method.new_state .= final_state

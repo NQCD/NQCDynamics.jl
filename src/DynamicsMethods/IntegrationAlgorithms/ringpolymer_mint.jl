@@ -41,7 +41,7 @@ function OrdinaryDiffEq.initialize!(_, ::RingPolymerMIntCache) end
     RingPolymerArrays.transform_from_normal_modes!(r, p.beads.transformation)
     RingPolymerArrays.transform_from_normal_modes!(v, p.beads.transformation)
 
-    NQCCalculators.update_electronics!(cache, r)
+    NQCCalculators.update_cache!(cache, r)
     NQCCalculators.evaluate_V̄!(cache, r)
     NQCCalculators.evaluate_D̄!(cache, r)
     NQCCalculators.evaluate_traceless_adiabatic_derivative!(cache, r)

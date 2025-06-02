@@ -14,7 +14,7 @@ function DynamicsMethods.motion!(du, u, sim::RingPolymerSimulation{<:AbstractEhr
     σ = DynamicsUtils.get_quantum_subsystem(u)
 
     DynamicsUtils.velocity!(dr, v, r, sim, t)
-    NQCCalculators.update_electronics!(sim.cache, r)
+    NQCCalculators.update_cache!(sim.cache, r)
     DynamicsUtils.acceleration!(dv, v, r, sim, t, σ)
     DynamicsUtils.apply_interbead_coupling!(dv, r, sim)
     DynamicsUtils.set_quantum_derivative!(dσ, u, sim)

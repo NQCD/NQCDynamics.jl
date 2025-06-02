@@ -63,7 +63,7 @@ function DynamicsMethods.motion!(du, u, sim::Simulation{<:SurfaceHopping}, t)
     set_state!(u, sim.method.state) # Make sure the state variables match, 
 
     DynamicsUtils.velocity!(dr, v, r, sim, t) # Set the velocity
-    NQCCalculators.update_electronics!(sim.cache, r) # Calculate electronic quantities
+    NQCCalculators.update_cache!(sim.cache, r) # Calculate electronic quantities
     DynamicsUtils.acceleration!(dv, v, r, sim, t, sim.method.state) # Set the acceleration
     DynamicsUtils.set_quantum_derivative!(dσ, u, sim)
 end

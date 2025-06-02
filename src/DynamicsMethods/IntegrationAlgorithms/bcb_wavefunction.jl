@@ -23,7 +23,7 @@ function OrdinaryDiffEq.initialize!(integrator, integrator_cache::BCBWavefunctio
     r = DynamicsUtils.get_positions(integrator.u)
     v = DynamicsUtils.get_velocities(integrator.u)
     σprev = DynamicsUtils.get_quantum_subsystem(integrator.u)
-    NQCCalculators.update_electronics!(integrator.p.cache, r)
+    NQCCalculators.update_cache!(integrator.p.cache, r)
     if integrator.p.method isa DynamicsMethods.EhrenfestMethods.AbstractEhrenfest
         DynamicsUtils.acceleration!(integrator_cache.k, v, r, integrator.p, integrator.t, σprev)
     elseif integrator.p.method isa DynamicsMethods.SurfaceHoppingMethods.SurfaceHopping
@@ -53,7 +53,7 @@ end
     RingPolymerArrays.transform_from_normal_modes!(rfinal, p.beads.transformation)
     RingPolymerArrays.transform_from_normal_modes!(vtmp, p.beads.transformation)
 
-    NQCCalculators.update_electronics!(p.cache, rfinal)
+    NQCCalculators.update_cache!(p.cache, rfinal)
     if p.method isa DynamicsMethods.EhrenfestMethods.AbstractEhrenfest
         DynamicsUtils.acceleration!(k, vtmp, rfinal, p, t, σprev)
     elseif p.method isa DynamicsMethods.SurfaceHoppingMethods.SurfaceHopping

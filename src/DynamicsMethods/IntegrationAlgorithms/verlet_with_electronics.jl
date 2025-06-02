@@ -24,7 +24,7 @@ end
 function OrdinaryDiffEq.initialize!(integrator, integrator_cache::VerletwithElectronicsCache)
     r = DynamicsUtils.get_positions(integrator.u)
     v = DynamicsUtils.get_velocities(integrator.u)
-    NQCCalculators.update_electronics!(integrator.p.cache, r)
+    NQCCalculators.update_cache!(integrator.p.cache, r)
     if integrator.p.method isa DynamicsMethods.SurfaceHoppingMethods.AbstractIESH
         DynamicsUtils.acceleration!(integrator_cache.k, v, r, integrator.p, integrator.t, integrator.p.method.state)
     elseif integrator.p.method isa DynamicsMethods.EhrenfestMethods.EhrenfestNA
@@ -48,7 +48,7 @@ end
     step_B!(vtmp, vprev, dt/2, k)
     step_A!(rfinal, rprev, dt, vtmp)
 
-    NQCCalculators.update_electronics!(p.cache, rfinal)
+    NQCCalculators.update_cache!(p.cache, rfinal)
     if integrator.p.method isa DynamicsMethods.SurfaceHoppingMethods.AbstractIESH
         DynamicsUtils.acceleration!(k, vtmp, rfinal, p, t, p.method.state)
     elseif integrator.p.method isa DynamicsMethods.EhrenfestMethods.EhrenfestNA
@@ -93,7 +93,7 @@ end
 function OrdinaryDiffEq.initialize!(integrator, integrator_cache::VerletwithElectronics2Cache)
     r = get_positions(integrator.u)
     v = get_velocities(integrator.u)
-    NQCCalculators.update_electronics!(integrator.p.cache, r)
+    NQCCalculators.update_cache!(integrator.p.cache, r)
     acceleration!(integrator_cache.k, v, r, integrator.p, integrator.t, integrator.p.method.state)
 end
 
