@@ -58,6 +58,7 @@ function OrdinaryDiffEq.initialize!(_, ::MIntCache) end
 
     propagate_mapping_variables!(integrator_cache, cache, X, P, rtmp, dt)
 
+    NQCCalculators.update_cache!(cache, rtmp)
     eigs = NQCCalculators.get_eigen(cache, rtmp)
     adiabatic_derivative = NQCCalculators.get_adiabatic_derivative(cache, rtmp)
     state_independent_derivative = zero(rtmp)
@@ -92,6 +93,7 @@ function propagate_mapping_variables!(integrator_cache, cache, X, P, rtmp, dt)
 
     @unpack C, D, tmp_vec1, tmp_vec2 = integrator_cache
 
+    NQCCalculators.update_cache!(cache, rtmp)
     eigen = NQCCalculators.get_eigen(cache, rtmp)
 
     set_C_propagator!(C, integrator_cache, eigen, dt)
