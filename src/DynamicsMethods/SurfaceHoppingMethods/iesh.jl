@@ -365,7 +365,7 @@ function Estimators.adiabatic_population(sim::Simulation{<:AdiabaticIESH}, u)
     return population
 end
 
-unpack_states(sim::AbstractSimulation{<:AbstractIESH}) = symdiff(sim.method.new_state, sim.method.state)
+unpack_states(sim::AbstractSimulation{<:AbstractIESH}) = (sim.method.new_state, sim.method.state, symdiff(sim.method.new_state, sim.method.state))
 ishoppingdisabled(method::AbstractIESH) = method.disable_hopping
 
 function DynamicsUtils.classical_potential_energy(sim::Simulation{<:AbstractIESH}, u)

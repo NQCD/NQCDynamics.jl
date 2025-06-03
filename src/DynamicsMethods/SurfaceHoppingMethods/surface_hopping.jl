@@ -52,7 +52,7 @@ Rescale the velocity in the direction of the nonadiabatic coupling.
 function rescale_velocity!(sim::AbstractSimulation{<:SurfaceHopping}, u)::Bool
     sim.method.rescaling === :off && return true #no rescaling so always accept hop
 
-    new_state, old_state = unpack_states(sim)
+    new_state, old_state, states_diff = unpack_states(sim)
     velocity = DynamicsUtils.get_hopping_velocity(sim, DynamicsUtils.get_velocities(u))
     r = DynamicsUtils.get_positions(u)
     eigs = DynamicsUtils.get_hopping_eigenvalues(sim, r)
@@ -104,7 +104,7 @@ end
 Equation 40 from [HammesSchiffer1994](@cite).
 """
 function calculate_a(sim::AbstractSimulation{<:SurfaceHopping}, coupling::AbstractMatrix)
-    a = zero(eltype(coupling))
+    a = zero(coupling[1])
     for I in CartesianIndices(coupling)
         a += coupling[I]^2 / masses(sim, I)
     end
@@ -117,7 +117,13 @@ end
 Equation 41 from [HammesSchiffer1994](@cite).
 """
 function calculate_b(coupling::AbstractMatrix, velocity::AbstractMatrix)
-    return dot(coupling, velocity)
+    b = zero(coupling[1])
+
+    for I in eachindex(coupling)
+        b += dot.(coupling[I], velocity)
+    end
+
+    return b#dot(coupling, velocity)
 end
 
 """
@@ -154,6 +160,6 @@ function frustrated_hop_invert_velocity!(
     return nothing
 end
 
-function calculate_potential_energy_change(eigs::AbstractVector, new_state::Integer, current_state::Integer)
-    return eigs[new_state] - eigs[current_state]
+function calculate_potential_energy_change(eigs::AbstractVector, new_state::Integer, old_state::Integer)
+    return eigs[new_state] - eigs[old_state]
 end
