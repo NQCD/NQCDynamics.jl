@@ -52,6 +52,7 @@ function DynamicsUtils.acceleration!(dv, v, r, sim::Simulation{<:Ehrenfest}, t, 
     NQCModels.state_independent_derivative!(sim.cache.model, dv, r)
     LinearAlgebra.lmul!(-1, dv)
 
+    NQCCalculators.update_cache!(sim.cache, r) # Ensure adiabatic derivative is updated. 
     adiabatic_derivative = NQCCalculators.get_adiabatic_derivative(sim.cache, r)
     @inbounds for i in mobileatoms(sim)
         for j in dofs(sim)
@@ -73,6 +74,7 @@ end
 
 function Estimators.diabatic_population(sim::AbstractSimulation{<:AbstractEhrenfest}, u)
     r = DynamicsUtils.get_positions(u)
+    NQCDynamics.NQCCalculators.update_cache!(sim.cache, r) # Ensure eigen needed for trafo are updated. 
     U = DynamicsUtils.evaluate_transformation(sim.cache, r)
 
     σ = DynamicsUtils.get_quantum_subsystem(u)
@@ -81,6 +83,7 @@ function Estimators.diabatic_population(sim::AbstractSimulation{<:AbstractEhrenf
 end
 
 function DynamicsUtils.classical_potential_energy(sim::Simulation{<:Ehrenfest}, u)
+    NQCDynamics.NQCCalculators.update_cache!(sim.cache, DynamicsUtils.get_positions(u)) # Ensure eigen are updated
     eigs = NQCCalculators.get_eigen(sim.cache, DynamicsUtils.get_positions(u))
 
     potential = NQCModels.state_independent_potential(sim.cache.model, DynamicsUtils.get_positions(u))
