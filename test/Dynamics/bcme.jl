@@ -21,7 +21,7 @@ Model used in J. Chem. Phys. 142, 084110 (2015).
 
 Below we verify the implementation by reproducing the data in Fig. 2.
 """
-struct TestModel{T} <: NQCModels.DiabaticModels.DiabaticModel
+struct TestModel{T} <: NQCModels.QuantumModels.QuantumModel
     ħω::T
     Ed::T
     g::T
@@ -31,22 +31,24 @@ end
 NQCModels.nstates(::TestModel) = 2
 NQCModels.ndofs(::TestModel) = 1
 
-function NQCModels.potential(model::TestModel, r::Real)
+function NQCModels.potential!(model::TestModel, V::AbstractMatrix, r::AbstractMatrix)
     (;ħω, Ed, g) = model
-    potential = ħω*r^2/2
+    potential = ħω*first(r)^2/2
     V11 = potential
-    V22 = potential + Ed + sqrt(2)*g*r
+    V22 = potential + Ed + sqrt(2)*g*first(r)
     V12 = sqrt(Γ/2π)
-    return Hermitian(SMatrix{2,2}(V11, V12, V12, V22))
+    V.data .= [V11 V12; V12 V22]
+    return nothing
 end
 
-function NQCModels.derivative(model::TestModel, r::Real)
+function NQCModels.derivative!(model::TestModel, D::AbstractMatrix, r::AbstractMatrix)
     (;ħω, g) = model
-    potential = ħω*r
+    potential = ħω*first(r)
     V11 = potential
     V22 = potential + sqrt(2)*g
     V12 = 0
-    return Hermitian(SMatrix{2,2}(V11, V12, V12, V22))
+    D.data .= [V11 V12; V12 V22]
+    return nothing
 end
 
 model = TestModel(ħω, Ed, g, Γ)
@@ -55,9 +57,9 @@ model = TestModel(ħω, Ed, g, Γ)
     sim = Simulation{BCME}(atoms, model; temperature=kT, bandwidth=100.)
     βω = ħω / kT
     σ = sqrt(1 / βω)
-    r = Normal(x1, σ)
+    r = hcat(Normal(x1, σ))
 
-    v = VelocityBoltzmann(kT, atoms.masses[1])
+    v = VelocityBoltzmann(kT, atoms.masses, (1,1))
     distribution = DynamicalDistribution(v, r, (1,1)) * PureState(1, Diabatic())
 
     output = run_dynamics(sim, (0.0, 10000.0), distribution; trajectories=100, output=(OutputPosition), abstol=1e-12, reltol=1e-12, saveat=100)

@@ -21,7 +21,7 @@ Model used in J. Chem. Phys. 142, 084110 (2015).
 
 Below we verify the implementation by reproducing the data in Fig. 2.
 """
-struct TestModel{T} <: NQCModels.DiabaticModels.DiabaticModel
+struct TestModel{T} <: NQCModels.QuantumModels.QuantumModel
     ħω::T
     Ed::T
     g::T
@@ -31,22 +31,24 @@ end
 NQCModels.nstates(::TestModel) = 2
 NQCModels.ndofs(::TestModel) = 1
 
-function NQCModels.potential(model::TestModel, r::Real)
+function NQCModels.potential!(model::TestModel, V::AbstractMatrix, r::AbstractMatrix)
     (;ħω, Ed, g) = model
-    potential = ħω*r^2/2
+    potential = ħω*first(r)^2/2
     V11 = potential
-    V22 = potential + Ed + sqrt(2)*g*r
+    V22 = potential + Ed + sqrt(2)*g*first(r)
     V12 = sqrt(Γ/2π)
-    return Hermitian(SMatrix{2,2}(V11, V12, V12, V22))
+    V.data .= [V11 V12; V12 V22]
+    return nothing
 end
 
-function NQCModels.derivative(model::TestModel, r::Real)
+function NQCModels.derivative!(model::TestModel, D::AbstractMatrix, r::AbstractMatrix)
     (;ħω, g) = model
-    potential = ħω*r
+    potential = ħω*first(r)
     V11 = potential
     V22 = potential + sqrt(2)*g
     V12 = 0
-    return Hermitian(SMatrix{2,2}(V11, V12, V12, V22))
+    D.data .= [V11 V12; V12 V22]
+    return nothing
 end
 
 model = TestModel(ħω, Ed, g, Γ)
@@ -59,7 +61,7 @@ n_beads = 4
     r = Normal(x1, σ)
 
     r = PositionHarmonicRingPolymer{Float64}(ħω, 1/kT, 1/ħω, (1,1,n_beads); centre=x1)
-    v = VelocityBoltzmann(kT*n_beads, atoms.masses[1])
+    v = VelocityBoltzmann(kT*n_beads, atoms.masses, (1,1))
     distribution = DynamicalDistribution(v, r, (1,1,n_beads)) * PureState(1, Diabatic())
 
     output = run_dynamics(sim, (0.0, 10000.0), distribution;
