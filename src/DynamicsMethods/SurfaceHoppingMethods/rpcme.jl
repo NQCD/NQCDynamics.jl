@@ -8,6 +8,7 @@ function DynamicsMethods.motion!(du, u, sim::RingPolymerSimulation{<:ClassicalMa
 
     set_state!(u, sim.method.state) # Make sure the state variables match, 
 
+    NQCDynamics.NQCCalculators.update_cache!(sim.cache, r)
     DynamicsUtils.velocity!(dr, v, r, sim, t) # Set the velocity
     DynamicsUtils.acceleration!(dv, v, r, sim, t) # Set the acceleration
     DynamicsUtils.apply_interbead_coupling!(dv, r, sim)
