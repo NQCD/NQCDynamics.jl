@@ -41,6 +41,7 @@ function initialise_adiabatic_density_matrix(
 )
 
     diabatic_density = density_matrix(electronics, nstates(cache))
+    update_cache!(cache, r) # Ensure eigen is populated for transformation
     return transform_density!(diabatic_density, cache, r, :to_adiabatic)
 end
 
@@ -49,7 +50,7 @@ function initialise_adiabatic_density_matrix(
     cache::Abstract_QuantumModel_Cache,
     r
 )
-
+    update_cache!(cache, r) # Ensure eigen is populated for transformation
     if electronics isa FermiDiracState
         eigen = NQCCalculators.get_eigen(cache, r)
         adiabatic_density = density_matrix(electronics, eigen.values)
