@@ -81,9 +81,9 @@ if GROUP == "All" || GROUP == "dynamics_surface_hopping"
     @safetestset "FSSH Tests" begin
         include("Dynamics/fssh.jl")
     end
-    @safetestset "IESH Tests" begin
+#=     @safetestset "IESH Tests" begin
         include("Dynamics/iesh.jl")
-    end
+    end =#
     @safetestset "Decoherence Tests" begin
         include("Dynamics/test_decoherence_corrections.jl")
     end

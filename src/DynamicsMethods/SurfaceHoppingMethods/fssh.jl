@@ -108,7 +108,7 @@ end
 Get the two states that we are hopping between.
 """
 function unpack_states(sim::AbstractSimulation{<:FSSH})
-    return (sim.method.new_state, sim.method.state, symdiff(sim.method.new_state, sim.method.state))
+    return symdiff(sim.method.new_state, sim.method.state)
 end
 
 function Estimators.diabatic_population(sim::AbstractSimulation{<:FSSH}, u)

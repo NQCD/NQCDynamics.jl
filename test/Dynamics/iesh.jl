@@ -15,7 +15,7 @@ M = 30 # number of bath states
 Γ = 6.4e-3
 W = 6Γ / 2 # bandwidth  parameter
 
-basemodel = MiaoSubotnik(; Γ)
+basemodel = ErpenbeckThoss(; Γ)
 bath = TrapezoidalRule(M, -W, W)
 model = AndersonHolstein(basemodel, bath)
 atoms = Atoms(2000)
@@ -54,7 +54,7 @@ SurfaceHoppingMethods.set_unoccupied_states!(sim)
     eigs = NQCCalculators.get_eigen(sim.cache, r)
     occupations = NQCDistributions.fermi.(eigs.values, distribution.fermi_level, distribution.β)
 
-    @test avg ≈ occupations atol = 0.2
+    @test approx(avg, occupations, atol = 0.2)
 end
 
 @testset "set_unoccupied_states!" begin
