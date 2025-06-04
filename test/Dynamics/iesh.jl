@@ -11,6 +11,7 @@ using ComponentArrays
 using Unitful, UnitfulAtomic
 
 kT = 9.5e-4
+k_B = 8.617e-6 #eV/K
 M = 30 # number of bath states
 Γ = 6.4e-3
 W = 6Γ / 2 # bandwidth  parameter
@@ -54,7 +55,7 @@ SurfaceHoppingMethods.set_unoccupied_states!(sim)
     eigs = NQCCalculators.get_eigen(sim.cache, r)
     occupations = NQCDistributions.fermi.(eigs.values, distribution.fermi_level, distribution.β)
 
-    @test approx(avg, occupations, atol = 0.2)
+    @test isapprox(avg, occupations, atol = 0.2)
 end
 
 @testset "set_unoccupied_states!" begin

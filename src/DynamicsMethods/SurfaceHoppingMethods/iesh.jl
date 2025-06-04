@@ -141,6 +141,7 @@ function DynamicsMethods.DynamicsVariables(sim::Simulation{<:AdiabaticIESH}, v, 
         """
     ))
 
+    #NQCDynamics.NQCCalculators.update_cache!(sim.cache, r) # Ensure potential is up to date
     available_states = get_available_states(electronic.available_states, NQCModels.nstates(sim))
 
     potential = NQCCalculators.get_potential(sim.cache, r)
