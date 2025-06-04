@@ -170,11 +170,11 @@ export OutputMappingMomentum
 Output the discrete state variable at each timestep during the trajectory.
 This is used for surface hopping simulations and returns the variable that determines the currently occupied adiabatic state.
 
-Requires that the dynamics variable has a field `state`.
+The DynamicsVariables need to contain a `state` field which is either an `AbstractVector` or `Integer` type. 
 
 Use [`OutputDiabaticPopulation`](@ref) or [`OutputAdiabaticPopulation`](@ref) to get the population estimators.
 """
-OutputDiscreteState(sol, i) = [copy(u.state) for u in sol.u]
+OutputDiscreteState(sol, i) = [length(u.state) > 1 ? round(Int, first(u.state)) : round.(Int, u.state) for u in sol.u]
 export OutputDiscreteState
 
 """

@@ -36,9 +36,14 @@ function DynamicsUtils.classical_potential_energy(sim::RingPolymerSimulation{<:C
     r = DynamicsUtils.get_positions(u)
     V = NQCCalculators.get_potential(sim.cache, r)
 
+    # pre-accessing state from u - seems to fix a Int rounding error with rpcme phonon relaxation test 
+    state = u.state
+
     potential = zero(eltype(r))
+    @debug state_rounding_error = first(state) - round(Int, first(state))
+    int_state = round(Int, first(state))
     for b in axes(r,3) # eachbead
-        potential += V[b][u.state, u.state]
+        potential += V[b][int_state, int_state]
     end
     return potential
 end

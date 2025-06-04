@@ -9,6 +9,10 @@ using NQCDynamics.DynamicsMethods: SurfaceHoppingMethods
 using OrdinaryDiffEq
 using ComponentArrays
 using Unitful, UnitfulAtomic
+import JSON
+
+benchmark_dir = get(ENV, "BENCHMARK_OUTPUT_DIR", "tmp/nqcd_benchmark")
+benchmark_results = Dict{String, Any}("title_for_plotting" => "IESH Tests")
 
 kT = 9.5e-4
 k_B = 8.617e-6 #eV/K
@@ -48,7 +52,7 @@ SurfaceHoppingMethods.set_unoccupied_states!(sim)
     samples = 5000
     for i = 1:samples
         u = DynamicsVariables(sim, v, r, distribution)
-        avg[u.state] .+= 1
+        avg[round.(Int, u.state)] .+= 1
     end
     avg ./= samples
     NQCDynamics.NQCCalculators.update_cache!(sim.cache, r) # Calculate all fields. 
@@ -152,9 +156,17 @@ end
     tspan = (0.0, 100.0)
     dt = 1.0
     output = (OutputPosition, OutputVelocity, OutputQuantumSubsystem, OutputTotalEnergy)
-    traj1 = run_dynamics(sim, tspan, u; dt, algorithm=DynamicsMethods.IntegrationAlgorithms.VerletwithElectronics(), output)
-    traj2 = run_dynamics(sim, tspan, u; algorithm=Tsit5(), saveat=tspan[1]:dt:tspan[2], output, reltol=1e-6, abstol=1e-6)
-    traj3 = run_dynamics(sim, tspan, u; dt, algorithm=DynamicsMethods.IntegrationAlgorithms.VerletwithElectronics2(MagnusMidpoint(krylov=false), dt=dt / 5), output)
+    dyn_test = @timed run_dynamics(sim, tspan, u; dt, algorithm=DynamicsMethods.IntegrationAlgorithms.VerletwithElectronics(), output)
+    traj1 = dyn_test.value
+    benchmark_results["VerletwithElectronics"] = Dict("Time" => dyn_test.time, "Allocs" => dyn_test.bytes)
+    
+    dyn_test = @timed run_dynamics(sim, tspan, u; algorithm=Tsit5(), saveat=tspan[1]:dt:tspan[2], output, reltol=1e-6, abstol=1e-6)
+    traj2 = dyn_test.value
+    benchmark_results["Tsit5"] = Dict("Time" => dyn_test.time, "Allocs" => dyn_test.bytes)
+    
+    dyn_test = @timed run_dynamics(sim, tspan, u; dt, algorithm=DynamicsMethods.IntegrationAlgorithms.VerletwithElectronics2(MagnusMidpoint(krylov=false), dt=dt / 5), output)
+    traj3 = dyn_test.value
+    benchmark_results["VerletwithElectronics2"] = Dict("Time" => dyn_test.time, "Allocs" => dyn_test.bytes)
 
     # We cannot compare these when hopping is happening since the trajectories will be different. 
 end
@@ -164,7 +176,11 @@ end
     u = DynamicsVariables(sim, zeros(1, 1), 1000*randn(1, 1))
     tspan = (0.0, 100000.0)
     dt = 100.0
-    traj = run_dynamics(sim, tspan, u; dt, output=(OutputQuantumSubsystem, OutputSurfaceHops))
+    
+    
+    dyn_test = @timed run_dynamics(sim, tspan, u; dt, output=(OutputQuantumSubsystem, OutputSurfaceHops))
+    traj = dyn_test.value
+    
     @test traj[:OutputSurfaceHops] > 0 # Ensure some hops occur
     norms = zeros(length(traj[:Time]))
     for i in eachindex(norms)
@@ -174,4 +190,18 @@ end
         end
     end
     @test all(i -> isapprox(i, n_electrons; rtol=1e-3), norms) # Test that decoherence conserves norm
+    benchmark_results["DecoherenceCorrectionEDC"] = Dict("Time" => dyn_test.time, "Allocs" => dyn_test.bytes)
 end
+
+# Make benchmark directory if it doesn't already exist.
+if !isdir(benchmark_dir)
+    mkpath(benchmark_dir)
+    @info "Benchmark data ouput directory created at $(benchmark_dir)."
+else
+    @info "Benchmark data ouput directory exists at $(benchmark_dir)."
+end
+
+# Output benchmarking dict
+output_file = open("$(benchmark_dir)/iesh.json", "w")
+JSON.print(output_file, benchmark_results)
+close(output_file)

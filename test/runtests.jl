@@ -1,6 +1,7 @@
 using Test
 using SafeTestsets
 using NQCDynamics
+using JSON
 
 const GROUP = get(ENV, "GROUP", "All")
 

@@ -1,5 +1,4 @@
-
-OrdinaryDiffEq.isfsal(::BCBFull)  = false
+using OrdinaryDiffEq.OrdinaryDiffEqCore: get_fsalfirstlast
 
 struct BCBFullCache{uType,rateType,uNoUnitsType} <: OrdinaryDiffEq.OrdinaryDiffEqMutableCache
     u::uType
@@ -9,6 +8,10 @@ struct BCBFullCache{uType,rateType,uNoUnitsType} <: OrdinaryDiffEq.OrdinaryDiffE
     cayley::Vector{Matrix{uNoUnitsType}}
     halfdt::uNoUnitsType
 end
+
+OrdinaryDiffEq.isfsal(::BCBFull) = false
+
+OrdinaryDiffEq.get_fsalfirstlast(cache::BCBFullCache, u::Any) = (nothing, nothing)
 
 function OrdinaryDiffEq.alg_cache(::BCBFull,u,rate_prototype,::Type{uEltypeNoUnits},::Type{uBottomEltypeNoUnits},::Type{tTypeNoUnits},uprev,uprev2,f,t,dt,reltol,p,calck,::Val{true}) where {uEltypeNoUnits,uBottomEltypeNoUnits,tTypeNoUnits}
     tmp = zero(u)

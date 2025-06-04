@@ -18,7 +18,9 @@ function DynamicsMethods.motion!(du, u, sim::Simulation{<:ClassicalMasterEquatio
 end
 
 function DynamicsMethods.DynamicsVariables(::AbstractSimulation{<:ClassicalMasterEquation}, v, r, electronic::PureState{Diabatic})
-    return SurfaceHoppingVariables(ComponentVector(v=v, r=r), electronic.state)
+    electronic_state = similar(v, 1)
+    electronic_state[1] = electronic.state
+    return SurfaceHoppingVariables(r=Float64.(r), v=Float64.(v), state = Float64.(electronic_state))
 end
 
 function evaluate_hopping_probability!(sim::Simulation{<:ClassicalMasterEquation}, u, dt)
@@ -52,6 +54,9 @@ function rescale_velocity!(::AbstractSimulation{<:ClassicalMasterEquation}, u)::
     return true
 end
 
+function set_state!(container::ClassicalMasterEquation, new_state::AbstractVector) # SurfaceHoppingVariables --> Single state methods
+    container.state = first(new_state)
+end
 """
     CME{T} <: ClassicalMasterEquation
 
@@ -93,7 +98,8 @@ function DynamicsUtils.classical_potential_energy(sim::Simulation{<:CME}, u)
     positions = DynamicsUtils.get_positions(u)
     NQCDynamics.NQCCalculators.update_cache!(sim.cache, positions) # This is really inefficient
     V = NQCCalculators.get_potential(sim.cache, positions)
-    return V[u.state, u.state]
+    int_state = convert(Int, first(u.state))
+    return V[int_state, int_state]
 end
 
 """

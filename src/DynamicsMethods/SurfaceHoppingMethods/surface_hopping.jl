@@ -15,8 +15,19 @@ function execute_hop!(integrator)
     return nothing
 end
 
-set_state!(container, new_state::Integer) = container.state = new_state
-set_state!(container, new_state::AbstractVector) = copyto!(container.state, new_state)
+function set_state!(container, new_state::Number)
+    container.state = convert(typeof(container.state), new_state)
+end
+function set_state!(container::SurfaceHoppingVariables, new_state::Number)
+    container.state[1] = convert(eltype(container.state), new_state)
+end
+function set_state!(container, new_state::AbstractVector)
+    if isa(container.state, AbstractVector)
+        copyto!(container.state, convert(typeof(container.state), new_state))
+    else
+        container.state = convert(typeof(container.state), first(new_state))
+    end
+end
 set_new_state!(container, new_state::Integer) = container.new_state = new_state
 set_new_state!(container, new_state::AbstractVector) = copyto!(container.new_state, new_state)
 

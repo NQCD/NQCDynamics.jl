@@ -42,6 +42,7 @@ which makes it possible to use the MACE model e.g. for molecular dynamics calcul
 within NQCDynamics.jl:
 ```julia-repl
 using NQCModels;
+using NQCDInterfASE;
 model = ClassicalASEModel(h2);
 
 r = [0 0; 0 0; 0 ustrip(auconvert(0.74u"Å"))]
@@ -110,6 +111,7 @@ within NQCDynamics.jl:
 
 ```julia-repl
 using NQCModels;
+using NQCDInterfASE;
 model = ClassicalASEModel(h2);
 
 r = [0 0; 0 0; 0 ustrip(auconvert(0.74u"Å"))]

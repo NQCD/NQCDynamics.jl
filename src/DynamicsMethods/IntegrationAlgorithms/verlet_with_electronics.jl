@@ -1,10 +1,9 @@
 using OrdinaryDiffEq: OrdinaryDiffEqAlgorithm, OrdinaryDiffEqMutableCache, update_coefficients!
+using OrdinaryDiffEq.OrdinaryDiffEqCore: get_fsalfirstlast
 using SciMLBase: SciMLBase, set_ut!
 using NQCDynamics: DynamicsUtils
 using .DynamicsUtils: acceleration!, get_positions, get_velocities, get_quantum_subsystem
 using NQCCalculators
-
-OrdinaryDiffEq.isfsal(::VerletwithElectronics) = false
 
 mutable struct VerletwithElectronicsCache{uType,vType,rateType} <: OrdinaryDiffEq.OrdinaryDiffEqMutableCache
     u::uType
@@ -13,6 +12,11 @@ mutable struct VerletwithElectronicsCache{uType,vType,rateType} <: OrdinaryDiffE
     vtmp::vType
     k::rateType
 end
+
+OrdinaryDiffEq.isfsal(::VerletwithElectronics) = false
+alg_order(alg::VerletwithElectronics) = 2
+
+OrdinaryDiffEq.get_fsalfirstlast(cache::VerletwithElectronicsCache, u::Any) = (nothing, nothing)
 
 function OrdinaryDiffEq.alg_cache(::VerletwithElectronics,u,rate_prototype,::Type{uEltypeNoUnits},::Type{uBottomEltypeNoUnits},::Type{tTypeNoUnits},uprev,uprev2,f,t,dt,reltol,p,calck,inplace::Val{true}) where {uEltypeNoUnits,uBottomEltypeNoUnits,tTypeNoUnits}
     tmp = zero(u)
@@ -45,17 +49,21 @@ end
     vfinal = DynamicsUtils.get_velocities(u)
     σfinal = DynamicsUtils.get_quantum_subsystem(u)
 
-    step_B!(vtmp, vprev, dt/2, k)
-    step_A!(rfinal, rprev, dt, vtmp)
+    # Velocity Verlet Algorithm:
+    # x(t + Δt) = x(t) + v(t)*Δt + 0.5*a(t)*Δt^2
+    # v(t + Δt) = v(t) + 0.5*a(t)*Δt + 0.5*a(t + Δt)*Δt
+
+    step_B!(vtmp, vprev, dt/2, k) # vtmp = v(t) + 0.5*a(t)*Δt
+    step_A!(rfinal, rprev, dt, vtmp) # x(t) + vtmp*Δt == x(t) + v(t)*Δt + 0.5*a(t)*Δt^2
 
     NQCCalculators.update_cache!(p.cache, rfinal)
-    if integrator.p.method isa DynamicsMethods.SurfaceHoppingMethods.AbstractIESH
+    if integrator.p.method isa DynamicsMethods.SurfaceHoppingMethods.AbstractIESH # update acceleration:  k <- a(t + Δt)
         DynamicsUtils.acceleration!(k, vtmp, rfinal, p, t, p.method.state)
     elseif integrator.p.method isa DynamicsMethods.EhrenfestMethods.EhrenfestNA
         DynamicsUtils.acceleration!(k, vtmp, rfinal, p, t, σprev)
     end
 
-    step_B!(vfinal, vtmp, dt/2, k)
+    step_B!(vfinal, vtmp, dt/2, k) # vtmp + 0.5*a(t + Δt)*Δt == v(t) + 0.5*a(t)*Δt + 0.5*a(t + Δt)*Δt == v(t + Δt)
 
     DynamicsUtils.propagate_wavefunction!(σfinal, σprev, vfinal, rfinal, p, dt)
 
@@ -78,6 +86,8 @@ mutable struct VerletwithElectronics2Cache{uType,vType,rateType,E} <: OrdinaryDi
     k::rateType
     electronic_integrator::E
 end
+
+OrdinaryDiffEq.get_fsalfirstlast(cache::VerletwithElectronics2Cache, u::Any) = (nothing, nothing)
 
 function OrdinaryDiffEq.alg_cache(alg::VerletwithElectronics2,u,rate_prototype,::Type{uEltypeNoUnits},::Type{uBottomEltypeNoUnits},::Type{tTypeNoUnits},uprev,uprev2,f,t,dt,reltol,p,calck,inplace::Val{true}) where {uEltypeNoUnits,uBottomEltypeNoUnits,tTypeNoUnits}
     tmp = zero(u)
