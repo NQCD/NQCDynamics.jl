@@ -5,37 +5,33 @@ and derivative evaluation in the ring polymer calculators in NQCDynamics.
 """
 
 using MACEModels
-using NQCDynamics: Calculators
+using NQCDynamics
+using NQCCalculators
 
-function Calculators.evaluate_potential!(calc::RingPolymerAdiabaticCalculator{T,MACEModel}, R::AbstractArray{S,3}) where {T,S}
-    calc.stats[:potential] += 1
+function NQCCalculators.evaluate_potential!(cache::RingPolymer_ClassicalModel_Cache{T,MACEModel}, R::AbstractArray{S,3}) where {T,S}
     potential_vector = @views [R[:, :, i] for i in axes(R, 3)]
-    calc.potential = NQCModels.potential(calc.model, calc.model.atoms, potential_vector, calc.model.cell)
+    cache.potential = NQCModels.potential(cache.model, cache.model.atoms, potential_vector, cache.model.cell)
     return nothing
 end
 
-function Calculators.evaluate_derivative!(calc::RingPolymerAdiabaticCalculator{T,MACEModel}, R::AbstractArray{S,3}) where {T,S}
-    calc.stats[:derivative] += 1
+function NQCCalculators.evaluate_derivative!(cache::RingPolymer_ClassicalModel_Cache{T,MACEModel}, R::AbstractArray{S,3}) where {T,S}
     derivative_vector = @views [R[:, :, i] for i in axes(R, 3)]
-    NQCModels.derivative!(calc.model, calc.model.atoms, calc.derivative, derivative_vector, calc.model.cell)
+    NQCModels.derivative!(cache.model, cache.model.atoms, cache.derivative, derivative_vector, cache.model.cell)
     return nothing
 end
 
-function Calculators.evaluate_potential!(calc::RingPolymerFrictionCalculator{T,MACEModel}, R::AbstractArray{S,3}) where {T,S}
+function NQCCalculators.evaluate_potential!(cache::RingPolymer_ClassicalFrictionModel_Cache{T,MACEModel}, R::AbstractArray{S,3}) where {T,S}
     @debug "RPMDEF accelerated potential evaluation"
-    calc.stats[:potential] += 1
     potential_vector = @views [R[:, :, i] for i in axes(R, 3)]
-    calc.potential = NQCModels.potential(calc.model, calc.model.atoms, potential_vector, calc.model.cell)
+    cache.potential = NQCModels.potential(cache.model, cache.model.atoms, potential_vector, cache.model.cell)
     return nothing
 end
 
-function Calculators.evaluate_derivative!(calc::RingPolymerFrictionCalculator{T,MACEModel}, R::AbstractArray{S,3}) where {T,S}
+function NQCCalculators.evaluate_derivative!(cache::RingPolymer_ClassicalFrictionModel_Cache{T,MACEModel}, R::AbstractArray{S,3}) where {T,S}
     @debug "RPMDEF accelerated derivative evaluation"
-    calc.stats[:derivative] += 1
     derivative_vector = @views [R[:, :, i] for i in axes(R, 3)]
-    NQCModels.derivative!(calc.model, calc.model.atoms, calc.derivative, derivative_vector, calc.model.cell)
+    NQCModels.derivative!(cache.model, cache.model.atoms, cache.derivative, derivative_vector, cache.model.cell)
     return nothing
 end
 
-	
 end
