@@ -97,7 +97,7 @@ end
     ase_io = pyimport("ase.io")
     structure = ase_io.read("artifacts/desorption_test.xyz", index=1)
     structure.set_constraint(ase_constraints.FixAtoms(indices=collect(0:17)))
-    nqcd_atoms, nqcd_positions, nqcd_cell = NQCDynamics.convert_from_ase_atoms(structure)
+    nqcd_atoms, nqcd_positions, nqcd_cell = convert_from_ase_atoms(structure)
     # Test the frozen model
     frozen_model = ClassicalASEModel(structure) # unsure if this is the correct one, Ash please check
     frozen_sim = Simulation(nqcd_atoms, frozen_model; cell=cell, temperature=10.0)
