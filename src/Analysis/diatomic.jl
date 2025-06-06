@@ -90,14 +90,12 @@ function get_desorption_frame(trajectory::AbstractVector, diatomic_indices::Vect
         return nothing
     else
         @debug "Desorption observed in snapshot $(desorbed_frame)"
-        leaving_surface_frame = findlast(com_velocity_condition.(view(trajectory, 1:desorbed_frame), Ref(diatomic_indices), Ref(simulation); surface_normal=surface_normal)) #ToDo testing views for memory efficiency, need to test time penalty. Also need to test if running on everything and findfirst-ing the Bool array is quicker.
+        leaving_surface_frame = findlast(com_velocity_condition.(view(trajectory, 1:desorbed_frame), Ref(diatomic_indices), Ref(simulation); surface_normal=Ref(surface_normal))) #ToDo testing views for memory efficiency, need to test time penalty. Also need to test if running on everything and findfirst-ing the Bool array is quicker.
         if isnothing(leaving_surface_frame)
             @debug "Centre of mass velocity criterion was never met. Falling back to distance threshold."
             leaving_surface_frame = findlast(close_approach_condition.(view(trajectory, 1:desorbed_frame), Ref(diatomic_indices), Ref(simulation); threshold = fallback_distance_threshold))
             if isnothing(leaving_surface_frame)
-                @warn begin
-                    println("H-H distance threshold was never met. Something is wrong in desorption detection logic - Returning entire trajectory for debugging.")
-                end
+                @warn "H-H distance threshold was never met. Something is wrong in desorption detection logic - Returning entire trajectory for debugging."
                 return 1
             else 
                 return leaving_surface_frame
