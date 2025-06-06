@@ -10,7 +10,7 @@ using NQCDynamics:
     DynamicsMethods,
     Estimators,
     RingPolymers
-using NQCDynamics.Calculators: Calculators
+using NQCCalculators
 using NQCBase: Atoms
 using NQCModels: Model, ndofs
 

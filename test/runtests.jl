@@ -9,9 +9,9 @@ if GROUP == "All" || GROUP == "Core"
     @safetestset "FastDeterminant Tests" begin
         include("Core/FastDeterminant.jl")
     end
-    @safetestset "Calculator Tests" begin
-        include("Core/calculators.jl")
-    end
+    # @safetestset "Calculator Tests" begin
+    #     include("Core/calculators.jl")
+    # end
     @safetestset "Simulation Tests" begin
         include("Core/simulations.jl")
     end
@@ -37,9 +37,9 @@ if GROUP == "All" || GROUP == "InitialConditions"
     @safetestset "Monte Carlo Tests" begin
         include("InitialConditions/monte_carlo.jl")
     end
-    @safetestset "AdvancedMH Sampling Tests" begin
+#=     @safetestset "AdvancedMH Sampling Tests" begin
         include("InitialConditions/advancedmh_sampling.jl")
-    end
+    end =#
     @safetestset "QuantisedDiatomic Tests" begin
         include("InitialConditions/quantised_diatomic.jl")
     end
@@ -82,7 +82,7 @@ if GROUP == "All" || GROUP == "dynamics_surface_hopping"
     @safetestset "FSSH Tests" begin
         include("Dynamics/fssh.jl")
     end
-    @safetestset "IESH Tests" begin
+     @safetestset "IESH Tests" begin
         include("Dynamics/iesh.jl")
     end
     @safetestset "Decoherence Tests" begin

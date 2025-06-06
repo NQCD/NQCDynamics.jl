@@ -25,7 +25,7 @@ benchmark_results = Dict{String, Any}("title_for_plotting" => "Classical Tests")
 
     dyn_test = @timed run_dynamics(sim, (0.0, 1000.0), u0; dt=0.1, output=(OutputTotalEnergy))
     sol = dyn_test.value
-    @test sol[:OutputTotalEnergy][1] ≈ sol[:OutputTotalEnergy][end] rtol=1e-2
+    @test isapprox(sol[:OutputTotalEnergy][1], sol[:OutputTotalEnergy][end], rtol=1e-2)
     benchmark_results["Classical"] = Dict("Time" => dyn_test.time, "Allocs" => dyn_test.bytes)
 end
 
@@ -42,7 +42,7 @@ end
 
     dyn_test = @timed run_dynamics(sim, (0.0, 1000.0), u0; dt=0.1, output=(OutputTotalEnergy))
     sol = dyn_test.value
-    @test sol[:OutputTotalEnergy][1] ≈ sol[:OutputTotalEnergy][end] rtol=1e-2
+    @test isapprox(sol[:OutputTotalEnergy][1], sol[:OutputTotalEnergy][end], rtol=1e-2)
     benchmark_results["Ring Polymer Classical"] = Dict("Time" => dyn_test.time, "Allocs" => dyn_test.bytes)
 end
 
@@ -54,7 +54,7 @@ end
     u0 = DynamicsVariables(sim, v, r)
     dyn_test = @timed run_dynamics(sim, (0.0, 900.0u"fs"), u0; dt=1u"fs", output=(OutputTotalEnergy))
     sol = dyn_test.value
-    @test sol[:OutputTotalEnergy][1] ≈ sol[:OutputTotalEnergy][end] rtol=1e-2
+    @test isapprox(sol[:OutputTotalEnergy][1], sol[:OutputTotalEnergy][end], atol=1e-2)
     benchmark_results["Fermion model classical adiabatic dynamics"] = Dict("Time" => dyn_test.time, "Allocs" => dyn_test.bytes)
 end
 

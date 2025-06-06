@@ -8,10 +8,10 @@ using NQCDynamics:
     RingPolymerSimulation,
     DynamicsMethods,
     DynamicsUtils,
-    Calculators,
     Estimators,
     TimeCorrelationFunctions,
     ndofs
+using NQCCalculators
 using NQCModels: NQCModels, Model
 using NQCBase: Atoms
 using .DynamicsUtils: get_mapping_momenta, get_mapping_positions

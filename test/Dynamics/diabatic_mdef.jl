@@ -41,11 +41,11 @@ end
 
 @testset "Simulation{DiabaticMDEF}" begin
     sim = Simulation{DiabaticMDEF}(atoms, model; temperature=T, friction_method=ClassicalMethods.WideBandExact(model.ρ, 1/T))
-    u = DynamicsVariables(sim, rand(1,1), rand(1,1))
+    u = DynamicsVariables(sim, randn(size(sim)), randn(size(sim)))
     dyn_test = @timed run_dynamics(sim, (0.0, 1.0), u; dt=0.1, output=OutputDynamicsVariables)
     sol = dyn_test.value
     benchmark_results["Simulation{DiabaticMDEF}"] = Dict("Time" => dyn_test.time, "Allocs" => dyn_test.bytes)
-end
+end 
 
 @testset "RingPolymerSimulation{DiabaticMDEF}" begin
     n_beads = 10
