@@ -3,6 +3,7 @@ using NQCDynamics
 using Unitful, UnitfulAtomic
 using Distributions
 using PythonCall
+using NQCDInterfASE
 
 atoms = Atoms([:C, :H])
 cell = InfiniteCell()
