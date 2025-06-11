@@ -75,11 +75,13 @@ function transform_density!(
 end
 
 function evaluate_transformation(cache::Abstract_QuantumModel_Cache, r::AbstractMatrix)
+    NQCCalculators.update_cache!(cache, r)
     #NQCCalculators.evaluate_eigen!(cache, r)
     return cache.eigen.vectors
 end
 
 function evaluate_transformation(cache::Abstract_QuantumModel_Cache, r::AbstractArray{T,3}) where {T}
+    NQCCalculators.update_cache!(cache, r)
     #centroid_eigs = NQCCalculators.get_centroid_eigen(cache, r)
     return cache.centroid_eigen.vectors
 end
