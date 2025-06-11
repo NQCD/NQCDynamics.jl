@@ -15,8 +15,8 @@ using NQCDynamics:
     AbstractSimulation,
     Simulation,
     RingPolymerSimulation,
-    Calculators,
     masses
+using NQCCalculators
 
 """
     divide_by_mass!(dv, masses)
@@ -131,12 +131,12 @@ function classical_potential_energy(sim::AbstractSimulation, u)
 end
 
 function classical_potential_energy(sim::Simulation, r::AbstractMatrix)
-    Calculators.get_potential(sim.calculator, r)
+    return NQCCalculators.get_potential(sim.cache, r)[1]
 end
 
 function classical_potential_energy(sim::RingPolymerSimulation, r::AbstractArray{T,3}) where {T}
-    V = Calculators.get_potential(sim.calculator, r)
-    return sum(V)
+    V = NQCCalculators.get_potential(sim.cache, r)
+    return sum(V)[1]
 end
 
 function get_hopping_eigenvalues end

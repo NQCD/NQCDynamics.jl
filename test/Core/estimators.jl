@@ -29,9 +29,9 @@ end
         sum(model.m .* model.ω.^2 .* r.^2) / 2
     end
     u = rand(vector)
-    @test Estimators.potential_energy(sim, u) ≈ f(u)
+    @test Estimators.potential_energy(sim, u)[1] ≈ f(u) # .potential_energy(...) outputs your result as a matrix by defaul which is being compared to a float from your function. I've set for this test that you are looking at the element of the matrix but obviously change as you would prefer
     u = rand(rp_vector)
-    @test Estimators.potential_energy(rp_sim, u) ≈ f(u) / nbeads(rp_sim)
+    @test Estimators.potential_energy(rp_sim, u)[1] ≈ f(u) / nbeads(rp_sim) # .potential_energy(...) outputs your result as a matrix by defaul which is being compared to a float from your function. I've set for this test that you are looking at the element of the matrix but obviously change as you would prefer
 end
 
 @testset "kinetic_energy" begin

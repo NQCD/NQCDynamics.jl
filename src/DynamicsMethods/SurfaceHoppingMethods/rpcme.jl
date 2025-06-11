@@ -8,6 +8,7 @@ function DynamicsMethods.motion!(du, u, sim::RingPolymerSimulation{<:ClassicalMa
 
     set_state!(u, sim.method.state) # Make sure the state variables match, 
 
+    NQCDynamics.NQCCalculators.update_cache!(sim.cache, r)
     DynamicsUtils.velocity!(dr, v, r, sim, t) # Set the velocity
     DynamicsUtils.acceleration!(dv, v, r, sim, t) # Set the acceleration
     DynamicsUtils.apply_interbead_coupling!(dv, r, sim)
@@ -15,7 +16,7 @@ end
 
 function evaluate_hopping_probability!(sim::RingPolymerSimulation{<:ClassicalMasterEquation}, u, dt)
     r = DynamicsUtils.get_positions(u)
-    V = Calculators.get_centroid_potential(sim.calculator, r)
+    V = NQCCalculators.get_centroid_potential(sim.cache, r)
     ΔV = V[2,2] - V[1,1]
     Γ = 2π * V[2,1]^2
     f = DynamicsUtils.fermi(ΔV, NQCModels.fermilevel(sim), 1/get_temperature(sim))
@@ -33,7 +34,7 @@ end
 
 function DynamicsUtils.classical_potential_energy(sim::RingPolymerSimulation{<:CME}, u)
     r = DynamicsUtils.get_positions(u)
-    V = Calculators.get_potential(sim.calculator, r)
+    V = NQCCalculators.get_potential(sim.cache, r)
 
     # pre-accessing state from u - seems to fix a Int rounding error with rpcme phonon relaxation test 
     state = u.state
@@ -52,8 +53,8 @@ function RingPolymerSimulation{BCME}(atoms::Atoms{T}, model, n_beads; bandwidth,
 end
 
 function DynamicsUtils.acceleration!(dv, v, r, sim::RingPolymerSimulation{<:BCME}, t)
-    ∂V = Calculators.get_derivative(sim.calculator, r)
-    V = Calculators.get_potential(sim.calculator, r)
+    ∂V = NQCCalculators.get_derivative(sim.cache, r)
+    V = NQCCalculators.get_potential(sim.cache, r)
     state = sim.method.state
 
     β = 1 / get_temperature(sim, t)

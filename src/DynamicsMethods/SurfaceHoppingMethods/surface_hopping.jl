@@ -165,6 +165,6 @@ function frustrated_hop_invert_velocity!(
     return nothing
 end
 
-function calculate_potential_energy_change(eigs::AbstractVector, new_state::Integer, current_state::Integer)
-    return eigs[new_state] - eigs[current_state]
+function calculate_potential_energy_change(eigs::AbstractVector, new_state::Integer, old_state::Integer)
+    return eigs[new_state] - eigs[old_state]
 end
