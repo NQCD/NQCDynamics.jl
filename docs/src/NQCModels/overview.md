@@ -63,24 +63,24 @@ that return the potential, the derivative of the potential, the number of states
 and the number of degrees of freedom, respectively.
 
 ```@repl diabaticmodel
-potential(model, 0.2)
-derivative(model, 0.2)
+potential(model, hcat(0.2))
+derivative(model, hcat(0.2))
 nstates(model)
 ndofs(model)
 ```
 
-Since this is a 1D model, the position argument that appears in the derivative and the potential
-is a real number.
-For higher dimensional models with multiple atoms, the position will need to be provided as
-an `AbstractMatrix`.
+In general the position argument that appears in the derivative and the potential
+will need to be provided as an `AbstractMatrix` with dimensions `dofs`x`natoms`.
+In the case of 1D models of a single atom, `potential` and `derivative` accept a 
+position of type `Real`, but for the most consistent results it's recommended that 
+the user wraps real valued positions in 1x1 matrices using the `hcat` fucntion.
 
 To understand how this can extend to another dimension, we can take a quick look at the
 [`GatesHollowayElbow`](@ref) model which is another two state diabatic model, but this
 one uses two dimensions to model a diatomic molecule interacting with a surface.
-The two coordinates are the molecular bond length and the distance from the surface.
-Technically, the model has been defined such that there are two atoms, each with only a
-single degree of freedom.
-This allows us to use different masses for each of the coordinates when performing dynamics.
+The two degrees of freedom are the molecular bond length and the distance from the surface
+and so the `potential` and `derivative` functions expect a positon argurment with two values,
+one for each degree of freedom.
 
 ```@repl diabaticmodel
 model = GatesHollowayElbow()
@@ -93,8 +93,9 @@ ndofs(model)
 Here we see how the derivative now becomes a `Matrix` with size matching our input,
 but each entry is a `Hermitian` containing the elementwise derivative of the potential
 with respect to each degree of freedom.
-In this case, the `Matrix` has `size = (1, 2)`, but it should be clear how this can extend
-to arbitrary numbers of atoms and degrees of freedom for complex models.
+In this case, the `Matrix` has `size = (1, 2)`, and in general the dimensions the `Matrix`
+that wraps the `Hermitian` derivatives should match the dimensions of the position `Matrix`
+a given model takes as input.
 
 ## Included models
 
