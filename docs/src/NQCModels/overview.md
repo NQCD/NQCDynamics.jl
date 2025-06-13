@@ -22,8 +22,8 @@ for defining these models that is flexible enough to allow for a wide range
 of specifications and requirements.
 `NQCDynamics.jl` uses this interface to obtain the potentials
 and couplings necessary to perform the dynamics simulations.
-Along with the minimal interface, `NQCModels.jl` also provides a small
-set of popular models often used in the field of nonadiabatic dynamics.
+Along with the minimal interface, `NQCModels.jl` also provides a library of 
+popular models often used in the field of nonadiabatic dynamics.
 
 !!! note
 
@@ -32,20 +32,21 @@ set of popular models often used in the field of nonadiabatic dynamics.
 
 Depending on the quantities provided by the `Model`, we use Julia's abstract type system
 to group models that provide the same quantities.
-Currently, there are two top-level abstract types: [`AdiabaticModel`](@ref NQCModels.AdiabaticModels.AdiabaticModel)
-and [`DiabaticModel`](@ref NQCModels.DiabaticModels.DiabaticModel).
-The [`AdiabaticModel`](@ref NQCModels.AdiabaticModels.AdiabaticModel)
-is used for adiabatic dynamics, providing only the potential
-and force used in classical mechanics.
-The [`DiabaticModel`](@ref NQCModels.DiabaticModels.DiabaticModel) is used for nonadiabatic dynamics,
-where the potential is instead a `Hermitian` matrix.
+Currently, there are two top-level abstract types: [`ClassicalModel`](@ref NQCModels.ClassicalModels.ClassicalModel)
+and [`QuantumModel`](@ref NQCModels.QuantumModels.QuantumModel).
+The [`ClassicalModel`](@ref NQCModels.ClassicalModels.ClassicalModel)
+is used for adiabatic dynamics, providing only a classical potential in 
+the form of an analytical function and its derivative, the force used in 
+classical mechanics.
+The [`QuantumModel`](@ref NQCModels.QuantumModels.QuantumModel) is used for nonadiabatic dynamics,
+where the potential is no longer an analytical function instead a `Hermitian` matrix.
 
 ## Using `Model`s
 
 In the [Getting started](@ref) section we briefly touched on how the
-[`AdiabaticModel`](@ref NQCModels.AdiabaticModels.AdiabaticModel)
+[`ClassicalModel`](@ref NQCModels.ClassicalModels.ClassicalModel)
 works and introduced one of the included models.
-Here let's take a look at a [`DiabaticModel`](@ref NQCModels.DiabaticModels.DiabaticModel),
+Here let's take a look at a [`QuantumModel`](@ref NQCModels.QuantumModels.QuantumModel),
 which is more appropriate for nonadiabatic dynamics.
 
 The [`DoubleWell`](@ref) is a two state, 1 dimensional model where each state is harmonic
@@ -57,14 +58,18 @@ using NQCModels
 model = DoubleWell()
 ```
 
-Our [`DoubleWell`](@ref) implements the functions [`potential`](@ref), [`derivative`](@ref),
-[`nstates`](@ref) and [`ndofs`](@ref)
+Our [`DoubleWell`](@ref) implements the functions [`potential`](@ref) and [`derivative`](@ref), 
+their in-place versions, [`nstates`](@ref) and [`ndofs`](@ref)
 that return the potential, the derivative of the potential, the number of states,
 and the number of degrees of freedom, respectively.
 
 ```@repl diabaticmodel
-potential(model, hcat(0.2))
-derivative(model, hcat(0.2))
+p = potential(model, hcat(0.2))
+d = derivative(model, hcat(0.2))
+
+potential!(model, p, hcat(0.5))
+derivative!(model, d, hcat(0.5))
+
 nstates(model)
 ndofs(model)
 ```
@@ -78,14 +83,18 @@ the user wraps real valued positions in 1x1 matrices using the `hcat` fucntion.
 To understand how this can extend to another dimension, we can take a quick look at the
 [`GatesHollowayElbow`](@ref) model which is another two state diabatic model, but this
 one uses two dimensions to model a diatomic molecule interacting with a surface.
-The two degrees of freedom are the molecular bond length and the distance from the surface
-and so the `potential` and `derivative` functions expect a positon argurment with two values,
-one for each degree of freedom.
+The two degrees of freedom are the molecular bond length and the distance from the surface 
+respectively and so the `potential` and `derivative` functions expect a positon argurment 
+with two values, one for each degree of freedom.
 
 ```@repl diabaticmodel
 model = GatesHollowayElbow()
-potential(model, [1.0 1.0])
-derivative(model, [1.0 1.0])
+p = potential(model, [1.0 1.0])
+d = derivative(model, [1.0 1.0])
+
+potential!(model, p, [1.2 0.5])
+derivative!(model, d, [1.2 0.5])
+
 nstates(model)
 ndofs(model)
 ```
