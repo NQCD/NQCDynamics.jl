@@ -27,10 +27,8 @@ and demonstrates how they can be combined into a product distribution.
 
 When handling distributions for the nuclear degrees of freedom,
 the [`DynamicalDistribution`](@ref) type can be used to store initial velocities and positions:
-```@setup distribution
-using NQCDynamics
-```
 ```@example distribution
+using NQCDynamics
 d = DynamicalDistribution(10, 5, (3, 2))
 nothing # hide
 ``` 
@@ -56,8 +54,8 @@ an analytic distribution of positions and a preset collection of velocities:
 using Distributions
 
 velocity = [[1.0 1.0;1.0 1.0], [2.0 2.0; 2.0 2.0], [3.0 3.0; 3.0 3.0]] 
-position = Normal()
-d = DynamicalDistribution(velocity, position, (2, 2))
+positions = Normal()
+d = DynamicalDistribution(velocity, positions, (2, 2))
 rand(d)
 ``` 
 This has generated normally distributed positions along with one of the three velocities
@@ -126,6 +124,7 @@ Pre-defined distribution functions such as `VelocityBoltzmann` can be turned int
 
 ```julia
 velocity = VelocityBoltzmann(300u"K", rand(10), (3, 10))
+n_beads=5
 velocity_ring_polymer = RingPolymerWrapper(velocity, n_beads, Int[]) # RingPolymerWrapper(Distribution, number of ring-polymer beads, indices of atoms to treat classically)
 ```
 
@@ -155,7 +154,9 @@ of the distribution is handled separately by each of the different methods.
 The initial nuclear and electronic states of a system can be combined in a product distribution, which can be used in place of a purely nuclear distribution for methods considering electronic dynamics.
 
 ```julia
-nuclear_dist = DynamicalDistribution(velocity, position, (2, 2))
+velocity = VelocityBoltzmann(300u"K", rand(10), (2, 2)
+positions = Normal()
+nuclear_dist = DynamicalDistribution(velocity, positions, (2, 2))
 electronic_dist = PureState(2, Adiabatic())
 
 total_dist = nuclear_dist * electronic_dist
