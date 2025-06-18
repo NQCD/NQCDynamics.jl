@@ -66,10 +66,10 @@ we provided.
 To learn how to generate configurations to use with the [`DynamicalDistribution`](@ref),
 read on to the next sections about the included sampling methods.
 
-### VelocityBoltzmann
+#### VelocityBoltzmann
 
 When performing equilibrium simulations it is often desirable to initialise trajectories
-with thermal velocities, e.g. in combination with positions obtained from Monte Carlo sampling.
+with thermal velocities, e.g. in combination with positions obtained from [[../initialconditions/hamiltonian.md|Monte Carlo sampling]].
 These can be obtained for each atom from a gaussian distribution of the appropriate
 width, or alternatively, using the [`VelocityBoltzmann`](@ref) distribution which simplifies
 the process.
@@ -96,9 +96,9 @@ distribution = DynamicalDistribution(velocity, 1, (3, 10))
 rand(distribution)
 ```
 
-### Wigner distributions
+#### Wigner distributions
 For harmonic oscillator systems, we have implemented the analytic Wigner distribution.
-These are just mormal distributions of the appropriate width but can be accessed easily
+These are just normal distributions of the appropriate width but can be accessed easily
 as in the following:
 ```@repl wigner
 using NQCDistributions 
@@ -125,7 +125,8 @@ Pre-defined distribution functions such as `VelocityBoltzmann` can be turned int
 ```julia
 velocity = VelocityBoltzmann(300u"K", rand(10), (3, 10))
 n_beads=5
-velocity_ring_polymer = RingPolymerWrapper(velocity, n_beads, Int[]) # RingPolymerWrapper(Distribution, number of ring-polymer beads, indices of atoms to treat classically)
+velocity_ring_polymer = RingPolymerWrapper(velocity, n_beads, Int[])
+# RingPolymerWrapper(Distribution, number of ring-polymer beads, indices of atoms to treat classically)
 ```
 
 ## Electronic distributions
@@ -133,10 +134,13 @@ velocity_ring_polymer = RingPolymerWrapper(velocity, n_beads, Int[]) # RingPolym
 For nonadiabatic dynamics, the initial electronic variables must also be sampled.
 For this, we can use an [`ElectronicDistribution`](@ref NQCDistributions.ElectronicDistribution)
 which will tell our simulation how we want to sample the initial variables.
+
 Currently, two of these are provided, the [`PureState`](@ref) and the [`MixedState`](@ref).
 The [`PureState`](@ref) is used for nonequilibrium simulations when the population
 is confined to a single state, whereas [`MixedState`](@ref) allows for a mixed state
 distribution.
+
+In the case of explicit bath models (such as `AndersonHolstein`), the [`FermiDiracState`](@ref) is used to generate a Fermi-Dirac distribution at a chosen temperature, from which the electronic populations of each bath state can be sampled from. The chosen state energies used in sampling are dependent on the discreitsation of the bath, which is detailed ...
 
 ```@repl electronicdistribution
 using NQCDistributions 
@@ -144,6 +148,7 @@ using NQCDistributions
 PureState(1, Diabatic())
 PureState(2, Adiabatic())
 MixedState([1, 2], Diabatic())
+FermiDiracState(0.0, 300u"K"; statetype=Adiabatic())
 ```
 
 These structs contain only the minimal information about the distributions, whereas the sampling
