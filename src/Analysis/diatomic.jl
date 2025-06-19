@@ -90,10 +90,22 @@ function get_desorption_frame(trajectory::AbstractVector, diatomic_indices::Vect
         return nothing
     else
         @debug "Desorption observed in snapshot $(desorbed_frame)"
-        leaving_surface_frame = findlast(com_velocity_condition.(view(trajectory, 1:desorbed_frame), Ref(diatomic_indices), Ref(simulation); surface_normal=Ref(surface_normal))) #ToDo testing views for memory efficiency, need to test time penalty. Also need to test if running on everything and findfirst-ing the Bool array is quicker.
+        left_surface = zeros(Bool, length(trajectory))
+        @views begin
+            for frame_index in 1:desorbed_frame
+                left_surface[frame_index] = com_velocity_condition(trajectory[frame_index], diatomic_indices, simulation; surface_normal=surface_normal)
+            end
+        end
+        leaving_surface_frame = findlast(left_surface) #ToDo testing views for memory efficiency, need to test time penalty. Also need to test if running on everything and findfirst-ing the Bool array is quicker.
         if isnothing(leaving_surface_frame)
             @debug "Centre of mass velocity criterion was never met. Falling back to distance threshold."
-            leaving_surface_frame = findlast(close_approach_condition.(view(trajectory, 1:desorbed_frame), Ref(diatomic_indices), Ref(simulation); threshold = fallback_distance_threshold))
+            distance_threshold_met = zeros(Bool, length(trajectory))
+            @views begin
+                for frame_index in 1:desorbed_frame
+                    distance_threshold_met[frame_index] = close_approach_condition(trajectory[frame_index], diatomic_indices, simulation; threshold = fallback_distance_threshold)
+                end
+            end
+            leaving_surface_frame = findlast(distance_threshold_met)
             if isnothing(leaving_surface_frame)
                 @warn "H-H distance threshold was never met. Something is wrong in desorption detection logic - Returning entire trajectory for debugging."
                 return 1
