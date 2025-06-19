@@ -131,10 +131,12 @@ function classical_potential_energy(sim::AbstractSimulation, u)
 end
 
 function classical_potential_energy(sim::Simulation, r::AbstractMatrix)
+    NQCCalculators.evaluate_potential!(sim.cache, r)
     return NQCCalculators.get_potential(sim.cache, r)[1]
 end
 
 function classical_potential_energy(sim::RingPolymerSimulation, r::AbstractArray{T,3}) where {T}
+    NQCCalculators.evaluate_potential!(sim.cache, r)
     V = NQCCalculators.get_potential(sim.cache, r)
     return sum(V)[1]
 end
