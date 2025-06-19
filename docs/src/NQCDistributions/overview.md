@@ -63,13 +63,14 @@ we provided.
 
 ### Sampling the nuclear distribution
 
-To learn how to generate configurations to use with the [`DynamicalDistribution`](@ref),
-read on to the next sections about the included sampling methods.
+The following sections detail sampling methods for generating nuclear configurations to pass into [`DynamicalDistribution`](@ref).
+For some of the sampling methods however, position information needs to be provided from a separate "initial condition generation" step
+through methods such as [[../initialconditions/hamiltonian.md|Thermal Monte Carlo]] or [[../initialconditions/langevin/md|Langevin Dynamics]]. These methods are detailed in "Initial conditions".
 
 #### VelocityBoltzmann
 
 When performing equilibrium simulations it is often desirable to initialise trajectories
-with thermal velocities, e.g. in combination with positions obtained from [[../initialconditions/hamiltonian.md|Monte Carlo sampling]].
+with thermal velocities, e.g. in combination with positions obtained from Monte Carlo sampling.
 These can be obtained for each atom from a gaussian distribution of the appropriate
 width, or alternatively, using the [`VelocityBoltzmann`](@ref) distribution which simplifies
 the process.
