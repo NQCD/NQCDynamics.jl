@@ -35,7 +35,7 @@ end
 NQCModels.nstates(::TestModel) = 2
 NQCModels.ndofs(::TestModel) = 1
 
-function NQCModels.potential!(model::TestModel, V::AbstractMatrix, r::AbstractMatrix)
+function NQCModels.potential!(model::TestModel, V::Hermitian, r::AbstractMatrix)
     (;ħω, Ed, g) = model
     potential = ħω*first(r)^2/2
     V11 = potential
@@ -45,13 +45,13 @@ function NQCModels.potential!(model::TestModel, V::AbstractMatrix, r::AbstractMa
     return nothing
 end
 
-function NQCModels.derivative!(model::TestModel, D::AbstractMatrix, r::AbstractMatrix)
+function NQCModels.derivative!(model::TestModel, D::AbstractMatrix{<:Hermitian}, r::AbstractMatrix)
     (;ħω, g) = model
     potential = ħω*first(r)
     V11 = potential
     V22 = potential + sqrt(2)*g
     V12 = 0
-    D.data .= [V11 V12; V12 V22]
+    D[1].data .= [V11 V12; V12 V22]
     return nothing
 end
 
