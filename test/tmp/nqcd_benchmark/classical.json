@@ -1,1 +1,1 @@
-{"title_for_plotting":"Classical Tests","Ring Polymer Classical":{"Allocs":917216496,"Time":13.3815855},"Classical":{"Allocs":819360984,"Time":10.1966851},"Fermion model classical adiabatic dynamics":{"Allocs":523239880,"Time":8.7476044}}
+{"title_for_plotting":"Classical Tests","Ring Polymer Classical":{"Allocs":2993574056,"Time":64.5984569},"Classical":{"Allocs":904150432,"Time":11.253669},"Fermion model classical adiabatic dynamics":{"Allocs":586861560,"Time":14.7103165}}
