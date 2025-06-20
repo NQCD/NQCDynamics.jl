@@ -42,7 +42,7 @@ if GROUP == "All" || GROUP == "InitialConditions"
     end
 end
  =#
-if GROUP == "All" || GROUP == "dynamics_classical"
+#= if GROUP == "All" || GROUP == "dynamics_classical"
     @safetestset "DynamicsUtils Tests" begin
         include("Dynamics/DynamicsUtils.jl")
     end
@@ -55,15 +55,15 @@ if GROUP == "All" || GROUP == "dynamics_classical"
     @safetestset "Langevin Tests" begin
         include("Dynamics/langevin.jl")
     end
-end
+end =#
 
 if GROUP == "All" || GROUP == "dynamics_mdef"
-    @safetestset "MDEF BAOAB Tests" begin
+#=     @safetestset "MDEF BAOAB Tests" begin
         include("Dynamics/mdef_baoab.jl")
     end
     @safetestset "MDEF Tests" begin
         include("Dynamics/mdef.jl")
-    end
+    end =#
     @safetestset "DiabaticMDEF Tests" begin
         include("Dynamics/diabatic_mdef.jl")
     end

@@ -1,6 +1,7 @@
+using NQCBase
 using NQCModels
 using NQCCalculators
-using NQCDynamics: get_temperature, masses
+using NQCDynamics: get_temperature, masses, TemperatureSetting
 using Optim: Optim
 using LinearAlgebra
 
@@ -30,13 +31,12 @@ end
 MDEF(masses::AbstractVector, DoFs::Integer) = MDEF(get_mass_scale_matrix(masses, DoFs))
 
 
-struct DiabaticMDEF{M<:AbstractMatrix,F<:FrictionEvaluationMethod} <: AbstractMDEF
+struct DiabaticMDEF{M<:AbstractMatrix} <: AbstractMDEF
     mass_scaling::M
-    friction_method::F
 end
 
-function DiabaticMDEF(masses::AbstractVector, DoFs::Integer, friction_method)
-    DiabaticMDEF(get_mass_scale_matrix(masses, DoFs), friction_method)
+function DiabaticMDEF(masses::AbstractVector, DoFs::Integer)
+    DiabaticMDEF(get_mass_scale_matrix(masses, DoFs))
 end
 
 function get_mass_scale_matrix(masses::AbstractVector, DoFs::Integer)
@@ -50,13 +50,27 @@ end
 function NQCDynamics.RingPolymerSimulation{MDEF}(atoms::Atoms, model::Model, n_beads::Integer; kwargs...)
     NQCDynamics.RingPolymerSimulation(atoms, model, MDEF(atoms.masses, ndofs(model)), n_beads; kwargs...)
 end
-function NQCDynamics.Simulation{DiabaticMDEF}(atoms::Atoms, model::Model;
-    friction_method, kwargs...
-)
-    NQCDynamics.Simulation(atoms, model,
-        DiabaticMDEF(atoms.masses, ndofs(model), friction_method);
-        kwargs...
-    )
+function NQCDynamics.Simulation{DiabaticMDEF}(atoms::Atoms{T}, model::Model; friction_method::FrictionEvaluationMethod, 
+    temperature=0u"K", cell::AbstractCell=InfiniteCell(), solver::Symbol=:exact, kwargs...
+    ) where {T}
+
+    cache = Create_Cache(model, length(atoms), T; friction_method=friction_method)
+
+    # If a thermostat is provided, check it covers the whole system.
+    isa(temperature, TemperatureSetting{Vector{Int}}) ? throw(DomainError(temperature, "TemperatureSetting must apply to all atoms.")) : nothing
+
+    # If multiple TemperatureSettings are provided, check that each atom only has one thermostat applied to it.
+    if isa(temperature, Vector{<:TemperatureSetting})
+        indices = vcat([thermostat.indices for thermostat in temperature]...)
+        if length(unique(indices)) != length(atoms.masses)
+            throw(DomainError(temperature, "Every atom must have a TemperatureSetting applied to it."))
+        end
+        if length(indices) != length(unique(indices))
+            throw(DomainError(temperature, "Atoms can only have one thermostat applied to them."))
+        end
+    end
+
+    Simulation(temperature, cell, atoms, cache, DiabaticMDEF(atoms.masses, ndofs(model)), solver)
 end
 
 function acceleration!(dv, v, r, sim::Simulation{<:Union{DiabaticMDEF,Classical},<:NQCCalculators.Abstract_QuantumModel_Cache}, t)
