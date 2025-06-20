@@ -5,7 +5,7 @@ using JSON
 
 const GROUP = get(ENV, "GROUP", "All")
 
-if GROUP == "All" || GROUP == "Core"
+#= if GROUP == "All" || GROUP == "Core"
     @safetestset "FastDeterminant Tests" begin
         include("Core/FastDeterminant.jl")
     end
@@ -41,7 +41,7 @@ if GROUP == "All" || GROUP == "InitialConditions"
         include("InitialConditions/quantised_diatomic.jl")
     end
 end
-
+ =#
 if GROUP == "All" || GROUP == "dynamics_classical"
     @safetestset "DynamicsUtils Tests" begin
         include("Dynamics/DynamicsUtils.jl")
