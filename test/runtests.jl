@@ -9,9 +9,6 @@ if GROUP == "All" || GROUP == "Core"
     @safetestset "FastDeterminant Tests" begin
         include("Core/FastDeterminant.jl")
     end
-    # @safetestset "Calculator Tests" begin
-    #     include("Core/calculators.jl")
-    # end
     @safetestset "Simulation Tests" begin
         include("Core/simulations.jl")
     end
@@ -37,9 +34,9 @@ if GROUP == "All" || GROUP == "InitialConditions"
     @safetestset "Monte Carlo Tests" begin
         include("InitialConditions/monte_carlo.jl")
     end
-#=     @safetestset "AdvancedMH Sampling Tests" begin
+    @safetestset "AdvancedMH Sampling Tests" begin
         include("InitialConditions/advancedmh_sampling.jl")
-    end =#
+    end
     @safetestset "QuantisedDiatomic Tests" begin
         include("InitialConditions/quantised_diatomic.jl")
     end
