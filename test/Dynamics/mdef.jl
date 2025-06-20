@@ -20,8 +20,10 @@ du = zero(u)
 
 @testset "friction!" begin
     gtmp = zeros(length(r), length(r))
+    NQCDynamics.NQCCalculators.update_cache!(sim.cache, r)
     NQCDynamics.DynamicsMethods.ClassicalMethods.friction!(gtmp, r, sim, 0.0)
-    @test all(diag(gtmp) .≈ 1.0)
+    println(gtmp)
+    @test isapprox.(diag(gtmp), 1.0) |> all
 end
 
 dyn_test = @timed run_dynamics(sim, (0.0, 100.0), u; output=OutputDynamicsVariables, dt=1)
@@ -34,6 +36,7 @@ model = CompositeFrictionModel(Harmonic(), RandomFriction(1))
 sim = Simulation{MDEF}(atoms, model; temperature=f)
 
 dyn_test = @timed run_dynamics(sim, (0.0, 100.0), u; output=OutputDynamicsVariables, dt=1)
+# ToDo: Check whether friction gives the expected thermal fluctuation here. 
 sol = dyn_test.value
 benchmark_results["MDEF with RandomFriction"] = Dict("Time" => dyn_test.time, "Allocs" => dyn_test.bytes)
 

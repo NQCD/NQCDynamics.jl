@@ -38,9 +38,9 @@ function step_C!(v::RingPolymerArray, r::RingPolymerArray, cayley::Vector{<:Matr
     end
 end
 
-function step_O!(cache, integrator)
+function step_O!(integrator_cache, integrator)
     @unpack t, dt, W, p, sqdt = integrator
-    @unpack dutmp, flatdutmp, tmp1, tmp2, gtmp, noise, half, c1, c2 = cache
+    @unpack dutmp, flatdutmp, tmp1, tmp2, gtmp, noise, half, c1, c2 = integrator_cache
 
     Λ = gtmp
     σ = repeat( sqrt.(get_temperature(p, t+dt*half) ./ p.atoms.masses);inner=ndofs(p))

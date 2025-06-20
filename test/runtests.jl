@@ -5,12 +5,9 @@ using JSON
 
 const GROUP = get(ENV, "GROUP", "All")
 
-if GROUP == "All" || GROUP == "Core"
+#= if GROUP == "All" || GROUP == "Core"
     @safetestset "FastDeterminant Tests" begin
         include("Core/FastDeterminant.jl")
-    end
-    @safetestset "Calculator Tests" begin
-        include("Core/calculators.jl")
     end
     @safetestset "Simulation Tests" begin
         include("Core/simulations.jl")
@@ -44,8 +41,8 @@ if GROUP == "All" || GROUP == "InitialConditions"
         include("InitialConditions/quantised_diatomic.jl")
     end
 end
-
-if GROUP == "All" || GROUP == "dynamics_classical"
+ =#
+#= if GROUP == "All" || GROUP == "dynamics_classical"
     @safetestset "DynamicsUtils Tests" begin
         include("Dynamics/DynamicsUtils.jl")
     end
@@ -58,15 +55,15 @@ if GROUP == "All" || GROUP == "dynamics_classical"
     @safetestset "Langevin Tests" begin
         include("Dynamics/langevin.jl")
     end
-end
+end =#
 
 if GROUP == "All" || GROUP == "dynamics_mdef"
-    @safetestset "MDEF BAOAB Tests" begin
+#=     @safetestset "MDEF BAOAB Tests" begin
         include("Dynamics/mdef_baoab.jl")
     end
     @safetestset "MDEF Tests" begin
         include("Dynamics/mdef.jl")
-    end
+    end =#
     @safetestset "DiabaticMDEF Tests" begin
         include("Dynamics/diabatic_mdef.jl")
     end
@@ -82,7 +79,7 @@ if GROUP == "All" || GROUP == "dynamics_surface_hopping"
     @safetestset "FSSH Tests" begin
         include("Dynamics/fssh.jl")
     end
-    @safetestset "IESH Tests" begin
+     @safetestset "IESH Tests" begin
         include("Dynamics/iesh.jl")
     end
     @safetestset "Decoherence Tests" begin

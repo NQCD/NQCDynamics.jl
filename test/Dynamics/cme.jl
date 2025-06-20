@@ -24,7 +24,7 @@ Model used in J. Chem. Phys. 142, 084110 (2015).
 
 Below we verify the implementation by reproducing the data in Fig. 2.
 """
-struct TestModel{T} <: NQCModels.DiabaticModels.DiabaticModel
+struct TestModel{T} <: NQCModels.QuantumModels.QuantumModel
     ħω::T
     Ed::T
     g::T
@@ -34,22 +34,24 @@ end
 NQCModels.nstates(::TestModel) = 2
 NQCModels.ndofs(::TestModel) = 1
 
-function NQCModels.potential(model::TestModel, r::Real)
+function NQCModels.potential!(model::TestModel, V::Hermitian, r::AbstractMatrix)
     (;ħω, Ed, g) = model
-    potential = ħω*r^2/2
+    potential = ħω*first(r)^2/2
     V11 = potential
-    V22 = potential + Ed + sqrt(2)*g*r
+    V22 = potential + Ed + sqrt(2)*g*first(r)
     V12 = sqrt(Γ/2π)
-    return Hermitian(SMatrix{2,2}(V11, V12, V12, V22))
+    V.data .= [V11 V12; V12 V22]
+    return nothing
 end
 
-function NQCModels.derivative(model::TestModel, r::Real)
+function NQCModels.derivative!(model::TestModel, D::AbstractMatrix{<:Hermitian}, r::AbstractMatrix)
     (;ħω, g) = model
-    potential = ħω*r
+    potential = ħω*first(r)
     V11 = potential
     V22 = potential + sqrt(2)*g
     V12 = 0
-    return Hermitian(SMatrix{2,2}(V11, V12, V12, V22))
+    D[1].data .= [V11 V12; V12 V22]
+    return nothing
 end
 
 model = TestModel(ħω, Ed, g, Γ)
@@ -61,9 +63,9 @@ model = TestModel(ħω, Ed, g, Γ)
     kTinitial = kT * T
     βω = ħω / kTinitial
     σ = sqrt(1 / βω)
-    r = Normal(0.0, σ)
+    r = hcat(Normal(0.0, σ))
 
-    v = VelocityBoltzmann(kTinitial, atoms.masses[1])
+    v = VelocityBoltzmann(kTinitial, atoms.masses, (1,1))
     distribution = DynamicalDistribution(v, r, (1,1)) * PureState(1, Diabatic())
 
     dyn_test = @timed run_dynamics(sim, (0.0, 200 / Γ), distribution; trajectories=1000, output=(OutputKineticEnergy, OutputTotalEnergy, OutputDiscreteState), abstol=1e-8, reltol=1e-8, saveat=2/Γ)

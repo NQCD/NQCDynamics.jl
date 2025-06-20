@@ -1,6 +1,6 @@
 using Test
 using NQCDynamics
-using NQCDynamics: Calculators
+using NQCCalculators
 using Unitful
 
 atoms = Atoms([:C, :H])
@@ -33,29 +33,30 @@ end
 end
 
 rs = (fill(0.0, 1, 1), fill(0.0, 1, 1, 1))
-calculators = (
-    Calculators.Calculator(DoubleWell(), 1, Float64),
-    Calculators.Calculator(DoubleWell(), 1, 1, Float64),
+caches = (
+    NQCCalculators.Create_Cache(DoubleWell(), 1, Float64),
+    NQCCalculators.Create_Cache(DoubleWell(), 1, 1, Float64),
     )
-@testset "transform_density!" for (r, calc) ∈ zip(rs, calculators)
+@testset "transform_density!" for (r, cache) ∈ zip(rs, caches)
+    NQCCalculators.update_cache!(cache, r)
     density = [1.0 0; 0 0]
-    DynamicsUtils.transform_density!(density, calc, r, :to_adiabatic)
+    DynamicsUtils.transform_density!(density, cache, r, :to_adiabatic)
     @test density ≈ [0.5 0.5; 0.5 0.5]
-    DynamicsUtils.transform_density!(density, calc, r, :to_diabatic)
+    DynamicsUtils.transform_density!(density, cache, r, :to_diabatic)
     @test density ≈ [1.0 0; 0 0]
-    @test_throws ArgumentError DynamicsUtils.transform_density!(density, calc, r, :blah)
+    @test_throws ArgumentError DynamicsUtils.transform_density!(density, cache, r, :blah)
 end
 
-@testset "initialise_adiabatic_density_matrix" for (r, calc) ∈ zip(rs, calculators)
+@testset "initialise_adiabatic_density_matrix" for (r, cache) ∈ zip(rs, caches)
     @testset "Adiabatic" begin
         electronics = PureState(1, Adiabatic())
-        density = DynamicsUtils.initialise_adiabatic_density_matrix(electronics, calc, r)
+        density = DynamicsUtils.initialise_adiabatic_density_matrix(electronics, cache, r)
         @test density[1,1] == 1
     end
 
     @testset "Diabatic" begin
         electronics = PureState(1, Diabatic())
-        density = DynamicsUtils.initialise_adiabatic_density_matrix(electronics, calc, r)
+        density = DynamicsUtils.initialise_adiabatic_density_matrix(electronics, cache, r)
         @test all(density .≈ 0.5)
     end
 end
