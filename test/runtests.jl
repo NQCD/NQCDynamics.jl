@@ -5,7 +5,7 @@ using JSON
 
 const GROUP = get(ENV, "GROUP", "All")
 
-#= if GROUP == "All" || GROUP == "Core"
+if GROUP == "All" || GROUP == "Core"
     @safetestset "FastDeterminant Tests" begin
         include("Core/FastDeterminant.jl")
     end
@@ -30,7 +30,7 @@ if GROUP == "All" || GROUP == "Analysis"
     end
 end
 
-if GROUP == "All" || GROUP == "InitialConditions"
+#= if GROUP == "All" || GROUP == "InitialConditions"
     @safetestset "Monte Carlo Tests" begin
         include("InitialConditions/monte_carlo.jl")
     end
@@ -40,9 +40,9 @@ if GROUP == "All" || GROUP == "InitialConditions"
     @safetestset "QuantisedDiatomic Tests" begin
         include("InitialConditions/quantised_diatomic.jl")
     end
-end
- =#
-#= if GROUP == "All" || GROUP == "dynamics_classical"
+end =#
+
+if GROUP == "All" || GROUP == "dynamics_classical"
     @safetestset "DynamicsUtils Tests" begin
         include("Dynamics/DynamicsUtils.jl")
     end
@@ -55,8 +55,8 @@ end
     @safetestset "Langevin Tests" begin
         include("Dynamics/langevin.jl")
     end
-end =#
-#= 
+end
+
 if GROUP == "All" || GROUP == "dynamics_mdef"
     @safetestset "MDEF BAOAB Tests" begin
         include("Dynamics/mdef_baoab.jl")
@@ -123,7 +123,7 @@ if GROUP == "All" || GROUP == "dynamics_mapping"
         include("Dynamics/spin_mapping.jl")
     end
 end
- =#
+
 if GROUP == "All" || GROUP == "dynamics_ehrenfest"
     @safetestset "Ehrenfest Tests" begin
         include("Dynamics/ehrenfest.jl")

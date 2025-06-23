@@ -74,7 +74,7 @@ end
 
 function Estimators.diabatic_population(sim::AbstractSimulation{<:AbstractEhrenfest}, u)
     r = DynamicsUtils.get_positions(u)
-    NQCDynamics.NQCCalculators.update_cache!(sim.cache, r) # Ensure eigen needed for trafo are updated. 
+    NQCDynamics.NQCCalculators.update_cache!(sim.cache, r) # Ensure eigenvecs needed for transformation are updated. 
     U = DynamicsUtils.evaluate_transformation(sim.cache, r)
 
     σ = DynamicsUtils.get_quantum_subsystem(u)

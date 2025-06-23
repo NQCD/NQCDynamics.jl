@@ -50,6 +50,7 @@ end
 function NQCDynamics.RingPolymerSimulation{MDEF}(atoms::Atoms, model::Model, n_beads::Integer; kwargs...)
     NQCDynamics.RingPolymerSimulation(atoms, model, MDEF(atoms.masses, ndofs(model)), n_beads; kwargs...)
 end
+
 function NQCDynamics.Simulation{DiabaticMDEF}(atoms::Atoms{T}, model::Model; friction_method::FrictionEvaluationMethod, 
     temperature=0u"K", cell::AbstractCell=InfiniteCell(), solver::Symbol=:exact, kwargs...
     ) where {T}

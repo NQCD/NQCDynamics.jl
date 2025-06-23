@@ -85,7 +85,7 @@ end
             end
 
             mean_energy = mean_energy/length(chain)
-            @test mean_energy / (DoFs*natoms*nbeads) ≈ nbeads*T/2 rtol=1e-1 #tests if the energy per particle is correct 
+            @test mean_energy / (DoFs*natoms*nbeads) ≈ nbeads*T/2 rtol=1e-1 #tests if the energy per particle is approximately correct 
         end
     end
 

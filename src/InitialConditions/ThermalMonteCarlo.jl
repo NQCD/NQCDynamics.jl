@@ -87,8 +87,7 @@ function run_advancedmh_sampling(
 
   initial_config = reshape_input(sim, copy(r))
 
-  chain = AdvancedMH.sample(density_model, sampler, convert(Int, steps);
-    initial_params=initial_config, kwargs...)
+  chain = AdvancedMH.sample(density_model, sampler, convert(Int, steps); initial_params=initial_config, kwargs...)
 
   return reshape_output(sim, chain)
 end

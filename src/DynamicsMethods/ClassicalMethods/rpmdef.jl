@@ -22,7 +22,13 @@ function NQCDynamics.RingPolymerSimulation{DiabaticMDEF}(atoms::Atoms{T}, model:
         end
     end
 
-    RingPolymerSimulation(temperature, cell, atoms, cache, DiabaticMDEF(atoms.masses, ndofs(model)), n_beads, solver)
+    if isempty(quantum_nuclei)
+        beads = RingPolymers.RingPolymerParameters{T}(n_beads, get_temperature(temperature), length(atoms))
+    else
+        beads = RingPolymers.RingPolymerParameters{T}(n_beads, get_temperature(temperature), atoms.types, quantum_nuclei)
+    end
+
+    RingPolymerSimulation(temperature, cell, atoms, cache, DiabaticMDEF(atoms.masses, ndofs(model)), beads, solver)
 end
 
 function acceleration!(dv, v, r, sim::RingPolymerSimulation{<:Union{DiabaticMDEF,Classical},<:NQCCalculators.RingPolymer_QuantumModel_Cache}, t)
