@@ -24,7 +24,8 @@ basemodel = ErpenbeckThoss(; Γ)
 bath = TrapezoidalRule(M, -W, W)
 model = AndersonHolstein(basemodel, bath)
 atoms = Atoms(2000)
-r = randn(1, 1)
+# r = randn(1, 1)
+r = abs.(randn(1, 1))*3
 v = randn(1, 1)
 n_electrons = M ÷ 2
 

@@ -167,7 +167,26 @@ end
 
 fermi(ϵ, μ, β) = 1 / (1 + exp(β*(ϵ-μ)))
 
-function sample_fermi_dirac_distribution(energies, nelectrons, available_states, β)
+
+function sample_fermi_dirac_distribution(energies, nelectrons, available_states, β, μ) #Uses ratio of Fermi probabilities
+    nstates = length(available_states)
+    state = collect(Iterators.take(available_states, nelectrons))
+    for _ in 1:(nstates * nelectrons)
+        current_index = rand(eachindex(state))
+        i = state[current_index] # Pick random occupied state
+        j = rand(setdiff(available_states, state)) # Pick random unoccupied state
+        f1 = 1/(exp((energies[i]-μ)β)+1)
+        f2 = 1/(exp((energies[j]-μ)β)+1)
+        prob = f2/f1 # Calculate Boltzmann factor
+        if prob > rand()
+            state[current_index] = j # Set unoccupied state to occupied
+        end
+    end
+    sort!(state)
+    return state
+end
+
+function sample_fermi_dirac_distribution(energies, nelectrons, available_states, β) # Uses Boltzmann Factor
     nstates = length(available_states)
     state = collect(Iterators.take(available_states, nelectrons))
     for _ in 1:(nstates * nelectrons)
