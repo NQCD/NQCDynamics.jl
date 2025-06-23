@@ -12,6 +12,7 @@ using Dictionaries: Dictionary
 using UnitfulAtomic: austrip
 
 using NQCBase: NQCBase
+using NQCCalculators
 using NQCDynamics: AbstractSimulation, DynamicsMethods
 
 export run_dynamics
@@ -77,6 +78,8 @@ Run trajectories for timespan `tspan` sampling from `distribution`.
 * `ensemble_algorithm` is the algorithm from DifferentialEquations which determines which form of parallelism is used.
 * `algorithm` is the algorithm used to integrate the equations of motion.
 * `trajectories` is the number of trajectories to perform.
+* `savetime` saves the simulation time-steps, useful when usings with integrators with variable time-stepping.
+* `precompile_dynamics` runs a single step of the dynamics simulation in order to optimise the full run, exploits a strange issue with the Julia compiler.
 * `kwargs...` any additional keywords are passed to DifferentialEquations `solve``.
 """
 function run_dynamics(
@@ -91,6 +94,7 @@ function run_dynamics(
     trajectories = 1,
     savetime = true,
     precompile_dynamics = true,
+    rjm = true,
     kwargs...,
 )
 
@@ -164,8 +168,10 @@ function run_dynamics(
     log_simulation_duration(stats.time)
 
     if trajectories == 1
+        if rjm NQCCalculators.get_maurergroup() end
         return stats.value.u[1]
     else
+        if rjm NQCCalculators.get_maurergroup() end
         return stats.value.u
     end
 end

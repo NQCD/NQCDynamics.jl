@@ -56,14 +56,14 @@ end
         include("Dynamics/langevin.jl")
     end
 end =#
-
+#= 
 if GROUP == "All" || GROUP == "dynamics_mdef"
-#=     @safetestset "MDEF BAOAB Tests" begin
+    @safetestset "MDEF BAOAB Tests" begin
         include("Dynamics/mdef_baoab.jl")
     end
     @safetestset "MDEF Tests" begin
         include("Dynamics/mdef.jl")
-    end =#
+    end
     @safetestset "DiabaticMDEF Tests" begin
         include("Dynamics/diabatic_mdef.jl")
     end
@@ -123,7 +123,7 @@ if GROUP == "All" || GROUP == "dynamics_mapping"
         include("Dynamics/spin_mapping.jl")
     end
 end
-
+ =#
 if GROUP == "All" || GROUP == "dynamics_ehrenfest"
     @safetestset "Ehrenfest Tests" begin
         include("Dynamics/ehrenfest.jl")
