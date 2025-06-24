@@ -1,5 +1,5 @@
 using NQCDynamics: RingPolymers
-
+using NQCCalculators
 function RingPolymerSimulation{Ehrenfest}(atoms::Atoms{T}, model::Model, n_beads::Integer; kwargs...) where {T}
     RingPolymerSimulation(atoms, model, Ehrenfest{T}(NQCModels.nstates(model)), n_beads; kwargs...)
 end
@@ -14,7 +14,7 @@ function DynamicsMethods.motion!(du, u, sim::RingPolymerSimulation{<:AbstractEhr
     σ = DynamicsUtils.get_quantum_subsystem(u)
 
     DynamicsUtils.velocity!(dr, v, r, sim, t)
-    Calculators.update_electronics!(sim.calculator, r)
+    NQCCalculators.update_cache!(sim.cache, r)
     DynamicsUtils.acceleration!(dv, v, r, sim, t, σ)
     DynamicsUtils.apply_interbead_coupling!(dv, r, sim)
     DynamicsUtils.set_quantum_derivative!(dσ, u, sim)
@@ -22,10 +22,10 @@ end
 
 function DynamicsUtils.acceleration!(dv, v, r, sim::RingPolymerSimulation{<:Ehrenfest}, t, σ)
     fill!(dv, zero(eltype(dv)))
-    NQCModels.state_independent_derivative!(sim.calculator.model, dv, r)
+    NQCModels.state_independent_derivative!(sim.cache.model, dv, r)
     LinearAlgebra.lmul!(-1, dv)
 
-    adiabatic_derivative = Calculators.get_adiabatic_derivative(sim.calculator, r)
+    adiabatic_derivative = NQCCalculators.get_adiabatic_derivative(sim.cache, r)
     for b in axes(dv, 3)
         for i in mobileatoms(sim)
             for j in dofs(sim)
@@ -44,7 +44,7 @@ end
 
 function DynamicsUtils.classical_potential_energy(sim::RingPolymerSimulation{<:Ehrenfest}, u)
     r = DynamicsUtils.get_positions(u)
-    all_eigs = Calculators.get_eigen(sim.calculator, r)
+    all_eigs = NQCCalculators.get_eigen(sim.cache, r)
     population = Estimators.adiabatic_population(sim, u)
     potential = sum(dot(population, eigs.values) for eigs in all_eigs)
     return potential

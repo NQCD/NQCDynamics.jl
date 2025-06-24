@@ -52,7 +52,7 @@ ids_adsorbate = [55,56]
 # load PES model
 calculator = mace_calc.MACECalculator(model_path="../assets/mace/h2cu.model", device="cpu", default_dtype="float32")
 atoms_ase.set_calculator(calculator)
-model = AdiabaticASEModel(atoms_ase)
+model = ClassicalASEModel(atoms_ase)
 
 sim = Simulation(atoms, model; cell=cell)
 
@@ -165,7 +165,7 @@ Here we initialize the MACE-based interatomic potential, together with the cube-
 # load PES model
 calculator = mace_calc.MACECalculator(model_path="../assets/mace/h2cu.model", device="cpu", default_dtype="float32")
 atoms_ase.set_calculator(calculator)
-model_pes = AdiabaticASEModel(atoms_ase)
+model_pes = ClassicalASEModel(atoms_ase)
 
 # load cube EFT calculator
 using FrictionProviders

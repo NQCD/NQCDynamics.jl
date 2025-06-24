@@ -10,3 +10,6 @@ dev/
 !/.codecov.yml
 !/test/artifacts/desorption_dynamics.jld2
 !/test/artifacts/desorption_test.xyz
+
+/test/tmp/
+/test/tmp/*
