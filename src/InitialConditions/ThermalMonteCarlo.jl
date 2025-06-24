@@ -106,7 +106,7 @@ function get_deriv_function(sim::Simulation)
   return function density_deriv(r)
     NQCCalculators.update_cache!(sim.cache, reshape(r, size(sim)))
     lπ = -DynamicsUtils.classical_potential_energy(sim, reshape(r, size(sim))) / temperature
-    NQCCalculators.evaluate_derivative!(sim.cache, reshape(r, size(sim)))
+    NQCCalculators.update_derivative!(sim.cache, reshape(r, size(sim)))
     lπ_grad = -sim.cache.derivative / temperature
     return (lπ, lπ_grad[:])
   end

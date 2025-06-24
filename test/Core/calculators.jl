@@ -31,8 +31,8 @@ end
     cache = NQCCalculators.ClassicalModel_Cache{Float64}(model, 5) 
     r = rand(3, 5)
 
-    @test @allocated(NQCCalculators.evaluate_potential!(cache, r)) == 0
-    @test @allocated(NQCCalculators.evaluate_derivative!(cache, r)) == 0
+    @test @allocated(NQCCalculators.update_potential!(cache, r)) == 0
+    @test @allocated(NQCCalculators.update_derivative!(cache, r)) == 0
 
     @test @allocated(NQCCalculators.get_potential(cache, r)) == 0
     @test @allocated(NQCCalculators.get_derivative(cache, r)) == 0
@@ -46,8 +46,8 @@ end
     cache = NQCCalculators.RingPolymer_ClassicalModel_Cache{Float64}(model, 5, 10) 
     r = rand(3, 5, 10)
 
-    @test @allocated(NQCCalculators.evaluate_potential!(cache, r)) == 0
-    @test @allocated(NQCCalculators.evaluate_derivative!(cache, r)) == 0
+    @test @allocated(NQCCalculators.update_potential!(cache, r)) == 0
+    @test @allocated(NQCCalculators.update_derivative!(cache, r)) == 0
 
     @test @allocated(NQCCalculators.get_potential(cache, r)) == 0
     @test @allocated(NQCCalculators.get_derivative(cache, r)) == 0
@@ -108,11 +108,11 @@ end
     end
 
     @testset "Zero allocations" begin
-        @test @allocated(NQCCalculators.evaluate_potential!(cache, r)) == 0
-        @test @allocated(NQCCalculators.evaluate_derivative!(cache, r)) == 0
-        @test @allocated(NQCCalculators.evaluate_eigen!(cache, r)) == 0
-        @test @allocated(NQCCalculators.evaluate_adiabatic_derivative!(cache, r)) == 0
-        @test @allocated(NQCCalculators.evaluate_nonadiabatic_coupling!(cache, r)) == 0
+        @test @allocated(NQCCalculators.update_potential!(cache, r)) == 0
+        @test @allocated(NQCCalculators.update_derivative!(cache, r)) == 0
+        @test @allocated(NQCCalculators.update_eigen!(cache, r)) == 0
+        @test @allocated(NQCCalculators.update_adiabatic_derivative!(cache, r)) == 0
+        @test @allocated(NQCCalculators.update_nonadiabatic_coupling!(cache, r)) == 0
     end
 end
 
@@ -221,46 +221,46 @@ end
         cache = reset_cache()
 
         # Call all functions to ensure they have been compiled
-        NQCCalculators.evaluate_potential!(cache, r)
-        NQCCalculators.evaluate_derivative!(cache, r)
-        NQCCalculators.evaluate_eigen!(cache, r)
-        NQCCalculators.evaluate_adiabatic_derivative!(cache, r)
-        NQCCalculators.evaluate_nonadiabatic_coupling!(cache, r)
+        NQCCalculators.update_potential!(cache, r)
+        NQCCalculators.update_derivative!(cache, r)
+        NQCCalculators.update_eigen!(cache, r)
+        NQCCalculators.update_adiabatic_derivative!(cache, r)
+        NQCCalculators.update_nonadiabatic_coupling!(cache, r)
 
-        NQCCalculators.evaluate_traceless_potential!(cache, r)
-        NQCCalculators.evaluate_V̄!(cache, r)
-        NQCCalculators.evaluate_traceless_derivative!(cache, r)
-        NQCCalculators.evaluate_D̄!(cache, r)
-        NQCCalculators.evaluate_traceless_adiabatic_derivative!(cache, r)
+        NQCCalculators.update_traceless_potential!(cache, r)
+        NQCCalculators.update_V̄!(cache, r)
+        NQCCalculators.update_traceless_derivative!(cache, r)
+        NQCCalculators.update_D̄!(cache, r)
+        NQCCalculators.update_traceless_adiabatic_derivative!(cache, r)
 
-        NQCCalculators.evaluate_centroid!(cache, r)
-        NQCCalculators.evaluate_centroid_potential!(cache, r)
-        NQCCalculators.evaluate_centroid_derivative!(cache, r)
-        NQCCalculators.evaluate_centroid_eigen!(cache, r)
-        NQCCalculators.evaluate_centroid_adiabatic_derivative!(cache, r)
-        NQCCalculators.evaluate_centroid_nonadiabatic_coupling!(cache, r)
+        NQCCalculators.update_centroid!(cache, r)
+        NQCCalculators.update_centroid_potential!(cache, r)
+        NQCCalculators.update_centroid_derivative!(cache, r)
+        NQCCalculators.update_centroid_eigen!(cache, r)
+        NQCCalculators.update_centroid_adiabatic_derivative!(cache, r)
+        NQCCalculators.update_centroid_nonadiabatic_coupling!(cache, r)
 
         cache = reset_cache()
 
         # Check for no allocations
-        @test @allocated(NQCCalculators.evaluate_potential!(cache, r)) == 0
-        @test @allocated(NQCCalculators.evaluate_derivative!(cache, r)) == 0
-        @test @allocated(NQCCalculators.evaluate_eigen!(cache, r)) == 0
-        @test @allocated(NQCCalculators.evaluate_adiabatic_derivative!(cache, r)) == 0
-        @test @allocated(NQCCalculators.evaluate_nonadiabatic_coupling!(cache, r)) == 0
+        @test @allocated(NQCCalculators.update_potential!(cache, r)) == 0
+        @test @allocated(NQCCalculators.update_derivative!(cache, r)) == 0
+        @test @allocated(NQCCalculators.update_eigen!(cache, r)) == 0
+        @test @allocated(NQCCalculators.update_adiabatic_derivative!(cache, r)) == 0
+        @test @allocated(NQCCalculators.update_nonadiabatic_coupling!(cache, r)) == 0
 
-        @test @allocated(NQCCalculators.evaluate_traceless_potential!(cache, r)) == 0
-        @test @allocated(NQCCalculators.evaluate_V̄!(cache, r)) == 0
-        @test @allocated(NQCCalculators.evaluate_traceless_derivative!(cache, r)) == 0
-        @test @allocated(NQCCalculators.evaluate_D̄!(cache, r)) == 0
-        @test @allocated(NQCCalculators.evaluate_traceless_adiabatic_derivative!(cache, r)) == 0
+        @test @allocated(NQCCalculators.update_traceless_potential!(cache, r)) == 0
+        @test @allocated(NQCCalculators.update_V̄!(cache, r)) == 0
+        @test @allocated(NQCCalculators.update_traceless_derivative!(cache, r)) == 0
+        @test @allocated(NQCCalculators.update_D̄!(cache, r)) == 0
+        @test @allocated(NQCCalculators.update_traceless_adiabatic_derivative!(cache, r)) == 0
 
-        @test @allocated(NQCCalculators.evaluate_centroid!(cache, r)) == 0
-        @test @allocated(NQCCalculators.evaluate_centroid_potential!(cache, r)) == 48 # not sure why this isn't zero
-        @test @allocated(NQCCalculators.evaluate_centroid_derivative!(cache, r)) == 0
-        @test @allocated(NQCCalculators.evaluate_centroid_eigen!(cache, r)) == 0
-        @test @allocated(NQCCalculators.evaluate_centroid_adiabatic_derivative!(cache, r)) == 0
-        @test @allocated(NQCCalculators.evaluate_centroid_nonadiabatic_coupling!(cache, r)) == 0
+        @test @allocated(NQCCalculators.update_centroid!(cache, r)) == 0
+        @test @allocated(NQCCalculators.update_centroid_potential!(cache, r)) == 48 # not sure why this isn't zero
+        @test @allocated(NQCCalculators.update_centroid_derivative!(cache, r)) == 0
+        @test @allocated(NQCCalculators.update_centroid_eigen!(cache, r)) == 0
+        @test @allocated(NQCCalculators.update_centroid_adiabatic_derivative!(cache, r)) == 0
+        @test @allocated(NQCCalculators.update_centroid_nonadiabatic_coupling!(cache, r)) == 0
     end
 end
 
@@ -272,20 +272,20 @@ end
     NQCCalculators.get_nonadiabatic_coupling(cache, r)
     @test all(x->x==1, values(cache.stats))
 
-    NQCCalculators.evaluate_potential!(cache, r)
-    NQCCalculators.evaluate_derivative!(cache, r)
-    NQCCalculators.evaluate_eigen!(cache, r)
-    NQCCalculators.evaluate_adiabatic_derivative!(cache, r)
-    NQCCalculators.evaluate_nonadiabatic_coupling!(cache, r)
+    NQCCalculators.update_potential!(cache, r)
+    NQCCalculators.update_derivative!(cache, r)
+    NQCCalculators.update_eigen!(cache, r)
+    NQCCalculators.update_adiabatic_derivative!(cache, r)
+    NQCCalculators.update_nonadiabatic_coupling!(cache, r)
 
-    @test @allocated(NQCCalculators.evaluate_potential!(cache, r)) == 0
-    @test @allocated(NQCCalculators.evaluate_derivative!(cache, r)) == 0
-    eigen_allocations = @allocated(NQCCalculators.evaluate_eigen!(cache, r))
+    @test @allocated(NQCCalculators.update_potential!(cache, r)) == 0
+    @test @allocated(NQCCalculators.update_derivative!(cache, r)) == 0
+    eigen_allocations = @allocated(NQCCalculators.update_eigen!(cache, r))
     global allocs_LargeDiabatic = eigen_allocations
     @debug "Abstract_QuantumModel_Cache: $(eigen_allocations) needed for eigenvalues"
     @test eigen_allocations < MAX_EIGEN_ALLOCATIONS
-    @test @allocated(NQCCalculators.evaluate_adiabatic_derivative!(cache, r)) == 0
-    @test @allocated(NQCCalculators.evaluate_nonadiabatic_coupling!(cache, r)) == 0
+    @test @allocated(NQCCalculators.update_adiabatic_derivative!(cache, r)) == 0
+    @test @allocated(NQCCalculators.update_nonadiabatic_coupling!(cache, r)) == 0
 end
 
 @testset "RingPolymer_QuantumModel_Cache" begin
@@ -297,17 +297,17 @@ end
     NQCCalculators.get_centroid_nonadiabatic_coupling(cache, r)
     @test all(x->x==1, values(cache.stats))
 
-    NQCCalculators.evaluate_potential!(cache, r)
-    NQCCalculators.evaluate_derivative!(cache, r)
-    NQCCalculators.evaluate_eigen!(cache, r)
-    NQCCalculators.evaluate_adiabatic_derivative!(cache, r)
-    NQCCalculators.evaluate_nonadiabatic_coupling!(cache, r)
+    NQCCalculators.update_potential!(cache, r)
+    NQCCalculators.update_derivative!(cache, r)
+    NQCCalculators.update_eigen!(cache, r)
+    NQCCalculators.update_adiabatic_derivative!(cache, r)
+    NQCCalculators.update_nonadiabatic_coupling!(cache, r)
 
-    @test @allocated(NQCCalculators.evaluate_potential!(cache, r)) == 0
-    @test @allocated(NQCCalculators.evaluate_derivative!(cache, r)) == 0
-    @test @allocated(NQCCalculators.evaluate_eigen!(cache, r)) == 10 * allocs_LargeDiabatic
-    @test @allocated(NQCCalculators.evaluate_adiabatic_derivative!(cache, r)) == 0
-    @test @allocated(NQCCalculators.evaluate_nonadiabatic_coupling!(cache, r)) == 0
+    @test @allocated(NQCCalculators.update_potential!(cache, r)) == 0
+    @test @allocated(NQCCalculators.update_derivative!(cache, r)) == 0
+    @test @allocated(NQCCalculators.update_eigen!(cache, r)) == 10 * allocs_LargeDiabatic
+    @test @allocated(NQCCalculators.update_adiabatic_derivative!(cache, r)) == 0
+    @test @allocated(NQCCalculators.update_nonadiabatic_coupling!(cache, r)) == 0
 end
 
 @testset "Friction_Cache" begin
@@ -320,13 +320,13 @@ end
     NQCCalculators.get_friction(cache, r)
     @test all(x->x==1, values(cache.stats))
 
-    NQCCalculators.evaluate_potential!(cache, r)
-    NQCCalculators.evaluate_derivative!(cache, r)
-    NQCCalculators.evaluate_friction!(cache, r)
-    @test @allocated(NQCCalculators.evaluate_potential!(cache, r)) == 0
-    @test @allocated(NQCCalculators.evaluate_derivative!(cache, r)) == 0
-    global allocs_Friction = @allocated(NQCCalculators.evaluate_friction!(cache, r)) 
-    @debug "Friction_Cache.evaluate_friction made $(allocs_Friction) allocations. This should be around 250."
+    NQCCalculators.update_potential!(cache, r)
+    NQCCalculators.update_derivative!(cache, r)
+    NQCCalculators.update_friction!(cache, r)
+    @test @allocated(NQCCalculators.update_potential!(cache, r)) == 0
+    @test @allocated(NQCCalculators.update_derivative!(cache, r)) == 0
+    global allocs_Friction = @allocated(NQCCalculators.update_friction!(cache, r)) 
+    @debug "Friction_Cache.update_friction made $(allocs_Friction) allocations. This should be around 250."
     @test allocs_Friction ≤ 250
 end
 
@@ -340,10 +340,10 @@ end
     NQCCalculators.get_friction(cache, r)
     @test all(x->x==1, values(cache.stats))
 
-    NQCCalculators.evaluate_potential!(cache, r)
-    NQCCalculators.evaluate_derivative!(cache, r)
-    NQCCalculators.evaluate_friction!(cache, r)
-    @test @allocated(NQCCalculators.evaluate_potential!(cache, r)) == 0
-    @test @allocated(NQCCalculators.evaluate_derivative!(cache, r)) == 0
-    @test @allocated(NQCCalculators.evaluate_friction!(cache, r)) == 10 * allocs_Friction
+    NQCCalculators.update_potential!(cache, r)
+    NQCCalculators.update_derivative!(cache, r)
+    NQCCalculators.update_friction!(cache, r)
+    @test @allocated(NQCCalculators.update_potential!(cache, r)) == 0
+    @test @allocated(NQCCalculators.update_derivative!(cache, r)) == 0
+    @test @allocated(NQCCalculators.update_friction!(cache, r)) == 10 * allocs_Friction
 end

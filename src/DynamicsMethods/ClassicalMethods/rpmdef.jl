@@ -60,7 +60,7 @@ function acceleration!(dv, v, r, sim::RingPolymerSimulation{<:Union{DiabaticMDEF
     return nothing
 end
 
-function evaluate_friction!(Λ::AbstractArray{T,3}, sim::RingPolymerSimulation{<:DiabaticMDEF}, r::AbstractArray{T,3}, t::Real) where {T}
+function update_friction!(Λ::AbstractArray{T,3}, sim::RingPolymerSimulation{<:DiabaticMDEF}, r::AbstractArray{T,3}, t::Real) where {T}
     β = 1 / get_temperature(sim, t)
     μ = NQCModels.fermilevel(sim.cache.model)
     @views for i in NQCCalculators.beads(sim.cache)

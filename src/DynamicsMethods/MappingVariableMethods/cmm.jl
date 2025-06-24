@@ -54,7 +54,7 @@ function acceleration!(dv, u, sim::Simulation{<:eCMM})
 
     Parameters.@unpack γ, temp_q, temp_p = sim.method
 
-    NQCCalculators.evaluate_derivative!(sim.cache, DynamicsUtils.get_positions(u))
+    NQCCalculators.update_derivative!(sim.cache, DynamicsUtils.get_positions(u))
     qmap = get_mapping_positions(u)
 	pmap = get_mapping_momenta(u)
     for I in eachindex(dv)
@@ -70,7 +70,7 @@ function acceleration!(dv, u, sim::Simulation{<:eCMM})
 end
 
 function set_mapping_force!(du, u, sim::Simulation{<:eCMM})
-    NQCCalculators.evaluate_potential!(sim.cache, DynamicsUtils.get_positions(u))
+    NQCCalculators.update_potential!(sim.cache, DynamicsUtils.get_positions(u))
     V = sim.cache.potential
     mul!(get_mapping_positions(du), V, get_mapping_momenta(u))
     mul!(get_mapping_momenta(du), V, get_mapping_positions(u))
@@ -80,7 +80,7 @@ end
 function DynamicsUtils.classical_potential_energy(sim::Simulation{<:eCMM}, u)
     r = DynamicsUtils.get_positions(u)
 
-    NQCCalculators.evaluate_potential!(sim.cache, r)
+    NQCCalculators.update_potential!(sim.cache, r)
     V = sim.cache.potential
     qmap = get_mapping_positions(u)
     pmap = get_mapping_momenta(u)

@@ -60,12 +60,12 @@ function potential_energy(sim::AbstractSimulation, u)
 end
 
 function potential_energy(sim::Simulation, r::AbstractMatrix)
-    NQCCalculators.evaluate_potential!(sim.cache, r)
+    NQCCalculators.update_potential!(sim.cache, r)
     return sim.cache.potential[1]
 end
 
 function potential_energy(sim::RingPolymerSimulation, r::AbstractArray{T,3}) where {T}
-    NQCCalculators.evaluate_potential!(sim.cache, r)
+    NQCCalculators.update_potential!(sim.cache, r)
     return mean(sim.cache.potential)[1]
 end
 
@@ -87,7 +87,7 @@ end
 function kinetic_energy(sim::RingPolymerSimulation, r::AbstractArray{T,3}) where {T}
     centroid = get_centroid(r)
 
-    NQCCalculators.evaluate_derivative!(sim.cache, r)
+    NQCCalculators.update_derivative!(sim.cache, r)
 
     kinetic = ndofs(sim) * natoms(sim) * get_ring_polymer_temperature(sim)
 
