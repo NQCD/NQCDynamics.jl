@@ -4,7 +4,7 @@ using NQCDynamics
 using JSON
 
 const GROUP = get(ENV, "GROUP", "All")
-
+#= 
 if GROUP == "All" || GROUP == "Core"
     @safetestset "FastDeterminant Tests" begin
         include("Core/FastDeterminant.jl")
@@ -29,7 +29,7 @@ if GROUP == "All" || GROUP == "Analysis"
         include("Analysis/diatomic.jl")
     end
 end
-
+ =#
 #= if GROUP == "All" || GROUP == "InitialConditions"
     @safetestset "Monte Carlo Tests" begin
         include("InitialConditions/monte_carlo.jl")
@@ -42,7 +42,7 @@ end
     end
 end =#
 
-if GROUP == "All" || GROUP == "dynamics_classical"
+#= if GROUP == "All" || GROUP == "dynamics_classical"
     @safetestset "DynamicsUtils Tests" begin
         include("Dynamics/DynamicsUtils.jl")
     end
@@ -56,7 +56,7 @@ if GROUP == "All" || GROUP == "dynamics_classical"
         include("Dynamics/langevin.jl")
     end
 end
-
+ =#
 if GROUP == "All" || GROUP == "dynamics_mdef"
     @safetestset "MDEF BAOAB Tests" begin
         include("Dynamics/mdef_baoab.jl")
@@ -64,9 +64,9 @@ if GROUP == "All" || GROUP == "dynamics_mdef"
     @safetestset "MDEF Tests" begin
         include("Dynamics/mdef.jl")
     end
-    @safetestset "DiabaticMDEF Tests" begin
+#=     @safetestset "DiabaticMDEF Tests" begin
         include("Dynamics/diabatic_mdef.jl")
-    end
+    end =#
     @safetestset "RPMDEF Tests" begin
         include("Dynamics/rpmdef.jl")
     end

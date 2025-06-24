@@ -21,12 +21,8 @@ function NQCDynamics.RingPolymerSimulation{DiabaticMDEF}(atoms::Atoms{T}, model:
             throw(DomainError(temperature, "Atoms can only have one thermostat applied to them."))
         end
     end
-
-    if isempty(quantum_nuclei)
-        beads = RingPolymers.RingPolymerParameters{T}(n_beads, get_temperature(temperature), length(atoms))
-    else
-        beads = RingPolymers.RingPolymerParameters{T}(n_beads, get_temperature(temperature), atoms.types, quantum_nuclei)
-    end
+    
+    beads = RingPolymers.RingPolymerParameters{T}(n_beads, get_temperature(temperature), length(atoms))
 
     RingPolymerSimulation(temperature, cell, atoms, cache, DiabaticMDEF(atoms.masses, ndofs(model)), beads, solver)
 end
