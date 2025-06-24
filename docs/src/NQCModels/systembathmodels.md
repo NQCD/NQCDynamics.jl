@@ -33,7 +33,7 @@ When defining the Spin-Boson model, 4 arguments are provided to the function:
 ```julia
 SpinBoson(density::SpectralDensity, N::Integer, ϵ, Δ)
 ```
-The first 2 arguments given detail the bath discretiation, the first being the type of bath, the second (`N`) indicates the numeber of  discretised bath modes. From these arguements, the bath discretisation functions can return the set of frequencies , $\Omega$ and coupling coefficients for each harmonic mode $j$.
+The first 2 arguments given detail the bath discretiation, the first being the type of bath, the second (`N`) indicates the number of discretised bath modes. From these arguements, the bath discretisation functions can return the set of frequencies , $\Omega$ and coupling coefficients for each harmonic mode $j$.
 
 The final 2 arguments `ϵ` and `Δ` define information about the 2 state system coupling to the bath. `ϵ` provides the energy bias between the two states and `Δ` the coupling between them (also referred to as the tunneling matrix element).
 
@@ -53,6 +53,16 @@ J(\omega) = \frac{\pi}{2} \alpha \omega e^{-\omega / \omega_{c}}
 $$
 Where $\omega_{c}$ is the characteristic frequency of the bath and $\alpha$ is the Kondo parameter. These are provided as inputs to the function `OhmicSpectralDensity(ωᶜ,α)`.
 
+The set of frequencies, $\mathbf{\Omega}$, and coupling coefficients, $\mathbf{c}$, are generated for the number of discretised bath modes, $N_{b}$ provided.
+$$
+\begin{align}
+   \omega_{j} &= - \omega_{c} \ln\left[ 1 - \frac{j}{(1 + N_{b})} \right] \\
+   c_{j} &= \sqrt{\frac{\alpha \omega_{c}}{N_{b} + 1}} \omega_{j}
+\end{align}
+$$
+
+Where $j=1,...,N_{b}$.
+
 ### Debye bath
 The Debye bath spectral density function takes the form:
 $$
@@ -60,6 +70,15 @@ J(\omega) = 2 \lambda \frac{\omega_{c} \omega}{\omega_{c}^{2} + \omega^{2}}
 $$
 Where $\omega_{c}$ is the characteristic frequency of the bath and $\lambda$ is the reorganisation. These are provided as inputs to the function `DebyeSpectralDensity(ωᶜ,λ)`.
 
+The set of frequencies, $\mathbf{\Omega}$, and coupling coefficients, $\mathbf{c}$, are generated for the number of discretised bath modes, $N_{b}$ provided.
+$$
+\begin{align}
+   \omega_{j} &= \omega_{c} \tan\left( \frac{\pi}{2} \left(1 - \frac{j}{(1 + N_{b})} \right) \right) \\
+   c_{j} &= \sqrt{\frac{2 \lambda}{N_{b} + 1}} \omega_{j}
+\end{align}
+$$
+
+Where $j=1,...,N_{b}$.
 
 
 ## Newns-Anderson model
