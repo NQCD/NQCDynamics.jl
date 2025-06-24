@@ -36,7 +36,7 @@ function run_dynamics(
     trajectories = 1,
     savetime = true,
     precompile_dynamics = true,
-    rjm = true,
+    rjm = false,
     kwargs...,
 )
 

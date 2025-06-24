@@ -67,8 +67,7 @@ function RingPolymerSimulation(temperature, cell::AbstractCell,
     RingPolymerSimulation(temperature, cell, atoms, cache, method, beads, solver)
 end
 
-function RingPolymerSimulation(atoms::Atoms, model::Model, method::M, n_beads::Integer;
-        temperature=0,
+function RingPolymerSimulation(atoms::Atoms, model::Model, method::M, n_beads::Integer; temperature=0, 
         cell::AbstractCell=InfiniteCell(), quantum_nuclei::Vector{Symbol}=Symbol[], solver::Symbol=:exact) where {M}
     RingPolymerSimulation(temperature, cell, atoms, model, method, n_beads, quantum_nuclei; solver=solver)
 end
