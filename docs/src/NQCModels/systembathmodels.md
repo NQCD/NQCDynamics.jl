@@ -1,10 +1,11 @@
 # System-bath models
+This documentation is a collaborative work jointly authored by [Xuexun Lu (Hok-seon)](https://louhokseson.github.io), [Matt Larkin](https://uk.linkedin.com/in/matthew-larkin-773307219) and [Nils Hertl](https://scholar.google.com/citations?user=I65S8ZQAAAAJ&hl=en).
+
 
 
 
 
 ### Introduction
-PS: Hoskeon wanna say something in this section Just something enlightening for the reader to understanding the genereal idea of system bath coupling.
 
 When dealing with molecule-surface systems, wherein the surface is a metal or semi-conductor; the surface can be considered as an environmental bath that allows the dissipation of energy through coupling between the molecular "system" and the bath.
 
@@ -94,16 +95,123 @@ $$
 Where $j=1,...,N_{b}$. -->
 
 ## Newns-Anderson model
+The **Anderson Impurity Model (AIM)** describes a localized impurity state interacting with a continuous band of bath states. AIM is a foundamental model in condensed matter physics and quantum chemistry, introduced by P.W. Anderson in 1961. The **Newns-Anderson model** is a generalization of the AIM, which includes the possibility of **multiple impurity states** and a more complex interaction with the bath. A key advantage of using the AIM lies in its ability to yield **analytical solutions** for the energy level distribution and the hybridization (coupling) density, making it a powerful tool for theoretical analysis.
+#### Theory
+The **total Hamiltonian** $H$ of the AIM can be written as:
+$$
+H = H_{S} + H_{B} + H_{C}
+$$
+##### Impurity
 
-PS: Hokseon think we can briefly introduce the theory and link one or two of our papers for furtther reading for the interested reader. Bring more visitations/downloads to our papers!
+The **Impurity Hamiltonian** describes the localized orbitals:
+
+$$H_{S} = \sum_{i} \varepsilon_{i} d_{i}^{\dagger} d_{i}$$
+
+Here:
+* $\varepsilon_{i}$ is the energy of the $i$-th impurity orbital.
+* $d_i^{\dagger}, d_i$ : creation/annihilation operators for orbital i
+
+For the specific case of a **two-state impurity system**, the system Hamiltonian can be expressed as:
+
+$$H_{S} = h \cdot d^{\dagger} d + U_0$$
+
+In this two-state representation:
+* $U_0$: energy of state 0
+* $U_1$: energy of state 1
+* $h$: the energy gap $U_1 -U_0$
+
+##### Bath 
+Describes a reservoir of states which are non-interacting and intrisically existing. The bath states can be phonons or electrons in surfaces. Usually written as
+$$
+H_B = \sum_{k} \epsilon_k c_k^{\dagger} c_k
+$$
+
+- $\epsilon_k$: energy of bath state $k$  
+- $c_{k}^\dagger, c_{k}$: creation/annihilation operators for state $k$
+
+##### Interaction
+
+Captures the coupling between the impurity and the bath states. The interaction Hamiltonian can be expressed as:
+$$
+H_{C} = \sum_{i,k} V_{ik} d_i^{\dagger} c_k + V_{ik}^{*} c_k^{\dagger} d_i
+$$
+
+where $V$ stands for the coupling strength.
+
+### Examples
+To build a Newns-Anderson model in NQCModels.jl, you can use the [`AndersonHolstein`](@ref):
+```julia
+using NQCModels
+...
+NAmodel = AndersonHolstein(diabaticmodel, bath; couplings_rescale)
+```
+The `diabaticmodel` belongs to [`DiabaticModels`](@ref) is a system model describling the system Hamiltonian $H_S$ and the bath is a collection of bath states with their energies and couplings to the system. The [`couplings_rescale`](@ref AndersonHolstein) is a scalar parameter that rescales the coupling strengths to the bath states. And the `bath` is a collection of bath states.
+### Spin-Boson model
+PS: Hokseon not sure whether he is the best person to write this section
 
 
-
-### Discretisation of bath 
-talk something about why we need this. good for the IESH.
-
+## Discretisation of bath 
+Some mixed quanutm classical dynamics methods require the discretisation of the bath spectral density, $J(\varepsilon)$, into a finite number of discrete energy levels. i.e. [Indepdepent electron surface hopping](@ref adiabaticIESH) [1] [2].
+#### Discretisation under wide band limit
+The **Wide Band Limit (WBL)** is a common approximation which considers the bath spectral density to be constant over a wide range of energies.
 #### Discretisation with a gap
-Hokseon'job
+Two numerical discretisation methods which performs a band gap in the middle of the continuum are introduced and named as [`GapTrapezoidalRule`](@ref) and [`GapGaussLegendre`](@ref).
+
+
+##### Gapped Trapezoidal Rule
+The *Gapped Trapezoidal* Rule discretises a band into two evenly spaced continuums, which is particularly useful for systems with a band gap, such as semiconductors.
+
+The energy $\epsilon_k$ for each discretised state $k$ is defined as:
+
+$$ \epsilon_k = \begin{cases}E_{\text{F}} - \Delta E + (k-1) \times \frac{\Delta E - E_{\text{gap}}}{M} &\text { if } k \leq M/2 \\ E_{\text{F}} + \frac{E_{\text{gap}}}{2} + (k-M/2 -1) \times \frac{\Delta E - E_{\text{gap}}}{M}&\text { otherwise }\end{cases} $$
+
+These states are associated with constant coupling weights $\omega_k$:
+
+$$\omega_k = \frac{\Delta E - E_{\text{gap}}}{M}$$
+
+where:
+* $\Delta E$ is the total energy range of the bath.
+* $E_{\text{gap}}$ is the size of the gap located in the middle of the band.
+* $E_{\text{F}}$ is the Fermi energy.
+* $M$ is the total number of discretised states.
+##### Gapped Gauss Legendre 
+The *Gapped Gauss Legendre* discretisation method provides a robust way to sample the bath spectral density, specifically designed to incorporate a band gap in the middle of the continuum. This approach leverages Gauss-Legendre quadrature for accurate representation.
+
+The discretisation for the energy $\epsilon_k$ of each state $k$ is defined as follows:
+
+$$
+\epsilon_k = \begin{cases}E_{\text{F}} - \left[\frac{\Delta E-E_{\text{gap}}}{2} (1+x_{\text L,M/2-k+1}) + E_{\text{gap}}\right]/2 &\text { if } k \leq M/2 \\
+E_{\text{F}} + \left[\frac{\Delta E-E_{\text{gap}}}{2} (1+x_{\text L,k-M/2}) + E_{\text{gap}}\right]/2&\text { otherwise }\end{cases}
+$$
+
+with conjugate weights:
+
+$$
+w_k = \begin{cases}
+\Delta E w_{\text{L},M/2-k+1} /2 &\text { if } k \leq M/2 \\
+\Delta E w_{\text{L},k-M/2} &\text { otherwise }
+\end{cases}
+$$
+
+**Parameters:**
+
+* $x_{\text{L},i}$ and $w_{\text{L},i}$: These represent the knot points and weights, respectively, obtained from Legendre quadrature over the interval $[-1,1]$. For this formulation, $M/2$ knots are used.
+* $E_{\text{F}}$: The Fermi level, which is typically set to 0 eV or the centre of the continuum band.
+* $M$: The total number of discretisation points. It is crucial that $M$ is an even number for this formulation to be valid.
+* $\Delta E$: The total width of the continuum band.
+* $E_{\text{gap}}$: The size of the band gap.
+
+
+
+##### Gapped discretisation examples
+To build a discretised bath with a gap in the middle, you can use the [`GapTrapezoidalRule`](@ref) or [`GapGaussLegendre`](@ref) methods.
+<p align="center">
+  <img src="../assets/system-bath-model/DOS_bath_discretisation_compare_test.svg" alt="Discretisation with a gap" style="display: block; margin: 0 auto;">
+</p>
+
+The Julia script to reproduce the above figure is available in the [plot_bath_DOS.jl](../assets/system-bath-model/plot_bath_DOS.jl).
+
+
 #### Windowed Discretisation
 > - `WindowedTrapezoidalRule()` implementation
 > - Detail WTR8 with coupling correction removed
@@ -113,3 +221,9 @@ Hokseon'job
 
 #### How to implement and develop your own discretisation
 
+
+## References
+
+[1] N. Shenvi, S. Roy, and J. C. Tully, "Nonadiabatic dynamics at metal surfaces: Independent-electron surface hopping," *J. Chem. Phys.* **130**, 174707 (2009). [DOI: 10.1063/1.3125436](https://doi.org/10.1063/1.3125436)
+
+[2] J. Gardner, D. Corken, S. M. Janke, S. Habershon, and R. J. Maurer, "Efficient implementation and performance analysis of the independent electron surface hopping method for dynamics at metal surfaces," *J. Chem. Phys.* **158**, 064101 (2023). [DOI: 10.1063/5.0137137](https://doi.org/10.1063/5.0137137)
