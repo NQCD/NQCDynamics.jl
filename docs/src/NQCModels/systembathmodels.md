@@ -80,6 +80,18 @@ $$
 
 Where $j=1,...,N_{b}$.
 
+<!-- This fucntion is in the code but hasn't been exported. -->
+<!-- An alternative Debye bath discretisation has also been implemented that includes an additional cuttoff frequency, `ωᵐ`. The inputs to this function are `AltDebyeSpectralDensity(ωᶜ,λ,ωᵐ)`.
+
+The set of frequencies and coupling coefficients are again generated for the number of discretised bath modes, $N_{b}$ provided.
+$$
+\begin{align}
+   \omega_{j} &= \omega_{c} \tan\left(j \frac{\arctan\left(\omega_{m}/\omega_{c}\right)}{N_{b}} \right) \\
+   c_{j} &= \sqrt{\frac{4 \lambda \arctan\left(\omega_{m}/\omega_{c}\right)}{\pi N_{b}}} \omega_{j}
+\end{align}
+$$
+
+Where $j=1,...,N_{b}$. -->
 
 ## Newns-Anderson model
 
