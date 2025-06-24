@@ -29,8 +29,8 @@ UnitfulAtomic = "a7773ee8-282e-5fa2-be4e-bd808c38a91a"
 [sources] # Change out all of these on release
 NQCDInterfASE = {url = "https://github.com/NQCD/NQCDInterfASE.jl"}
 NQCModels = {url = "https://github.com/NQCD/NQCModels.jl", rev = "standardising_input_types_in_NQCModels"}
-NNInterfaces = {rev = "main"}
-MACEModels = {rev = "mpi-fixes"}
+NNInterfaces = {url = "https://github.com/NQCD/NNInterfaces.jl", rev = "main"}
+MACEModels = {url = "https://github.com/NQCD/MACEModels.jl", rev = "mpi-fixes"}
 
 [compat]
 Documenter = "1"
