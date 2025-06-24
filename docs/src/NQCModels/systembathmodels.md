@@ -104,7 +104,12 @@ talk something about why we need this. good for the IESH.
 
 #### Discretisation with a gap
 Hokseon'job
-#### Your dicrestisation @mlarkin863
+#### Windowed Discretisation
+> - `WindowedTrapezoidalRule()` implementation
+> - Detail WTR8 with coupling correction removed
+> - This method allows for known energy regions of interest to be finely sampled without the detriment of long computation times that would arise from increasing the number of states in the discretisation
+> - Benefit when compared to a Gauss-Legendre discretisation scheme is that you can finely discretise a larger energy window than what is allowed by a Gauss-Legendre discretisation
+> - This discretisation method is important if you want to sample your electronic state occupations from a non-equilibrium electorn distribution, where there is more than one region of interest in the probability distribution (not just the Fermi Level).  
 
 #### How to implement and develop your own discretisation
 
