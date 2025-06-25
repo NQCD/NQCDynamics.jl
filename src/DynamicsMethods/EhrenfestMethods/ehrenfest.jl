@@ -43,16 +43,17 @@ end
 function DynamicsMethods.DynamicsVariables(
     sim::AbstractSimulation{<:AbstractEhrenfest}, v, r, electronic::ElectronicDistribution
 )
-    σ = DynamicsUtils.initialise_adiabatic_density_matrix(electronic, sim.calculator, r)
+    σ = DynamicsUtils.initialise_adiabatic_density_matrix(electronic, sim.cache, r)
     return ComponentVector(v=v, r=r, σreal=σ, σimag=zero(σ))
 end
 
 function DynamicsUtils.acceleration!(dv, v, r, sim::Simulation{<:Ehrenfest}, t, σ)
     fill!(dv, zero(eltype(dv)))
-    NQCModels.state_independent_derivative!(sim.calculator.model, dv, r)
+    NQCModels.state_independent_derivative!(sim.cache.model, dv, r)
     LinearAlgebra.lmul!(-1, dv)
 
-    adiabatic_derivative = Calculators.get_adiabatic_derivative(sim.calculator, r)
+    NQCCalculators.update_cache!(sim.cache, r) # Ensure adiabatic derivative is updated. 
+    adiabatic_derivative = NQCCalculators.get_adiabatic_derivative(sim.cache, r)
     @inbounds for i in mobileatoms(sim)
         for j in dofs(sim)
             for m in eachstate(sim)
@@ -73,7 +74,8 @@ end
 
 function Estimators.diabatic_population(sim::AbstractSimulation{<:AbstractEhrenfest}, u)
     r = DynamicsUtils.get_positions(u)
-    U = DynamicsUtils.evaluate_transformation(sim.calculator, r)
+    NQCDynamics.NQCCalculators.update_cache!(sim.cache, r) # Ensure eigenvecs needed for transformation are updated. 
+    U = DynamicsUtils.evaluate_transformation(sim.cache, r)
 
     σ = DynamicsUtils.get_quantum_subsystem(u)
 
@@ -81,9 +83,10 @@ function Estimators.diabatic_population(sim::AbstractSimulation{<:AbstractEhrenf
 end
 
 function DynamicsUtils.classical_potential_energy(sim::Simulation{<:Ehrenfest}, u)
-    eigs = Calculators.get_eigen(sim.calculator, DynamicsUtils.get_positions(u))
+    NQCDynamics.NQCCalculators.update_cache!(sim.cache, DynamicsUtils.get_positions(u)) # Ensure eigen are updated
+    eigs = NQCCalculators.get_eigen(sim.cache, DynamicsUtils.get_positions(u))
 
-    potential = NQCModels.state_independent_potential(sim.calculator.model, DynamicsUtils.get_positions(u))
+    potential = NQCModels.state_independent_potential(sim.cache.model, DynamicsUtils.get_positions(u))
     σ = DynamicsUtils.get_quantum_subsystem(u)
     for i in eachindex(eigs.values)
         potential += real(σ[i,i]) * eigs.values[i]

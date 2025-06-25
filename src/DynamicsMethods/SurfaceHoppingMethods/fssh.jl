@@ -50,7 +50,7 @@ function DynamicsMethods.DynamicsVariables(
     r,
     electronic::ElectronicDistribution,
 )
-    σ = DynamicsUtils.initialise_adiabatic_density_matrix(electronic, sim.calculator, r)
+    σ = DynamicsUtils.initialise_adiabatic_density_matrix(electronic, sim.cache, r)
     state = sample(Weights(diag(real.(σ))))
     r = r .|> Float64
     electronic_state = similar(r, 1)
@@ -65,7 +65,7 @@ function DynamicsMethods.DynamicsVariables(
 end
 
 function DynamicsUtils.acceleration!(dv, v, r, sim::AbstractSimulation{<:FSSH}, t, state)
-    adiabatic_derivative = Calculators.get_adiabatic_derivative(sim.calculator, r)
+    adiabatic_derivative = NQCCalculators.get_adiabatic_derivative(sim.cache, r)
     for I in eachindex(dv)
         dv[I] = -adiabatic_derivative[I][state, state]
     end
@@ -126,13 +126,13 @@ end
 Get the two states that we are hopping between.
 """
 function unpack_states(sim::AbstractSimulation{<:FSSH})
-    return (sim.method.new_state, sim.method.state)
+    return symdiff(sim.method.new_state, sim.method.state)
 end
 
 function Estimators.diabatic_population(sim::AbstractSimulation{<:FSSH}, u)
     int_state = convert(Int, first(u.state))
     r = DynamicsUtils.get_positions(u)
-    U = DynamicsUtils.evaluate_transformation(sim.calculator, r)
+    U = DynamicsUtils.evaluate_transformation(sim.cache, r)
 
     σ = copy(DynamicsUtils.get_quantum_subsystem(u).re)
     σ[diagind(σ)] .= 0
@@ -142,13 +142,13 @@ function Estimators.diabatic_population(sim::AbstractSimulation{<:FSSH}, u)
 end
 
 function Estimators.adiabatic_population(sim::AbstractSimulation{<:FSSH}, u)
-    population = zeros(NQCModels.nstates(sim.calculator.model))
+    population = zeros(NQCModels.nstates(sim.cache.model))
     population[convert(Int, first(u.state))] = 1
     return population
 end
 
 function DynamicsUtils.classical_potential_energy(sim::Simulation{<:FSSH}, u)
-    eigs = Calculators.get_eigen(sim.calculator, DynamicsUtils.get_positions(u))
+    eigs = NQCCalculators.get_eigen(sim.cache, DynamicsUtils.get_positions(u))
     potential = eigs.values[convert(Int, first(u.state))]
     return potential
 end

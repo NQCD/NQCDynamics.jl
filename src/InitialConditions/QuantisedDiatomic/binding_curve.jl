@@ -9,7 +9,7 @@ struct BindingCurve{T,B,F}
 end
 
 function calculate_binding_curve(
-    bond_lengths::AbstractVector, model::AdiabaticModel, environment::EvaluationEnvironment
+    bond_lengths::AbstractVector, model::ClassicalModel, environment::EvaluationEnvironment
 )
     potential = calculate_diatomic_energy.(bond_lengths, model, environment) # Calculate binding curve
     fit = fit_binding_curve(bond_lengths, potential)

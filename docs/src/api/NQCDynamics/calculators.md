@@ -2,10 +2,10 @@
 @info "Expanding src/api/NQCDynamics/calculators.md..."
 start_time = time()
 ```
-# Calculators
+# NQCCalculators
 
 ```@autodocs
-Modules=[NQCDynamics.Calculators]
+Modules=[NQCCalculators]
 ```
 ```@setup logging
 runtime = round(time() - start_time; digits=2)

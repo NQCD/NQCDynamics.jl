@@ -4,14 +4,13 @@ using Reexport: @reexport
 
 @reexport using NQCBase
 @reexport using NQCModels
+@reexport using NQCCalculators
 
 include("NumericUtils/FastDeterminant.jl")
 
 include("RingPolymers/RingPolymers.jl")
 @reexport using .RingPolymers
 @reexport using RingPolymerArrays
-
-include("Calculators/Calculators.jl")
 
 include("simulations.jl")
 export Simulation,

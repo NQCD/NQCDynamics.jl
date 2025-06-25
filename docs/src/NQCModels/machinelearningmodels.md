@@ -43,7 +43,7 @@ within NQCDynamics.jl:
 ```julia-repl
 using NQCModels;
 using NQCDInterfASE;
-model = AdiabaticASEModel(h2);
+model = ClassicalASEModel(h2);
 
 r = [0 0; 0 0; 0 ustrip(auconvert(0.74u"Å"))]
 
@@ -112,7 +112,7 @@ within NQCDynamics.jl:
 ```julia-repl
 using NQCModels;
 using NQCDInterfASE;
-model = AdiabaticASEModel(h2);
+model = ClassicalASEModel(h2);
 
 r = [0 0; 0 0; 0 ustrip(auconvert(0.74u"Å"))]
 

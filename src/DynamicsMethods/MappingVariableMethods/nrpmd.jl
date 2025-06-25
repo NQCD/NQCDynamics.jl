@@ -76,11 +76,11 @@ end
 
 function acceleration!(dv, u, sim::RingPolymerSimulation{<:NRPMD})
 
-    Calculators.evaluate_derivative!(sim.calculator, DynamicsUtils.get_positions(u))
+    NQCCalculators.update_derivative!(sim.cache, DynamicsUtils.get_positions(u))
     for I in CartesianIndices(dv)
         qmap = get_mapping_positions(u, I[3])
         pmap = get_mapping_momenta(u, I[3])
-        D = sim.calculator.derivative[I]
+        D = sim.cache.derivative[I]
         D̄ = tr(D) / nstates(sim)
         Dtraceless = D - Diagonal(fill(D̄, nstates(sim)))
         mul!(sim.method.temp_q, Dtraceless, qmap)
@@ -97,9 +97,9 @@ end
 
 function set_mapping_force!(du, u, sim::RingPolymerSimulation{<:NRPMD})
 
-    Calculators.evaluate_potential!(sim.calculator, DynamicsUtils.get_positions(u))
+    NQCCalculators.update_potential!(sim.cache, DynamicsUtils.get_positions(u))
     for i in range(sim.beads)
-        V = sim.calculator.potential[i]
+        V = sim.cache.potential[i]
         V̄ = tr(V) / nstates(sim)
         Vtraceless = V - Diagonal(fill(V̄, nstates(sim)))
         mul!(get_mapping_positions(du, i), Vtraceless, get_mapping_momenta(u, i))
@@ -125,9 +125,9 @@ function DynamicsUtils.classical_potential_energy(sim::RingPolymerSimulation{<:N
     r = DynamicsUtils.get_positions(u)
 
     potential = zero(eltype(u))
-    Calculators.evaluate_potential!(sim.calculator, r)
+    NQCCalculators.update_potential!(sim.cache, r)
     for i in range(sim.beads)
-        V = sim.calculator.potential[i]
+        V = sim.cache.potential[i]
         V̄ = tr(V) / nstates(sim)
         Vtraceless = V - Diagonal(fill(V̄, nstates(sim)))
         qmap = get_mapping_positions(u, i)

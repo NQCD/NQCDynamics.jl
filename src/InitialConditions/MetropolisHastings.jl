@@ -18,6 +18,7 @@ using Distributions: Normal
 using RingPolymerArrays: RingPolymerArrays
 
 using NQCBase: NQCBase, Atoms
+using NQCCalculators
 using NQCDynamics:
     NQCDynamics,
     AbstractSimulation,
@@ -27,7 +28,6 @@ using NQCDynamics:
     Estimators,
     DynamicsUtils,
     ndofs
-
 export run_monte_carlo_sampling
 
 abstract type MonteCarloParameters end
@@ -115,6 +115,7 @@ function run_monte_carlo_sampling(sim::Simulation, R0::Matrix{T},
     Rᵢ = copy(R0) # Current positions
     Rₚ = zero(Rᵢ) # Proposed positions
     monte = MonteCarlo{T}(Δ, length(sim.atoms), passes, fix, extra_function)
+    NQCCalculators.update_cache!(sim.cache, Rᵢ)
     monte.Eᵢ = DynamicsUtils.classical_potential_energy(sim, Rᵢ)
     output = MonteCarloOutput(Rᵢ, sim.atoms)
 
@@ -123,7 +124,8 @@ function run_monte_carlo_sampling(sim::Simulation, R0::Matrix{T},
     for key in keys(output.acceptance)
         output.acceptance[key] /= output.total_moves[key]
     end
-    output
+    NQCCalculators.update_cache!(sim.cache, R0)
+    return output
 end
 
 function run_monte_carlo_sampling(sim::RingPolymerSimulation, R0::AbstractArray{T,3},
@@ -133,6 +135,7 @@ function run_monte_carlo_sampling(sim::RingPolymerSimulation, R0::AbstractArray{
     Rᵢ = copy(R0) # Current positions
     Rₚ = zero(Rᵢ) # Proposed positions
     monte = PathIntegralMonteCarlo{T}(Δ, length(sim.atoms), passes, fix, segment, length(sim.beads), extra_function)
+    NQCCalculators.update_cache!(sim.cache, Rᵢ)
     monte.Eᵢ = DynamicsUtils.classical_potential_energy(sim, Rᵢ)
     output = MonteCarloOutput(Rᵢ, sim.atoms)
 
@@ -255,6 +258,7 @@ end
 Update the energy, check for acceptance, and update the output. 
 """
 function assess_proposal!(sim::AbstractSimulation, monte::MonteCarloParameters, Rᵢ, Rₚ, output, atom::Integer)
+    NQCCalculators.update_cache!(sim.cache, Rₚ)
     monte.Eₚ = DynamicsUtils.classical_potential_energy(sim, Rₚ)
     output.total_moves[sim.atoms.types[atom]] += 1
     if monte.extra_function(Rₚ)

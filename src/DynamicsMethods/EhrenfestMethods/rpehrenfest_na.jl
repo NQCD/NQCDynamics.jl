@@ -13,9 +13,9 @@ end
 function DynamicsUtils.acceleration!(dv, v, r, sim::RingPolymerSimulation{<:EhrenfestNA}, t, ψ)
     fill!(dv, zero(eltype(dv)))
 
-    adiabatic_derivative = Calculators.get_adiabatic_derivative(sim.calculator, r)
+    adiabatic_derivative = NQCCalculators.get_adiabatic_derivative(sim.cache, r)
     @inbounds for b in axes(dv, 3) # eachbead
-        @views NQCModels.state_independent_derivative!(sim.calculator.model, dv[:,:,b], r[:,:,b])
+        @views NQCModels.state_independent_derivative!(sim.cache.model, dv[:,:,b], r[:,:,b])
         for i in mobileatoms(sim) # eachatom
             for j in dofs(sim) # eachdof
                 for electron in eachelectron(sim)
@@ -36,12 +36,12 @@ end
 
 function DynamicsUtils.classical_potential_energy(sim::RingPolymerSimulation{<:EhrenfestNA}, u)
     r = DynamicsUtils.get_positions(u)
-    eigen = Calculators.get_eigen(sim.calculator, r)
+    eigen = NQCCalculators.get_eigen(sim.cache, r)
     ψ = DynamicsUtils.get_quantum_subsystem(u)
 
     potential = zero(eltype(r))
     for b in axes(r, 3) # eachbead
-        potential += NQCModels.state_independent_potential(sim.calculator.model, view(r,:,:,b))
+        potential += NQCModels.state_independent_potential(sim.cache.model, view(r,:,:,b))
         for electron in eachelectron(sim)
             for i in eachstate(sim)
                 potential += eigen[b].values[i] * abs2(ψ[i,electron])

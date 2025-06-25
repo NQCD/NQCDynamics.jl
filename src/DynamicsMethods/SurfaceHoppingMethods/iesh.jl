@@ -111,10 +111,13 @@ function DynamicsMethods.DynamicsVariables(sim::AbstractSimulation{<:AdiabaticIE
         """
     ))
 
+    NQCDynamics.NQCCalculators.update_cache!(sim.cache, tmp_r) # Ensure hopping eigenvalues are up to date
     eigenvalues = DynamicsUtils.get_hopping_eigenvalues(sim, tmp_r)
+
 
     available_states = DynamicsUtils.get_available_states(electronic.available_states, NQCModels.nstates(sim))
     state = DynamicsUtils.sample_fermi_dirac_distribution(eigenvalues, NQCModels.nelectrons(sim), available_states, electronic.β)
+    # state = DynamicsUtils.sample_fermi_dirac_distribution(eigenvalues, NQCModels.nelectrons(sim), available_states, electronic.β, electronic.fermi_level)
 
     ψ = zeros(NQCModels.nstates(sim), NQCModels.nelectrons(sim))
     for (i, j) in enumerate(state)
@@ -143,15 +146,16 @@ function DynamicsMethods.DynamicsVariables(sim::Simulation{<:AdiabaticIESH}, v, 
         """
     ))
 
+    #NQCDynamics.NQCCalculators.update_cache!(sim.cache, r) # Ensure potential is up to date
     available_states = get_available_states(electronic.available_states, NQCModels.nstates(sim))
 
-    potential = Calculators.get_potential(sim.calculator, r)
+    potential = NQCCalculators.get_potential(sim.cache, r)
     energies = @view potential[diagind(potential)]
 
     available_states = get_available_states(electronic.available_states, NQCModels.nstates(sim))
     diabatic_state = sample_fermi_dirac_distribution(energies, NQCModels.nelectrons(sim), available_states, electronic.β)
 
-    U = DynamicsUtils.evaluate_transformation(sim.calculator, r)
+    U = DynamicsUtils.evaluate_transformation(sim.cache, r)
 
     ψ = zeros(NQCModels.nstates(sim), NQCModels.nelectrons(sim))
     adiabatic_state = zeros(Int, NQCModels.nelectrons(sim))
@@ -184,10 +188,11 @@ See Eq. 12 of Shenvi, Tully JCP 2009 paper.
 """
 function DynamicsUtils.acceleration!(dv, v, r, sim::Simulation{<:AbstractIESH}, t, state)
     dv .= zero(eltype(dv))
-    NQCModels.state_independent_derivative!(sim.calculator.model, dv, r)
+    NQCModels.state_independent_derivative!(sim.cache.model, dv, r)
     LinearAlgebra.lmul!(-1, dv)
 
-    adiabatic_derivative = Calculators.get_adiabatic_derivative(sim.calculator, r)
+    NQCDynamics.NQCCalculators.update_cache!(sim.cache, r)
+    adiabatic_derivative = NQCCalculators.get_adiabatic_derivative(sim.cache, r)
     @inbounds for i in mobileatoms(sim)
         for j in dofs(sim)
             for k in state
@@ -328,7 +333,7 @@ end
 function Estimators.diabatic_population(sim::Simulation{<:AdiabaticIESH}, u)
     ψ = DynamicsUtils.get_quantum_subsystem(u).re
 
-    eigen = Calculators.get_eigen(sim.calculator, DynamicsUtils.get_positions(u))
+    eigen = NQCCalculators.get_eigen(sim.cache, DynamicsUtils.get_positions(u))
     transformation = eigen.vectors
     
     return iesh_diabatic_population(ψ, transformation, convert(Vector{Int},u.state))
@@ -360,8 +365,8 @@ function iesh_diabatic_population(ψ::AbstractMatrix, transformation::AbstractMa
 end
 
 function Estimators.adiabatic_population(sim::Simulation{<:AdiabaticIESH}, u)
-    population = zeros(NQCModels.nstates(sim.calculator.model))
-    population[u.state] .= 1 # ?? this must hav ebeen copied over from FSSH as it assumes that state is an integer 
+    population = zeros(NQCModels.nstates(sim.cache.model))
+    population[u.state] .= 1
     return population
 end
 
@@ -369,8 +374,9 @@ unpack_states(sim::AbstractSimulation{<:AbstractIESH}) = symdiff(sim.method.new_
 ishoppingdisabled(method::AbstractIESH) = method.disable_hopping
 
 function DynamicsUtils.classical_potential_energy(sim::Simulation{<:AbstractIESH}, u)
-    eigen = Calculators.get_eigen(sim.calculator, DynamicsUtils.get_positions(u))
-    potential = NQCModels.state_independent_potential(sim.calculator.model, DynamicsUtils.get_positions(u))
+    NQCCalculators.update_cache!(sim.cache, DynamicsUtils.get_positions(u)) # Ensure eigen is populated
+    eigen = NQCCalculators.get_eigen(sim.cache, DynamicsUtils.get_positions(u))
+    potential = NQCModels.state_independent_potential(sim.cache.model, DynamicsUtils.get_positions(u))
     for i in convert(Vector{Int},u.state)
         potential += eigen.values[i]
     end
@@ -422,7 +428,7 @@ end
 function iesh_apply_decoherence_correction_edc!(integrator)
     sim = integrator.p
     dt = OrdinaryDiffEq.get_proposed_dt(integrator)
-    eigen = Calculators.get_eigen(sim.calculator, DynamicsUtils.get_positions(integrator.u))
+    eigen = NQCCalculators.get_eigen(sim.cache, DynamicsUtils.get_positions(integrator.u))
     Ekin = DynamicsUtils.classical_kinetic_energy(sim, integrator.u)
     ψ = DynamicsUtils.get_quantum_subsystem(integrator.u)
     @views for (i, state) in enumerate(sim.method.state)

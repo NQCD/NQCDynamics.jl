@@ -28,9 +28,9 @@ function OrdinaryDiffEq.OrdinaryDiffEqSymplecticRK.verify_f2(f, res, p, q, pa, t
     res == p ? res : OrdinaryDiffEq.OrdinaryDiffEqSymplecticRK.throwex(integrator)
 end
 
-function OrdinaryDiffEq.initialize!(integrator, cache::BCBCache)
-    integrator.fsalfirst = cache.fsalfirst
-    integrator.fsallast = cache.k
+function OrdinaryDiffEq.initialize!(integrator, integrator_cache::BCBCache)
+    integrator.fsalfirst = integrator_cache.fsalfirst
+    integrator.fsallast = integrator_cache.k
   
     integrator.kshortsize = 2
     resize!(integrator.k, integrator.kshortsize)
@@ -39,12 +39,12 @@ function OrdinaryDiffEq.initialize!(integrator, cache::BCBCache)
   
     duprev,uprev = integrator.uprev.x
     integrator.f.f1(integrator.k[2].x[1],duprev,uprev,integrator.p,integrator.t)
-    OrdinaryDiffEq.OrdinaryDiffEqSymplecticRK.verify_f2(integrator.f.f2, integrator.k[2].x[2], duprev, uprev, integrator.p, integrator.t, integrator, cache)
+    OrdinaryDiffEq.OrdinaryDiffEqSymplecticRK.verify_f2(integrator.f.f2, integrator.k[2].x[2], duprev, uprev, integrator.p, integrator.t, integrator, integrator_cache)
 end
 
-@muladd function OrdinaryDiffEq.perform_step!(integrator, cache::BCBCache, repeat_step=false)
+@muladd function OrdinaryDiffEq.perform_step!(integrator, integrator_cache::BCBCache, repeat_step=false)
     @unpack t, dt, p = integrator
-    (;cayley, halfdt) = cache
+    (;cayley, halfdt) = integrator_cache
 
     vprev, rprev, acceleration = OrdinaryDiffEq.OrdinaryDiffEqSymplecticRK.load_symp_state(integrator)
     v, r, vtmp = OrdinaryDiffEq.OrdinaryDiffEqSymplecticRK.alloc_symp_state(integrator)
@@ -65,5 +65,5 @@ end
 
     step_B!(v, vtmp, halfdt, acceleration)
 
-    OrdinaryDiffEq.OrdinaryDiffEqSymplecticRK.store_symp_state!(integrator, cache, acceleration, v)
+    OrdinaryDiffEq.OrdinaryDiffEqSymplecticRK.store_symp_state!(integrator, integrator_cache, acceleration, v)
 end
