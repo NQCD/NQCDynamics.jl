@@ -67,10 +67,10 @@ end
 
 function DynamicsUtils.acceleration!(dv, v, r, sim::Simulation{<:EhrenfestNA}, t, ψ)
     fill!(dv, zero(eltype(dv)))
-    NQCModels.state_independent_derivative!(sim.calculator.model, dv, r)
+    NQCModels.state_independent_derivative!(sim.cache.model, dv, r)
     LinearAlgebra.lmul!(-1, dv)
 
-    adiabatic_derivative = Calculators.get_adiabatic_derivative(sim.calculator, r)
+    adiabatic_derivative = NQCCalculators.get_adiabatic_derivative(sim.cache, r)
     @inbounds for i in mobileatoms(sim)
         for j in dofs(sim)
             for electron in eachelectron(sim)
@@ -98,8 +98,8 @@ function DynamicsUtils.set_quantum_derivative!(dσ, u, sim::AbstractSimulation{<
 end
 
 function DynamicsUtils.classical_potential_energy(sim::Simulation{<:EhrenfestNA}, u)
-    eigen = Calculators.get_eigen(sim.calculator, DynamicsUtils.get_positions(u))
-    potential = NQCModels.state_independent_potential(sim.calculator.model, DynamicsUtils.get_positions(u))
+    eigen = NQCCalculators.get_eigen(sim.cache, DynamicsUtils.get_positions(u))
+    potential = NQCModels.state_independent_potential(sim.cache.model, DynamicsUtils.get_positions(u))
     ψ = DynamicsUtils.get_quantum_subsystem(u)
 
     for electron in eachelectron(sim)

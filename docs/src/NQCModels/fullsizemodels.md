@@ -10,7 +10,7 @@ start_time = time()
 The easiest way to obtain potentials and forces from established codes is to
 use the interfaces implemented in [ASE](https://wiki.fysik.dtu.dk/ase/).
 
-We provide the [`AdiabaticASEModel`](@ref) which wraps an ASE atoms object and its
+We provide the [`ClassicalASEModel`](@ref) which wraps an ASE atoms object and its
 associated calculator to implement the required [`potential`](@ref) and
 [`derivative`](@ref) functions.
 Several examples for connecting common machine-learning interatomic potentials to NQCModels.jl through the ASE interface are shown in the [MLIP examples](@ref ml-pes-models) section.
@@ -42,13 +42,13 @@ h2.calc = emt.EMT()
 nothing # hide
 ```
 
-Next, the [`AdiabaticASEModel`](@ref) is created by passing the `ase.Atoms` object directly
+Next, the [`ClassicalASEModel`](@ref) is created by passing the `ase.Atoms` object directly
 to the model:
 
 ```@repl ase
 using NQCModels
 using NQCDInterfASE # This module contains all Python interface functionality. 
-model = AdiabaticASEModel(h2)
+model = ClassicalASEModel(h2)
 ```
 
 Now the model can be used in the same way as any of the previously introduced
@@ -64,7 +64,7 @@ derivative(model, rand(3, 2))
     In theory, this should work with any of the ASE calculators that correctly implement
     the `get_potential_energy` and `get_forces` functions. For instance, you can use
     [SchNetPack (SPK)](https://github.com/atomistic-machine-learning/schnetpack) by
-    passing their ASE calculator to the `AdiabaticASEModel`.
+    passing their ASE calculator to the `ClassicalASEModel`.
     Take a look at [MLIP examples](@ref ml-pes-models) to learn more.
 
 ## MACE interface

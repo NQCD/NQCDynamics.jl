@@ -1,9 +1,9 @@
 using OrdinaryDiffEq: OrdinaryDiffEqAlgorithm, OrdinaryDiffEqMutableCache, update_coefficients!
 using OrdinaryDiffEq.OrdinaryDiffEqCore: get_fsalfirstlast
 using SciMLBase: SciMLBase, set_ut!
-using NQCDynamics: Calculators
 using NQCDynamics: DynamicsUtils
 using .DynamicsUtils: acceleration!, get_positions, get_velocities, get_quantum_subsystem
+using NQCCalculators
 
 mutable struct VerletwithElectronicsCache{uType,vType,rateType} <: OrdinaryDiffEq.OrdinaryDiffEqMutableCache
     u::uType
@@ -25,21 +25,21 @@ function OrdinaryDiffEq.alg_cache(::VerletwithElectronics,u,rate_prototype,::Typ
     VerletwithElectronicsCache(u, uprev, tmp, vtmp, k)
 end
 
-function OrdinaryDiffEq.initialize!(integrator, cache::VerletwithElectronicsCache)
+function OrdinaryDiffEq.initialize!(integrator, integrator_cache::VerletwithElectronicsCache)
     r = DynamicsUtils.get_positions(integrator.u)
     v = DynamicsUtils.get_velocities(integrator.u)
-    Calculators.update_electronics!(integrator.p.calculator, r)
+    NQCCalculators.update_cache!(integrator.p.cache, r)
     if integrator.p.method isa DynamicsMethods.SurfaceHoppingMethods.AbstractIESH
-        DynamicsUtils.acceleration!(cache.k, v, r, integrator.p, integrator.t, integrator.p.method.state)
+        DynamicsUtils.acceleration!(integrator_cache.k, v, r, integrator.p, integrator.t, integrator.p.method.state)
     elseif integrator.p.method isa DynamicsMethods.EhrenfestMethods.EhrenfestNA
         ψ = DynamicsUtils.get_quantum_subsystem(integrator.u)
-        DynamicsUtils.acceleration!(cache.k, v, r, integrator.p, integrator.t, ψ)
+        DynamicsUtils.acceleration!(integrator_cache.k, v, r, integrator.p, integrator.t, ψ)
     end
 end
 
-@muladd function OrdinaryDiffEq.perform_step!(integrator, cache::VerletwithElectronicsCache, repeat_step=false)
+@muladd function OrdinaryDiffEq.perform_step!(integrator, integrator_cache::VerletwithElectronicsCache, repeat_step=false)
     @unpack t, dt, uprev, u, p = integrator
-    @unpack k, vtmp = cache
+    @unpack k, vtmp = integrator_cache
 
     rprev = DynamicsUtils.get_positions(uprev)
     vprev = DynamicsUtils.get_velocities(uprev)
@@ -56,7 +56,7 @@ end
     step_B!(vtmp, vprev, dt/2, k) # vtmp = v(t) + 0.5*a(t)*Δt
     step_A!(rfinal, rprev, dt, vtmp) # x(t) + vtmp*Δt == x(t) + v(t)*Δt + 0.5*a(t)*Δt^2
 
-    Calculators.update_electronics!(p.calculator, rfinal)
+    NQCCalculators.update_cache!(p.cache, rfinal)
     if integrator.p.method isa DynamicsMethods.SurfaceHoppingMethods.AbstractIESH # update acceleration:  k <- a(t + Δt)
         DynamicsUtils.acceleration!(k, vtmp, rfinal, p, t, p.method.state)
     elseif integrator.p.method isa DynamicsMethods.EhrenfestMethods.EhrenfestNA
@@ -100,16 +100,16 @@ function OrdinaryDiffEq.alg_cache(alg::VerletwithElectronics2,u,rate_prototype,:
     VerletwithElectronics2Cache(u, uprev, tmp, vtmp, k, electronic_integrator)
 end
 
-function OrdinaryDiffEq.initialize!(integrator, cache::VerletwithElectronics2Cache)
+function OrdinaryDiffEq.initialize!(integrator, integrator_cache::VerletwithElectronics2Cache)
     r = get_positions(integrator.u)
     v = get_velocities(integrator.u)
-    Calculators.update_electronics!(integrator.p.calculator, r)
-    acceleration!(cache.k, v, r, integrator.p, integrator.t, integrator.p.method.state)
+    NQCCalculators.update_cache!(integrator.p.cache, r)
+    acceleration!(integrator_cache.k, v, r, integrator.p, integrator.t, integrator.p.method.state)
 end
 
-@muladd function OrdinaryDiffEq.perform_step!(integrator, cache::VerletwithElectronics2Cache, repeat_step=false)
+@muladd function OrdinaryDiffEq.perform_step!(integrator, integrator_cache::VerletwithElectronics2Cache, repeat_step=false)
     @unpack t, dt, uprev, u, p = integrator
-    @unpack k, vtmp, electronic_integrator = cache
+    @unpack k, vtmp, electronic_integrator = integrator_cache
     sim = p
 
     rprev = get_positions(uprev)
@@ -124,8 +124,8 @@ end
     acceleration!(k, vtmp, rfinal, p, t, p.method.state)
     step_B!(vfinal, vtmp, dt/2, k)
 
-    d = Calculators.get_nonadiabatic_coupling(sim.calculator, rfinal)
-    vals = Calculators.get_eigen(sim.calculator, rfinal).values
+    d = NQCCalculators.get_nonadiabatic_coupling(sim.cache, rfinal)
+    vals = NQCCalculators.get_eigen(sim.cache, rfinal).values
     DynamicsMethods.update_parameters!(electronic_integrator.p, vals, d, vfinal, t+dt)
 
     for i in axes(get_quantum_subsystem(u), 2)
