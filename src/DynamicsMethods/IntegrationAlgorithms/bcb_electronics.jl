@@ -35,22 +35,22 @@ function OrdinaryDiffEq.alg_cache(alg::BCBwithTsit5,u,rate_prototype,::Type{uElt
     BCBwithTsit5Cache(u, uprev, tmp, rtmp, vtmp, k, cayley, electronic_integrator)
 end
 
-function OrdinaryDiffEq.initialize!(integrator, cache::BCBwithTsit5Cache)
+function OrdinaryDiffEq.initialize!(integrator, integrator_cache::BCBwithTsit5Cache)
 
     r = DynamicsUtils.get_positions(integrator.u)
     v = DynamicsUtils.get_velocities(integrator.u)
     σprev = DynamicsUtils.get_quantum_subsystem(integrator.u)
-    Calculators.update_electronics!(integrator.p.calculator, r)
+    NQCCalculators.update_cache!(integrator.p.cache, r)
     if integrator.p.method isa DynamicsMethods.EhrenfestMethods.AbstractEhrenfest
-        DynamicsUtils.acceleration!(cache.k, v, r, integrator.p, integrator.t, σprev)
+        DynamicsUtils.acceleration!(integrator_cache.k, v, r, integrator.p, integrator.t, σprev)
     elseif integrator.p.method isa DynamicsMethods.SurfaceHoppingMethods.SurfaceHopping
-        DynamicsUtils.acceleration!(cache.k, v, r, integrator.p, integrator.t, integrator.p.method.state)
+        DynamicsUtils.acceleration!(integrator_cache.k, v, r, integrator.p, integrator.t, integrator.p.method.state)
     end
 end
 
-@muladd function OrdinaryDiffEq.perform_step!(integrator, cache::BCBwithTsit5Cache, repeat_step=false)
+@muladd function OrdinaryDiffEq.perform_step!(integrator, integrator_cache::BCBwithTsit5Cache, repeat_step=false)
     @unpack t, dt, uprev, u, p = integrator
-    @unpack k, rtmp, vtmp, cayley, electronic_integrator = cache
+    @unpack k, rtmp, vtmp, cayley, electronic_integrator = integrator_cache
 
     rprev = DynamicsUtils.get_positions(uprev)
     vprev = DynamicsUtils.get_velocities(uprev)
@@ -68,7 +68,7 @@ end
     RingPolymerArrays.transform_from_normal_modes!(rtmp, p.beads.transformation)
     RingPolymerArrays.transform_from_normal_modes!(vtmp, p.beads.transformation)
 
-    Calculators.update_electronics!(p.calculator, rtmp)
+    NQCCalculators.update_cache!(p.cache, rtmp)
     if p.method isa DynamicsMethods.EhrenfestMethods.AbstractEhrenfest
         DynamicsUtils.acceleration!(k, vtmp, rtmp, p, t, σprev)
     elseif p.method isa DynamicsMethods.SurfaceHoppingMethods.SurfaceHopping
@@ -78,8 +78,8 @@ end
 
     copyto!(rfinal, rtmp)
 
-    d = Calculators.get_centroid_nonadiabatic_coupling(p.calculator, rfinal)
-    vals = Calculators.get_centroid_eigen(p.calculator, rfinal).values
+    d = NQCCalculators.get_centroid_nonadiabatic_coupling(p.cache, rfinal)
+    vals = NQCCalculators.get_centroid_eigen(p.cache, rfinal).values
     DynamicsMethods.update_parameters!(
         electronic_integrator.p,
         vals,

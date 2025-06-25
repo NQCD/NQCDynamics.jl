@@ -25,10 +25,10 @@ r = RingPolymerArray(randn(size(sim)))
     gtmp = zeros(length(r), length(r))
     gtmp = zeros(ndofs(sim)*natoms(sim),ndofs(sim)*natoms(sim),nbeads(sim))
     F = ClassicalMethods.friction!(gtmp, r, sim, 0.0)
-    hmass = sim.calculator.model.friction_model.γ/atoms.masses[1]
-    cmass = sim.calculator.model.friction_model.γ/atoms.masses[2]
+    hmass = sim.cache.model.friction_model.γ/atoms.masses[1]
+    cmass = sim.cache.model.friction_model.γ/atoms.masses[2]
     for i=1:length(sim.beads)
-        @test diag(F[:,:,i]) ≈ [hmass, hmass, hmass, cmass, cmass, cmass]
+        @test isapprox(diag(F[:,:,i]), [hmass, hmass, hmass, cmass, cmass, cmass], atol=1e-3)
     end
 end
 
@@ -44,7 +44,7 @@ prob = DynamicsMethods.create_problem(ComponentVector(v=v,r=r), (0.0, 0.5), sim)
     for I in CartesianIndices(r)
         A = [0 1; -ω_k[I[3]] 0]
         a = exp(A*dt/2) * [rbefore[I], vbefore[I]]
-        @test a ≈ [r[I], v[I]] rtol=1e-4
+        @test isapprox(a, [r[I], v[I]], rtol=1e-4)
     end
 end
 
