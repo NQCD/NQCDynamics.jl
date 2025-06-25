@@ -1,3 +1,12 @@
+---
+title: "bra-ket"
+header-includes:
+- \usepackage{braket}
+
+output:
+  pdf_document: 
+       latex_engine: xelatex
+---
 ```@setup logging
 @info "Expanding src/NQCModels/frictionmodels.md..."
 start_time = time()
@@ -38,11 +47,11 @@ classDef function fill:#D22E4E,color:#F2BE40
 
 ## [NQCModels.FrictionModels](@ref)
 
-NQCModels.jl contains the basic type definitions for Adiabatic and Diabatic friction models. 
+NQCModels.jl contains the basic type definitions for friction models designed to be paired with Classical and Quantum models. 
 
-### Adiabatic friction models
+### Classical friction models
 
-Every Adiabatic friction model should be a subtype of [`FrictionModels.ElectronicFrictionProvider`](@ref), which describes anything that can fill a `n_atoms * n_dofs` square matrix with an electronic friction tensor. 
+Every Classical friction model should be a subtype of [`FrictionModels.ElectronicFrictionProvider`](@ref), which describes anything that can fill a `n_atoms * n_dofs` square matrix with an electronic friction tensor. 
 
 As LDFA models are only expected to fill the diagonals of the electronic friction tensor, LDFA models can be a `DiagonalFriction` type, which enables the integration algorithms used by a `DynamicsMethod` to dispatch
 a `Diagonal` matrix type for greater computational efficiency. 
@@ -79,17 +88,17 @@ as a function of the Wigner-Seitz radius.
 If a friction model is a subtype of [`NQCModels.FrictionModels.TensorialFriction`](@ref), it should provide a full-rank friction matrix with a `get_friction_matrix` function. 
 NQCModels contains `ConstantFriction` and `RandomFriction` models which do this. 
 
-### Diabatic Friction models
+### Quantum Friction models
 
 Since *ab initio* friction calculations are often expensive it is useful to
 have some models that we can use to test different friction methods.
-The [`DiabaticFrictionModel`](@ref NQCModels.DiabaticModels.DiabaticFrictionModel)
-is the abstract type that groups together the diabatic models for which electronic friction can be evaluated.
-These have many electronic states, modelling the electronic structure characteristic of a metal. 
+The [`QuantumFrictionModel`](@ref NQCModels.QuantumModels.QuantumFrictionModel)
+is the abstract type that groups together the quantum models for which electronic friction can be evaluated.
+These have and explicit electronic bath, modelling the electronic structure characteristic of a metal. 
 The friction is calculated for these models directly from the nonadiabatic couplings
 with the equation:
 ```math
-γ = 2\pi\hbar \sum_j <1|dH|j><j|dH|1> \delta(\omega_j) / \omega_j
+γ = 2\pi\hbar \sum_j \braket{1|dH|j}\braket{j|dH|1} \delta(\omega_j) / \omega_j
 ```
 where the delta function is approximated by a normalised Gaussian function and the sum
 runs over the adiabatic states ([Box2021](@cite)).
