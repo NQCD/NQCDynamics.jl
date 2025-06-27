@@ -32,6 +32,7 @@ The set of coupling coefficients ($\mathbf{c} = \{c\}$) and frequencies ($\mathb
 
 When defining the Spin-Boson model, 4 arguments are provided to the function:
 ```julia
+using NQCModels
 SpinBoson(density::SpectralDensity, N::Integer, ϵ, Δ)
 ```
 The first 2 arguments given detail the bath discretiation, the first being the type of bath, the second (`N`) indicates the number of discretised bath modes. From these arguements, the bath discretisation functions can return the set of frequencies , $\Omega$ and coupling coefficients for each harmonic mode $j$.
@@ -169,7 +170,7 @@ The **Wide Band Limit (WBL)** is a common approximation which considers the bath
 This allows in the case of direct discretisation of the bath spectral density function, $J(\varepsilon)$, that the coupling associated with each state is simply equivalent to the energy spacing between itself and its neighbouring state.
 
 #### Discretisation with constant spacing
-The simpliest choice for discretising the bath spectral density is to represent the bath as a set of `N` evenly spaced energy states according to a trapezoidal integration rule. The discretised couplings, $V_{n}$, are therefore given by:
+The simpliest choice for discretising the bath spectral density is to represent the bath as a set of `N` evenly spaced energy states according to a trapezoidal integration rule. The discretised coupling elements, $V_{n}$, are therefore given by:
 $$
 \left| V_{n} \right|^{2} = \left| V(\varepsilon_{n}) \right|^{2} \Delta \varepsilon_{n}
 $$
@@ -181,6 +182,28 @@ When making the Wide Band Limit approximation however, the coupling function is 
 $$
 \left| V_{n} \right|^{2} \approx \Delta \varepsilon_{n}
 $$
+
+This is implemented as `TrapezoidalRule()` which takes the following arguements:
+```julia
+using NQCModels
+TrapezoidalRule(M, bandmin, bandmax)
+```
+Where:
+ - `M` = number of discretised bath states to be generated
+ - `bandmin` / `bandmax` = miniumum / maximum energies that define the bath energy range
+
+The discretised bath energy states, $\varepsilon_{n}$, and coupling elements, $V_{n}$, are calculated as follows:
+$$
+\begin{align*}
+   \varepsilon_{n} &= a + \frac{(n - 1)(b - 1)}{M} \\
+   V_{n} &= V(\varepsilon_{n})\sqrt{(b-a)/M} = \Delta \varepsilon_{n}
+\end{align*}
+$$ 
+Where:
+ - $n$ = index of the discretised state
+ - $a$ = minimum energy of bath discretisation (`bandmin`)
+ - $b$ = maximum energy of bath discretisation (`bandmax`)
+
 This discretisation method is effective and given enough states will always accurately represent the spectral density, but methods such as IESH using this discretisation scheme will suffer from long computation times as the number of bath states $N$ increases. 
 
 >[!note]
