@@ -309,7 +309,31 @@ To build a discretised bath with a gap in the middle, you can use the [`GapTrape
 The Julia script to reproduce the above figure is available in the [plot_bath_DOS.jl](../assets/system-bath-model/plot_bath_DOS.jl).
 
 
-#### Windowed Discretisation
+#### Discretisation with a "Window" region
+The windowed discretisation method generates a dense region of states within a user specified energy "window", and a sparse discretisation elsewhere. The density of this region is controlled through an optional keyword parameter `densityratio` which takes a default value of `0.5`. This is defined as the ratio $N_{\textrm{States in Window}} / N_{\textrm{Total States}}$. 
+
+This discretisation is selected for by the function `WindowedTrapezoidalRule()` which takes the following arguements:
+```julia
+using NQCModels
+WindowedTrapezoidalRule(M, bandmin, bandmax, windmin, windmax, densityratio=0.50)
+``` 
+Where:
+ - `M` = number discretised bath states
+ - `bandmin` / `bandmax` = minimum / maximum values of bath discretisation energy range
+ - `windmin` / `windmax` = minimum / maximum energy values of window region in bath discretisation
+ - `densityratio` = ratio between the number of states in the window region to the total number of discretised bath states
+
+
+The discretised bath states  and the associated couplings in both regions are calculated according to the trapezoidal rule:
+$$
+\begin{align*}
+   \varepsilon_{n} &= \\ 
+   V_{n} &= 
+\end{align*}
+$$
+
+This method allows the user to finely discretise the electronic bath states over a larger energy range than can be achieved with the Gauss-Legendre quadrature method, without resorting to use a trapezoidal rule discretisation with many states. Hence, saving computation time. The motivation for such a discretisation was to provide a better energy grid for the bath such that a non-equlibrium electronic distribution with a complex shape could be more accurately sampled from. 
+
 > - `WindowedTrapezoidalRule()` implementation
 > - Detail WTR8 with coupling correction removed
 > - This method allows for known energy regions of interest to be finely sampled without the detriment of long computation times that would arise from increasing the number of states in the discretisation
