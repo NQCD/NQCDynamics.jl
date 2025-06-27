@@ -36,7 +36,7 @@ SpinBoson(density::SpectralDensity, N::Integer, ϵ, Δ)
 ```
 The first 2 arguments given detail the bath discretiation, the first being the type of bath, the second (`N`) indicates the number of discretised bath modes. From these arguements, the bath discretisation functions can return the set of frequencies , $\Omega$ and coupling coefficients for each harmonic mode $j$.
 
-The final 2 arguments `ϵ` and `Δ` define information about the 2 state system coupling to the bath. `ϵ` provides the energy bias between the two states and `Δ` the coupling between them (also referred to as the tunneling matrix element).
+The final 2 arguments `ϵ` and `Δ` define information about the 2 state system coupling to the bath. `ϵ` provides the energy bias between the two states and `Δ` the coupling between them (also referred to as the tunneling matrix element) [3].
 
 Discretisations of the spectral density function have be implemented for two of the bath types that are prevelant in literature.
  - **Ohmic** bath (`OhmicSpectralDensity()`)
@@ -224,6 +224,8 @@ The Julia script to reproduce the above figure is available in the [plot_bath_DO
 
 ## References
 
-[1] N. Shenvi, S. Roy, and J. C. Tully, "Nonadiabatic dynamics at metal surfaces: Independent-electron surface hopping," *J. Chem. Phys.* **130**, 174707 (2009). [DOI: 10.1063/1.3125436](https://doi.org/10.1063/1.3125436)
+[1] N. Shenvi, S. Roy, and J. C. Tully, "Nonadiabatic dynamics at metal surfaces: Independent-electron surface hopping", *J. Chem. Phys.* **130**, 174707 (2009). [DOI: 10.1063/1.3125436](https://doi.org/10.1063/1.3125436)
 
-[2] J. Gardner, D. Corken, S. M. Janke, S. Habershon, and R. J. Maurer, "Efficient implementation and performance analysis of the independent electron surface hopping method for dynamics at metal surfaces," *J. Chem. Phys.* **158**, 064101 (2023). [DOI: 10.1063/5.0137137](https://doi.org/10.1063/5.0137137)
+[2] J. Gardner, D. Corken, S. M. Janke, S. Habershon, and R. J. Maurer, "Efficient implementation and performance analysis of the independent electron surface hopping method for dynamics at metal surfaces", *J. Chem. Phys.* **158**, 064101 (2023). [DOI: 10.1063/5.0137137](https://doi.org/10.1063/5.0137137)
+
+[3] X. He and J. Liu, "A new perspective for nonadiabatic dynamics with phase space mapping models", *J. Chem. Phys.* **151**, 024105 (2019). [DOI: 10.1063/1.5108736](https://doi.org/10.1063/1.5108736)
