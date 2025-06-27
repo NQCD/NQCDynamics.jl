@@ -167,21 +167,10 @@ Where $V_{n}$ is the coupling contribution at state n.
  
 #### Discretisation under wide band limit
 The **Wide Band Limit (WBL)** is a common approximation which considers the bath spectral density to be constant over a wide range of energies.
-This allows in the case of direct discretisation of the bath spectral density function, $J(\varepsilon)$, that the coupling associated with each state is simply equivalent to the energy spacing between itself and its neighbouring state.
+This allows in the case of direct discretisation of the bath spectral density function, $J(\varepsilon)$, that the coupling associated with each state is simply related to the energy spacing between itself and its neighbouring state.
 
 #### Discretisation with constant spacing
-The simpliest choice for discretising the bath spectral density is to represent the bath as a set of `N` evenly spaced energy states according to a trapezoidal integration rule. The discretised coupling elements, $V_{n}$, are therefore given by:
-$$
-\left| V_{n} \right|^{2} = \left| V(\varepsilon_{n}) \right|^{2} \Delta \varepsilon_{n}
-$$
-Where:
- - $\Delta \varepsilon_{n}$ is the spacing between the $n$ discretised energy states 
- - $V(\varepsilon_{n})$ is the coupling function evaluated at the $n$ discretised energy states
- 
-When making the Wide Band Limit approximation however, the coupling function is independent of energy, $\varepsilon$. Taking $V(\varepsilon_{n})$ as an arbitrary constant allow the simplification:
-$$
-\left| V_{n} \right|^{2} \approx \Delta \varepsilon_{n}
-$$
+The simpliest choice for discretising the bath spectral density is to represent the bath as a set of `N` evenly spaced energy states according to a trapezoidal integration rule. 
 
 This is implemented as `TrapezoidalRule()` which takes the following arguements:
 ```julia
@@ -196,20 +185,69 @@ The discretised bath energy states, $\varepsilon_{n}$, and coupling elements, $V
 $$
 \begin{align*}
    \varepsilon_{n} &= a + \frac{(n - 1)(b - 1)}{M} \\
-   V_{n} &= V(\varepsilon_{n})\sqrt{(b-a)/M} = \Delta \varepsilon_{n}
+   V_{n} &= V(\varepsilon_{n})\sqrt{(b-a)/M} = \sqrt{\Delta \varepsilon_{n}}
 \end{align*}
 $$ 
 Where:
  - $n$ = index of the discretised state
  - $a$ = minimum energy of bath discretisation (`bandmin`)
  - $b$ = maximum energy of bath discretisation (`bandmax`)
+ - $M$ = number of bath states in the discretisation (`M`)
+ - $\Delta \varepsilon_{n}$ is the spacing between the $n$ discretised energy states 
+ - $V(\varepsilon_{n})$ is the coupling function evaluated at the $n$ discretised energy states
 
-This discretisation method is effective and given enough states will always accurately represent the spectral density, but methods such as IESH using this discretisation scheme will suffer from long computation times as the number of bath states $N$ increases. 
+When making the Wide Band Limit approximation however, the coupling function, $V(\varepsilon)$, is independent of energy, $\varepsilon$. Taking $V(\varepsilon_{n})$ as an arbitrary constant allows the simplification:
+$$
+\left| V_{n} \right|^{2} = \left| V(\varepsilon_{n}) \right|^{2} \Delta \varepsilon_{n} \approx \Delta \varepsilon_{n}
+$$
+
+This discretisation method is effective and given enough states will always accurately represent the spectral density, but methods such as IESH using this discretisation scheme will suffer from long computation times as the number of bath states $M$ increases. 
 
 >[!note]
-Typically keeping $N<100$ for this discretisation scheme is sensible.
+Typically keeping $M<100$ for this discretisation scheme is sensible.
 
 #### Discretisation by Gauss-Legendre quadrature
+To address the computational scaling issues with constant spacing methods, and allow for both low and high energy regions to be accurately described simultaneously, a discretisation of the spectral density function integral was generated using Gauss-Legendre quadrature to determine:
+ - energy states ($\varepsilon_{n}$) $\leftarrow$ rescaled nodes ($\epsilon_{n}$)
+ - coupling elements ($V_{n}$) $\leftarrow$ rescaled weights ($\tilde{w}_{n}$) 
+
+
+>[!note]
+> The rescaled weights here $\tilde{w}_{n}$, fill the role of $\Delta \varepsilon_{n}$ as described above for the Trapezoidal Rule discretisation. 
+> $\left| V_{n} \right|^{2} = \left| V(\epsilon_{n}) \right|^{2} \tilde{w}_{n} \approx \tilde{w}_{n}$
+
+Implemented here as `ShenviGaussLegendre()` is the method developed by Shenvi et al in 2009, where Gauss-Legendre quadrature was used to discretise the bath in two halves, separated at the Fermi level [1]. 
+This function takes the following arguments:
+```julia
+using NQCModels
+ShenviGaussLegendre(M, bandmin, bandmax)
+```
+
+
+The rescaled knots, $x_{n}$, and weights, $w_{n}$, are given by the following scaling related to the value of the Fermi level, $\epsilon_{n}$.
+$$
+\begin{align*}
+   \epsilon_{n} &=
+   \begin{cases}
+      \frac{1}{2}(\epsilon_{f} - a) x_{n} + \frac{1}{2}(a + \epsilon_{f}) \qquad n \leq M/2\\
+      \frac{1}{2}(b - \epsilon_{f}) x_{n} + \frac{1}{2}(\epsilon_{f} - b) \qquad n \geq M/2
+   \end{cases}\\
+   \tilde{w}_{n} &=
+   \begin{cases}
+      \frac{1}{2}(\epsilon_{f} - a) w_{n} \qquad n \leq M/2\\
+      \frac{1}{2}(b - \epsilon_{f}) w_{n} \qquad n \geq M/2
+   \end{cases}\\
+\end{align*}
+$$
+Where:
+ - $\epsilon_{f}$ = Fermi level
+ - $x_{n}$ = knots obtained from Guass-Legendre quadrature
+ - $w_{n}$ = weights obtained from Gauss-Legendre quadrature
+ - $a$ = minimum energy of bath discretisation (`bandmin`)
+ - $b$ = maximum energy of bath discretisation (`bandmax`)
+ - $M$ = number of bath states in the discretisation (`M`)
+
+By supplying a value for the fermi level, the dense discretisation region is shifted to be centred on a different region of the energy range that may benefit from being well described during a calculation.
 
 
 #### Discretisation with a gap
@@ -232,6 +270,7 @@ where:
 * $E_{\text{gap}}$ is the size of the gap located in the middle of the band.
 * $E_{\text{F}}$ is the Fermi energy.
 * $M$ is the total number of discretised states.
+
 ##### Gapped Gauss Legendre 
 The *Gapped Gauss Legendre* discretisation method provides a robust way to sample the bath spectral density, specifically designed to incorporate a band gap in the middle of the continuum. This approach leverages Gauss-Legendre quadrature for accurate representation.
 
