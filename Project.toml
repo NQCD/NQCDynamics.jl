@@ -54,7 +54,7 @@ MACEModels = "29bafc4c-4f38-420f-a153-8a5a5e0bd5f6"
 url = "https://github.com/JuliaMolSim/JuLIP.jl.git"
 
 [compat]
-AdvancedHMC = "0.5, 0.6"
+AdvancedHMC = "0.5, 0.6, 0.8"
 AdvancedMH = "0.8"
 ComponentArrays = "0.11, 0.12, 0.13, 0.14, 0.15"
 Dictionaries = "0.3, 0.4"
