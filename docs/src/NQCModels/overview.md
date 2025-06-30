@@ -84,7 +84,7 @@ To understand how this can extend to another dimension, we can take a quick look
 [`GatesHollowayElbow`](@ref) model which is another two state diabatic model, but this
 one uses two dimensions to model a diatomic molecule interacting with a surface.
 The two degrees of freedom are the molecular bond length and the distance from the surface 
-respectively and so the `potential` and `derivative` functions expect a positon argurment 
+respectively and so the `potential` and `derivative` functions accept a position argument 
 with two values, one for each degree of freedom.
 
 ```@repl diabaticmodel
@@ -102,7 +102,7 @@ ndofs(model)
 Here we see how the derivative now becomes a `Matrix` with size matching our input,
 but each entry is a `Hermitian` containing the elementwise derivative of the potential
 with respect to each degree of freedom.
-In this case, the `Matrix` has `size = (1, 2)`, and in general the dimensions the `Matrix`
+In this case, the `Matrix` has `size = (1, 2)`, and in general the dimensions of the `Matrix`
 that wraps the `Hermitian` derivatives should match the dimensions of the position `Matrix`
 a given model takes as input.
 
