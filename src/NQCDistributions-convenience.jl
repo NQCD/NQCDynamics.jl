@@ -30,7 +30,7 @@ function NQCDistributions.VelocityBoltzmann(temperature, sim::AbstractSimulation
 end
 
 function NQCDistributions.DynamicalDistribution(velocities, positions, simulation::Simulation; classical=Int[])
-    mobile_atoms = NQCModels.mobileatoms(simulation.calculator.model, 1)
+    mobile_atoms = NQCModels.mobileatoms(simulation.cache.model, 1)
     simulation_dims = size(simulation)
     frozen_indices = symdiff(1:simulation_dims[2], mobile_atoms)
     if isempty(classical)

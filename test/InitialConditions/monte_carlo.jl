@@ -63,6 +63,7 @@ end
 
 @testset "run_monte_carlo_sampling" begin
     R0 = zeros(size(sim))
+    #NQCCalculators.update_cache!(sim.cache, R0)
     out = MetropolisHastings.run_monte_carlo_sampling(sim, R0, Δ, 10)
     @test !(out.R[1] ≈ out.R[10])
     @test !(out.energy[1] ≈ out.energy[20])
@@ -71,6 +72,7 @@ end
 @testset "run_monte_carlo_sampling" begin
     sim = RingPolymerSimulation(atoms, model, 10; cell=cell, temperature=100u"K")
     R0 = zeros(size(sim))
+    #NQCCalculators.update_cache!(sim.cache, R0)
     out = MetropolisHastings.run_monte_carlo_sampling(sim, R0, Δ, 10)
     @test !(out.R[1] ≈ out.R[10])
     @test !(out.energy[1] ≈ out.energy[20])

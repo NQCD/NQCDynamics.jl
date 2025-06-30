@@ -1,6 +1,7 @@
 using StatsBase: mean
 using NQCDynamics: masses
 using NQCDistributions: ElectronicDistribution
+using RecursiveArrayTools
 
 export FSSH
 
@@ -34,20 +35,37 @@ mutable struct FSSH{T} <: SurfaceHopping
     end
 end
 
-function Simulation{FSSH}(atoms::Atoms{T}, model::Model; rescaling=:standard, kwargs...) where {T}
+function Simulation{FSSH}(
+    atoms::Atoms{T},
+    model::Model;
+    rescaling = :standard,
+    kwargs...,
+) where {T}
     Simulation(atoms, model, FSSH{T}(NQCModels.nstates(model), rescaling); kwargs...)
 end
 
 function DynamicsMethods.DynamicsVariables(
-    sim::AbstractSimulation{<:SurfaceHopping}, v, r, electronic::ElectronicDistribution
+    sim::AbstractSimulation{<:SurfaceHopping},
+    v,
+    r,
+    electronic::ElectronicDistribution,
 )
-    σ = DynamicsUtils.initialise_adiabatic_density_matrix(electronic, sim.calculator, r)
+    σ = DynamicsUtils.initialise_adiabatic_density_matrix(electronic, sim.cache, r)
     state = sample(Weights(diag(real.(σ))))
-    return SurfaceHoppingVariables(ComponentVector(v=v, r=r, σreal=σ, σimag=zero(σ)), state)
+    r = r .|> Float64
+    electronic_state = similar(r, 1)
+    electronic_state[1] = state
+    return SurfaceHoppingVariables((
+        v = v .|> Float64,
+        r = r,
+        σreal = σ .|> Float64,
+        σimag = zero(σ) .|> Float64,
+        state = electronic_state,
+    ))
 end
 
 function DynamicsUtils.acceleration!(dv, v, r, sim::AbstractSimulation{<:FSSH}, t, state)
-    adiabatic_derivative = Calculators.get_adiabatic_derivative(sim.calculator, r)
+    adiabatic_derivative = NQCCalculators.get_adiabatic_derivative(sim.cache, r)
     for I in eachindex(dv)
         dv[I] = -adiabatic_derivative[I][state, state]
     end
@@ -80,7 +98,7 @@ function fewest_switches_probability!(probability, v, σ, s, d, dt)
     for m in axes(σ, 1)
         if m != s
             for I in eachindex(v)
-                probability[m] += 2v[I]*real(σ[m,s]/σ[s,s])*d[I][s,m] * dt
+                probability[m] += 2v[I] * real(σ[m, s] / σ[s, s]) * d[I][s, m] * dt
             end
         end
     end
@@ -108,28 +126,29 @@ end
 Get the two states that we are hopping between.
 """
 function unpack_states(sim::AbstractSimulation{<:FSSH})
-    return (sim.method.new_state, sim.method.state)
+    return symdiff(sim.method.new_state, sim.method.state)
 end
 
 function Estimators.diabatic_population(sim::AbstractSimulation{<:FSSH}, u)
+    int_state = convert(Int, first(u.state))
     r = DynamicsUtils.get_positions(u)
-    U = DynamicsUtils.evaluate_transformation(sim.calculator, r)
+    U = DynamicsUtils.evaluate_transformation(sim.cache, r)
 
     σ = copy(DynamicsUtils.get_quantum_subsystem(u).re)
     σ[diagind(σ)] .= 0
-    σ[u.state, u.state] = 1
+    σ[int_state, int_state] = 1
 
     return diag(U * σ * U')
 end
 
 function Estimators.adiabatic_population(sim::AbstractSimulation{<:FSSH}, u)
-    population = zeros(NQCModels.nstates(sim.calculator.model))
-    population[u.state] = 1
+    population = zeros(NQCModels.nstates(sim.cache.model))
+    population[convert(Int, first(u.state))] = 1
     return population
 end
 
 function DynamicsUtils.classical_potential_energy(sim::Simulation{<:FSSH}, u)
-    eigs = Calculators.get_eigen(sim.calculator, DynamicsUtils.get_positions(u))
-    potential = eigs.values[u.state]
+    eigs = NQCCalculators.get_eigen(sim.cache, DynamicsUtils.get_positions(u))
+    potential = eigs.values[convert(Int, first(u.state))]
     return potential
 end

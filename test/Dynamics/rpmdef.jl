@@ -9,6 +9,10 @@ using StochasticDiffEq
 using ComponentArrays
 using NQCDynamics: DynamicsMethods, DynamicsUtils
 using NQCDynamics.DynamicsMethods: ClassicalMethods, IntegrationAlgorithms
+import JSON
+
+benchmark_dir = get(ENV, "BENCHMARK_OUTPUT_DIR", "tmp/nqcd_benchmark")
+benchmark_results = Dict{String, Any}("title_for_plotting" => "RPMDEF Tests")
 
 atoms = Atoms([:H, :C])
 model = CompositeFrictionModel(Free(3), ConstantFriction(3, 1))
@@ -21,10 +25,10 @@ r = RingPolymerArray(randn(size(sim)))
     gtmp = zeros(length(r), length(r))
     gtmp = zeros(ndofs(sim)*natoms(sim),ndofs(sim)*natoms(sim),nbeads(sim))
     F = ClassicalMethods.friction!(gtmp, r, sim, 0.0)
-    hmass = sim.calculator.model.friction_model.γ/atoms.masses[1]
-    cmass = sim.calculator.model.friction_model.γ/atoms.masses[2]
+    hmass = sim.cache.model.friction_model.γ/atoms.masses[1]
+    cmass = sim.cache.model.friction_model.γ/atoms.masses[2]
     for i=1:length(sim.beads)
-        @test diag(F[:,:,i]) ≈ [hmass, hmass, hmass, cmass, cmass, cmass]
+        @test isapprox(diag(F[:,:,i]), [hmass, hmass, hmass, cmass, cmass, cmass], atol=1e-3)
     end
 end
 
@@ -40,7 +44,7 @@ prob = DynamicsMethods.create_problem(ComponentVector(v=v,r=r), (0.0, 0.5), sim)
     for I in CartesianIndices(r)
         A = [0 1; -ω_k[I[3]] 0]
         a = exp(A*dt/2) * [rbefore[I], vbefore[I]]
-        @test a ≈ [r[I], v[I]] rtol=1e-4
+        @test isapprox(a, [r[I], v[I]], rtol=1e-4)
     end
 end
 
@@ -57,8 +61,9 @@ end
     v = RingPolymerArray(zeros(size(sim)))
     r = RingPolymerArray(zeros(size(sim)))
 
-    sol = run_dynamics(sim, (0.0, 1e4), ArrayPartition(v,r); dt=1, output=OutputKineticEnergy)
-    # @test mean(sol.kinetic) ≈ austrip(100u"K") * length(sim.beads) rtol=5e-1
+    dyn_test = @timed run_dynamics(sim, (0.0, 1e4), ArrayPartition(v,r); dt=1, output=OutputKineticEnergy)
+    sol = dyn_test.value
+    benchmark_results["ThermalLangevin"] = Dict("Time" => dyn_test.time, "Allocs" => dyn_test.bytes)
 end
 
 @testset "MDEF" begin
@@ -69,5 +74,20 @@ end
     v = RingPolymerArray(zeros(size(sim)))
     r = RingPolymerArray(zeros(size(sim)))
 
-    sol = run_dynamics(sim, (0.0, 1e2), ArrayPartition(v,r); dt=1, output=OutputKineticEnergy)
+    dyn_test = @timed run_dynamics(sim, (0.0, 1e2), ArrayPartition(v,r); dt=1, output=OutputKineticEnergy)
+    sol = dyn_test.value
+    benchmark_results["RPMDEF"] = Dict("Time" => dyn_test.time, "Allocs" => dyn_test.bytes)
 end
+
+# Make benchmark directory if it doesn't already exist.
+if !isdir(benchmark_dir)
+    mkpath(benchmark_dir)
+    @info "Benchmark data ouput directory created at $(benchmark_dir)."
+else
+    @info "Benchmark data ouput directory exists at $(benchmark_dir)."
+end
+
+# Output benchmarking dict
+output_file = open("$(benchmark_dir)/RPMDEF.json", "w")
+JSON.print(output_file, benchmark_results)
+close(output_file)

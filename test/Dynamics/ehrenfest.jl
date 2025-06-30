@@ -1,11 +1,16 @@
 using Test
 using NQCDynamics
-using NQCDynamics: DynamicsMethods, Calculators
+using NQCDynamics: DynamicsMethods
+using NQCCalculators
 using NQCDynamics.DynamicsMethods.EhrenfestMethods
 using OrdinaryDiffEq
 using Statistics: var
 using DataFrames, CSV
 using Interpolations
+import JSON
+
+benchmark_dir = get(ENV, "BENCHMARK_OUTPUT_DIR", "tmp/nqcd_benchmark")
+benchmark_results = Dict{String, Any}("title_for_plotting" => "Ehrenfest Tests")
 
 @test Ehrenfest{Float64}(2) isa Ehrenfest
 atoms = Atoms(:H)
@@ -22,8 +27,8 @@ atoms = Atoms(:H)
 
     DynamicsMethods.motion!(du, u, sim, 0.0)
 
-    Calculators.evaluate_nonadiabatic_coupling!(sim.calculator, r)
-    @test sim.calculator.nonadiabatic_coupling ≈ -sim.calculator.nonadiabatic_coupling'
+    NQCCalculators.update_nonadiabatic_coupling!(sim.cache, r)
+    @test sim.cache.nonadiabatic_coupling ≈ -sim.cache.nonadiabatic_coupling'
 
     problem = ODEProblem(DynamicsMethods.motion!, u, (0.0, 1.0), sim)
     integrator = init(problem, Tsit5())
@@ -46,12 +51,16 @@ atoms = Atoms(:H)
 
         dt = 2e-3
         u = DynamicsVariables(sim, v, r, PureState(1, Adiabatic()))
-        traj1 = run_dynamics(sim, (0.0, 50.0), u; output, dt)
+        dyn_test = @timed run_dynamics(sim, (0.0, 50.0), u; output, dt)
+        traj1 = dyn_test.value
         @test isapprox(var(traj1[:OutputTotalEnergy]), 0; atol=1e-6)
+        benchmark_results["TullyModelTwo"] = Dict("Time" => dyn_test.time, "Allocs" => dyn_test.bytes)
 
         u = DynamicsVariables(sim, v, r, PureState(1, Adiabatic()))
-        traj2 = run_dynamics(sim, (0.0, 50.0), u; algorithm=Feagin12(), output, reltol=1e-15, abstol=1e-15, saveat=dt)
+        dyn_test = @timed run_dynamics(sim, (0.0, 50.0), u; algorithm=Feagin12(), output, reltol=1e-15, abstol=1e-15, saveat=dt)
+        traj2 = dyn_test.value
         @test isapprox(var(traj2[:OutputTotalEnergy]), 0; atol=1e-6)
+        benchmark_results["TullyModelTwo Feagin12"] = Dict("Time" => dyn_test.time, "Allocs" => dyn_test.bytes)
 
         @test traj1[:OutputKineticEnergy] ≈ traj2[:OutputKineticEnergy] rtol = 1e-3
         @test traj1[:OutputPotentialEnergy] ≈ traj2[:OutputPotentialEnergy] rtol = 1e-1
@@ -78,12 +87,18 @@ atoms = Atoms(:H)
         tspan = (0.0, 2000.0)
         dt = 10.0
         output = (OutputTotalEnergy, OutputKineticEnergy, OutputPotentialEnergy, OutputPosition, OutputVelocity, OutputQuantumSubsystem)
-        traj1 = run_dynamics(sim, tspan, u; dt, output, algorithm=Vern9(), abstol=1e-15, reltol=1e-15, saveat=dt)
+
+        dyn_test = @timed run_dynamics(sim, tspan, u; dt, output, algorithm=Vern9(), abstol=1e-15, reltol=1e-15, saveat=dt)
+        traj1 = dyn_test.value
         @test isapprox(var(traj1[:OutputTotalEnergy]), 0; atol=1e-6)
+        benchmark_results["FermiDirac Vern9"] = Dict("Time" => dyn_test.time, "Allocs" => dyn_test.bytes)
 
         u = DynamicsVariables(sim, v, r, FermiDiracState(0.0, 0.0))
-        traj2 = run_dynamics(sim, tspan, u; dt, output) # default algorithm is fixed timestep
+        
+        dyn_test = @timed run_dynamics(sim, tspan, u; dt, output) # default algorithm is fixed timestep
+        traj2 = dyn_test.value
         @test isapprox(var(traj2[:OutputTotalEnergy]), 0; atol=1e-6)
+        benchmark_results["FermiDirac fixed timestep"] = Dict("Time" => dyn_test.time, "Allocs" => dyn_test.bytes)
 
         @test traj1[:OutputKineticEnergy] ≈ traj2[:OutputKineticEnergy] rtol = 1e-3
         @test traj1[:OutputPotentialEnergy] ≈ traj2[:OutputPotentialEnergy] rtol = 1e-3
@@ -110,8 +125,12 @@ atoms = Atoms(:H)
         saveat = 0:0.1:20
         trajectories = 500
         output = TimeCorrelationFunctions.PopulationCorrelationFunction(sim, Diabatic())
-        ensemble = run_dynamics(sim, (0.0, 20.0), distribution;
+        
+        dyn_test = @timed begin
+            run_dynamics(sim, (0.0, 20.0), distribution;
             saveat, trajectories, output, reduction=MeanReduction(), dt=0.1)
+        end
+        ensemble = dyn_test.value
         result = [p[1, 1] - p[1, 2] for p in ensemble[:PopulationCorrelationFunction]]
 
         data = CSV.read(joinpath(@__DIR__, "reference_data", "gao_saller_jctc_2020_fig2b.csv"), DataFrame; header=false)
@@ -121,6 +140,7 @@ atoms = Atoms(:H)
             true_value = itp(t)
             @test isapprox(true_value, result[i]; atol=0.2)
         end
+        benchmark_results["SpinBoson population"] = Dict("Time" => dyn_test.time, "Allocs" => dyn_test.bytes)
     end
 end
 
@@ -130,6 +150,21 @@ end
     v = fill(100 / 2000, 1, 1, 10)
     r = fill(-10.0, 1, 1, 10)
     u = DynamicsVariables(sim, v, r, PureState(1, Adiabatic()))
-    solution = run_dynamics(sim, (0.0, 500.0), u, output=OutputTotalEnergy, dt=0.01)
+    dyn_test = @timed run_dynamics(sim, (0.0, 500.0), u, output=OutputTotalEnergy, dt=0.01)
+    solution =  dyn_test.value
     @test isapprox(var(solution[:OutputTotalEnergy]), 0; atol=1e-6)
+    benchmark_results["Ehrenfest RPMD"] = Dict("Time" => dyn_test.time, "Allocs" => dyn_test.bytes)
 end
+
+# Make benchmark directory if it doesn't already exist.
+if !isdir(benchmark_dir)
+    mkpath(benchmark_dir)
+    @info "Benchmark data ouput directory created at $(benchmark_dir)."
+else
+    @info "Benchmark data ouput directory exists at $(benchmark_dir)."
+end
+
+# Output benchmarking dict
+output_file = open("$(benchmark_dir)/ehrenfest.json", "w")
+JSON.print(output_file, benchmark_results)
+close(output_file)
