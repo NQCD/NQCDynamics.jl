@@ -78,7 +78,7 @@ In general the position argument that appears in the derivative and the potentia
 will need to be provided as an `AbstractMatrix` with dimensions `dofs`x`natoms`.
 In the case of 1D models of a single atom, `potential` and `derivative` accept a 
 position of type `Real`, but for the most consistent results it's recommended that 
-the user wraps real valued positions in 1x1 matrices using the `hcat` fucntion.
+the user wraps real valued positions in 1x1 matrices using the `hcat` function.
 
 To understand how this can extend to another dimension, we can take a quick look at the
 [`GatesHollowayElbow`](@ref) model which is another two state diabatic model, but this
