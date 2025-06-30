@@ -50,8 +50,8 @@ UnitfulAtomic = "a7773ee8-282e-5fa2-be4e-bd808c38a91a"
 [weakdeps]
 MACEModels = "29bafc4c-4f38-420f-a153-8a5a5e0bd5f6"
 
-[sources]
-JuLIP = {url = "https://github.com/JuliaMolSim/JuLIP.jl.git"}
+[sources.JuLIP]
+url = "https://github.com/JuliaMolSim/JuLIP.jl.git"
 
 [compat]
 AdvancedHMC = "0.5, 0.6"
@@ -66,7 +66,7 @@ HDF5 = "0.15, 0.16, 0.17"
 Interpolations = "0.13, 0.14, 0.15"
 MuladdMacro = "0.2"
 NQCBase = "0.5"
-NQCCalculators = "1" # actually needs to be >v1.0.3
+NQCCalculators = "1"
 NQCDistributions = "0.1"
 NQCModels = "0.10"
 Optim = "1"
@@ -82,6 +82,7 @@ RingPolymerArrays = "0.1"
 Roots = "1, 2"
 Rotations = "1"
 SciMLBase = "1, 2"
+SciMLOperators = "1"
 StaticArrays = "1"
 Statistics = "1"
 StatsBase = "0.33, 0.34"
