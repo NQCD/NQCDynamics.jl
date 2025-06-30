@@ -128,21 +128,40 @@ runtime = round(time() - start_time; digits=2)
 ## Use of Composite models for phonon thermostatting
 
 ```julia
+using NQCDynamics
+using Unitful, UnitfulAtomic
+using Plots
+
+# Create an example surface structure
+atoms = Atoms(vcat([:H, :H], [:Cu for _ in 1:54])) #define atoms
+positions = rand(3,56) # Placeholder for atomic positions, often read in from ASE file
+
 # PES applies to all atoms
-pes_subsystem = Subsystem(pes_model)
+pes_subsystem = Subsystem(Free(3)) #Subsystem(pes_model())
 
 # Electronic friction applies to adsorbate atoms 55,56
-electronic_friction = Subsystem(adsorbate_friction_model, indices=[55,56])
+electronic_friction = Subsystem(RandomFriction(3), [55,56])
 
 # Combine models and generate Simulation
 combined_model = CompositeModel(pes_subsystem, electronic_friction)
 
+T_el_function(t) = exp(-(t - 100.0u"fs")^2 / 50u"fs^2") * 500u"K"
+
 sim_T_el_only = Simulation{MDEF}(
    atoms, 
    combined_model; 
-   temperature = T_el_function, 
-   cell=cell
+   temperature = T_el_function
 )
+
+v = zeros(size(sim_T_el_only))
+r = zeros(size(sim_T_el_only))
+
+v[:, 55] = [austrip(5.0u"eV"), austrip(-3.0u"eV"), 0.0]
+v[:, 56] = [austrip(2.0u"eV"), austrip(0.0u"eV"), 0.0]
+z = DynamicsVariables(sim_T_el_only, v, positions)
+
+solution = run_dynamics(sim_T_el_only, (0.0, 750u"fs"), z, dt=1.0u"fs", output=OutputTotalEnergy)
+plot(solution, :OutputTotalEnergy)
 ```
 
 See the [example page](@ref mdef-ttm-example) for a longer explanation on how to compose multiple models. 

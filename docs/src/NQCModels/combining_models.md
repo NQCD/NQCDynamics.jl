@@ -12,11 +12,11 @@ However, a model for a potential energy surface does not and should not be able 
 Instead, we can use the modular nature of NQCModels.jl to combine different components to a non-adiabatic dynamics method into a single model that can be used to set up a [`Simulation`](@ref)
 
 For example, in order to run [Molecular Dynamics with Electronic friction](@ref mdef-dynamics), we need to use a `Model` which supports the following methods:
-- `potential` to determine the total energy
-- `derivative` to determine interatomic forces
-- `friction` to determine the electronic friction tensor
+- `potential!` to determine the total energy
+- `derivative!` to determine interatomic forces
+- `friction!` to determine the electronic friction tensor
 
-However, most models for potential energy surfaces only provide `potential` and `derivative`, whereas `friction!` is provided by an `ElectronicFrictionProvider`. 
+However, most models for potential energy surfaces only provide `potential!` and `derivative!`, whereas `friction!` is provided by an `ElectronicFrictionProvider`. 
 
 To combine different models together for a system, we can use [`Subsystem`](@ref)s to define which atoms in the system a given model should be applied to, and a [`CompositeModel`](@ref) to combine the different models into one. 
 If different [`Subsystem`](@ref)s should experience different effective temperatures, a [`TemperatureSetting`](@ref) can be provided when initialising a [`Simulation`](@ref). 
@@ -28,8 +28,8 @@ If different [`Subsystem`](@ref)s should experience different effective temperat
 ```@example compositemodels
 using NQCDynamics
 
-atoms = vcat([:H, :H], [:Cu for _ in 1:54]) # create example surface structure
-positions = rand(3,56) # Placeholder for atomic positions
+atoms = vcat([:H, :H], [:Cu for _ in 1:23]) # create example surface structure
+positions = rand(3,25) # Placeholder for atomic positions
 pes_model = Subsystem(Free(3)) # PES model with potential and derivative
 friction_model = Subsystem(RandomFriction(3)) # Friction model supporting friction! only
 
