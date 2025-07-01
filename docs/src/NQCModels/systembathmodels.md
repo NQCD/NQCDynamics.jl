@@ -182,8 +182,8 @@ Where:
 The discretised bath energy states, $\varepsilon_{n}$, and coupling elements, $V_{n}$, are calculated as follows:
 $$
 \begin{align*}
-   \varepsilon_{n} &= a + \frac{(n - 1)(b - 1)}{M} \\
-   V_{n} &= V(\varepsilon_{n})\sqrt{(b-a)/M} = \sqrt{\Delta \varepsilon_{n}}
+   \varepsilon_{n} &= a + \frac{(n - 1)(b - a)}{M - 1} \\
+   V_{n} &= V(\varepsilon_{n})\sqrt{(b-a)/(M-1)} = \sqrt{\Delta \varepsilon_{n}}
 \end{align*}
 $$ 
 Where:
@@ -328,21 +328,34 @@ Where:
  - `densityratio` = ratio between the number of states in the window region to the total number of discretised bath states
 
 
-The discretised bath states  and the associated couplings in both regions are calculated according to the trapezoidal rule:
+The discretised bath states and the associated couplings are calculated using the trapezoidal rule in each region, with the energy spacing between the window and sparse regions given by $\Delta \varepsilon_{\textrm{join}} = \frac{1}{2}(\Delta \varepsilon_{\textrm{win}} + \Delta \varepsilon_{\textrm{sparse}})$:
 $$
 \begin{align*}
-   \varepsilon_{n} &= \\ 
+\varepsilon_{n} &= 
+   \begin{cases}
+      a^{win} + \frac{(n - 1)(b^{win} - a^{win})}{\eta M - 1} &\qquad n^{win}_{-} < n \leq n^{win}_{+} \\ 
+      b^{win} + \Delta \varepsilon_{join} + \frac{(n - 1)(b - b^{win} - \Delta \varepsilon_{join})}{n^{win}_{-} - 1} &\qquad  n > n^{win}_{+} \\
+      a - \Delta \varepsilon_{join} + \frac{(n - 1)(b^{win} - a - \Delta \varepsilon_{join})}{n^{win}_{-} - 1} &\qquad n < n^{win}_{-}
+   \end{cases}\\ 
    V_{n} &= 
+   \begin{cases}
+      V(\varepsilon_{n})\sqrt{(b^{win} - a^{win})/(\eta M - 1)} = \sqrt{\Delta \varepsilon_{n}^{win}} &\qquad n^{win}_{-} < n \leq n^{win}_{+} \\ 
+      V(\varepsilon_{n})\sqrt{(2b - 2b^{win} - \Delta \varepsilon^{win})/(2n^{win}_{-} - 1)} = \sqrt{\Delta \varepsilon_{n}^{sp}} &\qquad n \leq n^{win}_{-} \; \textrm{and} \; n>n^{win}_{+}
+   \end{cases}
 \end{align*}
 $$
+<!-- ^ this needs rephrased, need to work out a way to represent how the energy states and couplings are calculated for the windowed region, sparse region and joining of the two. -->
+
+Where:
+ - $n^{win}_{\mp} = M(1 \mp \eta)/2:$ are the state indices that define the window region ($n^{win}_{-}$ is also equivalent to the number of states in the sparse region)
+ - $\eta$ = density ratio (`densityratio`) which defines the proportion of states within the window relative to the total number of discretised states. $M^{win} = \eta M$
+ - $a$ = minimum energy of bath discretisation (`bandmin`)
+ - $b$ = maximum energy of bath discretisation (`bandmax`)
+ - $a^{win}$ = minimum energy of the window region in the bath discretisation (`windmin`)
+ - $b^{win}$ = maximum energy of the window region in the bath discretisation (`windmax`)
+
 
 This method allows the user to finely discretise the electronic bath states over a larger energy range than can be achieved with the Gauss-Legendre quadrature method, without resorting to use a trapezoidal rule discretisation with many states. Hence, saving computation time. The motivation for such a discretisation was to provide a better energy grid for the bath such that a non-equlibrium electronic distribution with a complex shape could be more accurately sampled from. 
-
-> - `WindowedTrapezoidalRule()` implementation
-> - Detail WTR8 with coupling correction removed
-> - This method allows for known energy regions of interest to be finely sampled without the detriment of long computation times that would arise from increasing the number of states in the discretisation
-> - Benefit when compared to a Gauss-Legendre discretisation scheme is that you can finely discretise a larger energy window than what is allowed by a Gauss-Legendre discretisation
-> - This discretisation method is important if you want to sample your electronic state occupations from a non-equilibrium electorn distribution, where there is more than one region of interest in the probability distribution (not just the Fermi Level).  
 
 #### How to implement and develop your own discretisation
 
