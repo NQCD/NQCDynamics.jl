@@ -1,6 +1,0 @@
-
-# CubeLDFAModel
-
-```@autodocs
-Modules=[CubeLDFAModel]
-```

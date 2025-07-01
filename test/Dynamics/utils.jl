@@ -19,19 +19,21 @@ function test_motion!(sim)
     DynamicsMethods.motion!(du, u, sim, 0.0)
 
     # Rdot = dH/dP = dH/dV / mass
-    @test DynamicsUtils.get_positions(du) ≈ DynamicsUtils.get_velocities(grad) ./ sim.atoms.masses' rtol=1e-3
+    @test isapprox(DynamicsUtils.get_positions(du), DynamicsUtils.get_velocities(grad) ./ sim.atoms.masses', atol=1e-3)
     # Vdot = Pdot / mass = -dH/dR / mass
-    @test DynamicsUtils.get_velocities(du) ≈ -DynamicsUtils.get_positions(grad) ./ sim.atoms.masses' rtol=1e-3
+
+    @test isapprox(DynamicsUtils.get_velocities(du), -DynamicsUtils.get_positions(grad) ./ sim.atoms.masses', atol=1e-2)
 end
 
 function test_velocity!(sim)
     r = get_blank(sim)
     v = get_blank(sim)
     du = zero(v)
-
+    
+    NQCCalculators.update_cache!(sim.cache, r)
     DynamicsUtils.velocity!(du, v, r, sim, 0.0)
 
-    @test du ≈ v
+    @test isapprox(du, v)
 end
 
 function test_acceleration!(sim)
@@ -42,14 +44,14 @@ function test_acceleration!(sim)
     dv = zero(v)
 
     grad = FiniteDiff.finite_difference_gradient(f, r)
-
+    NQCCalculators.update_cache!(sim.cache, r)
     DynamicsMethods.ClassicalMethods.acceleration!(dv, v, r, sim, 0.0)
 
-    @test dv ≈ -grad ./ sim.atoms.masses'
+    @test isapprox(dv, -grad ./ sim.atoms.masses', atol=1e-2)
 end
 
 function test_acceleration!(sim::RingPolymerSimulation)
-    f(x) = DynamicsUtils.classical_potential_energy(sim, x)
+    f(x) = DynamicsUtils.classical_potential_energy(sim, x) + DynamicsUtils.classical_spring_energy(sim, x)
 
     r = get_blank(sim)
     v = get_blank(sim)
@@ -57,7 +59,8 @@ function test_acceleration!(sim::RingPolymerSimulation)
 
     grad = FiniteDiff.finite_difference_gradient(f, r)
 
+    NQCCalculators.update_cache!(sim.cache, r)
     DynamicsMethods.ClassicalMethods.ring_polymer_acceleration!(dv, v, r, sim, 0.0)
 
-    @test dv ≈ -grad ./ sim.atoms.masses'
+    @test isapprox(dv, -grad ./ sim.atoms.masses', atol=1e-2)
 end

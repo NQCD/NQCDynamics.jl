@@ -1,3 +1,7 @@
+```@setup logging
+@info "Expanding src/devdocs/new_methods.md..."
+start_time = time()
+```
 
 # Contributing a new method
 
@@ -47,12 +51,6 @@ The array should contain all of the variables that will change during the dynami
 For classical dynamics, this would include only the positions and velocities,
 however, for [FSSH](@ref fssh-dynamics) we must also include the continuous electronic variables
 and the discrete state.
-
-!!! note "Discrete variables"
-    Some methods such as [FSSH](@ref fssh-dynamics) have discontinuous variables, like the current occupied state.
-    Discrete variables be handled separately using [DEDataArrays.jl](https://github.com/SciML/DEDataArrays.jl).
-    For surface hopping methods, we have the `SurfaceHoppingVariables` type that uses this to combine a `ComponentVector`
-    containing the continuous variables and the discrete state label.
 
 For our new method, `MyMethod`, we implement the `DynamicsVariables` function and return a `ComponentVector` containing
 the velocities, positions and extra variables `x`.
@@ -118,7 +116,7 @@ value of `x` has been set to 0.5.
 sim = Simulation(Atoms(1), Free(), MyMethod(2.0))
 u = DynamicsVariables(sim, rand(1,1), rand(1,1), [0.5])
 
-sol = run_dynamics(sim, (0.0, 10.0), u, output=(OutputPosition, OutputVelocity, OutputDynamicsVariables))
+sol = run_dynamics(sim, (0.0, 5.0), u, output=(OutputPosition, OutputVelocity, OutputDynamicsVariables))
 ```
 
 !!! note
@@ -162,3 +160,7 @@ The `DifferentialEquations.jl` framework provides a simple interface for adding 
 algorithms, check out the [developer documentation](https://devdocs.sciml.ai/dev/)
 to learn how it works.
 You can also find some examples of custom algorithms in the `DynamicsMethods.IntegrationAlgorithms` module.
+```@setup logging
+runtime = round(time() - start_time; digits=2)
+@info "...done after $runtime s."
+```

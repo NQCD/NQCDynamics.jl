@@ -1,3 +1,7 @@
+```@setup logging
+@info "Expanding src/dynamicssimulations/dynamicsmethods/ehrenfest.md..."
+start_time = time()
+```
 # [Ehrenfest molecular dynamics](@id ehrenfest-dynamics)
 
 The Ehrenfest method is a mixed quantum-classical dynamics method in which the total wavefunction is factorized into slow (nuclear) variables, which are treated classically, and fast ones (electrons) which remain quantum-mechanical. In the Ehrenfest method, nuclei move according to classical mechanics on a potential energy surface given by the expectation value of the electronic Hamiltonian. 
@@ -32,17 +36,20 @@ distribution = DynamicalDistribution(v, r, size(sim))* PureState(1, Adiabatic())
 To run an ensemble simulation we additionally choose number of trajectories `n_traj` and timespan `tspan` and we pass all the established settings to the `run_dynamics` function.
 In this example we output velocities by specifying `output=OutputVelocity` and store the final values in the `final_velocities` array. Following that, we calculate final momenta.
 ```@example ehrenfest
-n_traj = 5000
+n_traj = 10
 tspan = (0.0, 3000.0)
 solution = run_dynamics(sim, tspan, distribution; 
-    trajectories=n_traj, output=OutputVelocity)
+    trajectories=n_traj, output=OutputVelocity, dt=1.0)
 final_velocities = [r[:OutputVelocity][end] for r in solution]
 momenta = reduce(vcat, final_velocities*atoms.masses[1])
 ```
 
-Resulting momenta can be plotted by using `StatsPlots` package.
 ```@example ehrenfest
-using StatsPlots
-plot(density(momenta))
+using Plots
+histogram(momenta)
 xlims!(-20,20)
+```
+```@setup logging
+runtime = round(time() - start_time; digits=2)
+@info "...done after $runtime s."
 ```

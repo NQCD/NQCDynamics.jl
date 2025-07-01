@@ -1,6 +1,0 @@
-
-# NNInterfaces
-
-```@autodocs
-Modules=[NNInterfaces]
-```

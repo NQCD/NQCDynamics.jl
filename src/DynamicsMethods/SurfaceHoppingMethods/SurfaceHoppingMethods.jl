@@ -6,32 +6,25 @@ Implementation for surface hopping methods.
 """
 module SurfaceHoppingMethods
 
-using DEDataArrays: DEDataArrays
+using RecursiveArrayTools # possibly redundant as import when `SurfaceHoppingVariables.jl` is included
 using ComponentArrays: ComponentVector
 using DiffEqBase: DiffEqBase
-using LinearAlgebra: lmul!
+using LinearAlgebra: LinearAlgebra, lmul!
 using OrdinaryDiffEq: OrdinaryDiffEq
+using RingPolymerArrays: get_centroid
 
 using NQCDynamics:
     NQCDynamics,
     AbstractSimulation,
     Simulation,
-    Calculators,
+    RingPolymerSimulation,
     DynamicsMethods,
     DynamicsUtils,
     Estimators,
     ndofs
+using NQCCalculators
 using NQCModels: NQCModels, Model
 using NQCBase: Atoms
-
-mutable struct SurfaceHoppingVariables{T,A,Axes,S} <: DEDataArrays.DEDataVector{T}
-    x::ComponentVector{T,A,Axes}
-    state::S
-end
-
-DynamicsUtils.get_velocities(u::SurfaceHoppingVariables) = DynamicsUtils.get_velocities(u.x)
-DynamicsUtils.get_positions(u::SurfaceHoppingVariables) = DynamicsUtils.get_positions(u.x)
-DynamicsUtils.get_quantum_subsystem(u::SurfaceHoppingVariables) = DynamicsUtils.get_quantum_subsystem(u.x)
 
 """
 Abstract type for all surface hopping methods.
@@ -56,70 +49,27 @@ function DynamicsMethods.motion!(du, u, sim::Simulation{<:SurfaceHopping}, t)
 
     r = DynamicsUtils.get_positions(u)
     v = DynamicsUtils.get_velocities(u)
-    σ = DynamicsUtils.get_quantum_subsystem(u)
+    #σ = DynamicsUtils.get_quantum_subsystem(u)
 
     set_state!(u, sim.method.state) # Make sure the state variables match, 
 
-    DynamicsUtils.velocity!(dr, v, r, sim, t)
-    Calculators.update_electronics!(sim.calculator, r)
-    acceleration!(dv, v, r, sim, t, sim.method.state)
-    DynamicsUtils.set_quantum_derivative!(dσ, v, σ, sim)
+    DynamicsUtils.velocity!(dr, v, r, sim, t) # Set the velocity
+    NQCCalculators.update_cache!(sim.cache, r) # Calculate electronic quantities
+    DynamicsUtils.acceleration!(dv, v, r, sim, t, sim.method.state) # Set the acceleration
+    DynamicsUtils.set_quantum_derivative!(dσ, u, sim)
 end
 
-function DynamicsUtils.set_quantum_derivative!(dσ, v, σ, sim::AbstractSimulation{<:SurfaceHopping})
-    V = DynamicsUtils.calculate_density_matrix_propagator!(sim, v)
-    DynamicsUtils.commutator!(dσ, V, σ, sim.method.tmp_complex_matrix)
+function DynamicsUtils.set_quantum_derivative!(dσ, u, sim::AbstractSimulation{<:SurfaceHopping})
+    v = DynamicsUtils.get_hopping_velocity(sim, DynamicsUtils.get_velocities(u))
+    σ = DynamicsUtils.get_quantum_subsystem(u)
+    r = DynamicsUtils.get_positions(u)
+    eigenvalues = DynamicsUtils.get_hopping_eigenvalues(sim, r)
+    propagator = sim.method.density_propagator
+    d = DynamicsUtils.get_hopping_nonadiabatic_coupling(sim, r)
+    V = DynamicsUtils.calculate_density_matrix_propagator!(propagator, v, d, eigenvalues)
+    DynamicsUtils.commutator!(dσ, V, σ)
     lmul!(-im, dσ)
 end
-
-function check_hop!(u, t, integrator)::Bool
-    sim = integrator.p
-    evaluate_hopping_probability!(sim, u, OrdinaryDiffEq.get_proposed_dt(integrator))
-    set_new_state!(sim.method, select_new_state(sim, u))
-    return sim.method.new_state != sim.method.state
-end
-
-function execute_hop!(integrator)
-    sim = integrator.p
-    if rescale_velocity!(sim, integrator.u)
-        set_state!(integrator.u, sim.method.new_state)
-        set_state!(sim.method, sim.method.new_state)
-    end
-    return nothing
-end
-
-set_state!(container, new_state::Integer) = container.state = new_state
-set_state!(container, new_state::AbstractVector) = copyto!(container.state, new_state)
-set_new_state!(container, new_state::Integer) = container.new_state = new_state
-set_new_state!(container, new_state::AbstractVector) = copyto!(container.new_state, new_state)
-
-const HoppingCallback = DiffEqBase.DiscreteCallback(check_hop!, execute_hop!;
-                                                    save_positions=(false, false))
-
-DynamicsMethods.get_callbacks(::AbstractSimulation{<:SurfaceHopping}) = HoppingCallback
-
-"""
-This function should set the field `sim.method.hopping_probability`.
-"""
-function evaluate_hopping_probability!(::AbstractSimulation{<:SurfaceHopping}, u, dt)
-    throw(error("Implement this for your method."))
-end
-
-"""
-This function should return the desired state determined by the probability.
-Should return the original state if no hop is desired.
-"""
-function select_new_state(::AbstractSimulation{<:SurfaceHopping}, u)
-    throw(error("Implement this for your method."))
-end
-
-"""
-This function should modify the velocity and return a `Bool` that determines
-whether the state change should take place.
-
-This only needs to be implemented if the velocity should be modified during a hop.
-"""
-rescale_velocity!(::AbstractSimulation{<:SurfaceHopping}, u) = true
 
 function DynamicsMethods.create_problem(u0, tspan, sim::AbstractSimulation{<:SurfaceHopping})
     set_state!(sim.method, u0.state)
@@ -127,7 +77,40 @@ function DynamicsMethods.create_problem(u0, tspan, sim::AbstractSimulation{<:Sur
         callback=DynamicsMethods.get_callbacks(sim))
 end
 
+function DynamicsUtils.get_hopping_eigenvalues(sim::Simulation, r::AbstractMatrix)
+    return NQCCalculators.get_eigen(sim.cache, r).values
+end
+
+function DynamicsUtils.get_hopping_eigenvalues(sim::RingPolymerSimulation, r::AbstractArray{T,3}) where {T}
+    return NQCCalculators.get_centroid_eigen(sim.cache, r).values
+end
+
+function DynamicsUtils.get_hopping_nonadiabatic_coupling(sim::Simulation, r::AbstractMatrix)
+    return NQCCalculators.get_nonadiabatic_coupling(sim.cache, r)
+end
+
+function DynamicsUtils.get_hopping_nonadiabatic_coupling(sim::RingPolymerSimulation, r::AbstractArray{T,3}) where {T}
+    return NQCCalculators.get_centroid_nonadiabatic_coupling(sim.cache, r)
+end
+
+function DynamicsUtils.get_hopping_velocity(::Simulation, v::AbstractMatrix)
+    return v
+end
+
+function DynamicsUtils.get_hopping_velocity(::RingPolymerSimulation, v::AbstractArray{T,3}) where {T}
+    return get_centroid(v)
+end
+
+
+include("SurfaceHoppingVariables.jl")
+include("decoherence_corrections.jl")
+include("surface_hopping.jl")
 include("fssh.jl")
+include("iesh.jl")
 include("rpsh.jl")
+include("rpiesh.jl")
+include("cme.jl")
+export CME, BCME
+include("rpcme.jl")
 
 end # module

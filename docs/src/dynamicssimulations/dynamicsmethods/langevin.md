@@ -1,3 +1,7 @@
+```@setup logging
+@info "Expanding src/dynamicssimulations/dynamicsmethods/langevin.md..."
+start_time = time()
+```
 # [Classical Langevin dynamics](@id langevin-dynamics)
 
 Langevin dynamics can be used to sample the canonical ensemble for a classical system.
@@ -70,7 +74,7 @@ outputted and have selected a timestep `dt`.
 Since the default algorithm is a fixed timestep algorithm an error will be thrown if a
 timestep is not provided.
 ```@example langevin
-traj = run_dynamics(sim, (0.0, 2000.0), u; output=(OutputPosition, OutputVelocity), dt=0.1)
+traj = run_dynamics(sim, (0.0, 2000.0), u; output=(OutputPosition, OutputVelocity), dt=0.5)
 ```
 
 Here, we plot the positions of our two atoms throughout the simulation.
@@ -122,3 +126,7 @@ Estimators.@estimate kinetic_energy(sim, traj[:OutputVelocity])
 ```
 Again, this takes a similar value since the total energy is evenly split between the kinetic
 and potential for a classical harmonic system.
+```@setup logging
+runtime = round(time() - start_time; digits=2)
+@info "...done after $runtime s."
+```

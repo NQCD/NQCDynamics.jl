@@ -22,10 +22,9 @@ end
 end
 
 @testset "OutputQuantisedDiatomic" begin
-    sim = Simulation(Atoms(1), Harmonic())
-    output = OutputQuantisedDiatomic(sim; height=1, normal_vector = [1, 1, 1])
-    output = OutputQuantisedDiatomic(sim)
-    u = DynamicsVariables(sim, hcat(1), hcat(1))
+    # Maybe tack this onto a dynamics unit test. 
+    output = OutputQuantisedDiatomic(; height=1, normal_vector = [1, 1, 1])
+    output = OutputQuantisedDiatomic()
 end
 
 @testset "PopulationCorrelationFunction" begin
@@ -34,7 +33,7 @@ end
         sim = Simulation{Ehrenfest}(Atoms(2000), TullyModelTwo())
         output = TimeCorrelationFunctions.PopulationCorrelationFunction(sim, Adiabatic())
         u = DynamicsVariables(sim, hcat(20/2000), hcat(-5), PureState(1, Adiabatic()))
-        sol = run_dynamics(sim, (0, 1000.0), u; output)
+        sol = run_dynamics(sim, (0, 1000.0), u; output, dt=0.01)
         out = sol[:PopulationCorrelationFunction]
         @test out[1][1,1] ≈ 1
         @test out[1][2,2] ≈ 0

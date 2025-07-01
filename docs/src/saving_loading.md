@@ -1,3 +1,7 @@
+```@setup logging
+@info "Expanding src/saving_loading.md..."
+start_time = time()
+```
 # [Saving and loading](@id saving-and-loading)
 
 If you would like to split your workflow into multiple scripts
@@ -49,3 +53,7 @@ model = load("parameters.jld2", "model")
 
 [JLD2](https://github.com/JuliaIO/JLD2.jl) is compatible with any Julia type so it widely
 usable for most of the types you encounter is NQCDynamics.jl and across all Julia packages.
+```@setup logging
+runtime = round(time() - start_time; digits=2)
+@info "...done after $runtime s."
+```

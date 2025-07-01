@@ -54,11 +54,11 @@ function acceleration!(dv, u, sim::Simulation{<:eCMM})
 
     Parameters.@unpack γ, temp_q, temp_p = sim.method
 
-    Calculators.evaluate_derivative!(sim.calculator, DynamicsUtils.get_positions(u))
+    NQCCalculators.update_derivative!(sim.cache, DynamicsUtils.get_positions(u))
     qmap = get_mapping_positions(u)
 	pmap = get_mapping_momenta(u)
     for I in eachindex(dv)
-        D = sim.calculator.derivative[I]
+        D = sim.cache.derivative[I]
         mul!(temp_q, D, qmap)
         mul!(temp_p, D, pmap)
         dv[I] = dot(qmap, temp_q)
@@ -70,27 +70,23 @@ function acceleration!(dv, u, sim::Simulation{<:eCMM})
 end
 
 function set_mapping_force!(du, u, sim::Simulation{<:eCMM})
-    Calculators.evaluate_potential!(sim.calculator, DynamicsUtils.get_positions(u))
-    V = sim.calculator.potential
+    NQCCalculators.update_potential!(sim.cache, DynamicsUtils.get_positions(u))
+    V = sim.cache.potential
     mul!(get_mapping_positions(du), V, get_mapping_momenta(u))
     mul!(get_mapping_momenta(du), V, get_mapping_positions(u))
     lmul!(-1, get_mapping_momenta(du))
 end
 
-function DynamicsUtils.classical_hamiltonian(sim::Simulation{<:eCMM}, u)
+function DynamicsUtils.classical_potential_energy(sim::Simulation{<:eCMM}, u)
     r = DynamicsUtils.get_positions(u)
-    v = DynamicsUtils.get_velocities(u)
 
-    kinetic = DynamicsUtils.classical_kinetic_energy(sim, v)
-
-    Calculators.evaluate_potential!(sim.calculator, r)
-    V = sim.calculator.potential
+    NQCCalculators.update_potential!(sim.cache, r)
+    V = sim.cache.potential
     qmap = get_mapping_positions(u)
     pmap = get_mapping_momenta(u)
     potential = (pmap'V*pmap + qmap'V*qmap - 2sim.method.γ*tr(V)) / 2
 
-    H = kinetic + potential
-    return H
+    return potential
 end
 
 mapping_kernel(qmap, pmap, γ) = (qmap.^2 .+ pmap.^2)./2 .- γ

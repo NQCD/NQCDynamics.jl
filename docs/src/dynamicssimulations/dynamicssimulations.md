@@ -1,3 +1,7 @@
+```@setup logging
+@info "Expanding src/dynamicssimulations/dynamicssimulations.md..."
+start_time = time()
+```
 # [Introduction](@id dynamicssimulations)
 
 Performing dynamics simulations is at the core of this package's functionality
@@ -28,6 +32,28 @@ sim = Simulation{Ehrenfest}(atoms, TullyModelOne(); temperature=0, cell=Infinite
 Here we have initialised the simulation parameters, including the default temperature and cell explicitly.
 `sim` takes the place of the `p` parameter seen throughout [DifferentialEquations](https://diffeq.sciml.ai/stable/).
 
+### Simulation Temperature
+
+The temperature of a simulation isn't used by some dynamics methods, but can always be included. 
+Methods such as [Langevin dynamics](@ref langevin-dynamics) or [MDEF](@ref mdef-dynamics) use temperature to determine the magnitude of random flucturations to preserve detailed balance. 
+
+The temperature for a simulation can be provided in three ways:
+
+**Fixed temperature**
+
+This can be a number, either in atomic units or a Unitful quantity (e.g. `300u"K"`). 
+
+**Temperature function**
+
+For time-dependent temperatures, the temperature can be set to a function. This function must take the time in Unitful `u"fs"` as an input and return a temperature in Unitful `u"K"`. 
+
+**Different temperatures per atom**
+
+If different parts of the simulated system should be affected by different effective temperatures, a `Vector` of [`TemperatureSetting`](@ref)s can be passed as the temperature argument. 
+However, only one temperature should be applied to each atom in the system. 
+
+### DynamicsVariables
+
 For [DifferentialEquations](https://diffeq.sciml.ai/stable/) to allow for a wide variety of solvers, 
 the input arrays [`DynamicsVariables`](@ref) must be [`AbstractArray`](https://docs.julialang.org/en/v1/manual/interfaces/#man-interface-array)s.
 In nonadiabatic dynamics simulations, we usually have different groups of variables that behave in particular ways.
@@ -53,6 +79,8 @@ This helps to ensure each method follows a similar workflow, making it easy to s
 The output of this function takes the place of the `u` argument seen throughout
 [DifferentialEquations](https://diffeq.sciml.ai/stable/).
 
+### Running dynamics
+
 With both the [`Simulation`](@ref) and [`DynamicsVariables`](@ref) in hand,
 the central function is [`run_dynamics`](@ref) which allows us to perform a single dynamics trajectory.
 [`run_dynamics`](@ref) takes the simulation parameters `sim` and the initial conditions `u0`, along with a time span `tspan`
@@ -60,7 +88,7 @@ that the trajectory will cover.
 
 ```@example dynamics
 tspan = (0.0, 2000.0)
-run_dynamics(sim, tspan, u0; output=OutputDynamicsVariables)
+run_dynamics(sim, tspan, u0; output=OutputDynamicsVariables, dt=1.0)
 ```
 
 The output is a dictionary containing entries for `:Time` and our requested output quantity. 
@@ -68,7 +96,7 @@ Output is a required keyword and the code will error unless at least one quantit
 By passing a `Tuple` to the `output` keyword argument we can ask for multiple quantities.
 
 ```@example dynamics
-out = run_dynamics(sim, tspan, u0; output=(OutputPosition, OutputAdiabaticPopulation))
+out = run_dynamics(sim, tspan, u0; output=(OutputPosition, OutputAdiabaticPopulation), dt=1.0)
 ```
 The quantities that are available are listed [here](@ref NQCDynamics).
 More quantities can be added by defining new functions with the signature `f(sol, i)`.
@@ -92,3 +120,7 @@ plot(out, :OutputAdiabaticPopulation)
 
 All of the dynamics methods work in a similar way. For details on a specific method along with examples,
 please see the method specific page in the sidebar under `Dynamics methods`.
+```@setup logging
+runtime = round(time() - start_time; digits=2)
+@info "...done after $runtime s."
+```

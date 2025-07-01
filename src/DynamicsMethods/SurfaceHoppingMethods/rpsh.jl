@@ -2,8 +2,8 @@ using LinearAlgebra: eigvecs, diag, diagind, dot
 using StatsBase: sample, Weights
 using RingPolymerArrays: get_centroid
 
-using NQCDynamics.Calculators: RingPolymerDiabaticCalculator
 using NQCDynamics: RingPolymerSimulation, RingPolymers
+using NQCCalculators
 
 function RingPolymerSimulation{FSSH}(atoms::Atoms{T}, model::Model, n_beads::Integer; rescaling=:standard, kwargs...) where {T}
     RingPolymerSimulation(atoms, model, FSSH{T}(NQCModels.nstates(model), rescaling), n_beads; kwargs...)
@@ -21,22 +21,10 @@ function DynamicsMethods.motion!(du, u, sim::RingPolymerSimulation{<:SurfaceHopp
     set_state!(u, sim.method.state) # Make sure the state variables match, 
 
     DynamicsUtils.velocity!(dr, v, r, sim, t)
-    Calculators.update_electronics!(sim.calculator, r)
-    acceleration!(dv, v, r, sim, t, sim.method.state)
+    NQCCalculators.update_cache!(sim.cache, r)
+    DynamicsUtils.acceleration!(dv, v, r, sim, t, sim.method.state)
     DynamicsUtils.apply_interbead_coupling!(dv, r, sim)
-    DynamicsUtils.set_quantum_derivative!(dσ, v, σ, sim)
-end
-
-function get_hopping_nonadiabatic_coupling(sim::RingPolymerSimulation{<:FSSH})
-    sim.calculator.centroid_nonadiabatic_coupling
-end
-
-function get_hopping_velocity(::RingPolymerSimulation{<:FSSH}, u)
-    get_centroid(DynamicsUtils.get_velocities(u))
-end
-
-function get_hopping_eigenvalues(sim::RingPolymerSimulation{<:FSSH})
-    sim.calculator.centroid_eigen.values
+    DynamicsUtils.set_quantum_derivative!(dσ, u, sim)
 end
 
 function perform_rescaling!(
@@ -48,11 +36,29 @@ function perform_rescaling!(
     return nothing
 end
 
-function DynamicsUtils.classical_hamiltonian(sim::RingPolymerSimulation{<:FSSH}, u)
-    kinetic = DynamicsUtils.classical_kinetic_energy(sim, DynamicsUtils.get_velocities(u))
-    spring = RingPolymers.get_spring_energy(sim.beads, sim.atoms.masses, DynamicsUtils.get_positions(u))
+function frustrated_hop_invert_velocity!(
+    sim::RingPolymerSimulation{<:SurfaceHopping}, velocity, d
+)
+    #invert center of mass velocity of ring polymer
+    dn = LinearAlgebra.normalize(d)
+    vcom = sum(velocity, dims=3) / size(velocity,3)
+    γ = dot(vcom[:,:,1],dn)
+    for I in CartesianIndices(dn)
+        velocity[I,:] .-= 2γ * dn[I]
+    end
+    return nothing
+end
 
-    all_eigs = Calculators.get_eigen(sim.calculator, DynamicsUtils.get_positions(u))
-    potential = sum(eigs.values[u.state] for eigs in all_eigs)
-    return kinetic + spring + potential
+function DynamicsUtils.classical_potential_energy(sim::RingPolymerSimulation{<:FSSH}, u)
+    NQCCalculators.update_cache!(sim.cache, DynamicsUtils.get_positions(u)) # Ensure eigen is populated
+    all_eigs = NQCCalculators.get_eigen(sim.cache, DynamicsUtils.get_positions(u))
+    potential = sum(eigs.values[convert(Int, u.state |> first)] for eigs in all_eigs)
+    return potential
+end
+
+function DynamicsUtils.centroid_classical_potential_energy(sim::RingPolymerSimulation{<:FSSH}, u)
+    NQCCalculators.update_cache!(sim.cache, DynamicsUtils.get_positions(u)) # Ensure eigen is populated
+    centroid_eigs = NQCCalculators.get_centroid_eigen(sim.cache, DynamicsUtils.get_positions(u))
+    potential = centroid_eigs.values[convert(Int, u.state |> first)]
+    return potential
 end

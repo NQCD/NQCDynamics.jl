@@ -1,3 +1,4 @@
+using Optim: Optim
 
 struct BindingCurve{T,B,F}
     bond_lengths::B
@@ -8,12 +9,11 @@ struct BindingCurve{T,B,F}
 end
 
 function calculate_binding_curve(
-    bond_lengths::AbstractVector, model::AdiabaticModel, environment::EvaluationEnvironment
+    bond_lengths::AbstractVector, model::ClassicalModel, environment::EvaluationEnvironment
 )
     potential = calculate_diatomic_energy.(bond_lengths, model, environment) # Calculate binding curve
-    potential_minimum, index = findmin(potential)
-    equilibrium_bond_length = bond_lengths[index]
     fit = fit_binding_curve(bond_lengths, potential)
+    equilibrium_bond_length, potential_minimum = find_minimum(fit)
     return BindingCurve(bond_lengths, potential, equilibrium_bond_length, potential_minimum, fit)
 end
 
@@ -21,6 +21,12 @@ function fit_binding_curve(bond_lengths, binding_curve)
     itp = interpolate(binding_curve, BSpline(Cubic(Line(OnGrid()))))
     sitp = scale(itp, bond_lengths)
     return sitp
+end
+
+function find_minimum(fit)
+    grid = knots(fit)
+    results = Optim.optimize(fit, minimum(grid), maximum(grid), Optim.Brent())
+    return Optim.minimizer(results), Optim.minimum(results)
 end
 
 function calculate_force_constant(binding_curve)

@@ -1,3 +1,7 @@
+```@setup logging
+@info "Expanding src/dynamicssimulations/dynamicsmethods/rpsh.md..."
+start_time = time()
+```
 # [Ring polymer surface hopping (RPSH)](@id rpsh-dynamics)
 
 Ring polymer surface hopping was one of the early attempts to extend
@@ -59,7 +63,7 @@ For the output we will receive the diabatic population at intervals of `t=50`
 and it will be averaged over all trajectories by the `:mean` keyword.
 ```@example rpsh
 solution = run_dynamics(sim, (0.0, 3000.0), distribution;
-    saveat=50, trajectories=5e2, dt=1,
+    saveat=50, trajectories=50, dt=1,
     output=TimeCorrelationFunctions.PopulationCorrelationFunction(sim, Diabatic()),
     reduction=MeanReduction())
 ```
@@ -90,3 +94,7 @@ and it is possible that better results could be achieved using a free ring polym
 [Welsch2016](@cite) provides a theoretical description of how nonequilibrium simulations using RPMD
 should be performed. This techniques here should likely be applied to RPSH too.
 
+```@setup logging
+runtime = round(time() - start_time; digits=2)
+@info "...done after $runtime s."
+```

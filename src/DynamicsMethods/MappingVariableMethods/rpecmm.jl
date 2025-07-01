@@ -28,11 +28,11 @@ function acceleration!(dv, u, sim::RingPolymerSimulation{<:eCMM})
 
     Parameters.@unpack γ, temp_q, temp_p = sim.method
 
-    Calculators.evaluate_derivative!(sim.calculator, DynamicsUtils.get_positions(u))
+    NQCCalculators.update_derivative!(sim.cache, DynamicsUtils.get_positions(u))
     for I in CartesianIndices(dv)
         qmap = get_mapping_positions(u, I[3])
         pmap = get_mapping_momenta(u, I[3])
-        D = sim.calculator.derivative[I]
+        D = sim.cache.derivative[I]
         D̄ = tr(D) / nstates(sim)
         Dtraceless = D - Diagonal(fill(D̄, nstates(sim)))
         mul!(temp_q, Dtraceless, qmap)
@@ -47,9 +47,9 @@ function acceleration!(dv, u, sim::RingPolymerSimulation{<:eCMM})
 end
 
 function set_mapping_force!(du, u, sim::RingPolymerSimulation{<:eCMM})
-    Calculators.evaluate_potential!(sim.calculator, DynamicsUtils.get_positions(u))
+    NQCCalculators.update_potential!(sim.cache, DynamicsUtils.get_positions(u))
     for i in range(sim.beads)
-        V = sim.calculator.potential[i]
+        V = sim.cache.potential[i]
         V̄ = tr(V) / nstates(sim)
         Vtraceless = V - Diagonal(fill(V̄, nstates(sim)))
         mul!(get_mapping_positions(du, i), Vtraceless, get_mapping_momenta(u, i))
@@ -58,17 +58,13 @@ function set_mapping_force!(du, u, sim::RingPolymerSimulation{<:eCMM})
     end
 end
 
-function DynamicsUtils.classical_hamiltonian(sim::RingPolymerSimulation{<:eCMM}, u)
+function DynamicsUtils.classical_potential_energy(sim::RingPolymerSimulation{<:eCMM}, u)
     r = DynamicsUtils.get_positions(u)
-    v = DynamicsUtils.get_velocities(u)
 
-    spring = RingPolymers.get_spring_energy(sim.beads, sim.atoms.masses, r)
-    kinetic = DynamicsUtils.classical_kinetic_energy(sim, v)
-
-    Calculators.evaluate_potential!(sim.calculator, r)
+    NQCCalculators.update_potential!(sim.cache, r)
     potential = zero(eltype(u))
     for i=1:nbeads(sim)
-        V = sim.calculator.potential[i]
+        V = sim.cache.potential[i]
         V̄ = tr(V) / nstates(sim)
         Vtraceless = V - Diagonal(fill(V̄, nstates(sim)))
         qmap = get_mapping_positions(u, i)
@@ -76,7 +72,7 @@ function DynamicsUtils.classical_hamiltonian(sim::RingPolymerSimulation{<:eCMM},
         potential += 0.5 * (pmap'Vtraceless*pmap + qmap'Vtraceless*qmap) + V̄
     end
 
-    return kinetic + spring + potential
+    return potential
 end
 
 function inverse_mapping_kernel(qmap, pmap, γ, N)

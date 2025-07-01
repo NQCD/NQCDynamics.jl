@@ -25,7 +25,8 @@ end
 
 function sum_outputs!(u, batch)
     for b in batch
-        u .+= b
+        mergewith!(+, u, b)
+        # u .+= b
     end
 end
 
@@ -69,7 +70,7 @@ struct FileReduction
 end
 
 function (reduction::FileReduction)(u, batch, I)
-    HDF5.h5open(reduction.filename, "w") do file
+    HDF5.h5open(reduction.filename, "cw") do file
         for (i, trajectory_id) in enumerate(I)
             trajectory_group = HDF5.create_group(file, "trajectory_$(trajectory_id)")
             trajectory = batch[i]
@@ -78,7 +79,7 @@ function (reduction::FileReduction)(u, batch, I)
                 if (value isa Array{<:Number}) || (value isa Number)
                     trajectory_group[string(k)] = trajectory[k]
                 elseif (value isa Vector{<:Array})
-                    output = cat(value...; dims=3)
+                    output = reshape(reduce(hcat, value), size(value[1])..., :)
                     trajectory_group[string(k)] = output
                 else
                     throw(error("Cannot convert output type to HDF5 format"))

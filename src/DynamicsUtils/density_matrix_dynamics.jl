@@ -4,66 +4,67 @@ using LinearAlgebra: diagm, mul!
 using NQCDynamics: RingPolymers
 using NQCModels: nstates
 using RingPolymerArrays: get_centroid
-using NQCDistributions: ElectronicDistribution, Adiabatic, Diabatic, density_matrix
-using ..Calculators: AbstractDiabaticCalculator, DiabaticCalculator, RingPolymerDiabaticCalculator
+using NQCDistributions: ElectronicDistribution, Adiabatic, Diabatic, density_matrix, FermiDiracState
+using NQCCalculators
 
 function set_quantum_derivative! end
 
-function calculate_density_matrix_propagator!(sim::Simulation, v)
-    V = sim.method.density_propagator
+function calculate_density_matrix_propagator!(propagator, v, d, eigenvalues)
+    fill!(propagator, zero(eltype(propagator)))
+    for (i, I) in enumerate(diagind(propagator))
+        propagator[I] = eigenvalues[i]
+    end
 
-    V .= diagm(sim.calculator.eigen.values)
     for I in eachindex(v)
-        @. V -= im * v[I] * sim.calculator.nonadiabatic_coupling[I]
+        @. propagator -= im * v[I] * d[I]
     end
-    return V
+    return propagator
 end
 
-function calculate_density_matrix_propagator!(sim::RingPolymerSimulation, v)
-    V = sim.method.density_propagator
-    centroid_v = get_centroid(v)
+"""
+    commutator!(C, A, B)
 
-    V .= diagm(sim.calculator.centroid_eigen.values)
-    for I in eachindex(centroid_v)
-        @. V -= im * centroid_v[I] * sim.calculator.centroid_nonadiabatic_coupling[I]
-    end
-    return V
-end
-
-function commutator!(out, A, B, tmp)
-    mul!(out, A, B)
-    mul!(tmp, B, A)
-    out .-= tmp
+Calculate C = AB - BA.
+"""
+function commutator!(C, A, B)
+    mul!(C, B, A) # C = BA
+    mul!(C, A, B, 1, -1) # C = AB - C
     return nothing
 end
 
-get_quantum_subsystem(u::ComponentArrays.ComponentVector{T}) where {T} =
-    StructArray{Complex{T}}((u.σreal, u.σimag))
+get_quantum_subsystem(u::ComponentArrays.ComponentVector{T}) where {T} = StructArray{Complex{T}}((u.σreal, u.σimag))
 
 function initialise_adiabatic_density_matrix(
     electronics::ElectronicDistribution{Diabatic},
-    calculator::AbstractDiabaticCalculator,
+    cache::Abstract_QuantumModel_Cache,
     r
 )
 
-    diabatic_density = density_matrix(electronics, nstates(calculator))
-    return transform_density!(diabatic_density, calculator, r, :to_adiabatic)
+    diabatic_density = density_matrix(electronics, nstates(cache))
+    update_cache!(cache, r) # Ensure eigen is populated for transformation
+    return transform_density!(diabatic_density, cache, r, :to_adiabatic)
 end
 
 function initialise_adiabatic_density_matrix(
     electronics::ElectronicDistribution{Adiabatic},
-    calculator::AbstractDiabaticCalculator,
+    cache::Abstract_QuantumModel_Cache,
     r
 )
+    update_cache!(cache, r) # Ensure eigen is populated for transformation
+    if electronics isa FermiDiracState
+        eigen = NQCCalculators.get_eigen(cache, r)
+        adiabatic_density = density_matrix(electronics, eigen.values)
+    else
+        adiabatic_density = density_matrix(electronics, nstates(cache))
+    end
 
-    adiabatic_density = density_matrix(electronics, nstates(calculator))
     return adiabatic_density
 end
 
 function transform_density!(
-    density::AbstractMatrix, calculator::AbstractDiabaticCalculator, r, direction
+    density::AbstractMatrix, cache::Abstract_QuantumModel_Cache, r, direction
 )
-    U = evaluate_transformation(calculator, r)
+    U = evaluate_transformation(cache, r)
     if direction === :to_diabatic
         U = U'
     elseif !(direction === :to_adiabatic)
@@ -73,12 +74,14 @@ function transform_density!(
     return density
 end
 
-function evaluate_transformation(calculator::DiabaticCalculator, r)
-    eigs =  Calculators.get_eigen(calculator, r)
-    return eigs.vectors
+function evaluate_transformation(cache::Abstract_QuantumModel_Cache, r::AbstractMatrix)
+    NQCCalculators.update_cache!(cache, r)
+    #NQCCalculators.evaluate_eigen!(cache, r)
+    return cache.eigen.vectors
 end
 
-function evaluate_transformation(calculator::RingPolymerDiabaticCalculator, r)
-    centroid_eigs = Calculators.get_centroid_eigen(calculator, r)
-    return centroid_eigs.vectors
+function evaluate_transformation(cache::Abstract_QuantumModel_Cache, r::AbstractArray{T,3}) where {T}
+    NQCCalculators.update_cache!(cache, r)
+    #centroid_eigs = NQCCalculators.get_centroid_eigen(cache, r)
+    return cache.centroid_eigen.vectors
 end

@@ -6,6 +6,7 @@ using DiffEqNoiseProcess
 using DiffEqDevTools
 using Random
 using Logging
+# Set up the seed 
 Random.seed!(100)
 
 u0 = zeros(2,2)
@@ -17,8 +18,7 @@ g(u,p,t) = diagm(ones(length(u)))
 
 p = Simulation(Atoms([:H,:H]), NQCModels.Free(2); temperature=100)
 
-ff_harmonic = DynamicalSDEFunction(f1_harmonic,f2_harmonic,g)
-prob1 = DynamicalSDEProblem(ff_harmonic,g,v0,u0,(0.0,0.5),p)
+prob1 = DynamicalSDEProblem(f1_harmonic, f2_harmonic ,g,v0,u0,(0.0,0.5),p)
 
 sol1 = solve(prob1,DynamicsMethods.IntegrationAlgorithms.MDEF_BAOAB();dt=1/10,save_noise=true)
 

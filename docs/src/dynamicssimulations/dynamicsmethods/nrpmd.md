@@ -1,3 +1,7 @@
+```@setup logging
+@info "Expanding src/dynamicssimulations/dynamicsmethods/nrpmd.md..."
+start_time = time()
+```
 # [Nonadiabatic ring polymer molecular dynamics (NRPMD)](@id nrpmd-dynamics)
 
 ## Theory
@@ -122,7 +126,7 @@ We can check the distribution by plotting the phasespace diagram for each of the
 in our distribution:
 
 ```@example nrpmd
-using CairoMakie
+using Plots
 
 nuclear = distribution.nuclear
 flat_position = reduce(vcat, (nuclear.position[i][:] for i in 1:length(nuclear)))
@@ -173,10 +177,13 @@ the figure from the paper we were attempting to reproduce. Nice!
 
 ```@example nrpmd
 ensemble = run_dynamics(sim, (0.0, 30.0), distribution;
-    trajectories=1000, output, reduction=MeanReduction(), dt=0.1)
+    trajectories=100, output, reduction=MeanReduction(), dt=0.1)
 
-plt = lines(0:0.1:30, [p[1,1]-p[2,1] for p in ensemble[:PopulationCorrelationFunction]])
-plt.axis.xlabel = "Time"
-plt.axis.ylabel = "Population difference"
-plt
+plot(0:0.1:30, [p[1,1]-p[2,1] for p in ensemble[:PopulationCorrelationFunction]])
+xlabel!("Time")
+ylabel!("Population difference")
+```
+```@setup logging
+runtime = round(time() - start_time; digits=2)
+@info "...done after $runtime s."
 ```

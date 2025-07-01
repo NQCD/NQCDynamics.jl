@@ -4,6 +4,7 @@ using DiffEqBase: @..
 using LinearAlgebra: Diagonal
 using NQCDynamics: RingPolymers, ndofs
 using RingPolymerArrays: RingPolymerArray
+using OrdinaryDiffEq.OrdinaryDiffEqCore: get_fsalfirstlast
 
 StochasticDiffEq.alg_compatible(prob::DiffEqBase.AbstractSDEProblem, alg::BCOCB) = true
 
@@ -13,9 +14,13 @@ struct BCOCBCache{U,A,K,uEltypeNoUnits,F} <: StochasticDiffEq.StochasticDiffEqMu
     vtmp::A
     k::K
     cayley::Vector{Matrix{uEltypeNoUnits}}
-    half::uEltypeNoUnits
+    halfdt::uEltypeNoUnits
     friction::F
 end
+
+OrdinaryDiffEq.isfsal(::BCOCB) = false
+
+OrdinaryDiffEq.get_fsalfirstlast(cache::BCOCBCache, u::Any) = (nothing, nothing)
 
 function StochasticDiffEq.alg_cache(::BCOCB,prob,u,ΔW,ΔZ,p,rate_prototype,noise_rate_prototype,jump_rate_prototype,uEltypeNoUnits,uBottomEltypeNoUnits,tTypeNoUnits,uprev,f,t,dt,::Type{Val{true}})
     tmp = zero(u)
@@ -24,11 +29,11 @@ function StochasticDiffEq.alg_cache(::BCOCB,prob,u,ΔW,ΔZ,p,rate_prototype,nois
     k = zeros(size(rtmp))
 
     cayley = RingPolymers.cayley_propagator(p.beads, dt; half=true)
-    half = uEltypeNoUnits(1//2)
+    halfdt = uEltypeNoUnits(dt / 2)
 
     friction = FrictionCache(p, dt)
 
-    BCOCBCache(tmp, rtmp, vtmp, k, cayley, half, friction)
+    BCOCBCache(tmp, rtmp, vtmp, k, cayley, halfdt, friction)
 end
 
 struct MDEFCache{flatV,G,N,C,M,S}
@@ -58,8 +63,8 @@ function FrictionCache(sim::RingPolymerSimulation{<:DynamicsMethods.ClassicalMet
     c1 = Diagonal(zeros(DoFs*atoms, DoFs*atoms))
     c2 = zero(c1)
     
-    sqrtmass = 1 ./ sqrt.(repeat(sim.atoms.masses; inner=DoFs))
-    σ = zero(sqrtmass)
+    sqrtmass = 1 ./ sqrt.(sim.atoms.masses)
+    σ = zero(repeat(sqrtmass; inner=DoFs))
 
     MDEFCache(flatvtmp, tmp1, tmp2, gtmp, noise, c1, c2, sqrtmass, σ)
 end
@@ -76,44 +81,41 @@ function FrictionCache(sim::RingPolymerSimulation{<:DynamicsMethods.ClassicalMet
     γ = [γ0, 2sqrt.(2sim.beads.normal_mode_springs[2:end])...]
     c1 = exp.(-dt.*γ)
     c2 = sqrt.(1 .- c1.^2)
-    sqrtmass = 1 ./ repeat(sqrt.(sim.atoms.masses'), ndofs(sim))
-    σ = zero(sqrtmass)
+    sqrtmass = 1 ./ sqrt.(sim.atoms.masses')
+    σ = zero(repeat(sqrtmass, ndofs(sim)))
 
     LangevinCache(c1, c2, sqrtmass, σ)
 end
 
-function StochasticDiffEq.initialize!(integrator, cache::BCOCBCache)
-    @unpack t,uprev,p = integrator
-    v = integrator.uprev.x[1]
-    r = integrator.uprev.x[2]
-
-    integrator.f.f1(cache.k,v,r,p,t)
+function StochasticDiffEq.initialize!(integrator, integrator_cache::BCOCBCache)
+    (;t, p) = integrator
+    v, r = integrator.uprev.x
+    integrator.f.f1(integrator_cache.k, v, r, p, t)
 end
 
-@muladd function StochasticDiffEq.perform_step!(integrator,cache::BCOCBCache,f=integrator.f)
-    @unpack t,dt,sqdt,uprev,u,p,W = integrator
-    @unpack rtmp, vtmp, k, cayley, half, friction = cache
+@muladd function StochasticDiffEq.perform_step!(integrator, integrator_cache::BCOCBCache, f=integrator.f)
+    (;t,p) = integrator
+    (;vtmp, cayley, halfdt, friction) = integrator_cache
 
-    v1 = uprev.x[1]
-    r1 = uprev.x[2]
+    vprev, rprev = integrator.uprev.x
+    acceleration = integrator_cache.k
+    v, r, vtmp = OrdinaryDiffEq.OrdinaryDiffEqSymplecticRK.alloc_symp_state(integrator)
 
-    step_B!(vtmp, v1, half*dt, k)
-    @.. rtmp = r1
+    copy!(r, rprev)
 
-    RingPolymerArrays.transform_to_normal_modes!(rtmp, p.beads.transformation)
+    step_B!(vtmp, vprev, halfdt, acceleration)
+
     RingPolymerArrays.transform_to_normal_modes!(vtmp, p.beads.transformation)
+    RingPolymerArrays.transform_to_normal_modes!(r, p.beads.transformation)
 
-    step_C!(vtmp, rtmp, cayley)
+    step_C!(vtmp, r, cayley)
+    step_O!(friction, integrator, vtmp, r, t+halfdt)
+    step_C!(vtmp, r, cayley)
 
-    step_O!(friction, integrator, vtmp, rtmp, t+half*dt)
-
-    step_C!(vtmp, rtmp, cayley)
-
-    RingPolymerArrays.transform_from_normal_modes!(rtmp, p.beads.transformation)
     RingPolymerArrays.transform_from_normal_modes!(vtmp, p.beads.transformation)
+    RingPolymerArrays.transform_from_normal_modes!(r, p.beads.transformation)
 
-    @.. u.x[2] = rtmp
+    integrator.f.f1(acceleration, vtmp, r, p, t)
 
-    integrator.f.f1(k,vtmp,u.x[2],p,t+dt)
-    step_B!(u.x[1], vtmp, half*dt, k)
+    step_B!(v, vtmp, halfdt, acceleration)
 end

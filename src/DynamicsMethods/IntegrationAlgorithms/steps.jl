@@ -38,12 +38,12 @@ function step_C!(v::RingPolymerArray, r::RingPolymerArray, cayley::Vector{<:Matr
     end
 end
 
-function step_O!(cache, integrator)
+function step_O!(integrator_cache, integrator)
     @unpack t, dt, W, p, sqdt = integrator
-    @unpack dutmp, flatdutmp, tmp1, tmp2, gtmp, noise, half, c1, c2 = cache
+    @unpack dutmp, flatdutmp, tmp1, tmp2, gtmp, noise, half, c1, c2 = integrator_cache
 
     Λ = gtmp
-    σ = sqrt(get_temperature(p, t+dt*half)) ./ sqrt.(repeat(p.atoms.masses; inner=ndofs(p)))
+    σ = repeat( sqrt.(get_temperature(p, t+dt*half) ./ p.atoms.masses);inner=ndofs(p))
 
     @.. noise = σ*W.dW[:] / sqdt
 
@@ -77,7 +77,7 @@ function step_O!(friction::MDEFCache, integrator, v, r, t)
 
     integrator.g(gtmp,r,p,t)
     Λ = gtmp
-    @.. σ = sqrt(get_temperature(p, t)) * sqrtmass
+    σ = repeat(sqrt.(get_ring_polymer_temperature(p, t)) .* sqrtmass;inner=ndofs(p))
 
     @views for i in axes(r, 3)
         @.. noise = σ * W.dW[:,:,i][:] / sqdt
@@ -110,7 +110,7 @@ function step_O!(friction::LangevinCache, integrator, v::RingPolymerArray, r::Ri
     @unpack W, p, dt, sqdt = integrator
     @unpack c1, c2, sqrtmass, σ = friction
 
-    @.. σ = sqrt(get_ring_polymer_temperature(p, t)) * sqrtmass
+    σ = repeat(sqrt.(get_ring_polymer_temperature(p, t)) .* sqrtmass;inner=(1,ndofs(p)))
 
     for i in axes(r, 3)
         for j in RingPolymerArrays.quantumindices(v)
