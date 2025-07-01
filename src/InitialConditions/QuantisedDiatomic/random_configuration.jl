@@ -62,6 +62,22 @@ function configure_diatomic(sim, bond, velocity, J, environment::EvaluationEnvir
     v, r
 end
 
+
+"""
+Randomly orient atom in space
+"""
+function configure_atomic(sim,bond, environment::EvaluationEnvironment, generation::GenerationParameters)
+    r = zeros(3,1)
+    v = zeros(3,1)
+
+    r[1,1] = bond
+ 
+    position_above_surface!(r, environment.offset, sim.cell)
+    apply_translational_impulse!(v, masses(sim)[environment.molecule_indices], generation.translational_energy, generation.direction)
+
+    v, r
+end
+
 """
 Randomly rotate each column of two 3*N matrix, same rotation for all columns.
 """
