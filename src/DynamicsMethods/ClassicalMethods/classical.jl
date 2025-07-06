@@ -24,6 +24,7 @@ struct Classical <: DynamicsMethods.Method end
 function NQCDynamics.Simulation{Classical}(atoms::Atoms, model::Model; kwargs...)
     NQCDynamics.Simulation(atoms, model, Classical(); kwargs...)
 end
+
 function NQCDynamics.RingPolymerSimulation{Classical}(atoms::Atoms, model::Model, n_beads::Integer; kwargs...)
     NQCDynamics.RingPolymerSimulation(atoms, model, Classical(), n_beads::Integer; kwargs...)
 end
@@ -31,6 +32,7 @@ end
 function NQCDynamics.Simulation(atoms::Atoms, model::Model; kwargs...)
     NQCDynamics.Simulation{Classical}(atoms, model; kwargs...)
 end
+
 function NQCDynamics.RingPolymerSimulation(atoms::Atoms, model::Model, n_beads::Integer; kwargs...)
     NQCDynamics.RingPolymerSimulation{Classical}(atoms, model, n_beads; kwargs...)
 end
@@ -40,6 +42,7 @@ function DynamicsMethods.motion!(du, u, sim::AbstractSimulation{<:Classical}, t)
     dv = DynamicsUtils.get_velocities(du)
     r = DynamicsUtils.get_positions(u)
     v = DynamicsUtils.get_velocities(u)
+    NQCCalculators.update_cache!(sim.cache, r)
     DynamicsUtils.velocity!(dr, v, r, sim, t)
     acceleration!(dv, v, r, sim, t)
 end
@@ -49,6 +52,7 @@ function DynamicsMethods.motion!(du, u, sim::RingPolymerSimulation{<:Classical},
     dv = DynamicsUtils.get_velocities(du)
     r = DynamicsUtils.get_positions(u)
     v = DynamicsUtils.get_velocities(u)
+    NQCCalculators.update_cache!(sim.cache, r)
     DynamicsUtils.velocity!(dr, v, r, sim, t)
     ring_polymer_acceleration!(dv, v, r, sim, t)
 end
@@ -57,14 +61,14 @@ end
 `f1` in `DifferentialEquations.jl` docs.
 """
 function acceleration!(dv, v, r, sim::AbstractSimulation, t)
-    Calculators.evaluate_derivative!(sim.calculator, r)
-    dv .= -sim.calculator.derivative
+    NQCCalculators.update_cache!(sim.cache, r)
+    dv .= -sim.cache.derivative
     DynamicsUtils.divide_by_mass!(dv, sim.atoms.masses)
 end
 
 function ring_polymer_acceleration!(dv, v, r, sim::RingPolymerSimulation, t)
-    Calculators.evaluate_derivative!(sim.calculator, r)
-    dv .= -sim.calculator.derivative
+    NQCCalculators.update_cache!(sim.cache, r)
+    dv .= -sim.cache.derivative
     DynamicsUtils.divide_by_mass!(dv, sim.atoms.masses)
     DynamicsUtils.apply_interbead_coupling!(dv, r, sim)
 end

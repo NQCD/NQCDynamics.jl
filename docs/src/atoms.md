@@ -37,14 +37,14 @@ Atoms(auno)
 representing atomic geometries, facilitating interoperability between a collection of
 different packages.
 
-When working with NQCDynamics, the most useful packages are [AtomsIO](https://github.com/mfherbst/AtomsIO.jl)
-for reading and writing structures and trajectories, and [ASEconvert](https://github.com/mfherbst/ASEconvert.jl)
+When working with NQCDynamics, the most useful packages are [NQCBase](@ref)
+for reading and writing structures and trajectories, and [PythonCall](https://github.com/JuliaPy/PythonCall.jl)
 for working with [ASE](https://wiki.fysik.dtu.dk/ase/index.html) from within Julia.
 
 ## Using Python's `ase` package from Julia
 
-Julia provides multiple options to run Python-based code from Julia scripts. The NQCD packages
-provide compatibility with [**PythonCall.jl**](https://github.com/JuliaPy/PythonCall.jl), and some deprecated interfaces for [**PyCall.jl**](https://github.com/JuliaPy/PyCall.jl) exist as well. 
+Julia provides multiple options to run Python-based code from Julia scripts. [NQCDInterfASE](@ref) 
+provides compatibility with [**PythonCall.jl**](https://github.com/JuliaPy/PythonCall.jl).
 While both of these packages function similarly, PythonCall forces you as a user to think more about when data is copied in memory between Python and Julia, enabling more efficient code. 
 
 This example shows how `ase.build` can be used to build a structure from within Julia, then convert
@@ -65,6 +65,7 @@ be quickly converted to the correct format:
 
 ```julia
 using NQCDynamics
+using NQCDInterfASE # Import python interface functionality
 
 atoms_nqcd, positions_nqcd, cell_nqcd = convert_from_ase_atoms(atoms_ase)
 
@@ -74,7 +75,7 @@ println(cell_nqcd)
 ```
 
 
-## Saving and loading with AtomsIO.jl
+## Saving and loading with AtomsBase
 
 After running a simulation it often desirable to save the trajectory in a standard format for visualization.
 For this, convert the NQCDynamics output into the AtomsBase format,

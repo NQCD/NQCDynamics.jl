@@ -6,6 +6,10 @@ using Statistics: mean
 using StatsBase: sem
 using DataFrames, CSV
 using Interpolations
+import JSON
+
+benchmark_dir = get(ENV, "BENCHMARK_OUTPUT_DIR", "tmp/nqcd_benchmark")
+benchmark_results = Dict{String, Any}("title_for_plotting" => "RPCME Tests")
 
 ħω = 0.003
 Γ = 0.003
@@ -19,7 +23,7 @@ Model used in J. Chem. Phys. 142, 084110 (2015).
 
 Below we verify the implementation by reproducing the data in Fig. 2.
 """
-struct TestModel{T} <: NQCModels.DiabaticModels.DiabaticModel
+struct TestModel{T} <: NQCModels.QuantumModels.QuantumModel
     ħω::T
     Ed::T
     g::T
@@ -29,22 +33,24 @@ end
 NQCModels.nstates(::TestModel) = 2
 NQCModels.ndofs(::TestModel) = 1
 
-function NQCModels.potential(model::TestModel, r::Real)
-    (; ħω, Ed, g) = model
-    potential = ħω * r^2 / 2
+function NQCModels.potential!(model::TestModel, V::Hermitian, r::AbstractMatrix)
+    (;ħω, Ed, g) = model
+    potential = ħω*first(r)^2/2
     V11 = potential
-    V22 = potential + Ed + sqrt(2) * g * r
-    V12 = sqrt(Γ / 2π)
-    return Hermitian(SMatrix{2,2}(V11, V12, V12, V22))
+    V22 = potential + Ed + sqrt(2)*g*first(r)
+    V12 = sqrt(Γ/2π)
+    V.data .= [V11 V12; V12 V22]
+    return nothing
 end
 
-function NQCModels.derivative(model::TestModel, r::Real)
-    (; ħω, g) = model
-    potential = ħω * r
+function NQCModels.derivative!(model::TestModel, D::AbstractMatrix{<:Hermitian}, r::AbstractMatrix)
+    (;ħω, g) = model
+    potential = ħω*first(r)
     V11 = potential
-    V22 = potential + sqrt(2) * g
+    V22 = potential + sqrt(2)*g
     V12 = 0
-    return Hermitian(SMatrix{2,2}(V11, V12, V12, V22))
+    D[1].data .= [V11 V12; V12 V22]
+    return nothing
 end
 
 model = TestModel(ħω, Ed, g, Γ)
@@ -56,13 +62,17 @@ n_beads = 4
     kTinitial = kT * T
 
     r = PositionHarmonicRingPolymer{Float64}(ħω, 1 / kTinitial, 1 / ħω, (1, 1, n_beads))
-    v = VelocityBoltzmann(kTinitial * n_beads, atoms.masses[1])
+    v = VelocityBoltzmann(kTinitial * n_beads, atoms.masses, (1,1))
     distribution = DynamicalDistribution(v, r, (1, 1, n_beads)) * PureState(1, Diabatic())
 
-    output = run_dynamics(sim, (0.0, 200 / Γ), distribution; trajectories=250,
-        output=(OutputKineticEnergy, OutputTotalEnergy, OutputPotentialEnergy, OutputDiscreteState, OutputSpringEnergy, OutputCentroidKineticEnergy),
-        abstol=1e-12, reltol=1e-12, saveat=2 / Γ, dt=1 / ħω / 10
-    )
+    dyn_test = @timed begin
+        run_dynamics(sim, (0.0, 200 / Γ), distribution; trajectories=250,
+            output=(OutputKineticEnergy, OutputTotalEnergy, OutputPotentialEnergy, OutputDiscreteState, OutputSpringEnergy, OutputCentroidKineticEnergy),
+            abstol=1e-12, reltol=1e-12, saveat=2 / Γ, dt=1 / ħω / 10
+        )
+    end
+    output = dyn_test.value
+    
     avg = mean(o[:OutputCentroidKineticEnergy] for o in output) ./ kT
     err = zero(avg)
     for i in eachindex(err)
@@ -83,5 +93,18 @@ n_beads = 4
     # plot!(output[1][:Time] .* Γ, avg, yerr=err)
     # plot!(output[1][:Time] .* Γ, itp.(output[1][:Time] .* Γ))
     # display(p)
+    benchmark_results["Phonon relaxation"] = Dict("Time" => dyn_test.time, "Allocs" => dyn_test.bytes)
 end
 
+# Make benchmark directory if it doesn't already exist.
+if !isdir(benchmark_dir)
+    mkpath(benchmark_dir)
+    @info "Benchmark data ouput directory created at $(benchmark_dir)."
+else
+    @info "Benchmark data ouput directory exists at $(benchmark_dir)."
+end
+
+# Output benchmarking dict
+output_file = open("$(benchmark_dir)/rpcme.json", "w")
+JSON.print(output_file, benchmark_results)
+close(output_file)
