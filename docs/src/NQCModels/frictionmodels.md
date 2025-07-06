@@ -107,10 +107,11 @@ converted to the adiabatic representation.
 Currently, [FrictionProviders.jl](https://github.com/NQCD/FrictionProviders.jl) supports
 LDFA (density) models based on:
 - Cube electronic densities
-- (ACEpotentials.jl)[https://github.com/ACEsuit/ACEpotentials.jl]
-- (Scikit-learn)[https://github.com/scikit-learn/scikit-learn]
+- [ACEpotentials.jl](https://github.com/ACEsuit/ACEpotentials.jl)
+- [Scikit-learn](https://github.com/scikit-learn/scikit-learn)
 
 TDPT (ODF) friction models based on:
-- (ACEds.jl)[https://github.com/ACEsuit/ACEds.jl]
+- [ACEds.jl](https://github.com/ACEsuit/ACEds.jl)
+- [ACEfriction.jl](https://github.com/ACEsuit/ACEfriction.jl)
 
 The use of [FrictionProviders.jl](https://github.com/NQCD/FrictionProviders.jl) with LDFA (Cube calculator and ACE model), and TDPT (ACEds-based model) is explained on the [reactive scattering example](@ref example-h2scattering), to investigate the scattering of a diatomic molecule from a metal surface.
