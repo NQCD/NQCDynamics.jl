@@ -26,12 +26,6 @@ Symbolics = "0c5d862f-8b57-4792-8d23-62f2024744c7"
 Unitful = "1986cc42-f94f-5a68-af5c-568840ba703d"
 UnitfulAtomic = "a7773ee8-282e-5fa2-be4e-bd808c38a91a"
 
-[sources] # Change out all of these on release
-NQCDInterfASE = {url = "https://github.com/NQCD/NQCDInterfASE.jl"}
-NQCModels = {url = "https://github.com/NQCD/NQCModels.jl", rev = "standardising_input_types_in_NQCModels"}
-NNInterfaces = {url = "https://github.com/NQCD/NNInterfaces.jl", rev = "main"}
-MACEModels = {url = "https://github.com/NQCD/MACEModels.jl", rev = "mpi-fixes"}
-
 [compat]
 Documenter = "1"
 DocumenterCitations = "1"
