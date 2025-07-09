@@ -145,4 +145,3 @@ sim_T_el_only = Simulation{MDEF}(
 )
 ```
 
-See the [example page](@ref mdef-ttm-example) for a longer explanation on how to compose multiple models. 
