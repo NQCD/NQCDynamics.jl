@@ -4,6 +4,7 @@ using DocumenterMermaid
 using NQCBase, NQCModels, NQCDistributions, NQCDynamics
 using FrictionProviders
 using MACEModels
+using NQCDInterfASE
 
 bib = CitationBibliography(joinpath(@__DIR__, "references.bib"))
 
