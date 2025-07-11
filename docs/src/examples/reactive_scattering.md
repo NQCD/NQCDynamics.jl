@@ -33,7 +33,6 @@ surface (`height` keyword) with a normal incidence.
     to input the translational energy and height using different units, where they are later converted internally.
 
 ```julia @example h2scatter
-```julia @example h2scatter
 using NQCDynamics
 using NQCDInterfASE
 using Unitful
@@ -207,7 +206,7 @@ ensemble = run_dynamics(sim, tspan, distribution; selection=1:nsamples,
 
 ## MDEF with machine-learned TDPT (ODF)
 
-Above, we used the LDFA interpretation of MDEF to perform the simulation. However, an alternative, TDPT (otherwise known as ODF) method can be used that provides full friction tensor. TDPT ML models can be incorporated in our simulation in a similar way as LDFA models, through (FrictionProviders.jl)[https://github.com/NQCD/FrictionProviders.jl]. Here, we show how this can be done for (ACEds)[https://github.com/ACEsuit/ACEds.jl] models. Such models require the usage of (JuLIP)[https://github.com/JuliaMolSim/JuLIP.jl]-type atoms. We can easily convert our ASE-type atoms into such format:
+Above, we used the LDFA interpretation of MDEF to perform the simulation. However, an alternative, TDPT (otherwise known as ODF) method can be used that provides full friction tensor. TDPT ML models can be incorporated in our simulation in a similar way as LDFA models, through [FrictionProviders.jl](https://github.com/NQCD/FrictionProviders.jl). Here, we show how this can be done for [ACEds](https://github.com/ACEsuit/ACEds.jl) ([ACEfriction](https://github.com/ACEsuit/ACEfriction.jl)) models. Such models require the usage of [JuLIP](https://github.com/JuliaMolSim/JuLIP.jl)-type atoms. We can easily convert our ASE-type atoms into such format:
 
 ```julia
 using ASE, JuLIP
