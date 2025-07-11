@@ -3,7 +3,7 @@
 start_time = time()
 ```
 
-# DiabaticModels
+# QuantumModels
 
 ```@autodocs
 Modules=[NQCModels.QuantumModels]

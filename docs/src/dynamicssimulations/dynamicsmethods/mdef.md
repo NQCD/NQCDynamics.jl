@@ -30,7 +30,7 @@ simulation which can explore further in later sections using realistic systems.
 Here, we model a single hydrogen atom in a harmonic potential,
 where the electronic temperature is 300 K.
 The [`CompositeFrictionModel`](@ref CompositeFrictionModel) allows us to combine any
-[`AdiabaticModel`](@ref NQCModels.AdiabaticModels.AdiabaticModel)
+[`ClassicalModel`](@ref NQCModels.ClassicalModels.ClassicalModel)
 with an [`ElectronicFrictionProvider`](@ref NQCModels.FrictionModels.ElectronicFrictionProvider) 
 that will add electronic friction to an otherwise adiabatic system.
 [`RandomFriction`](@ref) is used for demonstration purposes only and provides a matrix of random numbers to use in place of the friction.

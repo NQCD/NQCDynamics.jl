@@ -3,7 +3,7 @@
 start_time = time()
 ```
 
-# AdiabaticModels
+# ClassicalModels
 
 ```@autodocs
 Modules=[NQCModels.ClassicalModels]
