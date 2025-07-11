@@ -40,7 +40,7 @@ jobs:
       - name: Dev dependencies
         run: |
           using Pkg
-          Pkg.develop([(;path=pwd()), (;name="NQCModels")])
+          Pkg.develop(;path=".")
           Pkg.instantiate()
         shell: julia --color=yes --project=docs/ {0}
 
