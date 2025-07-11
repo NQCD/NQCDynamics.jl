@@ -6,7 +6,7 @@ start_time = time()
 
 This page plots many of the analytic models included in `NQCDynamics`.
 
-## [`AdiabaticModels`](@ref NQCModels.AdiabaticModels)
+## [`ClassicalModels`](@ref)
 These models are used for classical dynamics and provide a single potential energy surface.
 
 ### [`Harmonic`](@ref)
@@ -49,7 +49,7 @@ plot(
 contourf!(x, z, V)
 ```
 
-## [`DiabaticModels`](@ref NQCModels.DiabaticModels)
+## [`QuantumModels`](@ref QuantumModels)
 These models define a Hermitian potential operator in a diabatic basis.
 These can be used for various forms of nonadiabatic dynamics.
 

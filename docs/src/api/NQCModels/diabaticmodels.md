@@ -3,10 +3,10 @@
 start_time = time()
 ```
 
-# DiabaticModels
+# QuantumModels
 
 ```@autodocs
-Modules=[NQCModels.DiabaticModels]
+Modules=[NQCModels.QuantumModels]
 ```
 ```@setup logging
 runtime = round(time() - start_time; digits=2)
