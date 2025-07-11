@@ -85,14 +85,14 @@ as a function of the Wigner-Seitz radius.
 
 ### Tensorial Friction models
 
-If a friction model is a subtype of [`NQCModels.FrictionModels.TensorialFriction`](@ref), it should provide a full-rank friction matrix with a `get_friction_matrix` function. 
+If a friction model is a subtype of [`FrictionModels.TensorialFriction`](@ref), it should provide a full-rank friction matrix with a `get_friction_matrix` function. 
 NQCModels contains `ConstantFriction` and `RandomFriction` models which do this. 
 
 ### Quantum Friction models
 
 Since *ab initio* friction calculations are often expensive it is useful to
 have some models that we can use to test different friction methods.
-The [`QuantumFrictionModel`](@ref NQCModels.QuantumModels.QuantumFrictionModel)
+The [`QuantumFrictionModel`](@ref QuantumModels.QuantumFrictionModel)
 is the abstract type that groups together the quantum models for which electronic friction can be evaluated.
 These have an explicit electronic bath, modelling the electronic structure characteristic of a metal. 
 The friction is calculated for these models directly from the nonadiabatic couplings

@@ -27,7 +27,7 @@ address in memory that contains all of the relavent quantities for a given dynam
 
 # Using `Caches` - a simple example
 
-In the [overview](@ref) of `NQCModels` we introduced a couple of simple [QuantumModels](@ref NQCModels.QuantumModels.QuantumModel)
+In the overview of [`NQCModels`](@ref) we introduced a couple of simple [QuantumModels](@ref QuantumModels.QuantumModel)
 and showed how to calculate some of their core properties with the `potential` and `derivative` functions. Here we will use the 
 `model` object to build a `cache` that can calculate, manipulate and store more sophisitcated properties of the system.
 

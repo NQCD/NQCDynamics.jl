@@ -32,7 +32,7 @@ issue/pull request on Github!
 - [Classical molecular dynamics](@ref classical-dynamics)
 - [Classical Langevin dynamics](@ref langevin-dynamics)
 - [Ehrenfest molecular dynamics](@ref ehrenfest-dynamics)
-- [Independent Electron Surface Hopping (IESH)](@ref IESH-dynamics)
+- Independent Electron Surface Hopping (IESH)
 - [Fewest-switches surface hopping (FSSH)](@ref fssh-dynamics)
 - [Molecular dynamics with electronic friction (MDEF)](@ref mdef-dynamics)
 - [Ring polymer molecular dynamics (RPMD)](@ref rpmd-dynamics)

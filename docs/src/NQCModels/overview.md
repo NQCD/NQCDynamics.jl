@@ -32,21 +32,21 @@ popular models often used in the field of nonadiabatic dynamics.
 
 Depending on the quantities provided by the `Model`, we use Julia's abstract type system
 to group models that provide the same quantities.
-Currently, there are two top-level abstract types: [`ClassicalModel`](@ref NQCModels.ClassicalModels.ClassicalModel)
-and [`QuantumModel`](@ref NQCModels.QuantumModels.QuantumModel).
-The [`ClassicalModel`](@ref NQCModels.ClassicalModels.ClassicalModel)
+Currently, there are two top-level abstract types: [`ClassicalModel`](@ref ClassicalModels.ClassicalModel)
+and [`QuantumModel`](@ref QuantumModels.QuantumModel).
+The [`ClassicalModel`](@ref ClassicalModels.ClassicalModel)
 is used for adiabatic dynamics, providing only a classical potential in 
 the form of an analytical function and its derivative, the force used in 
 classical mechanics.
-The [`QuantumModel`](@ref NQCModels.QuantumModels.QuantumModel) is used for nonadiabatic dynamics,
+The [`QuantumModel`](@ref QuantumModels.QuantumModel) is used for nonadiabatic dynamics,
 where the potential is no longer an analytical function instead a `Hermitian` matrix.
 
 ## Using `Model`s
 
 In the [Getting started](@ref) section we briefly touched on how the
-[`ClassicalModel`](@ref NQCModels.ClassicalModels.ClassicalModel)
+[`ClassicalModel`](@ref ClassicalModels.ClassicalModel)
 works and introduced one of the included models.
-Here let's take a look at a [`QuantumModel`](@ref NQCModels.QuantumModels.QuantumModel),
+Here let's take a look at a [`QuantumModel`](@ref QuantumModels.QuantumModel),
 which is more appropriate for nonadiabatic dynamics.
 
 The [`DoubleWell`](@ref) is a two state, 1 dimensional model where each state is harmonic
