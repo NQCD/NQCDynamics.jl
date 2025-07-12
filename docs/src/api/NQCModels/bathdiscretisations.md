@@ -1,12 +1,12 @@
 ```@setup logging
-@info "Expanding src/api/NQCDInterfASE/ase-interface.md..."
+@info "Expanding src/api/NQCModels/adiabaticmodels.md..."
 start_time = time()
 ```
 
-# NQCDInterfASE
+# BathDiscretisations
 
 ```@autodocs
-Modules=[NQCDInterfASE]
+Modules=[NQCModels.BathDiscretisations]
 ```
 ```@setup logging
 runtime = round(time() - start_time; digits=2)

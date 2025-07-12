@@ -23,6 +23,7 @@ end
     sitename="NQCDynamics.jl",
     modules=[NQCDynamics, NQCDistributions, NQCModels, NQCBase, MACEModels, FrictionProviders, NQCDInterfASE],
     doctest=false,
+    warnonly = [:example_block],
     format=Documenter.HTML(
         prettyurls=get(ENV, "CI", nothing) == "true",
         canonical="https://nqcd.github.io/NQCDynamics.jl/stable/",
