@@ -16,7 +16,7 @@ intricacies of the implementations, hoping to make further contributions as simp
 - Highlight the advantages of Julia in the field of nonadiabatic dynamics
 - Encourage code sharing and reuse within the nonadiabatic dynamics community
 
-Reproducibility is a pressing issue in the field of theoretical chemistry and physics as often studies either do not attempt to provide all necessary data or code for full reproducibility of the work. This can lead to difficulties when attempting to better understand the theory and implementation of the method and makes it difficult for students not only to learn existing models and theories, but also to improve and extend these. 
+Reproducibility is a pressing issue in the fields of theoretical chemistry and physics as often studies either do not attempt to provide all necessary data or code for full reproducibility of the work. This can lead to difficulties when attempting to better understand the theory and implementation of the method and makes it difficult for students not only to learn existing models and theories, but also to improve and extend them. 
 This project provides implementations for existing dynamics methods along with
 a framework that can be used for future research with the goal of encouraging greater
 code sharing and reuse within the nonadiabatic dynamics community.
@@ -31,12 +31,14 @@ issue/pull request on Github!
 
 - [Classical molecular dynamics](@ref classical-dynamics)
 - [Classical Langevin dynamics](@ref langevin-dynamics)
+- [Ehrenfest molecular dynamics](@ref ehrenfest-dynamics)
+- Independent Electron Surface Hopping (IESH)
 - [Fewest-switches surface hopping (FSSH)](@ref fssh-dynamics)
 - [Molecular dynamics with electronic friction (MDEF)](@ref mdef-dynamics)
 - [Ring polymer molecular dynamics (RPMD)](@ref rpmd-dynamics)
 - [Nonadiabatic ring polymer molecular dynamics (NRPMD)](@ref nrpmd-dynamics)
 - [Ring polymer surface hopping (RPSH)](@ref rpsh-dynamics)
-- [Ehrenfest molecular dynamics](@ref ehrenfest-dynamics)
+
 
 #### Generating initial conditions
 
@@ -62,7 +64,7 @@ which significantly simplifies the implementation of new methods.
 
 #### 1. Install Julia
 Download and install the current stable release from the [Julia website](https://julialang.org/downloads/).
-For most platforms `julia` is provided as a precompiled binary and do not require any installation procedure. However, you need to specify the path to julia or create a symbolic link to the executable that is in your systempath. 
+For most platforms `julia` is provided as a precompiled binary and does not require any installation procedure. However, you need to specify the path to julia or create a symbolic link to the executable that is in your systempath. 
 
 #### 2. Install the `NQCRegistry`
 Since the package is not included in the default registry (`General`), we must first

@@ -4,6 +4,7 @@ using DocumenterMermaid
 using NQCBase, NQCModels, NQCDistributions, NQCDynamics
 using FrictionProviders
 using MACEModels
+using NQCDInterfASE
 
 bib = CitationBibliography(joinpath(@__DIR__, "references.bib"))
 
@@ -22,6 +23,7 @@ end
     sitename="NQCDynamics.jl",
     modules=[NQCDynamics, NQCDistributions, NQCModels, NQCBase, MACEModels, FrictionProviders, NQCDInterfASE],
     doctest=false,
+    warnonly = [:example_block],
     format=Documenter.HTML(
         prettyurls=get(ENV, "CI", nothing) == "true",
         canonical="https://nqcd.github.io/NQCDynamics.jl/stable/",
