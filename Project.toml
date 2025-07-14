@@ -1,7 +1,7 @@
 name = "NQCDistributions"
 uuid = "657014a1-bd25-4aa2-92cb-cbcede0310ad"
 authors = ["James Gardner <james.gardner1421@gmail.com> and contributors"]
-version = "0.1.14"
+version = "1.0.0"
 
 [deps]
 ComponentArrays = "b0b7db55-cfe3-40fc-9ded-d10e2dbeff66"
@@ -15,7 +15,7 @@ UnitfulAtomic = "a7773ee8-282e-5fa2-be4e-bd808c38a91a"
 [compat]
 ComponentArrays = "0.11, 0.12, 0.13, 0.14, 0.15"
 Distributions = "0.25"
-RingPolymerArrays = "0.1"
+RingPolymerArrays = "0.1, 1"
 Unitful = "1"
 UnitfulAtomic = "1"
 julia = "1"
