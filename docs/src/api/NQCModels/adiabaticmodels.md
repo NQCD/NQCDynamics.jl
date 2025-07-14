@@ -3,10 +3,10 @@
 start_time = time()
 ```
 
-# AdiabaticModels
+# ClassicalModels
 
 ```@autodocs
-Modules=[NQCModels.AdiabaticModels]
+Modules=[NQCModels.ClassicalModels]
 ```
 ```@setup logging
 runtime = round(time() - start_time; digits=2)

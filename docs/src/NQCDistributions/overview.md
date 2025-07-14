@@ -27,10 +27,8 @@ and demonstrates how they can be combined into a product distribution.
 
 When handling distributions for the nuclear degrees of freedom,
 the [`DynamicalDistribution`](@ref) type can be used to store initial velocities and positions:
-```@setup distribution
-using NQCDynamics
-```
 ```@example distribution
+using NQCDynamics
 d = DynamicalDistribution(10, 5, (3, 2))
 nothing # hide
 ``` 
@@ -56,8 +54,8 @@ an analytic distribution of positions and a preset collection of velocities:
 using Distributions
 
 velocity = [[1.0 1.0;1.0 1.0], [2.0 2.0; 2.0 2.0], [3.0 3.0; 3.0 3.0]] 
-position = Normal()
-d = DynamicalDistribution(velocity, position, (2, 2))
+positions = Normal()
+d = DynamicalDistribution(velocity, positions, (2, 2))
 rand(d)
 ``` 
 This has generated normally distributed positions along with one of the three velocities
@@ -65,10 +63,11 @@ we provided.
 
 ### Sampling the nuclear distribution
 
-To learn how to generate configurations to use with the [`DynamicalDistribution`](@ref),
-read on to the next sections about the included sampling methods.
+The following sections detail sampling methods for generating nuclear configurations to pass into [`DynamicalDistribution`](@ref).
+For some of the sampling methods however, position information needs to be provided from a separate "initial condition generation" step
+through methods such as [[../initialconditions/hamiltonian.md|Thermal Monte Carlo]] or [[../initialconditions/langevin/md|Langevin Dynamics]]. These methods are detailed in "Initial conditions".
 
-### VelocityBoltzmann
+#### VelocityBoltzmann
 
 When performing equilibrium simulations it is often desirable to initialise trajectories
 with thermal velocities, e.g. in combination with positions obtained from Monte Carlo sampling.
@@ -98,9 +97,9 @@ distribution = DynamicalDistribution(velocity, 1, (3, 10))
 rand(distribution)
 ```
 
-### Wigner distributions
+#### Wigner distributions
 For harmonic oscillator systems, we have implemented the analytic Wigner distribution.
-These are just mormal distributions of the appropriate width but can be accessed easily
+These are just normal distributions of the appropriate width but can be accessed easily
 as in the following:
 ```@repl wigner
 using NQCDistributions 
@@ -126,7 +125,9 @@ Pre-defined distribution functions such as `VelocityBoltzmann` can be turned int
 
 ```julia
 velocity = VelocityBoltzmann(300u"K", rand(10), (3, 10))
-velocity_ring_polymer = RingPolymerWrapper(velocity, n_beads, Int[]) # RingPolymerWrapper(Distribution, number of ring-polymer beads, indices of atoms to treat classically)
+n_beads=5
+velocity_ring_polymer = RingPolymerWrapper(velocity, n_beads, Int[])
+# RingPolymerWrapper(Distribution, number of ring-polymer beads, indices of atoms to treat classically)
 ```
 
 ## Electronic distributions
@@ -134,10 +135,13 @@ velocity_ring_polymer = RingPolymerWrapper(velocity, n_beads, Int[]) # RingPolym
 For nonadiabatic dynamics, the initial electronic variables must also be sampled.
 For this, we can use an [`ElectronicDistribution`](@ref NQCDistributions.ElectronicDistribution)
 which will tell our simulation how we want to sample the initial variables.
+
 Currently, two of these are provided, the [`PureState`](@ref) and the [`MixedState`](@ref).
 The [`PureState`](@ref) is used for nonequilibrium simulations when the population
 is confined to a single state, whereas [`MixedState`](@ref) allows for a mixed state
 distribution.
+
+In the case of explicit bath models (such as `AndersonHolstein`), the [`FermiDiracState`](@ref) is used to generate a Fermi-Dirac distribution at a chosen temperature, from which the electronic populations of each bath state can be sampled from. The chosen state energies used in sampling are dependent on the discreitsation of the bath, which is detailed ...
 
 ```@repl electronicdistribution
 using NQCDistributions 
@@ -145,6 +149,7 @@ using NQCDistributions
 PureState(1, Diabatic())
 PureState(2, Adiabatic())
 MixedState([1, 2], Diabatic())
+FermiDiracState(0.0, 300u"K"; statetype=Adiabatic())
 ```
 
 These structs contain only the minimal information about the distributions, whereas the sampling
@@ -155,7 +160,9 @@ of the distribution is handled separately by each of the different methods.
 The initial nuclear and electronic states of a system can be combined in a product distribution, which can be used in place of a purely nuclear distribution for methods considering electronic dynamics.
 
 ```julia
-nuclear_dist = DynamicalDistribution(velocity, position, (2, 2))
+velocity = VelocityBoltzmann(300u"K", rand(10), (2, 2)
+positions = Normal()
+nuclear_dist = DynamicalDistribution(velocity, positions, (2, 2))
 electronic_dist = PureState(2, Adiabatic())
 
 total_dist = nuclear_dist * electronic_dist
