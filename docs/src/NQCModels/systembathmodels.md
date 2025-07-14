@@ -3,7 +3,7 @@ This documentation is a collaborative work jointly authored by [Xuexun Lu (Hok-s
 
 ### Introduction
 
-When dealing with molecule-surface systems, wherein the surface is a metal or semi-conductor; the surface can be considered as an environmental bath that allows the dissipation of energy through coupling between the molecular "system" and the bath.
+When dealing with molecule-surface systems, wherein the surface is a metal or semi-conductor; the surface can be considered as an environmental bath that allows energy dissipation through coupling between the molecular "system" and the bath.
 
 The effect that the bath has on the system is described by the bath spectral density, $J(\varepsilon)$, which can take various forms dependent on the method of energy coupling.
 
@@ -135,7 +135,7 @@ $$
 
 where $V$ stands for the coupling strength.
 
-### Examples
+### Example
 To build a Newns-Anderson model in NQCModels.jl, you can use the [`AndersonHolstein`](@ref):
 ```julia
 using NQCModels
@@ -353,7 +353,7 @@ Where:
 
 This method allows the user to finely discretise the electronic bath states over a larger energy range than can be achieved with the Gauss-Legendre quadrature method, without resorting to use a trapezoidal rule discretisation with many states. Hence, saving computation time. The motivation for such a discretisation was to provide a better energy grid for the bath such that a non-equlibrium electronic distribution with a complex shape could be more accurately sampled from. 
 
-#### How to implement and develop your own discretisation
+<!-- #### How to implement and develop your own discretisation -->
 
 
 ## References
