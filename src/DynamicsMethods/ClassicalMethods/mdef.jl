@@ -74,6 +74,30 @@ function NQCDynamics.Simulation{DiabaticMDEF}(atoms::Atoms{T}, model::Model; fri
     Simulation(temperature, cell, atoms, cache, DiabaticMDEF(atoms.masses, ndofs(model)), solver)
 end
 
+# Specific DiabaticMDEF Simulation multiple dispatch for the AndersonHolstein model
+function NQCDynamics.Simulation{DiabaticMDEF}(atoms::Atoms{T}, model::AndersonHolstein; friction_method::FrictionEvaluationMethod, 
+    temperature=0u"K", cell::AbstractCell=InfiniteCell(), solver::Symbol=:exact, kwargs...
+    ) where {T}
+
+    cache = Create_Cache(model, length(atoms), T, friction_method) # Create_Cache has for variable arguments, `friction_method`, is no-longer a keyword argument
+
+    # If a thermostat is provided, check it covers the whole system.
+    isa(temperature, TemperatureSetting{Vector{Int}}) ? throw(DomainError(temperature, "TemperatureSetting must apply to all atoms.")) : nothing
+
+    # If multiple TemperatureSettings are provided, check that each atom only has one thermostat applied to it.
+    if isa(temperature, Vector{<:TemperatureSetting})
+        indices = vcat([thermostat.indices for thermostat in temperature]...)
+        if length(unique(indices)) != length(atoms.masses)
+            throw(DomainError(temperature, "Every atom must have a TemperatureSetting applied to it."))
+        end
+        if length(indices) != length(unique(indices))
+            throw(DomainError(temperature, "Atoms can only have one thermostat applied to them."))
+        end
+    end
+
+    Simulation(temperature, cell, atoms, cache, DiabaticMDEF(atoms.masses, ndofs(model)), solver)
+end
+
 function acceleration!(dv, v, r, sim::Simulation{<:Union{DiabaticMDEF,Classical},<:NQCCalculators.Abstract_QuantumModel_Cache}, t)
     NQCCalculators.update_cache!(sim.cache, r)
     adiabatic_derivative = NQCCalculators.get_adiabatic_derivative(sim.cache, r)
