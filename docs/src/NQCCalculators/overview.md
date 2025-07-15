@@ -71,7 +71,7 @@ coordintates and then populates the `cache` object we passed in with all of the 
 
 For this example we will pass the function `DoubleWell_Cache` and a one-dimensional position value for each of the 3 atoms in our system.
 
-```@example Update_Cache!()
+```@example QuantumModel_Cache
 #Populating DoubleWell_Cache with the values for a collection of atoms situated
 #at 1.0, 2.0 and 3.0 angstroms
 r = [austrip(1.0u"Å") austrip(2.0u"Å") austrip(3.0u"Å")]
@@ -91,7 +91,7 @@ If, however, we are only interested in calculating a specific datapoint at a giv
 Similarly to `update_cache!` they only require a `cache` and a position matrix, but these functions will only update the specific `$quantity`
 for which they are named.
 
-```@example evaluate_quantity!()
+```@example QuantumModel_Cache
 r_2 = [austrip(0.9u"Å") austrip(2.2u"Å") austrip(4.1u"Å")]
 evaluate_eigen!(DoubleWell_Cache, r_2)
 

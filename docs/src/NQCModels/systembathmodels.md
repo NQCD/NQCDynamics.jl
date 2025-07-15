@@ -146,7 +146,7 @@ The `quantummodel` belongs to [`QuantumModels`](@ref) is a system model describl
 
 
 ## Discretisation of bath 
-Some mixed quantum classical dynamics methods that deal with system-bath simulations require the discretisation of the bath spectral density, $J(\varepsilon)$, into a finite number of discrete energy levels such that the individual state couplings are excplicitly considered during propagation. i.e. [Independent electron surface hopping](@ref adiabaticIESH) [1] [2].
+Some mixed quantum classical dynamics methods that deal with system-bath simulations require the discretisation of the bath spectral density, $J(\varepsilon)$, into a finite number of discrete energy levels such that the individual state couplings are excplicitly considered during propagation. i.e. [Independent electron surface hopping](@ref AdiabaticIESH) [1] [2].
 
 The bath spectral density here is given by the following integral:
 $$
