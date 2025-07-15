@@ -164,4 +164,3 @@ solution = run_dynamics(sim_T_el_only, (0.0, 750u"fs"), z, dt=1.0u"fs", output=O
 plot(solution, :OutputTotalEnergy)
 ```
 
-See the [example page](@ref mdef-ttm-example) for a longer explanation on how to compose multiple models. 

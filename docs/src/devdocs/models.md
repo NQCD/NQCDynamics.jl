@@ -39,8 +39,8 @@ Under the two main branches there also exists some specialised abstract types th
 useful in some cases, such as when using many electronic states, or when implementing
 extra functions is required. See the docstrings for more info:
 
-- [`AdiabaticFrictionModel`](@ref FrictionModels.AdiabaticFrictionModel)
-- [`LargeQuantumModel`](@ref QuantumModels.LargeQuantumModel)
+- [`ClassicalFrictionModel`](@ref FrictionModels.ClassicalFrictionModel)
+- [`QuantumFrictionModel`](@ref FrictionModels.QuantumFrictionModel)
 
 ## Example implementations
 

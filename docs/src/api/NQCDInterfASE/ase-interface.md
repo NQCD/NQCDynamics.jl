@@ -3,7 +3,7 @@
 start_time = time()
 ```
 
-# FrictionModels
+# NQCDInterfASE
 
 ```@autodocs
 Modules=[NQCDInterfASE]
