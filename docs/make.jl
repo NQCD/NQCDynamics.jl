@@ -1,7 +1,7 @@
 using Documenter
 using DocumenterCitations
 using DocumenterMermaid
-using NQCBase, NQCModels, NQCDistributions, NQCDynamics
+using NQCBase, NQCModels, NQCDistributions, NQCDynamics, NQCDInterfASE
 using FrictionProviders
 using MACEModels
 using NQCDInterfASE
