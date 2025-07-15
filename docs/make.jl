@@ -41,12 +41,13 @@ end
         "NQCModels.jl" => Any[
             "NQCModels/overview.md"
             "NQCModels/combining_models.md"
-            "NQCModels/combining_models.md"
             "NQCModels/analyticmodels.md"
             "NQCModels/machinelearningmodels.md"
             "NQCModels/fullsizemodels.md"
             "NQCModels/frictionmodels.md"
+            "NQCModels/systembathmodels.md"
         ]
+        "NQCCalculators.jl" => "overview.md"
         "NQCDistributions.jl" => Any[
             "NQCDistributions/overview.md"
         ]
@@ -57,6 +58,7 @@ end
         ]
         "Outputs and Analysis" => find_all_files("output_and_analysis")
         "Examples" => find_all_files("examples")
+        "NQCRecipes" => "NQCRecipes/overview.md"
         "integration_algorithms.md"
         "Developer documentation" => find_all_files("devdocs")
         "API" => Any[
