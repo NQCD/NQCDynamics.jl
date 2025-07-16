@@ -1,3 +1,4 @@
+using UnitfulAtomic
 using NQCBase
 using NQCModels
 using NQCCalculators
@@ -130,6 +131,7 @@ Evaluates friction tensor
 function friction!(g, r, sim::AbstractSimulation{<:AbstractMDEF}, t)
     friction = NQCCalculators.get_friction(sim.cache, r)
     g .= friction ./ sim.method.mass_scaling
+    g
 end
 
 function friction!(g, r, sim::AbstractSimulation{<:DiabaticMDEF}, t)

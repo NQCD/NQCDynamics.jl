@@ -23,7 +23,8 @@ using NQCDynamics:
   ndofs,
   nbeads,
   natoms,
-  masses
+  masses,
+  NQCModels
 using NQCCalculators
 
 """
