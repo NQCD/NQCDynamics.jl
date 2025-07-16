@@ -47,7 +47,9 @@ end
             "NQCModels/frictionmodels.md"
             "NQCModels/systembathmodels.md"
         ]
-        "NQCCalculators.jl" => "overview.md"
+        "NQCCalculators.jl" => Any[
+            "NQCCalculators/overview.md"
+        ]
         "NQCDistributions.jl" => Any[
             "NQCDistributions/overview.md"
         ]
