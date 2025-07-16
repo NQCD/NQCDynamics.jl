@@ -15,15 +15,11 @@ coupling terms.
 These `caches` are updated once per time-step during the dynamics simulation and are then subsequently used as a local
 address in memory that contains all of the relavent quantities for a given dynamics method.
 
-> [!Note]
->
-> ### What is the purpose of NQCCalculators?
-> 
-> `NQCCalculators.jl` formerly existed as a part of `NQCDynamics.jl` where it was concieved primarily as a way of
-> calculating and caching relevant quantities for dynamics methods. While it continues to serve this purpose
-> as a seperate module, it can now be more flexibly used in conjuction with `NQCModels.jl` as a collection of
-> preimplemted methods for calculating the properties and observables of systems defined using the
-> `NQCModels.jl` package.
+!!! note "What is the purpose of NQCCalculators?"
+    `NQCCalculators.jl` formerly existed as a part of `NQCDynamics.jl` where it was concieved primarily as a way of
+    calculating and caching relevant quantities for dynamics methods. While it continues to serve this purpose
+    as a seperate module, it can now be more flexibly used in conjuction with `NQCModels.jl` as a collection of
+    preimplemted methods for calculating the properties and observables of systems defined using the `NQCModels.jl` package.
 
 # Using `Caches` - a simple example
 
@@ -58,12 +54,10 @@ The `cache` itself is a `struct` that contains,
 - the `nonadiabtic coupling` matrices
 - a temporary matrix for ad-hoc assignment during calculations
 
-> [!Note]
-> ### Not all Caches store the same data
-> 
-> In general, the data the `cache` stores depends on the type of `model` and whether or not the atoms are being modelled with `ring polymers`.
-> This is important for minimising memory overhead and customising the calculator routines to work most efficiently on each different
-> system. More details about what each type of `cache` contains can be found in the relevant section of the `NQCCalculators` docs.
+!!! info "Not all Caches store the same data"
+    In general, the data the `cache` stores depends on the type of `model` and whether or not the atoms are being modelled with `ring polymers`.
+    This is important for minimising memory overhead and customising the calculator routines to work most efficiently on each different
+    system. More details about what each type of `cache` contains can be found in the relevant section of the `NQCCalculators` docs.
 
 Now that we have created an empty `cache` to store all of the useful model data, we need to call calculation routines that will populate it with
 the data we wish to store. This can be done easily by calling the `update_cache!` function which takes as input our `cache` and a set of nuclear 
@@ -117,10 +111,8 @@ eigvecs_cache = DoubleWell_eigen.vectors
 eigvecs_cache = DoubleWell_Cache.eigen.vectors
 ```
 
->[!Note]
-> ### update_\$(quantity)! vs evaluate_\$(quantity)
->
-> Notice that the `update_$(quantity)!` functions have an exclimation point, `!`, whereas the `evaluate_$(quantity)` functions do not. 
-> This is common Julia notation for indicating an **in-place function**. An in-place function does not return a variable but instead updates one of the provided arguments "in-place". 
-> As such, the `update_$(quantity)!` functions are written as inplace functions as they "update" fields in the cache that they are provided with, without returning a new variable. For the `evaluate_$(quantity)` functions however, we want a new variable to be returned and for the cache in its original state to be preserved, so regular (non-in-place) functions are used (indicated by no `!` in the name) that return new variables containing the "evaluated" quantity. 
+!!! info "update_\$(quantity)! vs evaluate_\$(quantity)"
+    Notice that the `update_$(quantity)!` functions have an exclimation point, `!`, whereas the `evaluate_$(quantity)` functions do not. 
+    This is common Julia notation for indicating an **in-place function**. An in-place function does not return a variable but instead updates one of the provided arguments "in-place". 
+    As such, the `update_$(quantity)!` functions are written as inplace functions as they "update" fields in the cache that they are provided with, without returning a new variable. For the `evaluate_$(quantity)` functions however, we want a new variable to be returned and for the cache in its original state to be preserved, so regular (non-in-place) functions are used (indicated by no `!` in the name) that return new variables containing the "evaluated" quantity. 
 

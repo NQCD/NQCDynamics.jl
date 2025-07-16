@@ -33,7 +33,6 @@ surface (`height` keyword) with a normal incidence.
     to input the translational energy and height using different units, where they are later converted internally.
 
 ```julia @example h2scatter
-```julia @example h2scatter
 using NQCDynamics
 using NQCDInterfASE
 using Unitful
