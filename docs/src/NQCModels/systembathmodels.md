@@ -54,10 +54,10 @@ Where ``\omega_{c}`` is the characteristic frequency of the bath and ``\alpha`` 
 
 The set of frequencies, ``\mathbf{\Omega}``, and coupling coefficients, ``\mathbf{c}``, are generated for the number of discretised bath modes, ``N_{b}`` provided.
 ```math
-\begin{align}
+\begin{align*}
    \omega_{j} &= - \omega_{c} \ln\left[ 1 - \frac{j}{(1 + N_{b})} \right] \\
    c_{j} &= \sqrt{\frac{\alpha \omega_{c}}{N_{b} + 1}} \omega_{j}
-\end{align}
+\end{align*}
 ```
 
 Where ``j=1,...,N_{b}``.
@@ -79,10 +79,10 @@ Where ``\omega_{c}`` is the characteristic frequency of the bath and ``\lambda``
 
 The set of frequencies, ``\mathbf{\Omega}``, and coupling coefficients, ``\mathbf{c}``, are generated for the number of discretised bath modes, ``N_{b}`` provided.
 ```math
-\begin{align}
+\begin{align*}
    \omega_{j} &= \omega_{c} \tan\left( \frac{\pi}{2} \left(1 - \frac{j}{(1 + N_{b})} \right) \right) \\
    c_{j} &= \sqrt{\frac{2 \lambda}{N_{b} + 1}} \omega_{j}
-\end{align}
+\end{align*}
 ```
 
 Where ``j=1,...,N_{b}``.
@@ -356,12 +356,12 @@ The discretised bath states and the associated couplings are calculated using th
 ```
 
 Where:
- - $n^{win}_{\mp} = M(1 \mp \eta)/2:$ are the state indices that define the window region ($n^{win}_{-}$ is also equivalent to the number of states in the sparse region)
- - $\eta$ = density ratio (`densityratio`) which defines the proportion of states within the window relative to the total number of discretised states. $M^{win} = \eta M$
- - $a$ = minimum energy of bath discretisation (`bandmin`)
- - $b$ = maximum energy of bath discretisation (`bandmax`)
- - $a^{win}$ = minimum energy of the window region in the bath discretisation (`windmin`)
- - $b^{win}$ = maximum energy of the window region in the bath discretisation (`windmax`)
+ - ``n^{win}_{\mp} = M(1 \mp \eta)/2:`` are the state indices that define the window region (``n^{win}_{-}`` is also equivalent to the number of states in the sparse region)
+ - ``\eta`` = density ratio (`densityratio`) which defines the proportion of states within the window relative to the total number of discretised states. ``M^{win} = \eta M``
+ - ``a`` = minimum energy of bath discretisation (`bandmin`)
+ - ``b`` = maximum energy of bath discretisation (`bandmax`)
+ - ``a^{win}`` = minimum energy of the window region in the bath discretisation (`windmin`)
+ - ``b^{win}`` = maximum energy of the window region in the bath discretisation (`windmax`)
 
 
 This method allows the user to finely discretise the electronic bath states over a larger energy range than can be achieved with the Gauss-Legendre quadrature method, without resorting to use a trapezoidal rule discretisation with many states. Hence, saving computation time. The motivation for such a discretisation was to provide a better energy grid for the bath such that a non-equlibrium electronic distribution with a complex shape could be more accurately sampled from. 
