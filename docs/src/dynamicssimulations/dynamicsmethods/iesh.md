@@ -65,66 +65,122 @@ If there is insufficient kinetic energy, this is termed a frustrated hop, and th
 
 ## Interfacing with the `AndersonHolstein` model
 
-The Newns-Anderson or Anderson-Holstein model is a commonly used impurity model which has many applications to surface systems where one wants to simulate an absorbate molecule interacting with a surface. This model works well with the IESH method due to presence of an the explicit bath. 
+The Newns-Anderson or Anderson-Holstein model ([Anderson1961](@cite), [Newns1969](@cite)) is a commonly used impurity model which has many applications to surface systems where one wants to simulate an absorbate molecule interacting with a surface. This model works well with the IESH method due to presence of an the explicit bath. 
 
 As such, the IESH single electron Hamiltonian within the framework of the Newns-Anderson model can be written as
 ```math
     \hat{H}_{el}^{1}(\mathbf{q}) = h(\mathbf{q})\ket{d}\bra{d} + \sum_{k=1}^{N} \epsilon_{k} \ket{k}\bra{k} + \sum_{k=1}^{N} V_{k}(\mathbf{q})\left( \ket{k}\bra{d} + \ket{d}\bra{k} \right)
 ```
 Where ``ket{d}`` and ``ket{k}`` are the single electron states, ``\ket{\psi_{l}}`` acted upon by the creation operators for an electron in the absorbate state (``\hat{d}``) and ``k^\textrm{th}`` bath state (``\hat{c}_{k}^{\dagger}``) respectively.
-``h(\mathbf{q})`` is the difference in energy between the absorbate ground and and excited state (``U_{1}(\mathbf{q}) - U_{0}\mathbf{q}``), ``\epsilon_{k}`` is the energy contribution from the ``k^\textrm{th}`` bath state, and ``V_{k}(\mathbf{q})`` is the coupling strength between the ``k^\textrm{th}`` bath state and the absorbate state.
+``h(\mathbf{q})`` is the difference in energy between the absorbate ground and excited states (``U_{1}(\mathbf{q}) - U_{0}\mathbf{q}``), ``\epsilon_{k}`` is the energy contribution from the ``k^\textrm{th}`` bath state, and ``V_{k}(\mathbf{q})`` is the coupling strength between the ``k^\textrm{th}`` bath state and the absorbate state.
 
 More details of the Newns-Anderson model and it's implementation within NQCD is provided [here](../../NQCModels/systembathmodels.md).
 
 ## Example
 
-In this section we can investigate the results obtained for a single trajectory using IESH.
+In this section we can investigate the results for molecular scattering from a metal surface, obtained for a single trajectory using IESH.
 
 First, the simulation parameters are created. Here, we have a single atom with a mass of
-`2000` a.u. and we are using Tully's third model ([Tully1990](@cite)), provided by [NQCModels.jl](@ref).
-```@example fssh
+`10.54` a.u. and we are using `ErpenbeckThoss` model ([Erpenbeck2018](@cite), [Erpenbeck2019](@cite)), provided by [NQCModels.jl](@ref), to describe the absorbate, and the `AndersonHolstein` model to provide the coupling to a metallic surface. The Gauss-Legendre bath discretisation method (`ShenviGaussLegendre()`) implemented by Shenvi ([Shenvi2009](@cite)) has been used in preference to a uniform discretisation to better characterise the electronic states close to the fermi level. More details regarding discretisation for system-bath models can be found [here](../../NQCModels/systembathmodels.md).
+```@example iesh
 using Random; Random.seed!(10) # hide
 using NQCDynamics
 
 atoms = Atoms(2000)
-sim = Simulation{FSSH}(atoms, TullyModelThree())
+
+#### Absorbate
+Γ = austrip(0.2u"eV") # Defines coupling strength between diabatic ground state and diabatic excited state of the absorbate
+thossmodel = ErpenbeckThoss(;Γ, m=atoms.masses[1]) # This model defines the absorbate
+
+#### Bath
+nstates = 20 # Number of states into which the electronic continuum of the substrate is discretised into
+bandwidth = austrip(50*u"eV") #Spectral width of the electronic bands
+bandmin = -bandwidth / 2
+bandmax = bandwidth / 2
+bath = ShenviGaussLegendre(nstates, bandmin, bandmax) #Discretisation method
+
+#### Combined Model
+model = AndersonHolstein(thossmodel, bath)
 ```
 
-The [`DynamicsVariables`](@ref) constructor has some extra arguments for FSSH.
-The first three match the classical case, but we also provide the initial state and
-whether we want this state to be `Adiabatic()` or `Diabatic()`.
-The type of state can be important when considering the ordering of the states.
-The adiabatic states are always arranged from lowest to highest energy, whereas the diabatic
-states will be ordered as defined in the model.
-You can inspect the fields of `u` to ensure the initialisation has proceeded as you intend.
-```@example fssh
-u = DynamicsVariables(sim, [20/2000;;], [-10.;;], PureState(1, Adiabatic()))
+As this is mixed-quantum-classical dynamics method where both the electrons and nuceli are evolved, initial conditions must be generated both for the nuclei (`nuclear_distribution`) and electrons (`electronic_distrbution`) and passed as a "product_distribution" to the `run_dynamics()` call. 
+With an absorbate-bath system, the electronic distribution is given by some Fermi-Dirac distribution generated at a given temperature, from which the electronic state occupations can be sampled during initialisation.
+```@example iesh
+####  nuclear parameters
+r0 = austrip(5u"Å") # Projectile is 5A away from surface
+m = atoms.masses[1] # Mass of projectile
+ke = austrip(2u"eV") # Initial kinetic energy
+v0 = -sqrt(2*ke/m) # Velocity direction towards the surface with magnitude defined by kinetic energy
+nuclear_distribution = DynamicalDistribution(v0, r0, (1,1))
+
+#### electronic parameters
+fermi_level = 0*u"eV" # We reference the spectrum of electronic states of the surface to the Fermi level
+temperature = 300u"K"
+electronic_distribution = FermiDiracState(fermi_level, temperature)
+
+#### product distribution
+dist = electronic_distribution * nuclear_distribution
+```
+
+The final component is defining the "termination condition" that bring the simulation to an end. For this scattering simulation the run is terminated when the absorbate is more the 5.5 Å away from the surfce with a non-zero velocity, or, if the run time exceeds some cut-off time that is sensible.
+```@example iesh
+### Defining termination criterion
+dcut = 3*r0
+tcut = abs(dcut/v0)
+
+function termination_condition(u, t, integrator)::Bool
+
+    return ((t > tcut) || ((mean(DynamicsUtils.get_positions(u)) > austrip(5.5u"Å")) && (mean(DynamicsUtils.get_velocities(u)) > 0)))
+end
+terminate = DynamicsUtils.TerminatingCallback(termination_condition)
 ```
 
 Finally, the trajectory can be run by passing all the parameters we have set up so far.
-Here, we request both the `OutputDiscreteState` output which is equal to ``s(t)`` and 
-`OutputDiabaticPopulation`, which gives us the population of each diabatic state along the trajectory.
-```@example fssh
-traj = run_dynamics(sim, (0.0, 2000.0), u, output=(OutputDiscreteState, OutputDiabaticPopulation))
+Here, we request both the `OutputDiscreteState` output which is equal to ``s(t)``, `OutputDiabaticPopulation`, which gives us the population of each diabatic state along the trajectory and `OutputSurfaceHops`, which details the number of hops between iesh surfaces were allowed during the trajectory.
+```@example iesh
+using Statistics
+ntrajs = 1
+dt = 0.01u"fs"
+output= (OutputPosition, OutputVelocity, OutputDiscreteState, OutputDiabaticPopulation, OutputSurfaceHops)
+
+### Run IESH simulations
+sim = Simulation{AdiabaticIESH}(atoms, model)
+
+kick = run_dynamics(sim,
+                    (0.0, dt),
+                    dist;
+                    trajectories=1,
+                    callback=terminate,
+                    output=output,
+                    dt=dt,
+                   )
+
+result = run_dynamics(sim,
+                    (0.0, tcut),
+                    dist;
+                    trajectories=ntrajs,
+                    callback=terminate,
+                    output=output,
+                    saveat=[0,tcut],
+                    dt=dt,
+                   )
 ```
 
-Now we can plot ``s(t)`` throughout the trajectory. The FSSH algorithm attempts to minimise
-the total number of hops; in the limit of infinite hops the result would tend to the
-mean-field (Ehrenfest) result, which is what FSSH attempts to avoid.
-```@example fssh
-using Plots
-plot(traj, :OutputDiscreteState)
+Now we can plot ``s(t)`` throughout the trajectory, and read out the number of hops that were allowed.
+```@example iesh
+println("s(t) = $(result[:OutputDiscreteState])")
+println("Num. surface hops = $(result[:OutputSurfaceHops])")
 ```
 
 Similarly, we can plot the diabatic populations. Since FSSH is performed in the adiabatic
 representation, even in the case of few hops, the diabatic populations can look dramatically
 different depending on the complexity of the model Hamiltonian. 
-```@example fssh
-plot(traj, :OutputDiabaticPopulation)
+```@example iesh
+using Plots
+plot(bath.bathstates, result[:OutputDiabaticPopulation][1], xlabel="bath states / eV", ylabel="Diabatic Population", label="start")
+plot!(bath.bathstates, result[:OutputDiabaticPopulation][end], label="end")
 ```
 
-[Another example is available](@ref examples-tully-model-two) where we use FSSH and other
-methods to reproduce some of the results from [Tully1990](@cite).
 ```@setup logging
 runtime = round(time() - start_time; digits=2)
 @info "...done after $runtime s."
