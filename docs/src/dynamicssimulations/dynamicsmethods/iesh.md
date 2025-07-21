@@ -4,10 +4,9 @@ start_time = time()
 ```
 # [Independent electron surface hopping (IESH)](@id iesh-dynamics)
 
-Independent electron surface hopping (IESH) is an extension of Tully's fewest-switches surface hopping (FSSH) [Tully1990](@cite) that
-describes a single particle (single electronic state) interacting with a metal, represented as a bath of electronic states.
+Independent electron surface hopping (IESH) ([Shenvi2009](@cite), [Gardner2023](@cite)) is an extension of Tully's fewest-switches surface hopping (FSSH) [Tully1990](@cite) that describes a single particle (single electronic state) interacting with a metal, represented as a bath of electronic states.
 
-IESH is classified as a mixed-quantum classical method, where the nuclei are treated classically and the electrons are treated quantum mechanically. Like FSSH and other such surface hopping methods, the nuclei evolve on a single adiabatic potential energy surface at any given moment. At each timestep, a hopping probability is evaluated. If the hopping probability is larger than a uniform random number between 0 and 1, the active state is switched and the adiabatic propagation continues on the new electronic state.
+IESH is classified as a mixed-quantum-classical method, where the nuclei are treated classically and the electrons are treated quantum mechanically. Like FSSH and other such surface hopping methods, the nuclei evolve on a single adiabatic potential energy surface at any given moment. At each timestep, a hopping probability is evaluated. If the hopping probability is larger than a uniform random number between 0 and 1, the active state is switched and the adiabatic propagation continues on the new electronic state.
 When this algorithm is applied to an ensemble of trajectories, the discrete adiabatic state populations approximate the quantum mechanical populations for each state.
 
 The key difference with IESH comes from the assumption that electrons in the systems are independent. This allows:
@@ -62,6 +61,8 @@ If there is insufficient kinetic energy, this is termed a frustrated hop, and th
     With `DifferentialEquations.jl` we use a callback to perform the surface hopping
     procedure such that steps 1 and 2 are performed by the DifferentialEquations solvers and steps 3, 4, 5 are
     performed by the callback.
+
+More details of this method's implementation within NQCD, and associated simulation results for molecular scattering and thermal desorption from a metal surface using IESH were published at the following reference ([Gardner2023](@cite)).
 
 ## Interfacing with the `AndersonHolstein` model
 
