@@ -222,7 +222,7 @@ To address the computational scaling issues with constant spacing methods, and a
 
 Implemented here as `ShenviGaussLegendre()` is the method developed by Shenvi et al in 2009, where Gauss-Legendre quadrature was used to discretise the bath in two halves, separated at the Fermi level [1]. 
 This function takes the following arguments:
-```julia
+```@repl shenvigauss
 using NQCModels
 ShenviGaussLegendre(M, bandmin, bandmax)
 ```
