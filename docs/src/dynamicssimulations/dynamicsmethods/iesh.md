@@ -84,7 +84,7 @@ In this section we can investigate the results for molecular scattering from a m
 First, the simulation parameters are created. Here, we have a single atom with a mass of
 `10.54` a.u. and we are using `ErpenbeckThoss` model ([Erpenbeck2018](@cite), [Erpenbeck2019](@cite)), provided by [NQCModels.jl](@ref), to describe the absorbate, and the `AndersonHolstein` model to provide the coupling to a metallic surface. The Gauss-Legendre bath discretisation method (`ShenviGaussLegendre()`) implemented by Shenvi ([Shenvi2009](@cite)) has been used in preference to a uniform discretisation to better characterise the electronic states close to the fermi level. More details regarding discretisation for system-bath models can be found [here](../../NQCModels/systembathmodels.md).
 ```@example iesh
-using Random; Random.seed!(10) # hide
+using Random; Random.seed!(10)
 using NQCDynamics
 
 atoms = Atoms(2000)
@@ -104,7 +104,7 @@ bath = ShenviGaussLegendre(nstates, bandmin, bandmax) #Discretisation method
 model = AndersonHolstein(thossmodel, bath)
 ```
 
-As this is mixed-quantum-classical dynamics method where both the electrons and nuceli are evolved, initial conditions must be generated both for the nuclei (`nuclear_distribution`) and electrons (`electronic_distrbution`) and passed as a "product_distribution" to the `run_dynamics()` call. 
+As this is mixed-quantum-classical dynamics method where both the electrons and nuceli are evolved, initial conditions must be generated both for the nuclei (`nuclear_distribution`) and electrons (`electronic_distrbution`) and passed as a "product distribution" to the `run_dynamics()` call. 
 With an absorbate-bath system, the electronic distribution is given by some Fermi-Dirac distribution generated at a given temperature, from which the electronic state occupations can be sampled during initialisation.
 ```@example iesh
 ####  nuclear parameters

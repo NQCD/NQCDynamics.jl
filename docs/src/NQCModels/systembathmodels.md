@@ -218,13 +218,11 @@ To address the computational scaling issues with constant spacing methods, and a
 !!! note 
       The rescaled weights, ``\tilde{w}_{n}``, fill the role of ``\Delta \varepsilon_{n}`` as described above for the Trapezoidal Rule discretisation. 
       
-      ```math
-      \left| V_{n} \right|^{2} = \left| V(\epsilon_{n}) \right|^{2} \tilde{w}_{n} \approx \tilde{w}_{n}
-      ```
+      ``\left| V_{n} \right|^{2} = \left| V(\epsilon_{n}) \right|^{2} \tilde{w}_{n} \approx \tilde{w}_{n}``
 
 Implemented here as `ShenviGaussLegendre()` is the method developed by Shenvi et al in 2009, where Gauss-Legendre quadrature was used to discretise the bath in two halves, separated at the Fermi level [1]. 
 This function takes the following arguments:
-```@repl shenvigauss
+```julia
 using NQCModels
 ShenviGaussLegendre(M, bandmin, bandmax)
 ```
@@ -316,9 +314,7 @@ with conjugate weights:
 
 ##### Gapped discretisation examples
 To build a discretised bath with a gap in the middle, you can use the [`GapTrapezoidalRule`](@ref) or [`GapGaussLegendre`](@ref) methods.
-<p align="center">
-  <img src="../assets/system-bath-model/DOS_bath_discretisation_compare_test.svg" alt="Discretisation with a gap" style="display: block; margin: 0 auto;">
-</p>
+![gappedDOS](../assets/system-bath-model/DOS_bath_discretisation_compare_test.svg)
 
 The Julia script to reproduce the above figure is available in the [plot_bath_DOS.jl](../assets/system-bath-model/plot_bath_DOS.jl).
 

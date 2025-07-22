@@ -111,7 +111,7 @@ eigvecs_cache = DoubleWell_eigen.vectors
 eigvecs_cache = DoubleWell_Cache.eigen.vectors
 ```
 
-!!! info "update_\$(quantity)! vs evaluate_\$(quantity)"
+!!! info "update!" vs evaluate" functions
     Notice that the `update_$(quantity)!` functions have an exclimation point, `!`, whereas the `evaluate_$(quantity)` functions do not. 
     This is common Julia notation for indicating an **in-place function**. An in-place function does not return a variable but instead updates one of the provided arguments "in-place". 
     As such, the `update_$(quantity)!` functions are written as inplace functions as they "update" fields in the cache that they are provided with, without returning a new variable. For the `evaluate_$(quantity)` functions however, we want a new variable to be returned and for the cache in its original state to be preserved, so regular (non-in-place) functions are used (indicated by no `!` in the name) that return new variables containing the "evaluated" quantity. 
