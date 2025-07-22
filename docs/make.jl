@@ -60,7 +60,7 @@ end
         ]
         "Outputs and Analysis" => find_all_files("output_and_analysis")
         "Examples" => find_all_files("examples")
-        "NQCRecipes" => "NQCRecipes/overview.md"
+        "NQCRecipes" => "https://nqcd.github.io/NQCRecipes/"
         "integration_algorithms.md"
         "Developer documentation" => find_all_files("devdocs")
         "API" => Any[
