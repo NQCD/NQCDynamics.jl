@@ -4,7 +4,7 @@ start_time = time()
 ```
 # [Independent electron surface hopping (IESH)](@id iesh-dynamics)
 
-Independent electron surface hopping (IESH) ([Shenvi2009](@cite), [Gardner2023](@cite)) is an extension of Tully's fewest-switches surface hopping (FSSH) [Tully1990](@cite) that describes a single particle (single electronic state) interacting with a metal, represented as a bath of electronic states.
+Independent electron surface hopping (IESH) ([Shenvi2009](@cite)[Gardner2023](@cite)) is an extension of Tully's fewest-switches surface hopping (FSSH) [Tully1990](@cite) that describes a single particle (single electronic state) interacting with a metal, represented as a bath of electronic states.
 
 IESH is classified as a mixed-quantum-classical method, where the nuclei are treated classically and the electrons are treated quantum mechanically. Like FSSH and other such surface hopping methods, the nuclei evolve on a single adiabatic potential energy surface at any given moment. At each timestep, a hopping probability is evaluated. If the hopping probability is larger than a uniform random number between 0 and 1, the active state is switched and the adiabatic propagation continues on the new electronic state.
 When this algorithm is applied to an ensemble of trajectories, the discrete adiabatic state populations approximate the quantum mechanical populations for each state.
@@ -66,13 +66,13 @@ More details of this method's implementation within NQCD, and associated simulat
 
 ## Interfacing with the `AndersonHolstein` model
 
-The Newns-Anderson or Anderson-Holstein model ([Anderson1961](@cite), [Newns1969](@cite)) is a commonly used impurity model which has many applications to surface systems where one wants to simulate an absorbate molecule interacting with a surface. This model works well with the IESH method due to presence of an the explicit bath. 
+The Newns-Anderson or Anderson-Holstein model ([Anderson1961](@cite)[Newns1969](@cite)) is a commonly used impurity model which has many applications to surface systems where one wants to simulate an absorbate molecule interacting with a surface. This model works well with the IESH method due to presence of an the explicit bath. 
 
 As such, the IESH single electron Hamiltonian within the framework of the Newns-Anderson model can be written as
 ```math
     \hat{H}_{el}^{1}(\mathbf{q}) = h(\mathbf{q})\ket{d}\bra{d} + \sum_{k=1}^{N} \epsilon_{k} \ket{k}\bra{k} + \sum_{k=1}^{N} V_{k}(\mathbf{q})\left( \ket{k}\bra{d} + \ket{d}\bra{k} \right)
 ```
-Where ``ket{d}`` and ``ket{k}`` are the single electron states, ``\ket{\psi_{l}}`` acted upon by the creation operators for an electron in the absorbate state (``\hat{d}``) and ``k^\textrm{th}`` bath state (``\hat{c}_{k}^{\dagger}``) respectively.
+Where ``\ket{d}`` and ``\ket{k}`` are the single electron states, ``\ket{\psi_{l}}`` acted upon by the creation operators for an electron in the absorbate state (``\hat{d}``) and ``k^\textrm{th}`` bath state (``\hat{c}_{k}^{\dagger}``) respectively.
 ``h(\mathbf{q})`` is the difference in energy between the absorbate ground and excited states (``U_{1}(\mathbf{q}) - U_{0}\mathbf{q}``), ``\epsilon_{k}`` is the energy contribution from the ``k^\textrm{th}`` bath state, and ``V_{k}(\mathbf{q})`` is the coupling strength between the ``k^\textrm{th}`` bath state and the absorbate state.
 
 More details of the Newns-Anderson model and it's implementation within NQCD is provided [here](../../NQCModels/systembathmodels.md).
@@ -82,7 +82,7 @@ More details of the Newns-Anderson model and it's implementation within NQCD is 
 In this section we can investigate the results for molecular scattering from a metal surface, obtained for a single trajectory using IESH.
 
 First, the simulation parameters are created. Here, we have a single atom with a mass of
-`10.54` a.u. and we are using `ErpenbeckThoss` model ([Erpenbeck2018](@cite), [Erpenbeck2019](@cite)), provided by [NQCModels.jl](@ref), to describe the absorbate, and the `AndersonHolstein` model to provide the coupling to a metallic surface. The Gauss-Legendre bath discretisation method (`ShenviGaussLegendre()`) implemented by Shenvi ([Shenvi2009](@cite)) has been used in preference to a uniform discretisation to better characterise the electronic states close to the fermi level. More details regarding discretisation for system-bath models can be found [here](../../NQCModels/systembathmodels.md).
+`10.54` a.u. and we are using `ErpenbeckThoss` model ([Erpenbeck2018](@cite)[Erpenbeck2019](@cite)), provided by [NQCModels.jl](@ref), to describe the absorbate, and the `AndersonHolstein` model to provide the coupling to a metallic surface. The Gauss-Legendre bath discretisation method (`ShenviGaussLegendre()`) implemented by Shenvi ([Shenvi2009](@cite)) has been used in preference to a uniform discretisation to better characterise the electronic states close to the fermi level. More details regarding discretisation for system-bath models can be found [here](../../NQCModels/systembathmodels.md).
 ```@example iesh
 using Random; Random.seed!(10)
 using NQCDynamics
@@ -165,6 +165,7 @@ result = run_dynamics(sim,
                     saveat=[0,tcut],
                     dt=dt,
                    )
+result
 ```
 
 Now we can plot ``s(t)`` throughout the trajectory, and read out the number of hops that were allowed.
