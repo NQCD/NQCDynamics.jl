@@ -1,9 +1,10 @@
 using Documenter
 using DocumenterCitations
 using DocumenterMermaid
-using NQCBase, NQCModels, NQCDistributions, NQCDynamics
+using NQCBase, NQCModels, NQCDistributions, NQCDynamics, NQCDInterfASE
 using FrictionProviders
 using MACEModels
+using NQCDInterfASE
 
 bib = CitationBibliography(joinpath(@__DIR__, "references.bib"))
 
@@ -22,6 +23,7 @@ end
     sitename="NQCDynamics.jl",
     modules=[NQCDynamics, NQCDistributions, NQCModels, NQCBase, MACEModels, FrictionProviders, NQCDInterfASE],
     doctest=false,
+    warnonly = [:example_block],
     format=Documenter.HTML(
         prettyurls=get(ENV, "CI", nothing) == "true",
         canonical="https://nqcd.github.io/NQCDynamics.jl/stable/",
@@ -39,11 +41,14 @@ end
         "NQCModels.jl" => Any[
             "NQCModels/overview.md"
             "NQCModels/combining_models.md"
-            "NQCModels/combining_models.md"
             "NQCModels/analyticmodels.md"
             "NQCModels/machinelearningmodels.md"
             "NQCModels/fullsizemodels.md"
             "NQCModels/frictionmodels.md"
+            "NQCModels/systembathmodels.md"
+        ]
+        "NQCCalculators.jl" => Any[
+            "NQCCalculators/overview.md"
         ]
         "NQCDistributions.jl" => Any[
             "NQCDistributions/overview.md"
@@ -55,6 +60,7 @@ end
         ]
         "Outputs and Analysis" => find_all_files("output_and_analysis")
         "Examples" => find_all_files("examples")
+        "NQCRecipes" => "NQCRecipes/overview.md"
         "integration_algorithms.md"
         "Developer documentation" => find_all_files("devdocs")
         "API" => Any[

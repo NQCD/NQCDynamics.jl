@@ -21,13 +21,13 @@ a common set of functions that all of the concrete types must implement.
 In [NQCModels.jl](@ref) the top level abstract type is the [`Model`](@ref NQCModels.Model),
 under which all of our models must fall.
 The second tier below this includes the two abstract types
-[`AdiabaticModel`](@ref NQCModels.AdiabaticModels) and
-[`DiabaticModel`](@ref NQCModels.DiabaticModels).
-These form the two distinct branches within the NQCModels type hierachy and the
+[`ClassicalModel`](@ref ClassicalModels) and
+[`QuantumModel`](@ref QuantumModels).
+These form the two distinct branches within the NQCModels type hierarchy and the
 shared behaviour across the branches is minimal.
-The [`AdiabaticModel`](@ref NQCModels.AdiabaticModels.AdiabaticModel)
+The [`ClassicalModel`](@ref ClassicalModels.ClassicalModel)
 describes the familiar form from molecular dynamics that provides a single potential energy surface.
-The [`DiabaticModel`](@ref NQCModels.DiabaticModels.DiabaticModel) instead provides 
+The [`QuantumModel`](@ref QuantumModels.QuantumModel) instead provides 
 multiple potential energy surfaces with couplings between them. As implied by the name,
 these are in the diabatic representation.
 If the desired model does not fall under either of these branches, a new abstract type
@@ -39,9 +39,8 @@ Under the two main branches there also exists some specialised abstract types th
 useful in some cases, such as when using many electronic states, or when implementing
 extra functions is required. See the docstrings for more info:
 
-- [`AdiabaticFrictionModel`](@ref NQCModels.FrictionModels.AdiabaticFrictionModel)
-- [`LargeDiabaticModel`](@ref NQCModels.DiabaticModels.LargeDiabaticModel)
-- [`DiabaticFrictionModel`](@ref NQCModels.DiabaticModels.DiabaticFrictionModel)
+- [`ClassicalFrictionModel`](@ref FrictionModels.ClassicalFrictionModel)
+- [`QuantumFrictionModel`](@ref FrictionModels.QuantumFrictionModel)
 
 ## Example implementations
 

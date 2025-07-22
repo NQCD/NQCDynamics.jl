@@ -1,7 +1,7 @@
 name = "NQCDynamics"
 uuid = "36248dfb-79eb-4f4d-ab9c-e29ea5f33e14"
 authors = ["James <james.gardner1421@gmail.com>"]
-version = "1.0.0"
+version = "1.0.1"
 
 [deps]
 AdvancedHMC = "0bf59076-c3b1-5ca4-86bd-e02cd72cde3d"
@@ -50,8 +50,8 @@ UnitfulAtomic = "a7773ee8-282e-5fa2-be4e-bd808c38a91a"
 [weakdeps]
 MACEModels = "29bafc4c-4f38-420f-a153-8a5a5e0bd5f6"
 
-[sources.JuLIP]
-url = "https://github.com/JuliaMolSim/JuLIP.jl.git"
+[sources]
+JuLIP = {url = "https://github.com/JuliaMolSim/JuLIP.jl.git"}
 
 [compat]
 AdvancedHMC = "0.5, 0.6"
@@ -65,10 +65,10 @@ FastLapackInterface = "1, 2"
 HDF5 = "0.15, 0.16, 0.17"
 Interpolations = "0.13, 0.14, 0.15, 0.16"
 MuladdMacro = "0.2"
-NQCBase = "0.5"
+NQCBase = "0.5, 1"
 NQCCalculators = "1"
-NQCDistributions = "0.1"
-NQCModels = "0.10"
+NQCDistributions = "0.1, 1"
+NQCModels = "0.10, 1"
 Optim = "1"
 OrdinaryDiffEq = "5, 6"
 Parameters = "0.12"
@@ -78,7 +78,7 @@ QuadGK = "2"
 RecipesBase = "1"
 RecursiveArrayTools = "2, 3"
 Reexport = "1"
-RingPolymerArrays = "0.1"
+RingPolymerArrays = "0.1, 1"
 Roots = "1, 2"
 Rotations = "1"
 SciMLBase = "1, 2"
@@ -93,7 +93,7 @@ UnPack = "1"
 UnicodePlots = "2, 3"
 Unitful = "1"
 UnitfulAtomic = "1"
-julia = "≥1.9"
+julia = "1"
 
 [extras]
 CSV = "336ed68f-0bac-5ca0-87d4-7b16caf5d00b"
