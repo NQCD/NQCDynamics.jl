@@ -86,6 +86,7 @@ First, the simulation parameters are created. Here, we have a single atom with a
 ```@example iesh
 using Random; Random.seed!(10)
 using NQCDynamics
+using Unitful, UnitfulAtomic
 
 atoms = Atoms(2000)
 
