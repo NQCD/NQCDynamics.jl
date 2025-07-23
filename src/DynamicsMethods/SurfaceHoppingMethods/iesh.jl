@@ -330,13 +330,30 @@ function select_new_state(sim::AbstractSimulation{<:AbstractIESH}, u, random)::V
     return sim.method.state
 end
 
+```
+Converts the IESH state vector containing floats into one containing integers.
+Handles `InexactError`s by rounding to the closest integer.
+```
+function state_int_convert(state)
+        try
+            int_state = convert(Vector{Int}, state)
+        catch e
+            if e isa InexactError
+                int_state = round.(Int, state)
+            else
+                throw(e)
+            end
+        end
+        return int_state
+    end
+
 function Estimators.diabatic_population(sim::Simulation{<:AdiabaticIESH}, u)
     ψ = DynamicsUtils.get_quantum_subsystem(u).re
 
     eigen = NQCCalculators.get_eigen(sim.cache, DynamicsUtils.get_positions(u))
     transformation = eigen.vectors
-    
-    return iesh_diabatic_population(ψ, transformation, convert(Vector{Int},u.state))
+
+    return iesh_diabatic_population(ψ, transformation, state_int_convert(u.state))
 end
 
 """
@@ -377,7 +394,7 @@ function DynamicsUtils.classical_potential_energy(sim::Simulation{<:AbstractIESH
     NQCCalculators.update_cache!(sim.cache, DynamicsUtils.get_positions(u)) # Ensure eigen is populated
     eigen = NQCCalculators.get_eigen(sim.cache, DynamicsUtils.get_positions(u))
     potential = NQCModels.state_independent_potential(sim.cache.model, DynamicsUtils.get_positions(u))
-    for i in convert(Vector{Int},u.state)
+    for i in state_int_convert(u.state)
         potential += eigen.values[i]
     end
     return potential
