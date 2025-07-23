@@ -148,15 +148,6 @@ output= (OutputPosition, OutputVelocity, OutputTotalDiabaticPopulation, OutputDi
 ### Run IESH simulations
 sim = Simulation{AdiabaticIESH}(atoms, model)
 
-kick = run_dynamics(sim,
-                    (0.0, dt),
-                    dist;
-                    trajectories=1,
-                    callback=terminate,
-                    output=output,
-                    dt=dt,
-                   )
-
 result = run_dynamics(sim,
                     (0.0, tcut),
                     dist;
@@ -165,6 +156,7 @@ result = run_dynamics(sim,
                     output=output,
                     saveat=[0,tcut],
                     dt=dt,
+                    precompile_dynamics=true
                    )
 result
 ```
@@ -180,8 +172,11 @@ representation, even in the case of few hops, the diabatic populations can look 
 different depending on the complexity of the model Hamiltonian. 
 ```@example iesh
 using Plots
-plot(result[:OutputDiabaticPopulation][1], xlabel="bath states / eV", ylabel="Diabatic Population", label="start")
-plot!(result[:OutputDiabaticPopulation][end], label="end")
+
+energy_states = ustrip(auconvert.(u"eV",sim.cache.eigen.values))
+
+plot(energy_states, result[:OutputDiabaticPopulation][1], xlabel="bath states / eV", ylabel="Diabatic Population", label="start")
+plot!(energy_states, result[:OutputDiabaticPopulation][end], label="end")
 ```
 
 ```@setup logging
