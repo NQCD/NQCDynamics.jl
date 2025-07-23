@@ -342,7 +342,6 @@ export OutputStateResolvedScattering1D
 Output the projectile angle from the surface normal and the azimuthal angle for the final image
 """
 struct OutputScatteringAngle{S,V,T,X}
-    sim::S
     normal_vector::V
     incidence_angle::T
     initial_azimuthal_angle::X
@@ -354,11 +353,11 @@ function (output::OutputScatteringAngle)(sol, i)
     final = last(sol.u) 
 
     # Scattering angle
-    θₛ = ConfigureAtomic.angle_to_surface_normal(output.sim,
+    θₛ = ConfigureAtomic.angle_to_surface_normal(sol.prob.p
         DynamicsUtils.get_velocities(final), surface_normal=output.normal_vector)
 
     # Azimuthal angle
-    θₐ = ConfigureAtomic.get_azimuthal_angle(output.sim,
+    θₐ = ConfigureAtomic.get_azimuthal_angle(sol.prob.p,
     DynamicsUtils.get_velocities(final); incidence_angle=output.incidence_angle, 
     initial_azimuthal_angle=output.initial_azimuthal_angle) 
     
