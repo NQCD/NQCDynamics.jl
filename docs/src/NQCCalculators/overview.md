@@ -81,8 +81,8 @@ eigvecs = DoubleWell_Cache.eigen.vectors
 ```
 
 `update_cache!` is an easy and efficient way of calculating all of the relavent data associated to a model acting at a set of given coordinates. 
-If, however, we are only interested in calculating a specific datapoint at a given positon, we can use the `update_$(quantity)!` functions.
-Similarly to `update_cache!` they only require a `cache` and a position matrix, but these functions will only update the specific `$quantity`
+If, however, we are only interested in calculating a specific datapoint at a given positon, we can use the `update_\$(quantity)!` functions.
+Similarly to `update_cache!` they only require a `cache` and a position matrix, but these functions will only update the specific `\$quantity`
 for which they are named.
 
 ```@example QuantumModel_Cache
@@ -97,7 +97,7 @@ eigvecs = DoubleWell_Cache.eigen.vectors
 ad_derivative = DoubleWell_Cache.adiabatic_derivative
 ```
 
-Alternatively, the `evaluate_$(quantity)` functions can be used to calculate a specific datapoint at a given positon, without updating the cache. The "evaluated" `$quantity` for which the function is named is output to an assigned variable, leaving the cache unchanged. Again, these functions only require a `cache` and a position matrix.
+Alternatively, the `evaluate_\$(quantity)` functions can be used to calculate a specific datapoint at a given positon, without updating the cache. The "evaluated" `\$quantity` for which the function is named is output to an assigned variable, leaving the cache unchanged. Again, these functions only require a `cache` and a position matrix.
 
 ```@example QuantumModel_Cache
 r_3 = [austrip(0.8u"Å") austrip(2.4u"Å") austrip(4.2u"Å")]
@@ -112,7 +112,7 @@ eigvecs_cache = DoubleWell_Cache.eigen.vectors
 ```
 
 !!! info "update!" vs evaluate" functions
-    Notice that the `update_$(quantity)!` functions have an exclimation point, `!`, whereas the `evaluate_$(quantity)` functions do not. 
+    Notice that the `update_\$(quantity)!` functions have an exclimation point, `!`, whereas the `evaluate_\$(quantity)` functions do not. 
     This is common Julia notation for indicating an **in-place function**. An in-place function does not return a variable but instead updates one of the provided arguments "in-place". 
-    As such, the `update_$(quantity)!` functions are written as inplace functions as they "update" fields in the cache that they are provided with, without returning a new variable. For the `evaluate_$(quantity)` functions however, we want a new variable to be returned and for the cache in its original state to be preserved, so regular (non-in-place) functions are used (indicated by no `!` in the name) that return new variables containing the "evaluated" quantity. 
+    As such, the `update_\$(quantity)!` functions are written as inplace functions as they "update" fields in the cache that they are provided with, without returning a new variable. For the `evaluate_\$(quantity)` functions however, we want a new variable to be returned and for the cache in its original state to be preserved, so regular (non-in-place) functions are used (indicated by no `!` in the name) that return new variables containing the "evaluated" quantity. 
 

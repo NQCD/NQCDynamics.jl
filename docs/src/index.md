@@ -66,11 +66,10 @@ which significantly simplifies the implementation of new methods.
 Download and install the current stable release from the [Julia website](https://julialang.org/downloads/).
 For most platforms `julia` is provided as a precompiled binary and does not require any installation procedure. However, you need to specify the path to julia or create a symbolic link to the executable that is in your systempath. 
 
-#### 2. Install the `NQCRegistry`
-Since the package is not included in the default registry (`General`), we must first
-install the `NQCRegistry`.
-This gives access to the core `NQCDynamics` package along with some dependencies
-and add-ons.
+#### 2. OPTIONAL - Install the `NQCRegistry`
+The `NQCDynamics.jl` package is included in the default registry (`General`) and so can be installed according to step 3.
+
+THe user may also install `NQCDynamics.jl` and its dependencies from the `NQCRegistry` which requires manually adding.
 First, enter the Julia REPL by executing `julia` from the command line.
 Then press `]` to enter `pkg` mode. The prompt should change from `julia>` to `pkg>`.
 Install the registry directly from Github with: 
@@ -87,7 +86,7 @@ pkg> registry add "https://github.com/NQCD/NQCRegistry"
     to the next step.
 
 #### 3. Install the package
-Now that the registry has been added, the package can be installed in the same way as any other registered Julia package:
+The package can be installed in the same way as any other registered Julia package:
 ```julia-repl
 pkg> add NQCDynamics
 ```

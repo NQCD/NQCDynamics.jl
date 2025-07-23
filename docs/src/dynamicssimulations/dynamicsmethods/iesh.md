@@ -168,7 +168,9 @@ energy_states = ustrip(auconvert.(u"eV",sim.cache.eigen.values))
 
 plot(energy_states, result[:OutputAdiabaticPopulation][1], marker=:circle, linestyle=:solid, xlabel="bath states / eV", ylabel="Adiabatic Population", label="start")
 plot!(energy_states, result[:OutputAdiabaticPopulation][end], marker=:diamond, linestyle=:dash, label="end")
+```
 
+```@example iesh
 println("Num. surface hops = $(result[:OutputSurfaceHops])")
 ```
 
