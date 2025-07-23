@@ -384,7 +384,7 @@ end
 
 function Estimators.adiabatic_population(sim::Simulation{<:AdiabaticIESH}, u)
     population = zeros(NQCModels.nstates(sim.cache.model))
-    population[u.state] .= 1
+    population[state_int_convert(u.state)] .= 1
     return population
 end
 
