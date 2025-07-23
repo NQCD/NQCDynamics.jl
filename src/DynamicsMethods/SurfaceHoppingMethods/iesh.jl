@@ -330,10 +330,10 @@ function select_new_state(sim::AbstractSimulation{<:AbstractIESH}, u, random)::V
     return sim.method.state
 end
 
-```
+"""
 Converts the IESH state vector containing floats into one containing integers.
 Handles `InexactError`s by rounding to the closest integer.
-```
+"""
 function state_int_convert(state)
     try
         int_state = convert(Vector{Int}, state)
