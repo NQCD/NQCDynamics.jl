@@ -145,6 +145,7 @@ In the case of explicit bath models (such as `AndersonHolstein`), the [`FermiDir
 
 ```@repl electronicdistribution
 using NQCDistributions 
+using Unitful
 
 PureState(1, Diabatic())
 PureState(2, Adiabatic())
