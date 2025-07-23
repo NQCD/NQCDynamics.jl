@@ -180,8 +180,8 @@ representation, even in the case of few hops, the diabatic populations can look 
 different depending on the complexity of the model Hamiltonian. 
 ```@example iesh
 using Plots
-plot(bath.bathstates, result[:OutputDiabaticPopulation][1], xlabel="bath states / eV", ylabel="Diabatic Population", label="start")
-plot!(bath.bathstates, result[:OutputDiabaticPopulation][end], label="end")
+plot(result[:OutputDiabaticPopulation][1], xlabel="bath states / eV", ylabel="Diabatic Population", label="start")
+plot!(result[:OutputDiabaticPopulation][end], label="end")
 ```
 
 ```@setup logging
