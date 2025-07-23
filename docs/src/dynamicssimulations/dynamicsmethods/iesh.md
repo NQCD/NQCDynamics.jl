@@ -138,12 +138,12 @@ terminate = DynamicsUtils.TerminatingCallback(termination_condition)
 ```
 
 Finally, the trajectory can be run by passing all the parameters we have set up so far.
-Here, we request both the `OutputDiscreteState` output which is equal to ``s(t)``, `OutputDiabaticPopulation`, which gives us the population of each diabatic state along the trajectory and `OutputSurfaceHops`, which details the number of hops between iesh surfaces were allowed during the trajectory.
+Here, we request both the `OutputAdiabaticPopulation` output which is equal to ``s(t)``, (the population of each adiabatic state along the trajectory) and `OutputSurfaceHops`, which details the number of hops between iesh surfaces were allowed during the trajectory.
 ```@example iesh
 using Statistics
 ntrajs = 1
 dt = 0.01u"fs"
-output= (OutputPosition, OutputVelocity, OutputTotalDiabaticPopulation, OutputDiabaticPopulation, OutputAdiabaticPopulation, OutputTotalAdiabaticPopulation, OutputSurfaceHops)
+output= (OutputAdiabaticPopulation, OutputSurfaceHops)
 
 ### Run IESH simulations
 sim = Simulation{AdiabaticIESH}(atoms, model)
@@ -154,29 +154,22 @@ result = run_dynamics(sim,
                     trajectories=ntrajs,
                     callback=terminate,
                     output=output,
-                    saveat=[0,tcut],
+                    saveat=[0.0, tcut],
                     dt=dt,
                     precompile_dynamics=true
                    )
-result
 ```
 
-Now we can plot ``s(t)`` throughout the trajectory, and read out the number of hops that were allowed.
-```@example iesh
-println("s(t) = $(result[:OutputDiscreteState])")
-println("Num. surface hops = $(result[:OutputSurfaceHops])")
-```
-
-Similarly, we can plot the diabatic populations. Since FSSH is performed in the adiabatic
-representation, even in the case of few hops, the diabatic populations can look dramatically
-different depending on the complexity of the model Hamiltonian. 
+We can plot the adiabatic populations to show how ``s(t)`` changes throughout the trajectory. 
 ```@example iesh
 using Plots
 
 energy_states = ustrip(auconvert.(u"eV",sim.cache.eigen.values))
 
-plot(energy_states, result[:OutputDiabaticPopulation][1], xlabel="bath states / eV", ylabel="Diabatic Population", label="start")
-plot!(energy_states, result[:OutputDiabaticPopulation][end], label="end")
+plot(energy_states, result[:OutputAdiabaticPopulation][1], marker=:circle, linestyle=:solid, xlabel="bath states / eV", ylabel="Adiabatic Population", label="start")
+plot!(energy_states, result[:OutputAdiabaticPopulation][end], marker=:diamond, linestyle=:dash, label="end")
+
+println("Num. surface hops = $(result[:OutputSurfaceHops])")
 ```
 
 ```@setup logging
