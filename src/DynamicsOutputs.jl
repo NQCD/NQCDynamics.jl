@@ -353,7 +353,7 @@ function (output::OutputScatteringAngle)(sol, i)
     final = last(sol.u) 
 
     # Scattering angle
-    θₛ = ConfigureAtomic.angle_to_surface_normal(sol.prob.p
+    θₛ = ConfigureAtomic.angle_to_surface_normal(sol.prob.p,
         DynamicsUtils.get_velocities(final), surface_normal=output.normal_vector)
 
     # Azimuthal angle
