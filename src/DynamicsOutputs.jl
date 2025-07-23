@@ -26,6 +26,7 @@ using .DynamicsUtils:
     get_quantum_subsystem
 
 using ..InitialConditions: QuantisedDiatomic
+using ..InitialConditions: ConfigureAtomic
 
 using NQCBase
 using Statistics
@@ -300,7 +301,7 @@ function (output::OutputQuantisedDiatomic)(sol, i)
     final = last(sol.u)
     ν, J = QuantisedDiatomic.quantise_diatomic(sol.prob.p,
         DynamicsUtils.get_velocities(final), DynamicsUtils.get_positions(final);
-        height=output.height, normal_vector=output.normal_vector)
+        height=output.height,surface_normal=output.normal_vector)
     return (ν, J)
 end
 
@@ -337,6 +338,63 @@ function (output::OutputStateResolvedScattering1D)(sol, i)
 end
 export OutputStateResolvedScattering1D
 
+"""
+Output the projectile angle from the surface normal and the azimuthal angle for the final image
+"""
+struct OutputScatteringAngle{S,V,T,X}
+    normal_vector::V
+    incidence_angle::T
+    initial_azimuthal_angle::X
+end
+OutputScatteringAngle(sim; normal_vector=[0, 0, 1], incidence_angle=0., initial_azimuthal_angle=0.) = OutputScatteringAngle(sim, normal_vector, incidence_angle, initial_azimuthal_angle)
+export OutputScatteringAngle
+
+function (output::OutputScatteringAngle)(sol, i)
+    final = last(sol.u) 
+
+    # Scattering angle
+    θₛ = ConfigureAtomic.angle_to_surface_normal(sol.prob.p,
+        DynamicsUtils.get_velocities(final), surface_normal=output.normal_vector)
+
+    # Azimuthal angle
+    θₐ = ConfigureAtomic.get_azimuthal_angle(sol.prob.p,
+    DynamicsUtils.get_velocities(final); incidence_angle=output.incidence_angle, 
+    initial_azimuthal_angle=output.initial_azimuthal_angle) 
+    
+    return [θₛ θₐ]
+end
+
+"""
+Output a 1 if the projectile is above a certain z in final image, or 0 otherwise.
+"""
+struct OutputScatteredAtom{T}
+    "The maximum z value that above which the projectile can be considered scattered"
+    z::T
+    "The index of the projectile"
+    atom_index::Int
+    OutputScatteredAtom(z, atom_index) = new{typeof(austrip(z))}(austrip(z), atom_index)
+end
+# OutputScatteredAtom(z=10.0 atom_index=1) =  OutputScatteredAtom(z, atom_index)
+export OutputScatteredAtom
+
+function (output::OutputScatteredAtom)(sol, i)
+    R = DynamicsUtils.get_positions(last(sol.u))
+    scattered = R[3,output.atom_index] > output.z
+    return scattered ? 1 : 0
+end
+
+
+OutputFirstPosition(sol, i) = DynamicsUtils.get_positions(first(sol.u))
+export OutputFirstPosition
+
+OutputFirstVelocity(sol, i) = DynamicsUtils.get_velocities(first(sol.u))
+export OutputFirstVelocity
+
+OutputFinalPosition(sol, i) = DynamicsUtils.get_positions(last(sol.u))
+export OutputFinalPosition
+
+OutputFinalVelocity(sol, i) = DynamicsUtils.get_velocities(last(sol.u))
+export OutputFinalVelocity
 """
 Outputs the desorption angle in degrees (relative to the surface normal) if a desorption event is detected.
 """
