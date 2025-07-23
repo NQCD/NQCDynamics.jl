@@ -6,7 +6,7 @@ start_time = time()
 
 ## Loading ML models with `ase` calculators
 
-Using the ASE interface within (NQCModels.jl)[https://github.com/NQCD/NQCModels.jl] we can directly use models trained e.g. using [MACE](https://github.com/ACEsuit/mace).
+Using the ASE interface within [NQCModels.jl](https://github.com/NQCD/NQCModels.jl) we can directly use models trained e.g. using [MACE](https://github.com/ACEsuit/mace).
 
 To use a MACE model, please load any pre-trained model into a given path you can access.
 
