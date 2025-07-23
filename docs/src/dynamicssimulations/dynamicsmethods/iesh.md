@@ -143,7 +143,7 @@ Here, we request both the `OutputDiscreteState` output which is equal to ``s(t)`
 using Statistics
 ntrajs = 1
 dt = 0.01u"fs"
-output= (OutputPosition, OutputVelocity, OutputDiscreteState, OutputDiabaticPopulation, OutputSurfaceHops)
+output= (OutputPosition, OutputVelocity, OutputTotalDiabaticPopulation, OutputDiabaticPopulation, OutputAdiabaticPopulation, OutputTotalAdiabaticPopulation, OutputSurfaceHops)
 
 ### Run IESH simulations
 sim = Simulation{AdiabaticIESH}(atoms, model)
