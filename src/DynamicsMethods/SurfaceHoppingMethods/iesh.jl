@@ -335,17 +335,18 @@ Converts the IESH state vector containing floats into one containing integers.
 Handles `InexactError`s by rounding to the closest integer.
 ```
 function state_int_convert(state)
-        try
-            int_state = convert(Vector{Int}, state)
-        catch e
-            if e isa InexactError
-                int_state = round.(Int, state)
-            else
-                throw(e)
-            end
-        end
+    try
+        int_state = convert(Vector{Int}, state)
         return int_state
+    catch e
+        if e isa InexactError
+            int_state = round.(Int, state)
+            return int_state
+        else
+            throw(e)
+        end
     end
+end
 
 function Estimators.diabatic_population(sim::Simulation{<:AdiabaticIESH}, u)
     ψ = DynamicsUtils.get_quantum_subsystem(u).re
