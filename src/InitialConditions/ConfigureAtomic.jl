@@ -11,10 +11,11 @@ module ConfigureAtomic
 using LinearAlgebra: norm, normalize!, nullspace, cross, I, dot
 using UnitfulAtomic: austrip
 
-using NQCDynamics: Simulation, Calculators, DynamicsUtils
+using NQCDynamics: Simulation, DynamicsUtils
 using NQCBase: Atoms, PeriodicCell, InfiniteCell
 using NQCModels: NQCModels
-using NQCModels.AdiabaticModels: AdiabaticModel
+using NQCCalculators
+using NQCModels.ClassicalModels: ClassicalModel
 using NQCDynamics.InitialConditions: QuantisedDiatomic
 using Distributions: Uniform
 export generate_configurations
