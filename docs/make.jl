@@ -68,7 +68,9 @@ end
             "NQCModels" => find_all_files("api/NQCModels")
             "NQCDistributions" => find_all_files("api/NQCDistributions")
             "NQCDynamics" => find_all_files("api/NQCDynamics")
+            "NQCCalculators" => find_all_files("api/NQCCalculators")
             "NQCDInterfASE" => find_all_files("api/NQCDInterfASE")
+            "RingPolymerArrays" => find_all_files("api/RingPolymerArrays")
         ]
         "References" => "references.md"
     ])
