@@ -6,18 +6,18 @@ start_time = time()
 # System-bath models
 This documentation is a collaborative work jointly authored by [Xuexun Lu (Hok-seon)](https://louhokseson.github.io), [Matt Larkin](https://uk.linkedin.com/in/matthew-larkin-773307219) and [Nils Hertl](https://scholar.google.com/citations?user=I65S8ZQAAAAJ&hl=en).
 
-### Introduction
+## Introduction
 
-When dealing with molecule-surface systems, wherein the surface is a metal or semi-conductor; the surface can be considered as an environmental bath that allows energy dissipation through coupling between the molecular "system" and the bath.
+Often, in chemical dynamics, we consider "open systems", i.e. systems that are coupled to an environment (or "bath"). For example, we can consider a molecule in contact with a metal or semiconductor surface as a molecule in contact with an electron bath (the surface electrons) and a phonon bath (the surface vibrations). Quantum Hamiltonian models that describe system-bath coupling allow the simulation of energy exchange and dissipation between the system and the bath(s).
 
-The effect that the bath has on the system is described by the bath spectral density, ``J(\varepsilon)``, which can take various forms dependent on the method of energy coupling.
+The effect that the bath has on the system is described by the bath spectral density, ``J(\varepsilon)``, which can take various forms depending on the choice of coupling.
 
 ```@setup intro
 using NQCDynamics
 ```
 
 ## Spin-Boson model
-The Spin-Boson model consists of a 2 state system coupled to a bath of harmonic oscillators that treat the energy dissipation. The potential of the system is given below.
+The Spin-Boson model consists of 2 electronic states (2-level system) coupled to a bath of harmonic oscillators. The potential of the system is given below.
 ```math
 V(\mathbf{\hat{R}}) = 
 \begin{pmatrix}
@@ -32,11 +32,11 @@ When defining the Spin-Boson model, 4 arguments are provided to the function:
 using NQCModels
 SpinBoson(density::SpectralDensity, N::Integer, ϵ, Δ)
 ```
-The first 2 arguments given detail the bath discretiation, the first being the type of bath, the second (`N`) indicates the number of discretised bath modes. From these arguements, the bath discretisation functions can return the set of frequencies , ``\Omega`` and coupling coefficients for each harmonic mode ``j``.
+The first two arguments define the bath discretisation, the first being the type of bath, the second (`N`) indicates the number of discretised bath modes. From these arguments, the bath discretisation functions can return the set of frequencies, ``\Omega``, and coupling coefficients for each harmonic mode ``j``.
 
-The final 2 arguments `ϵ` and `Δ` define information about the 2 state system coupling to the bath. `ϵ` provides the energy bias between the two states and `Δ` the coupling between them (also referred to as the tunneling matrix element) [3].
+The final two arguments `ϵ` and `Δ` define information about the 2-level system coupling to the bath. `ϵ` provides the energy bias between the two states and `Δ` the coupling between them (also referred to as the tunneling matrix element) [3].
 
-Discretisations of the spectral density function have be implemented for two of the bath types that are prevelant in literature.
+Discretisations of the spectral density function have been implemented for two of the bath types that are commonly used in literature.
  - **Ohmic** bath (`OhmicSpectralDensity()`)
  - **Debye** bath (`DebyeSpectralDensity()`, `AltDebyeSpectralDensity`)
 
@@ -96,15 +96,17 @@ SpinBoson(OhmicDensity, 10, 1.0, 1.0)
 ```
 
 ## Newns-Anderson model
-The **Anderson Impurity Model (AIM)** describes a localized impurity state interacting with a continuous band of bath states. AIM is a foundamental model in condensed matter physics and quantum chemistry, introduced by P.W. Anderson in 1961. The **Newns-Anderson model** is a generalization of the AIM, which includes the possibility of **multiple impurity states** and a more complex interaction with the bath. A key advantage of using the AIM lies in its ability to yield **analytical solutions** for the energy level distribution and the hybridization (coupling) density, making it a powerful tool for theoretical analysis.
-#### Theory
-The **total Hamiltonian** ``H`` of the AIM can be written as:
-$$
-H = H_{S} + H_{B} + H_{C}
-$$
-##### Impurity
+The Anderson Impurity Model (AIM) describes a single electronic state ("impurity") coupled with a continuous band of electronic bath states. AIM is a fundamental model in condensed matter physics and quantum chemistry, introduced by P.W. Anderson in 1961. The Newns-Anderson model is a generalization of the AIM, which includes the possibility of multiple impurity states and a more complex interaction with the bath. A key advantage of using the AIM lies in its ability to yield analytical solutions for the energy level distribution and the hybridization (coupling) density, making it a powerful tool for theoretical analysis.
+### Theory
+The total Hamiltonian ``H`` of the Newns-Anderson model can be written as:
 
-The **Impurity Hamiltonian** describes the localized orbitals:
+```math
+H = H_{S} + H_{B} + H_{C}
+```
+
+#### Impurity
+
+The Impurity (or system, S) Hamiltonian describes the localized orbitals:
 
 ```math
 H_{S} = \sum_{i} \varepsilon_{i} d_{i}^{\dagger} d_{i}
@@ -114,19 +116,18 @@ Here
 * ``\varepsilon_{i}`` is the energy of the ``i``-th impurity orbital.
 * ``d_i^{\dagger}, d_i`` : creation/annihilation operators for orbital ``i``
 
-For the specific case of a **two-state impurity system**, the system Hamiltonian can be expressed as:
+For the specific case of a single impurity system, the system Hamiltonian can be expressed as:
 
 ```math
 H_{S} = h \cdot d^{\dagger} d + U_0
 ```
 
-In this two-state representation:
-* ``U_0``: energy of state 0
-* ``U_1``: energy of state 1
-* ``h``: the energy gap ``U_1 -U_0``
+In this representation:
+* ``U_0`` is a state-independent potential (or energy offset)
+* ``h`` is the energy contribution due to populating the impurity state. It can be convenient to define ``h = U_1 - U_0`` such that ``U_1`` and ``U_0`` define two energy landscapes and populating ``h`` with an electron switches between ``U_0`` and ``U_1``
 
-##### Bath 
-Describes a reservoir of states which are non-interacting and intrisically existing. The bath states can be phonons or electrons in surfaces. Usually written as
+#### Bath 
+Describes a set of non-interacting electronic states. Usually written as
 ```math
 H_B = \sum_{k} \epsilon_k c_k^{\dagger} c_k
 ```
@@ -134,14 +135,14 @@ H_B = \sum_{k} \epsilon_k c_k^{\dagger} c_k
 - ``\epsilon_k``: energy of bath state ``k``  
 - ``c_{k}^\dagger, c_{k}``: creation/annihilation operators for state ``k``
 
-##### Interaction
+#### Interaction
 
-Captures the coupling between the impurity and the bath states. The interaction Hamiltonian can be expressed as:
+Captures the coupling between the impurity, ``i``, and the bath states, ``k``:
 ```math
 H_{C} = \sum_{i,k} V_{ik} d_i^{\dagger} c_k + V_{ik}^{*} c_k^{\dagger} d_i
 ```
 
-where ``V`` stands for the coupling strength.
+where ``V_{ik}`` stands for the coupling strength.
 
 ### Example
 To build a Newns-Anderson model in NQCModels.jl, you can use the [`AndersonHolstein`](@ref):
@@ -151,10 +152,10 @@ quantum_model = ErpenbeckThoss(Γ=2.0)
 bath = TrapezoidalRule(10, -1, 1)
 AndersonHolstein(quantum_model, bath; couplings_rescale=1.0)
 ```
-The `ErpenbeckThoss` model ([Erpenbeck2018](@cite), [Erpenbeck2019](@cite)) is used here to describe the impurity (the system Hamiltonian ``H_S``) and a `TrapezoidalRule` discretisation scheme provides the set of discrete energy states (and their couplings to the impurity) that represent the environmental bath. The [`couplings_rescale`](@ref AndersonHolstein) is a scalar parameter that rescales the coupling strengths to the bath states. And the `bath` is a collection of bath states.
+The `ErpenbeckThoss` model ([Erpenbeck2018](@cite), [Erpenbeck2019](@cite)) is used here to describe the adsorbate impurity (the system Hamiltonian ``H_S``) and a `TrapezoidalRule` discretisation scheme provides the set of discrete energy states (and their couplings to the impurity) that represent the bath of electrons in a metal surface. The [`couplings_rescale`](@ref AndersonHolstein) is a scalar parameter that rescales the coupling strengths to the bath states to adjust model the parametrization to the chosen discretisation. Let's now look at the various ways to discretise the electron bath.
 
 
-## Discretisation of bath 
+### Discretisation of bath 
 Some mixed quantum classical dynamics methods that deal with system-bath simulations require the discretisation of the bath spectral density, ``J(\varepsilon)``, into a finite number of discrete energy levels such that the individual state couplings are excplicitly considered during propagation. i.e. [Independent electron surface hopping](@ref AdiabaticIESH) [1] [2].
 
 The bath spectral density here is given by the following integral:
@@ -168,8 +169,8 @@ J^{discr}(\varepsilon) = \sum_{n=1}^{N} \left|V_{n}\right|^{2} \delta \left( \va
 ```
 Where ``V_{n}`` is the coupling contribution at state n. 
  
-#### Discretisation under wide band limit
-The **Wide Band Limit (WBL)** is a common approximation which considers the bath spectral density to be constant over a wide range of energies.
+#### Discretisation in the wide band limit
+The Wide Band Limit (WBL) is a common approximation which considers the bath spectral density to be constant over a wide range of energies.
 This allows in the case of direct discretisation of the bath spectral density function, ``J(\varepsilon)``, that the coupling associated with each state is simply related to the energy spacing between itself and its neighbouring state.
 
 #### Discretisation with constant spacing
@@ -262,7 +263,6 @@ gapbath_T = GapTrapezoidalRule(nstates, bandmin_val, bandmax_val, bandgap)
 gapbath_G = GapGaussLegendre(nstates, bandmin_val, bandmax_val, bandgap)
 ```
 
-
 ##### Gapped Trapezoidal Rule
 The *Gapped Trapezoidal* Rule discretises a band into two evenly spaced continuums, which is particularly useful for systems with a band gap, such as semiconductors.
 
@@ -319,7 +319,7 @@ To build a discretised bath with a gap in the middle, you can use the [`GapTrape
 The Julia script to reproduce the above figure is available in the [plot_bath_DOS.jl](../assets/system-bath-model/plot_bath_DOS.jl).
 
 
-#### Discretisation with a "Window" region
+#### Discretisation with a densely sampled "Window" region
 The windowed discretisation method generates a dense region of states within a user specified energy "window", and a sparse discretisation elsewhere. The density of this region is controlled through an optional keyword parameter `densityratio` which takes a default value of `0.5`. This is defined as the ratio ``N_{\textrm{States in Window}} / N_{\textrm{Total States}}``. 
 
 This discretisation is selected for by the function `WindowedTrapezoidalRule()` which takes the following arguements:
