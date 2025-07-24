@@ -20,7 +20,7 @@ run_dynamics
 This is the same function used to perform single trajectory simulations, but by replacing the single initial condition with a distribution
 and changing the number of trajectories it is possible to run an ensemble of trajectories.
 The distributions are defined such that they can be sampled to provide initial conditions for each trajectory.
-The [Storing and sampling distributions](@ref) page details the format the distributions must take.
+The [Storing and sampling distributions](@ref nqcdistributions) page details the format the distributions must take.
 
 Internally, the [DifferentialEquations.jl](https://diffeq.sciml.ai/stable/features/ensemble/#Performing-an-Ensemble-Simulation)
 ensemble infrastructure is used to handle per trajectory parallelism.
@@ -44,7 +44,7 @@ nothing # hide
 
 As mentioned above, before running the ensemble, we must prepare a distribution to generate
 initial conditions for each trajectory.
-This procedure is detailed in the [Storing and sampling distributions](@ref) section.
+This procedure is detailed in the [Storing and sampling distributions](@ref nqcdistributions) section.
 ```@example ensemble
 using Distributions: Normal # Import the Normal distribution
 
