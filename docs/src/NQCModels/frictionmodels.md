@@ -102,7 +102,7 @@ with the equation:
 γ = 2\pi\hbar \sum_j \braket{1|dH|j}\braket{j|dH|1} \delta(\omega_j) / \omega_j
 ```
 where the delta function is approximated by a normalised Gaussian function and the sum
-runs over the adiabatic states ([Box2021, Box2023](@cite)).
+runs over the adiabatic states ([Box2021](@cite), [Box2023](@cite)).
 The matrix elements in this equation are the position derivatives of the diabatic hamiltonian
 converted to the adiabatic representation.
 
