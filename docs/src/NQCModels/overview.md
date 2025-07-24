@@ -5,15 +5,9 @@ start_time = time()
 
 # NQCModels.jl
 
-!!! details "Overview of all model types currently implemented."
-
-    ```@raw html
-    <img src="../assets/figures/Model_types.svg"  width=100% caption="Overview of all Model types currently implemented.">
-    ```
-
 To perform nonadiabatic molecular dynamics simulations, it is necessary to define
 the system Hamiltonian.
-For simple models, this often comes in the form of small matrix in the diabatic
+For simple models, this often comes in the form of a small matrix in the diabatic
 representation but equally the electronic Hamiltonian could be obtained directly
 from _ab initio_ electronic structure theory.
 
@@ -39,7 +33,7 @@ is used for adiabatic dynamics, providing only a classical potential in
 the form of an analytical function and its derivative, the force used in 
 classical mechanics.
 The [`QuantumModel`](@ref QuantumModels.QuantumModel) is used for nonadiabatic dynamics,
-where the potential is no longer an analytical function instead a `Hermitian` matrix.
+where the potential is no longer an analytical function but instead a `Hermitian` matrix.
 
 ## Using `Model`s
 
@@ -49,7 +43,7 @@ works and introduced one of the included models.
 Here let's take a look at a [`QuantumModel`](@ref QuantumModels.QuantumModel),
 which is more appropriate for nonadiabatic dynamics.
 
-The [`DoubleWell`](@ref) is a two state, 1 dimensional model where each state is harmonic
+The [`DoubleWell`](@ref) is a one-dimensional model with two electronic states, where each electronic state is harmonic
 with linear coupling to the single degree of freedom.
 
 ```@example diabaticmodel

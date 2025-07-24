@@ -72,7 +72,7 @@ nothing # hide
 
 !!! tip
 
-    To learn how to work with the thermal ring polymer phase space, refer to the [Storing and sampling distributions](@ref) section.
+    To learn how to work with the thermal ring polymer phase space, refer to the [Storing and sampling distributions](@ref nqcdistributions) section.
 
 Now we can run the simulation, for which we use the time interval 0.0 to 500.0 and a time 
 step of `dt = 2.5`:

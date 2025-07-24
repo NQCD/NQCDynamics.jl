@@ -4,20 +4,19 @@ start_time = time()
 ```
 
 # System-bath models
-This documentation is a collaborative work jointly authored by [Xuexun Lu (Hok-seon)](https://louhokseson.github.io), [Matt Larkin](https://uk.linkedin.com/in/matthew-larkin-773307219) and [Nils Hertl](https://scholar.google.com/citations?user=I65S8ZQAAAAJ&hl=en).
 
-### Introduction
+## Introduction
 
-When dealing with molecule-surface systems, wherein the surface is a metal or semi-conductor; the surface can be considered as an environmental bath that allows energy dissipation through coupling between the molecular "system" and the bath.
+Often, in chemical dynamics, we consider "open systems", i.e. systems that are coupled to an environment (or "bath"). For example, we can consider a molecule in contact with a metal or semiconductor surface as a molecule in contact with an electron bath (the surface electrons) and a phonon bath (the surface vibrations). Quantum Hamiltonian models that describe system-bath coupling allow the simulation of energy exchange and dissipation between the system and the bath(s).
 
-The effect that the bath has on the system is described by the bath spectral density, ``J(\varepsilon)``, which can take various forms dependent on the method of energy coupling.
+The effect that the bath has on the system is described by the bath spectral density, ``J(\varepsilon)``, which can take various forms depending on the choice of coupling.
 
 ```@setup intro
 using NQCDynamics
 ```
 
 ## Spin-Boson model
-The Spin-Boson model consists of a 2 state system coupled to a bath of harmonic oscillators that treat the energy dissipation. The potential of the system is given below.
+The Spin-Boson model consists of 2 electronic states (2-level system) coupled to a bath of harmonic oscillators. The potential of the system is given below.
 ```math
 V(\mathbf{\hat{R}}) = 
 \begin{pmatrix}
@@ -32,11 +31,11 @@ When defining the Spin-Boson model, 4 arguments are provided to the function:
 using NQCModels
 SpinBoson(density::SpectralDensity, N::Integer, ϵ, Δ)
 ```
-The first 2 arguments given detail the bath discretiation, the first being the type of bath, the second (`N`) indicates the number of discretised bath modes. From these arguements, the bath discretisation functions can return the set of frequencies , ``\Omega`` and coupling coefficients for each harmonic mode ``j``.
+The first two arguments define the bath discretisation, the first being the type of bath, the second (`N`) indicates the number of discretised bath modes. From these arguments, the bath discretisation functions can return the set of frequencies, ``\Omega``, and coupling coefficients for each harmonic mode ``j``.
 
-The final 2 arguments `ϵ` and `Δ` define information about the 2 state system coupling to the bath. `ϵ` provides the energy bias between the two states and `Δ` the coupling between them (also referred to as the tunneling matrix element) [3].
+The final two arguments `ϵ` and `Δ` define information about the 2-level system coupling to the bath. `ϵ` provides the energy bias between the two states and `Δ` the coupling between them (also referred to as the tunneling matrix element) [He2019](@cite).
 
-Discretisations of the spectral density function have be implemented for two of the bath types that are prevelant in literature.
+Discretisations of the spectral density function have been implemented for two of the bath types that are commonly used in literature.
  - **Ohmic** bath (`OhmicSpectralDensity()`)
  - **Debye** bath (`DebyeSpectralDensity()`, `AltDebyeSpectralDensity`)
 
@@ -96,15 +95,17 @@ SpinBoson(OhmicDensity, 10, 1.0, 1.0)
 ```
 
 ## Newns-Anderson model
-The **Anderson Impurity Model (AIM)** describes a localized impurity state interacting with a continuous band of bath states. AIM is a foundamental model in condensed matter physics and quantum chemistry, introduced by P.W. Anderson in 1961. The **Newns-Anderson model** is a generalization of the AIM, which includes the possibility of **multiple impurity states** and a more complex interaction with the bath. A key advantage of using the AIM lies in its ability to yield **analytical solutions** for the energy level distribution and the hybridization (coupling) density, making it a powerful tool for theoretical analysis.
-#### Theory
-The **total Hamiltonian** ``H`` of the AIM can be written as:
-$$
-H = H_{S} + H_{B} + H_{C}
-$$
-##### Impurity
+The Anderson Impurity Model (AIM) describes a single electronic state ("impurity") coupled with a continuous band of electronic bath states. AIM is a fundamental model in condensed matter physics and quantum chemistry, introduced by P.W. Anderson in 1961. The Newns-Anderson model is a generalization of the AIM, which includes the possibility of multiple impurity states and a more complex interaction with the bath. A key advantage of using the AIM lies in its ability to yield analytical solutions for the energy level distribution and the hybridization (coupling) density, making it a powerful tool for theoretical analysis.
+### Theory
+The total Hamiltonian ``H`` of the Newns-Anderson model can be written as:
 
-The **Impurity Hamiltonian** describes the localized orbitals:
+```math
+H = H_{S} + H_{B} + H_{C}
+```
+
+#### Impurity
+
+The Impurity (or system, S) Hamiltonian describes the localized orbitals:
 
 ```math
 H_{S} = \sum_{i} \varepsilon_{i} d_{i}^{\dagger} d_{i}
@@ -114,19 +115,18 @@ Here
 * ``\varepsilon_{i}`` is the energy of the ``i``-th impurity orbital.
 * ``d_i^{\dagger}, d_i`` : creation/annihilation operators for orbital ``i``
 
-For the specific case of a **two-state impurity system**, the system Hamiltonian can be expressed as:
+For the specific case of a single impurity system, the system Hamiltonian can be expressed as:
 
 ```math
 H_{S} = h \cdot d^{\dagger} d + U_0
 ```
 
-In this two-state representation:
-* ``U_0``: energy of state 0
-* ``U_1``: energy of state 1
-* ``h``: the energy gap ``U_1 -U_0``
+In this representation:
+* ``U_0`` is a state-independent potential (or energy offset)
+* ``h`` is the energy contribution due to populating the impurity state. It can be convenient to define ``h = U_1 - U_0`` such that ``U_1`` and ``U_0`` define two energy landscapes and populating ``h`` with an electron switches between ``U_0`` and ``U_1``
 
-##### Bath 
-Describes a reservoir of states which are non-interacting and intrisically existing. The bath states can be phonons or electrons in surfaces. Usually written as
+#### Bath 
+Describes a set of non-interacting electronic states. Usually written as
 ```math
 H_B = \sum_{k} \epsilon_k c_k^{\dagger} c_k
 ```
@@ -134,14 +134,14 @@ H_B = \sum_{k} \epsilon_k c_k^{\dagger} c_k
 - ``\epsilon_k``: energy of bath state ``k``  
 - ``c_{k}^\dagger, c_{k}``: creation/annihilation operators for state ``k``
 
-##### Interaction
+#### Interaction
 
-Captures the coupling between the impurity and the bath states. The interaction Hamiltonian can be expressed as:
+Captures the coupling between the impurity, ``i``, and the bath states, ``k``:
 ```math
 H_{C} = \sum_{i,k} V_{ik} d_i^{\dagger} c_k + V_{ik}^{*} c_k^{\dagger} d_i
 ```
 
-where ``V`` stands for the coupling strength.
+where ``V_{ik}`` stands for the coupling strength.
 
 ### Example
 To build a Newns-Anderson model in NQCModels.jl, you can use the [`AndersonHolstein`](@ref):
@@ -151,31 +151,31 @@ quantum_model = ErpenbeckThoss(Γ=2.0)
 bath = TrapezoidalRule(10, -1, 1)
 AndersonHolstein(quantum_model, bath; couplings_rescale=1.0)
 ```
-The `ErpenbeckThoss` model ([Erpenbeck2018](@cite), [Erpenbeck2019](@cite)) is used here to describe the impurity (the system Hamiltonian ``H_S``) and a `TrapezoidalRule` discretisation scheme provides the set of discrete energy states (and their couplings to the impurity) that represent the environmental bath. The [`couplings_rescale`](@ref AndersonHolstein) is a scalar parameter that rescales the coupling strengths to the bath states. And the `bath` is a collection of bath states.
+The `ErpenbeckThoss` model ([Erpenbeck2018](@cite), [Erpenbeck2019](@cite)) is used here to describe the adsorbate impurity (the system Hamiltonian ``H_S``) and a `TrapezoidalRule` discretisation scheme provides the set of discrete energy states (and their couplings to the impurity) that represent the bath of electrons in a metal surface. The [`couplings_rescale`](@ref AndersonHolstein) is a scalar parameter that rescales the coupling strengths to the bath states to adjust the model's parametrisation to the chosen discretisation. Let's now look at the various ways to discretise the electron bath.
 
 
-## Discretisation of bath 
-Some mixed quantum classical dynamics methods that deal with system-bath simulations require the discretisation of the bath spectral density, ``J(\varepsilon)``, into a finite number of discrete energy levels such that the individual state couplings are excplicitly considered during propagation. i.e. [Independent electron surface hopping](@ref AdiabaticIESH) [1] [2].
+### Discretisation of bath 
+Some mixed quantum classical dynamics methods that deal with system-bath simulations require the discretisation of the bath spectral density, ``J(\varepsilon)``, into a finite number of discrete energy levels such that the individual state couplings are explicitly considered during propagation. i.e. [Independent electron surface hopping (IESH)](@ref iesh-dynamics) [Shenvi2009](@cite) [Gardner2023](@cite).
 
 The bath spectral density here is given by the following integral:
 ```math
 J(\varepsilon) = \int_{a}^{b} d\varepsilon' \left| V(\varepsilon') \right|^{2} \delta(\varepsilon - \varepsilon') = \left| V(\varepsilon) \right|^{2}
 ```
-Where ``V(\varepsilon)`` is the "coupling function" which describes how the bath and system should be related at a given energy [4].
+Where ``V(\varepsilon)`` is the "coupling function" which describes how the bath and system should be related at a given energy [DeVega2015](@cite)].
 Discretising this over a set of $N$ bath states gives the following form:
 ```math
 J^{discr}(\varepsilon) = \sum_{n=1}^{N} \left|V_{n}\right|^{2} \delta \left( \varepsilon - \varepsilon_{n} \right)
 ```
 Where ``V_{n}`` is the coupling contribution at state n. 
  
-#### Discretisation under wide band limit
-The **Wide Band Limit (WBL)** is a common approximation which considers the bath spectral density to be constant over a wide range of energies.
-This allows in the case of direct discretisation of the bath spectral density function, ``J(\varepsilon)``, that the coupling associated with each state is simply related to the energy spacing between itself and its neighbouring state.
+#### Discretisation in the wide band limit
+The Wide Band Limit (WBL) is a common approximation which considers the bath spectral density to be constant over a wide range of energies.
+In the WBL, discretisation of the bath spectral density function, ``J(\varepsilon)``, yields couplings associated with each state that are simply related to the energy spacing between states.
 
-#### Discretisation with constant spacing
-The simpliest choice for discretising the bath spectral density is to represent the bath as a set of `N` evenly spaced energy states according to a trapezoidal integration rule. 
+##### WBL Discretisation with constant spacing
+The simplest choice for discretising the bath spectral density is to represent the bath as a set of `M` evenly spaced energy states according to a trapezoidal integration rule. 
 
-This is implemented as `TrapezoidalRule()` which takes the following arguements:
+This is implemented as `TrapezoidalRule()` which takes the following arguments:
 ```julia
 using NQCModels
 TrapezoidalRule(M, bandmin, bandmax)
@@ -184,7 +184,7 @@ Where:
  - `M` = number of discretised bath states to be generated
  - `bandmin` / `bandmax` = miniumum / maximum energies that define the bath energy range
 
-The discretised bath energy states, ``\varepsilon_{n}``, and coupling elements, ``V_{n}``, are calculated as follows:
+The discretised bath energy states, ``\varepsilon_{n}``, and couplings, ``V_{n}``, are calculated as follows:
 ```math
 \begin{align*}
    \varepsilon_{n} &= a + \frac{(n - 1)(b - a)}{M - 1} \\
@@ -199,7 +199,7 @@ Where:
  - ``\Delta \varepsilon_{n}`` is the spacing between the ``n`` discretised energy states 
  - ``V(\varepsilon_{n})`` is the coupling function evaluated at the ``n`` discretised energy states
 
-When making the Wide Band Limit approximation however, the coupling function, ``V(\varepsilon)``, is independent of energy, ``\varepsilon``. Taking ``V(\varepsilon_{n})`` as an arbitrary constant allows the simplification:
+When making the WBL approximation, however, the coupling function, ``V(\varepsilon)``, is independent of energy, ``\varepsilon``. Taking ``V(\varepsilon_{n})`` as a  constant allows the simplification:
 ```math
 \left| V_{n} \right|^{2} = \left| V(\varepsilon_{n}) \right|^{2} \Delta \varepsilon_{n} \approx \Delta \varepsilon_{n}
 ```
@@ -207,61 +207,52 @@ When making the Wide Band Limit approximation however, the coupling function, ``
 This discretisation method is effective and given enough states will always accurately represent the spectral density, but methods such as IESH using this discretisation scheme will suffer from long computation times as the number of bath states ``M`` increases. 
 
 !!! tip "Number of bath states"
-      Typically keeping ``M<100`` for this discretisation scheme is sensible.
+      Typically, keeping ``M<100`` for IESH simulations is highly recommended to keep computational simulation times low.
 
-#### Discretisation by Gauss-Legendre quadrature
-To address the computational scaling issues with constant spacing methods, and allow for both low and high energy regions to be accurately described simultaneously, a discretisation of the spectral density function integral was generated using Gauss-Legendre quadrature to determine:
- - energy states (``\varepsilon_{n}``) ``\leftarrow`` rescaled nodes (``\epsilon_{n}``)
- - coupling elements (``V_{n}``) ``\leftarrow`` rescaled weights (``\tilde{w}_{n}``) 
+##### WBL Discretisation by Gauss-Legendre quadrature
+Gauss-Legendre quadrature addresses the computational scaling issues with constant spacing methods and allows denser sampling close to the midpoint of the electronic band (the Fermi energy).
 
-
-!!! note 
-      The rescaled weights, ``\tilde{w}_{n}``, fill the role of ``\Delta \varepsilon_{n}`` as described above for the Trapezoidal Rule discretisation. 
-      
-      ``\left| V_{n} \right|^{2} = \left| V(\epsilon_{n}) \right|^{2} \tilde{w}_{n} \approx \tilde{w}_{n}``
-
-Implemented here as `ShenviGaussLegendre()` is the method developed by Shenvi et al in 2009, where Gauss-Legendre quadrature was used to discretise the bath in two halves, separated at the Fermi level [1]. 
+Implemented as `ShenviGaussLegendre()` is the method developed by Shenvi et al in 2009, where Gauss-Legendre quadrature was used to discretise the bath in two halves, one above and one below the Fermi level [Shenvi2009](@cite). 
 This function takes the following arguments:
 ```julia
 using NQCModels
 ShenviGaussLegendre(M, bandmin, bandmax)
 ```
 
-The rescaled knots, ``x_{n}``, and weights, ``w_{n}``, are given by the following scaling related to the value of the Fermi level, ``\epsilon_{n}``.
+The rescaled knots, ``\epsilon_{n}``, and weights, ``w_{n}``, are given by the following scaling related to the value of the Fermi level, ``\epsilon_{F}``.
 ```math
 \begin{align*}
    \epsilon_{n} &=
    \begin{cases}
-      \frac{1}{2}(\epsilon_{f} - a) x_{n} + \frac{1}{2}(a + \epsilon_{f}) \qquad n \leq M/2\\
-      \frac{1}{2}(b - \epsilon_{f}) x_{n} + \frac{1}{2}(\epsilon_{f} - b) \qquad n \geq M/2
+      \frac{1}{2}(\epsilon_{F} - a) x_{n} + \frac{1}{2}(a + \epsilon_{F}) \qquad n \leq M/2\\
+      \frac{1}{2}(b - \epsilon_{F}) x_{n} + \frac{1}{2}(\epsilon_{F} - b) \qquad n \geq M/2
    \end{cases}\\
    \tilde{w}_{n} &=
    \begin{cases}
-      \frac{1}{2}(\epsilon_{f} - a) w_{n} \qquad n \leq M/2\\
-      \frac{1}{2}(b - \epsilon_{f}) w_{n} \qquad n \geq M/2
+      \frac{1}{2}(\epsilon_{F} - a) w_{n} \qquad n \leq M/2\\
+      \frac{1}{2}(b - \epsilon_{F}) w_{n} \qquad n \geq M/2
    \end{cases}\\
 \end{align*}
 ```
 Where:
- - ``\epsilon_{f}`` = Fermi level
- - ``x_{n}`` = knots obtained from Guass-Legendre quadrature
+ - ``\epsilon_{F}`` = Fermi level
+ - ``x{n}`` = knots obtained from Gauss-Legendre quadrature
  - ``w_{n}`` = weights obtained from Gauss-Legendre quadrature
  - ``a`` = minimum energy of bath discretisation (`bandmin`)
  - ``b`` = maximum energy of bath discretisation (`bandmax`)
  - ``M`` = number of bath states in the discretisation (`M`)
 
-By supplying a value for the fermi level, the dense discretisation region is shifted to be centred on a different region of the energy range that may benefit from being well described during a calculation.
+By supplying a value for the Fermi level, the dense discretisation region is shifted to be centred on a different region of the energy range that may benefit from being well described during a calculation.
 
 
 #### Discretisation with a gap
-Two numerical discretisation methods which performs a band gap in the middle of the continuum are introduced and named as [`GapTrapezoidalRule`](@ref) and [`GapGaussLegendre`](@ref).
+Two numerical discretisation methods which introduce a band gap in the middle of the discretised electronic states are introduced and named as [`GapTrapezoidalRule`](@ref) and [`GapGaussLegendre`](@ref).
 
 ```julia
 using NQCModels
 gapbath_T = GapTrapezoidalRule(nstates, bandmin_val, bandmax_val, bandgap)
 gapbath_G = GapGaussLegendre(nstates, bandmin_val, bandmax_val, bandgap)
 ```
-
 
 ##### Gapped Trapezoidal Rule
 The *Gapped Trapezoidal* Rule discretises a band into two evenly spaced continuums, which is particularly useful for systems with a band gap, such as semiconductors.
@@ -319,10 +310,10 @@ To build a discretised bath with a gap in the middle, you can use the [`GapTrape
 The Julia script to reproduce the above figure is available in the [plot_bath_DOS.jl](../assets/system-bath-model/plot_bath_DOS.jl).
 
 
-#### Discretisation with a "Window" region
-The windowed discretisation method generates a dense region of states within a user specified energy "window", and a sparse discretisation elsewhere. The density of this region is controlled through an optional keyword parameter `densityratio` which takes a default value of `0.5`. This is defined as the ratio ``N_{\textrm{States in Window}} / N_{\textrm{Total States}}``. 
+#### Discretisation with a densely sampled "window" region
+The windowed discretisation method generates a dense region of states within a user-specified energy "window", and a sparse discretisation elsewhere. It also assumes a constant density of states in the WBL. The density of this region is controlled through an optional keyword parameter `densityratio` which takes a default value of `0.5`. This is defined as the ratio ``N_{\textrm{States in window}} / N_{\textrm{Total number of states}}``. 
 
-This discretisation is selected for by the function `WindowedTrapezoidalRule()` which takes the following arguements:
+This discretisation is selected by the function `WindowedTrapezoidalRule()` which takes the following arguments:
 ```julia
 using NQCModels
 WindowedTrapezoidalRule(M, bandmin, bandmax, windmin, windmax, densityratio=0.50)
@@ -339,36 +330,26 @@ The discretised bath states and the associated couplings are calculated using th
 \begin{align*}
 \varepsilon_{n} &= 
    \begin{cases}
-      a^{win} + \frac{(n - 1)(b^{win} - a^{win})}{\eta M - 1} &\qquad n^{win}_{-} < n \leq n^{win}_{+} \\ 
-      b^{win} + \Delta \varepsilon_{join} + \frac{(n - 1)(b - b^{win} - \Delta \varepsilon_{join})}{n^{win}_{-} - 1} &\qquad  n > n^{win}_{+} \\
-      a - \Delta \varepsilon_{join} + \frac{(n - 1)(b^{win} - a - \Delta \varepsilon_{join})}{n^{win}_{-} - 1} &\qquad n < n^{win}_{-}
+      a^{\textrm{win}} + \frac{(n - 1)(b^{\textrm{win}} - a^{\textrm{win}})}{\eta M - 1} &\qquad n^{\textrm{win}}_{-} < n \leq n^{\textrm{win}}_{+} \\ 
+      b^{\textrm{win}} + \Delta \varepsilon_{\textrm{join}} + \frac{(n - 1)(b - b^{\textrm{win}} - \Delta \varepsilon_{join})}{n^{\textrm{win}}_{-} - 1} &\qquad  n > n^{\textrm{win}}_{+} \\
+      a - \Delta \varepsilon_{\textrm{join}} + \frac{(n - 1)(b^{\textrm{win}} - a - \Delta \varepsilon_{\textrm{join}})}{n^{\textrm{win}}_{-} - 1} &\qquad n < n^{\textrm{win}}_{-}
    \end{cases}\\ 
    V_{n} &= 
    \begin{cases}
-      V(\varepsilon_{n})\sqrt{(b^{win} - a^{win})/(\eta M - 1)} = \sqrt{\Delta \varepsilon_{n}^{win}} &\qquad n^{win}_{-} < n \leq n^{win}_{+} \\ 
-      V(\varepsilon_{n})\sqrt{(2b - 2b^{win} - \Delta \varepsilon^{win})/(2n^{win}_{-} - 1)} = \sqrt{\Delta \varepsilon_{n}^{sp}} &\qquad n \leq n^{win}_{-} \; \textrm{and} \; n>n^{win}_{+}
+      V(\varepsilon_{n})\sqrt{(b^{\textrm{win}} - a^{\textrm{win}})/(\eta M - 1)} = \sqrt{\Delta \varepsilon_{n}^{\textrm{win}}} &\qquad n^{\textrm{win}}_{-} < n \leq n^{\textrm{win}}_{+} \\ 
+      V(\varepsilon_{n})\sqrt{(2b - 2b^{\textrm{win}} - \Delta \varepsilon^{\textrm{win}})/(2n^{\textrm{win}}_{-} - 1)} = \sqrt{\Delta \varepsilon_{n}^{sp}} &\qquad n \leq n^{\textrm{win}}_{-} \; \textrm{and} \; n>n^{\textrm{win}}_{+}
    \end{cases}
 \end{align*}
 ```
 
 Where:
- - ``n^{win}_{\mp} = M(1 \mp \eta)/2:`` are the state indices that define the window region (``n^{win}_{-}`` is also equivalent to the number of states in the sparse region)
+ - ``n^{\textrm{win}}_{\mp} = M(1 \mp \eta)/2:`` are the state indices that define the window region (``n^{win}_{-}`` is also equivalent to the number of states in the sparse region)
  - ``\eta`` = density ratio (`densityratio`) which defines the proportion of states within the window relative to the total number of discretised states. ``M^{win} = \eta M``
  - ``a`` = minimum energy of bath discretisation (`bandmin`)
  - ``b`` = maximum energy of bath discretisation (`bandmax`)
- - ``a^{win}`` = minimum energy of the window region in the bath discretisation (`windmin`)
- - ``b^{win}`` = maximum energy of the window region in the bath discretisation (`windmax`)
+ - ``a^{\textrm{win}}`` = minimum energy of the window region in the bath discretisation (`windmin`)
+ - ``b^{\textrm{win}}`` = maximum energy of the window region in the bath discretisation (`windmax`)
 
 
 This method allows the user to finely discretise the electronic bath states over a larger energy range than can be achieved with the Gauss-Legendre quadrature method, without resorting to use a trapezoidal rule discretisation with many states. Hence, saving computation time. The motivation for such a discretisation was to provide a better energy grid for the bath such that a non-equlibrium electronic distribution with a complex shape could be more accurately sampled from. 
 
-
-## References
-
-[1] N. Shenvi, S. Roy, and J. C. Tully, "Nonadiabatic dynamics at metal surfaces: Independent-electron surface hopping", *J. Chem. Phys.* **130**, 174707 (2009). [DOI: 10.1063/1.3125436](https://doi.org/10.1063/1.3125436)
-
-[2] J. Gardner, D. Corken, S. M. Janke, S. Habershon, and R. J. Maurer, "Efficient implementation and performance analysis of the independent electron surface hopping method for dynamics at metal surfaces", *J. Chem. Phys.* **158**, 064101 (2023). [DOI: 10.1063/5.0137137](https://doi.org/10.1063/5.0137137)
-
-[3] X. He and J. Liu, "A new perspective for nonadiabatic dynamics with phase space mapping models", *J. Chem. Phys.* **151**, 024105 (2019). [DOI: 10.1063/1.5108736](https://doi.org/10.1063/1.5108736)
-
-[4] I. de Vega, U. Schollwöck and F. A. Wolf, "How to discretize a quantum bath for real-time evolution", *Phys. Rev. B* **92**, 155126 (2015). [DOI: 10.1103/PhysRevB.92.155126](https://doi.org/10.1103/PhysRevB.92.155126) 

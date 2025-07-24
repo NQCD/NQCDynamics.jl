@@ -2,7 +2,7 @@
 @info "Expanding src/NQCDistributions/overview.md..."
 start_time = time()
 ```
-# NQCDistributions.jl
+# [NQCDistributions.jl](@id nqcdistributions)
 
 # Storing and sampling distributions
 
@@ -123,11 +123,13 @@ For samplable components based on nuclear configurations, simply use three-dimen
 
 Pre-defined distribution functions such as `VelocityBoltzmann` can be turned into a three-dimensional version using the `RingPolymerWrapper`:
 
-```julia
+```julia ringpolymer
+using NQCDistributions
+
 velocity = VelocityBoltzmann(300u"K", rand(10), (3, 10))
 n_beads=5
 velocity_ring_polymer = RingPolymerWrapper(velocity, n_beads, Int[])
-# RingPolymerWrapper(Distribution, number of ring-polymer beads, indices of atoms to treat classically)
+NQCDistributions.RingPolymerWrapper(Distribution, number of ring-polymer beads, indices of atoms to treat classically)
 ```
 
 ## Electronic distributions
