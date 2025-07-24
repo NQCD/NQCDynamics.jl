@@ -7,17 +7,18 @@ output:
   pdf_document: 
        latex_engine: xelatex
 ---
+
 ```@setup logging
 @info "Expanding src/NQCModels/frictionmodels.md..."
 start_time = time()
 ```
 # [Electronic friction models](@id models-friction)
 To perform [molecular dynamics with electronic friction (MDEF)](@ref mdef-dynamics)
-a specific type of model must be used
+with a specific type of model must be used
 that provides the friction tensor used to propagate the dynamics. 
-For this we recommend using [FrictionProviders.jl](https://github.com/NQCD/FrictionProviders.jl), however, various analytic models can also be employed.
+For this, we recommend using [FrictionProviders.jl](https://github.com/NQCD/FrictionProviders.jl), however, various analytic models can also be employed.
 
-As detailed in the [MDEF page](@ref mdef-dynamics), there are two ways to obtain friction
+As described on the [MDEF page](@ref mdef-dynamics), we consider two ways to obtain friction
 values, either from the local density friction approximation (LDFA), or from time-dependent
 perturbation theory (TDPT), also known as orbital-dependent friction (ODF).
 
@@ -101,7 +102,7 @@ with the equation:
 γ = 2\pi\hbar \sum_j \braket{1|dH|j}\braket{j|dH|1} \delta(\omega_j) / \omega_j
 ```
 where the delta function is approximated by a normalised Gaussian function and the sum
-runs over the adiabatic states ([Box2021](@cite)).
+runs over the adiabatic states ([Box2021, Box2023](@cite)).
 The matrix elements in this equation are the position derivatives of the diabatic hamiltonian
 converted to the adiabatic representation.
 
