@@ -155,7 +155,7 @@ The `ErpenbeckThoss` model ([Erpenbeck2018](@cite), [Erpenbeck2019](@cite)) is u
 
 
 ### Discretisation of bath 
-Some mixed quantum classical dynamics methods that deal with system-bath simulations require the discretisation of the bath spectral density, ``J(\varepsilon)``, into a finite number of discrete energy levels such that the individual state couplings are explicitly considered during propagation. i.e. [Independent electron surface hopping](@ref) [Shenvi2009](@cite) [Gardner2023](@cite).
+Some mixed quantum classical dynamics methods that deal with system-bath simulations require the discretisation of the bath spectral density, ``J(\varepsilon)``, into a finite number of discrete energy levels such that the individual state couplings are explicitly considered during propagation. i.e. [Independent electron surface hopping (IESH)](@ref iesh-dynamics) [Shenvi2009](@cite) [Gardner2023](@cite).
 
 The bath spectral density here is given by the following integral:
 ```math
