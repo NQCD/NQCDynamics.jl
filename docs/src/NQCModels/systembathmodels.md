@@ -211,15 +211,7 @@ This discretisation method is effective and given enough states will always accu
       Typically, keeping ``M<100`` for IESH simulations is highly recommended to keep computational simulation times low.
 
 ##### WBL Discretisation by Gauss-Legendre quadrature
-Gauss-Legendre quadrature addresses the computational scaling issues with constant spacing methods and allows denser sampling close to the midpoint of the electronic band (the Fermi energy). In the Gauss-Legendre quadrature, the discretised levels and couplings have different meaning:
- - energy states (``\varepsilon_{n}``) ``\leftarrow`` rescaled knots (``\epsilon_{n}``)
- - coupling elements (``V_{n}``) ``\leftarrow`` rescaled weights (``\tilde{w}_{n}``) 
-
-
-!!! note 
-      The rescaled weights, ``\tilde{w}_{n}``, fill the role of ``\Delta \varepsilon_{n}`` as described above for the Trapezoidal Rule discretisation. 
-      
-      ``\left| V_{n} \right|^{2} = \left| V(\epsilon_{n}) \right|^{2} \tilde{w}_{n} \approx \tilde{w}_{n}``
+Gauss-Legendre quadrature addresses the computational scaling issues with constant spacing methods and allows denser sampling close to the midpoint of the electronic band (the Fermi energy).
 
 Implemented as `ShenviGaussLegendre()` is the method developed by Shenvi et al in 2009, where Gauss-Legendre quadrature was used to discretise the bath in two halves, one above and one below the Fermi level [Shenvi2009](@cite). 
 This function takes the following arguments:
@@ -228,24 +220,24 @@ using NQCModels
 ShenviGaussLegendre(M, bandmin, bandmax)
 ```
 
-The rescaled knots, ``\epsilon_{n}``, and weights, ``w_{n}``, are given by the following scaling related to the value of the Fermi level, ``\epsilon_{n}``.
+The rescaled knots, ``\epsilon_{n}``, and weights, ``w_{n}``, are given by the following scaling related to the value of the Fermi level, ``\epsilon_{F}``.
 ```math
 \begin{align*}
    \epsilon_{n} &=
    \begin{cases}
-      \frac{1}{2}(\epsilon_{f} - a) x_{n} + \frac{1}{2}(a + \epsilon_{f}) \qquad n \leq M/2\\
-      \frac{1}{2}(b - \epsilon_{f}) x_{n} + \frac{1}{2}(\epsilon_{f} - b) \qquad n \geq M/2
+      \frac{1}{2}(\epsilon_{F} - a) x_{n} + \frac{1}{2}(a + \epsilon_{F}) \qquad n \leq M/2\\
+      \frac{1}{2}(b - \epsilon_{F}) x_{n} + \frac{1}{2}(\epsilon_{F} - b) \qquad n \geq M/2
    \end{cases}\\
    \tilde{w}_{n} &=
    \begin{cases}
-      \frac{1}{2}(\epsilon_{f} - a) w_{n} \qquad n \leq M/2\\
-      \frac{1}{2}(b - \epsilon_{f}) w_{n} \qquad n \geq M/2
+      \frac{1}{2}(\epsilon_{F} - a) w_{n} \qquad n \leq M/2\\
+      \frac{1}{2}(b - \epsilon_{F}) w_{n} \qquad n \geq M/2
    \end{cases}\\
 \end{align*}
 ```
 Where:
- - ``\epsilon_{f}`` = Fermi level
- - ``\epsilon_{n}`` = knots obtained from Gauss-Legendre quadrature
+ - ``\epsilon_{F}`` = Fermi level
+ - ``x{n}`` = knots obtained from Gauss-Legendre quadrature
  - ``w_{n}`` = weights obtained from Gauss-Legendre quadrature
  - ``a`` = minimum energy of bath discretisation (`bandmin`)
  - ``b`` = maximum energy of bath discretisation (`bandmax`)
@@ -319,10 +311,10 @@ To build a discretised bath with a gap in the middle, you can use the [`GapTrape
 The Julia script to reproduce the above figure is available in the [plot_bath_DOS.jl](../assets/system-bath-model/plot_bath_DOS.jl).
 
 
-#### Discretisation with a densely sampled "Window" region
-The windowed discretisation method generates a dense region of states within a user specified energy "window", and a sparse discretisation elsewhere. The density of this region is controlled through an optional keyword parameter `densityratio` which takes a default value of `0.5`. This is defined as the ratio ``N_{\textrm{States in Window}} / N_{\textrm{Total States}}``. 
+#### Discretisation with a densely sampled "window" region
+The windowed discretisation method generates a dense region of states within a user-specified energy "window", and a sparse discretisation elsewhere. It also assumes a constant density of states in the WBL. The density of this region is controlled through an optional keyword parameter `densityratio` which takes a default value of `0.5`. This is defined as the ratio ``N_{\textrm{States in window}} / N_{\textrm{Total number of states}}``. 
 
-This discretisation is selected for by the function `WindowedTrapezoidalRule()` which takes the following arguements:
+This discretisation is selected by the function `WindowedTrapezoidalRule()` which takes the following arguments:
 ```julia
 using NQCModels
 WindowedTrapezoidalRule(M, bandmin, bandmax, windmin, windmax, densityratio=0.50)
@@ -339,25 +331,25 @@ The discretised bath states and the associated couplings are calculated using th
 \begin{align*}
 \varepsilon_{n} &= 
    \begin{cases}
-      a^{win} + \frac{(n - 1)(b^{win} - a^{win})}{\eta M - 1} &\qquad n^{win}_{-} < n \leq n^{win}_{+} \\ 
-      b^{win} + \Delta \varepsilon_{join} + \frac{(n - 1)(b - b^{win} - \Delta \varepsilon_{join})}{n^{win}_{-} - 1} &\qquad  n > n^{win}_{+} \\
-      a - \Delta \varepsilon_{join} + \frac{(n - 1)(b^{win} - a - \Delta \varepsilon_{join})}{n^{win}_{-} - 1} &\qquad n < n^{win}_{-}
+      a^{\textrm{win}} + \frac{(n - 1)(b^{\textrm{win}} - a^{\textrm{win}})}{\eta M - 1} &\qquad n^{\textrm{win}}_{-} < n \leq n^{\textrm{win}}_{+} \\ 
+      b^{\textrm{win}} + \Delta \varepsilon_{\textrm{join}} + \frac{(n - 1)(b - b^{\textrm{win}} - \Delta \varepsilon_{join})}{n^{\textrm{win}}_{-} - 1} &\qquad  n > n^{\textrm{win}}_{+} \\
+      a - \Delta \varepsilon_{\textrm{join}} + \frac{(n - 1)(b^{\textrm{win}} - a - \Delta \varepsilon_{\textrm{join}})}{n^{\textrm{win}}_{-} - 1} &\qquad n < n^{\textrm{win}}_{-}
    \end{cases}\\ 
    V_{n} &= 
    \begin{cases}
-      V(\varepsilon_{n})\sqrt{(b^{win} - a^{win})/(\eta M - 1)} = \sqrt{\Delta \varepsilon_{n}^{win}} &\qquad n^{win}_{-} < n \leq n^{win}_{+} \\ 
-      V(\varepsilon_{n})\sqrt{(2b - 2b^{win} - \Delta \varepsilon^{win})/(2n^{win}_{-} - 1)} = \sqrt{\Delta \varepsilon_{n}^{sp}} &\qquad n \leq n^{win}_{-} \; \textrm{and} \; n>n^{win}_{+}
+      V(\varepsilon_{n})\sqrt{(b^{\textrm{win}} - a^{\textrm{win}})/(\eta M - 1)} = \sqrt{\Delta \varepsilon_{n}^{\textrm{win}}} &\qquad n^{\textrm{win}}_{-} < n \leq n^{\textrm{win}}_{+} \\ 
+      V(\varepsilon_{n})\sqrt{(2b - 2b^{\textrm{win}} - \Delta \varepsilon^{\textrm{win}})/(2n^{\textrm{win}}_{-} - 1)} = \sqrt{\Delta \varepsilon_{n}^{sp}} &\qquad n \leq n^{\textrm{win}}_{-} \; \textrm{and} \; n>n^{\textrm{win}}_{+}
    \end{cases}
 \end{align*}
 ```
 
 Where:
- - ``n^{win}_{\mp} = M(1 \mp \eta)/2:`` are the state indices that define the window region (``n^{win}_{-}`` is also equivalent to the number of states in the sparse region)
+ - ``n^{\textrm{win}}_{\mp} = M(1 \mp \eta)/2:`` are the state indices that define the window region (``n^{win}_{-}`` is also equivalent to the number of states in the sparse region)
  - ``\eta`` = density ratio (`densityratio`) which defines the proportion of states within the window relative to the total number of discretised states. ``M^{win} = \eta M``
  - ``a`` = minimum energy of bath discretisation (`bandmin`)
  - ``b`` = maximum energy of bath discretisation (`bandmax`)
- - ``a^{win}`` = minimum energy of the window region in the bath discretisation (`windmin`)
- - ``b^{win}`` = maximum energy of the window region in the bath discretisation (`windmax`)
+ - ``a^{\textrm{win}}`` = minimum energy of the window region in the bath discretisation (`windmin`)
+ - ``b^{\textrm{win}}`` = maximum energy of the window region in the bath discretisation (`windmax`)
 
 
 This method allows the user to finely discretise the electronic bath states over a larger energy range than can be achieved with the Gauss-Legendre quadrature method, without resorting to use a trapezoidal rule discretisation with many states. Hence, saving computation time. The motivation for such a discretisation was to provide a better energy grid for the bath such that a non-equlibrium electronic distribution with a complex shape could be more accurately sampled from. 
