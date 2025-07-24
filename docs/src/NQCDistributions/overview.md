@@ -2,9 +2,9 @@
 @info "Expanding src/NQCDistributions/overview.md..."
 start_time = time()
 ```
-# NQCDistributions.jl
+# [NQCDistributions.jl](@id nqcdistributions)
 
-# [Storing and sampling distributions](@id storing_and_sampling) 
+# Storing and sampling distributions
 
 In order to perform ensembles of trajectories, it is useful to have a convenient way
 to generate distributions of velocities and positions which can be sampled to
