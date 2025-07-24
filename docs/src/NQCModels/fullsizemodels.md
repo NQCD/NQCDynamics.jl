@@ -20,7 +20,7 @@ Several examples for connecting common machine-learning interatomic potentials t
     The interface works by calling the relevant Python functions using
     [PythonCall](https://github.com/JuliaPy/PythonCall.jl).
     To use PythonCall, you must make sure that your `python` version contains all the
-    relevant packages, such as ase.
+    relevant packages, such as `ase`.
     [PythonCall](https://github.com/JuliaPy/PythonCall.jl) can be configured to use a particular
     pre-installed Python or install its own.
     Refer to the [PythonCall README](https://github.com/JuliaPy/PythonCall.jl) for installation

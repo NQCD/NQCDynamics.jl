@@ -84,7 +84,7 @@ r = fill(x1, (1,1))
 ```
 Velocities are handled in the same way as positions and the data structures are the same.
 Usually manual initialisation like this will only be necessary for small model systems,
-whereas full dimensional model system will be read from a file instead.
+whereas full dimensional model systems will be read from a file instead.
 This is explored in the [`Atoms` documentation](@ref atoms).
 
 !!! tip "Ring polymer simulations?"
@@ -99,12 +99,12 @@ This is explored in the [`Atoms` documentation](@ref atoms).
 The next ingredient required to set up the simulation is the `Model`, i.e., the potentials in which the system
 evolves.
 These `Model`s are provided by [NQCModels.jl](@ref), which 
-is a convenient infrastructure for defining different kinds of models
+is a convenient infrastructure for defining different kinds of classical and quantum models
 for adiabatic and nonadiabatic dynamics.
-These models can range from simple analytic potentials all the way up to multi-dimensional
+These models can range from simple analytic potentials all the way to multi-dimensional
 *ab initio* potentials.
 Refer to the [NQCModels.jl](@ref) page for information on the available models
-and a description of how to implement further models.
+and a description of how to implement new models.
  
 For now we can look at a `ClassicalModel` which provides a simple
 harmonic potential energy function.
@@ -160,8 +160,8 @@ derivative!(model, D, hcat(25.0))
 
     The `potential!(model, V, R)` function treats V as a matrix for two reasons. The first reason 
     is that Julia treats numbers as immutable, meaning they can't be updated in place so it wouldn't 
-    make sense to define `potential!()` acting on a number. The second reason is consistency, many models 
-    - `QuantumModels` in particular - define their potentials in terms of Hermitian matrices, therefore 
+    make sense to define `potential!()` acting on a number. The second reason is consistency; many models,
+    `QuantumModels` in particular, define their potentials in terms of Hermitian matrices, therefore 
     defining a function that expects its potential to be input as a matrix is useful for interfacing 
     with other areas of the codebase.
 
@@ -241,8 +241,8 @@ nothing # hide
 ```
 
 Now, we can finally run the trajectory using the `run_dynamics` function.
-This takes three positional arguments: the simulation parameters `sim,  the time span
-we want to solve for `tspan`, and the dynamics variables `z`.
+This takes three positional arguments: the simulation parameters `sim`,  the time span
+we want to solve for, `tspan`, and the dynamics variables `z`.
 For classical dynamics we also provide a timestep `dt` since we're using the
 `VelocityVerlet` algorithm by default.
 

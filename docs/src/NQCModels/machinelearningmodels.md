@@ -35,7 +35,7 @@ austrip.(h2.get_forces() .* u"eV/Å")
 !!! warning
 
     Note that this is an arbitrary model not trained on H2, hence the calculation of the
-    potential energy and forces most likely do not make sense.
+    potential energy and forces most likely does not make sense.
 
 Then, we can convert the ASE output into the format used in NQCModels,
 which makes it possible to use the MACE model e.g. for molecular dynamics calculations
@@ -60,7 +60,7 @@ Using the [ASE interface](@ref) we can directly use models trained using
 
     The examples on this page do not run during the documentation build due to `schnetpack`
     causing segfaults when installed in the build environment.
-    The causes of this is not currently clear but we have temporarily disabled these examples
+    The cause of this is currently not clear but we have temporarily disabled these examples
     in the build.
 
     However, the examples should still be correct and you are welcome to try them with
@@ -103,7 +103,7 @@ austrip.(pyconvert(Matrix{Float64}, h2.get_forces()) .* u"eV/Å")
 !!! warning
 
     Note that this is an arbitrary model not trained on H2, hence the calculation of the
-    potential energy and forces most likely do not make sense.
+    potential energy and forces most likely does not make sense.
 
 Then, we can convert the ASE output into the format used in NQCModels,
 which makes it possible to use the SchNet model e.g. for molecular dynamics calculations

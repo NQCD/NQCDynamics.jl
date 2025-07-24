@@ -20,7 +20,7 @@ run_dynamics
 This is the same function used to perform single trajectory simulations, but by replacing the single initial condition with a distribution
 and changing the number of trajectories it is possible to run an ensemble of trajectories.
 The distributions are defined such that they can be sampled to provide initial conditions for each trajectory.
-The [Storing and sampling distributions](@ref) page details the format the distributions must take.
+The [Storing and sampling distributions](@ref nqcdistributions) page details the format the distributions must take.
 
 Internally, the [DifferentialEquations.jl](https://diffeq.sciml.ai/stable/features/ensemble/#Performing-an-Ensemble-Simulation)
 ensemble infrastructure is used to handle per trajectory parallelism.
@@ -44,7 +44,7 @@ nothing # hide
 
 As mentioned above, before running the ensemble, we must prepare a distribution to generate
 initial conditions for each trajectory.
-This procedure is detailed in the [Storing and sampling distributions](@ref) section.
+This procedure is detailed in the [Storing and sampling distributions](@ref nqcdistributions) section.
 ```@example ensemble
 using Distributions: Normal # Import the Normal distribution
 
@@ -52,7 +52,7 @@ k = 10 # Initial momentum = 10
 v = k / atoms.masses[1] # Convert momentum to velocity
 r = Normal(-8) # Create Normal distribution centred at -8 for sampling initial position
 nuclear_distribution = DynamicalDistribution(v, r, (1,1)) # Combine position and velocity
-electronic_distribution = PureState(2) # Create nonequilibrium electronic distribution
+electronic_distribution = PureState(2) # Place electron in the 2nd electronic state (1st excited state)
 product_distribution = nuclear_distribution * electronic_distribution
 nothing # hide
 ```
@@ -107,9 +107,10 @@ we can provide a function to the output argument as described in the
 The advantage of this approach is that memory can be saved by reducing the data as the trajectories accumulate,
 it also allows greater flexibility when modifying the output.
 
-!!! note Optimising performance
+!!! note "Optimising performance"
 
-    Due to how Julia's code precompilation works, running a function for the first time will take longer than subsequent calls to it. As a result, it's advantageous to run dynamics for a single time step to force the Julia compiler to precompile everything needed to propagate dynamics. 
+    Due to how Julia's code precompilation works, running a function for the first time will take longer than subsequent calls to it. As a result, it's advantageous to run dynamics for a single time step to 
+    force the Julia compiler to precompile everything needed to propagate dynamics. 
     NQCDynamics does this automatically, and you can disable this for shorter simulations by setting `precompile_dynamics=false` in the `run_dynamics` command. 
 
 Inside the [`Ensembles`](@ref) submodule we define a few premade functions of this sort, but here
