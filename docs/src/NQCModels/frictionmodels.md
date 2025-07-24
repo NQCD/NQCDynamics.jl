@@ -1,12 +1,3 @@
----
-title: "bra-ket"
-header-includes:
-- \usepackage{braket}
-
-output:
-  pdf_document: 
-       latex_engine: xelatex
----
 
 ```@setup logging
 @info "Expanding src/NQCModels/frictionmodels.md..."
@@ -99,7 +90,7 @@ These have an explicit electronic bath, modelling the electronic structure chara
 The friction is calculated for these models directly from the nonadiabatic couplings
 with the equation:
 ```math
-γ = 2\pi\hbar \sum_j \braket{1|dH|j}\braket{j|dH|1} \delta(\omega_j) / \omega_j
+γ = 2\pi\hbar \sum_j \langle1|dH|j\rangle\langlej|dH|1\rangle \delta(\omega_j) / \omega_j
 ```
 where the delta function is approximated by a normalised Gaussian function and the sum
 runs over the adiabatic states ([Box2021](@cite), [Box2023](@cite)).
