@@ -82,9 +82,10 @@ The output of this function takes the place of the `u` argument seen throughout
 ### Running dynamics
 
 With both the [`Simulation`](@ref) and [`DynamicsVariables`](@ref) in hand,
-the central function is [`run_dynamics`](@ref) which allows us to perform a single dynamics trajectory.
+the central function is [`run_dynamics`](@ref) which allows us to perform a given number of dynamics trajectories.
 [`run_dynamics`](@ref) takes the simulation parameters `sim` and the initial conditions `u0`, along with a time span `tspan`
-that the trajectory will cover.
+that each trajectory will cover. By default, [`run_dynamics`](@ref) perfoms a single dynamics trajectory, but this number can be specified
+within the function call using the `trajectories` keyword argument.
 
 ```@example dynamics
 tspan = (0.0, 2000.0)
