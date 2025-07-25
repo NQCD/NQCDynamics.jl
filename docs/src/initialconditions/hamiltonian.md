@@ -38,11 +38,16 @@ stats
 ```
 
 Here we should see that the energy expectation for the generated ensemble matches
-with the equipartition theorem:
+with the equipartition theorem, where for each degree of freedom, ``\alpha``, that is quadratic in the Hamiltonian:
+```math
+  E = \frac{\alpha N}{2} k_{B} T
+```
+Where ``N`` denotes the number of atoms in the system, ``k_{B}`` is the Boltzmann constant and ``T`` is temperature given in Kelvin.
 ```@repl hmc
 Estimators.@estimate potential_energy(sim, chain)
 austrip(sim.temperature) * 3 * 4 / 2
 ```
+
 ```@setup logging
 runtime = round(time() - start_time; digits=2)
 @info "...done after $runtime s."
