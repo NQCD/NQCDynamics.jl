@@ -128,7 +128,8 @@ function DynamicsMethods.DynamicsVariables(sim::AbstractSimulation{<:AdiabaticIE
 end
 
 function DynamicsMethods.create_problem(u0, tspan, sim::AbstractSimulation{<:AbstractIESH})
-    set_state!(sim.method, convert(Vector{Int},u0.state)) # state 
+    
+    set_state!(sim.method, convert(Vector{Int},u0.state), sim) # state 
     set_unoccupied_states!(sim)
     OrdinaryDiffEq.ODEProblem(DynamicsMethods.motion!, u0, tspan, sim;
         callback=DynamicsMethods.get_callbacks(sim))
@@ -191,7 +192,7 @@ function DynamicsUtils.acceleration!(dv, v, r, sim::Simulation{<:AbstractIESH}, 
     NQCModels.state_independent_derivative!(sim.cache.model, dv, r)
     LinearAlgebra.lmul!(-1, dv)
 
-    NQCDynamics.NQCCalculators.update_cache!(sim.cache, r)
+    #NQCDynamics.NQCCalculators.update_cache!(sim.cache, r)
     adiabatic_derivative = NQCCalculators.get_adiabatic_derivative(sim.cache, r)
     @inbounds for i in mobileatoms(sim)
         for j in dofs(sim)
@@ -213,6 +214,7 @@ In IESH each electron is independent so we can loop through electrons and set th
 derivative one at a time, in the standard way for FSSH.
 """
 function DynamicsUtils.set_quantum_derivative!(dσ, u, sim::AbstractSimulation{<:AdiabaticIESH})
+    
     v = DynamicsUtils.get_hopping_velocity(sim, DynamicsUtils.get_velocities(u))
     σ = DynamicsUtils.get_quantum_subsystem(u)
     r = DynamicsUtils.get_positions(u)
@@ -332,24 +334,6 @@ function select_new_state(sim::AbstractSimulation{<:AbstractIESH}, u, random)::V
     return sim.method.state
 end
 
-#= """
-Converts the IESH state vector containing floats into one containing integers.
-Handles `InexactError`s by rounding to the closest integer.
-"""
-function state_int_convert(state)
-    try
-        int_state = convert(Vector{Int}, state)
-        return int_state
-    catch e
-        if e isa InexactError
-            int_state = round.(Int, state)
-            return int_state
-        else
-            throw(e)
-        end
-    end
-end =#
-
 function Estimators.diabatic_population(sim::Simulation{<:AdiabaticIESH}, u)
     ψ = DynamicsUtils.get_quantum_subsystem(u).re
 
@@ -415,8 +399,8 @@ end
 function iesh_execute_hop!(integrator)
     sim = integrator.p
     if rescale_velocity!(sim, integrator.u)
-        set_state!(integrator.u, sim.method.new_state)
-        set_state!(sim.method, sim.method.new_state)
+        set_state!(integrator.u, sim.method.new_state, sim)
+        set_state!(sim.method, sim.method.new_state, sim)
         set_unoccupied_states!(sim)
     end
     return nothing
@@ -456,3 +440,6 @@ function iesh_apply_decoherence_correction_edc!(integrator)
     end
 end
 
+function set_state!(container, new_state::AbstractVector, sim::AbstractSimulation{<:AbstractIESH})
+    container.state .= new_state
+end

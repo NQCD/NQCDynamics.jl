@@ -2,6 +2,8 @@ using OrdinaryDiffEq: OrdinaryDiffEqAlgorithm, OrdinaryDiffEqMutableCache, updat
 using OrdinaryDiffEq.OrdinaryDiffEqCore: get_fsalfirstlast
 using SciMLBase: SciMLBase, set_ut!
 using NQCDynamics: DynamicsUtils
+using NQCDynamics.DynamicsMethods.SurfaceHoppingMethods
+using NQCDynamics.DynamicsMethods.EhrenfestMethods
 using .DynamicsUtils: acceleration!, get_positions, get_velocities, get_quantum_subsystem
 using NQCCalculators
 
@@ -38,9 +40,10 @@ function OrdinaryDiffEq.initialize!(integrator, integrator_cache::VerletwithElec
 end
 
 @muladd function OrdinaryDiffEq.perform_step!(integrator, integrator_cache::VerletwithElectronicsCache, repeat_step=false)
+
     @unpack t, dt, uprev, u, p = integrator
     @unpack k, vtmp = integrator_cache
-
+    
     rprev = DynamicsUtils.get_positions(uprev)
     vprev = DynamicsUtils.get_velocities(uprev)
     σprev = DynamicsUtils.get_quantum_subsystem(uprev)
@@ -57,16 +60,22 @@ end
     step_A!(rfinal, rprev, dt, vtmp) # x(t) + vtmp*Δt == x(t) + v(t)*Δt + 0.5*a(t)*Δt^2
 
     NQCCalculators.update_cache!(p.cache, rfinal)
-    if integrator.p.method isa DynamicsMethods.SurfaceHoppingMethods.AbstractIESH # update acceleration:  k <- a(t + Δt)
-        DynamicsUtils.acceleration!(k, vtmp, rfinal, p, t, p.method.state)
-    elseif integrator.p.method isa DynamicsMethods.EhrenfestMethods.EhrenfestNA
-        DynamicsUtils.acceleration!(k, vtmp, rfinal, p, t, σprev)
-    end
+    verletwithelectronics_acceleration(k, vtmp, rfinal, p, t, σprev, integrator.p.method)
 
     step_B!(vfinal, vtmp, dt/2, k) # vtmp + 0.5*a(t + Δt)*Δt == v(t) + 0.5*a(t)*Δt + 0.5*a(t + Δt)*Δt == v(t + Δt)
 
     DynamicsUtils.propagate_wavefunction!(σfinal, σprev, vfinal, rfinal, p, dt)
 
+end
+
+function verletwithelectronics_acceleration(k, vtmp, rfinal, p, t, σprev, method::SurfaceHoppingMethods.AbstractIESH)
+    DynamicsUtils.acceleration!(k, vtmp, rfinal, p, t, p.method.state)
+    return nothing
+end
+
+function verletwithelectronics_acceleration(k, vtmp, rfinal, p, t, σprev, method::EhrenfestMethods.EhrenfestNA)
+    DynamicsUtils.acceleration!(k, vtmp, rfinal, p, t, σprev)
+    return nothing
 end
 
 struct VerletwithElectronics2{T<:OrdinaryDiffEqAlgorithm,K<:Base.Pairs} <: OrdinaryDiffEqAlgorithm

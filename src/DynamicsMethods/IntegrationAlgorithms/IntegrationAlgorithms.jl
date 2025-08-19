@@ -9,6 +9,8 @@ using NQCDynamics:
     DynamicsMethods,
     DynamicsUtils,
     natoms, nbeads, ndofs
+using NQCDynamics.DynamicsMethods.SurfaceHoppingMethods
+using NQCDynamics.DynamicsMethods.EhrenfestMethods
 using NQCCalculators
 using OrdinaryDiffEq: OrdinaryDiffEq, OrdinaryDiffEqAlgorithm
 using OrdinaryDiffEq.OrdinaryDiffEqCore: get_fsalfirstlast
