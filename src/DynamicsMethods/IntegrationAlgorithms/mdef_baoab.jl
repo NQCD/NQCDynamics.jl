@@ -4,12 +4,12 @@ using DiffEqBase: DiffEqBase
 using FastBroadcast: @..
 using LinearAlgebra: LAPACK, diagm, diag, mul!, diagind
 using RecursiveArrayTools: ArrayPartition
-using OrdinaryDiffEq.OrdinaryDiffEqCore: get_fsalfirstlast
+# using OrdinaryDiffEqCore: get_fsalfirstlast
 using NQCDynamics: get_temperature
 
 StochasticDiffEq.alg_compatible(::DiffEqBase.AbstractSDEProblem,::MDEF_BAOAB) = true
 
-OrdinaryDiffEq.isfsal(::MDEF_BAOAB) = false
+OrdinaryDiffEqCore.isfsal(::MDEF_BAOAB) = false
 
 """
     MDEF_BAOAB():
@@ -42,7 +42,7 @@ struct MDEF_BAOABCache{uType,rType,vType,uTypeFlat,uEltypeNoUnits,rateNoiseType,
     c2::Matrix{uEltypeNoUnits}
 end
 
-OrdinaryDiffEq.get_fsalfirstlast(cache::MDEF_BAOABCache, u::Any) = (nothing, nothing)
+OrdinaryDiffEqCore.get_fsalfirstlast(cache::MDEF_BAOABCache, u::Any) = (nothing, nothing)
 
 """
     Insecting the inputs into a Cache structure.

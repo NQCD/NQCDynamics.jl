@@ -1,6 +1,7 @@
-using OrdinaryDiffEq.OrdinaryDiffEqCore: get_fsalfirstlast
+# using OrdinaryDiffEqCore: get_fsalfirstlast
+using OrdinaryDiffEq
 
-mutable struct BCBCache{uType,rateType,uEltypeNoUnits} <: OrdinaryDiffEq.OrdinaryDiffEqMutableCache
+mutable struct BCBCache{uType,rateType,uEltypeNoUnits} <: OrdinaryDiffEqCore.OrdinaryDiffEqMutableCache
     u::uType
     uprev::uType
     tmp::uType
@@ -10,11 +11,11 @@ mutable struct BCBCache{uType,rateType,uEltypeNoUnits} <: OrdinaryDiffEq.Ordinar
     cayley::Vector{Matrix{uEltypeNoUnits}}
 end
 
-OrdinaryDiffEq.isfsal(::BCB) = true
+OrdinaryDiffEqCore.isfsal(::BCB) = true
 
-OrdinaryDiffEq.get_fsalfirstlast(cache::BCBCache, u::Any) = (cache.fsalfirst, cache.k)
+OrdinaryDiffEqCore.get_fsalfirstlast(cache::BCBCache, u::Any) = (cache.fsalfirst, cache.k)
 
-function OrdinaryDiffEq.alg_cache(::BCB,u,rate_prototype,::Type{uEltypeNoUnits},::Type{uBottomEltypeNoUnits},::Type{tTypeNoUnits},uprev,uprev2,f,t,dt,reltol,p,calck,::Val{true}) where {uEltypeNoUnits,uBottomEltypeNoUnits,tTypeNoUnits}
+function OrdinaryDiffEqCore.alg_cache(::BCB,u,rate_prototype,::Type{uEltypeNoUnits},::Type{uBottomEltypeNoUnits},::Type{tTypeNoUnits},uprev,uprev2,f,t,dt,reltol,p,calck,::Val{true}) where {uEltypeNoUnits,uBottomEltypeNoUnits,tTypeNoUnits}
     tmp = zero(rate_prototype)
     k = zero(rate_prototype)
     fsalfirst = zero(rate_prototype)
@@ -28,7 +29,7 @@ function OrdinaryDiffEq.OrdinaryDiffEqSymplecticRK.verify_f2(f, res, p, q, pa, t
     res == p ? res : OrdinaryDiffEq.OrdinaryDiffEqSymplecticRK.throwex(integrator)
 end
 
-function OrdinaryDiffEq.initialize!(integrator, integrator_cache::BCBCache)
+function OrdinaryDiffEqCore.initialize!(integrator, integrator_cache::BCBCache)
     integrator.fsalfirst = integrator_cache.fsalfirst
     integrator.fsallast = integrator_cache.k
   
@@ -42,7 +43,7 @@ function OrdinaryDiffEq.initialize!(integrator, integrator_cache::BCBCache)
     OrdinaryDiffEq.OrdinaryDiffEqSymplecticRK.verify_f2(integrator.f.f2, integrator.k[2].x[2], duprev, uprev, integrator.p, integrator.t, integrator, integrator_cache)
 end
 
-@muladd function OrdinaryDiffEq.perform_step!(integrator, integrator_cache::BCBCache, repeat_step=false)
+@muladd function OrdinaryDiffEqCore.perform_step!(integrator, integrator_cache::BCBCache, repeat_step=false)
     @unpack t, dt, p = integrator
     (;cayley, halfdt) = integrator_cache
 

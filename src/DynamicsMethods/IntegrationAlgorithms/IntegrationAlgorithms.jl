@@ -12,8 +12,7 @@ using NQCDynamics:
 using NQCDynamics.DynamicsMethods.SurfaceHoppingMethods
 using NQCDynamics.DynamicsMethods.EhrenfestMethods
 using NQCCalculators
-using OrdinaryDiffEq: OrdinaryDiffEq, OrdinaryDiffEqAlgorithm
-using OrdinaryDiffEq.OrdinaryDiffEqCore: get_fsalfirstlast
+using OrdinaryDiffEqCore: OrdinaryDiffEqCore, get_fsalfirstlast, OrdinaryDiffEqAlgorithm
 using StochasticDiffEq: StochasticDiffEq
 
 struct BCB <: OrdinaryDiffEqAlgorithm end
@@ -38,7 +37,7 @@ Second order symplectic momentum integral algorithm applied to NRPMD.
 
 [J. Chem. Phys. 148, 102326 (2018)](https://doi.org/10.1063/1.5005557)
 """
-struct RingPolymerMInt <: OrdinaryDiffEq.OrdinaryDiffEqAlgorithm end
+struct RingPolymerMInt <: OrdinaryDiffEqAlgorithm end
 
 """
     MInt <: OrdinaryDiffEq.OrdinaryDiffEqAlgorithm
@@ -49,8 +48,8 @@ Second order symplectic momentum integral algorithm.
 
 [J. Chem. Phys. 148, 102326 (2018)](https://doi.org/10.1063/1.5005557)
 """
-struct MInt <: OrdinaryDiffEq.OrdinaryDiffEqAlgorithm end
-struct VerletwithElectronics <: OrdinaryDiffEq.OrdinaryDiffEqAlgorithm end
+struct MInt <: OrdinaryDiffEqAlgorithm end
+struct VerletwithElectronics <: OrdinaryDiffEqAlgorithm end
 
 struct MDEF_BAOAB <: StochasticDiffEq.StochasticDiffEqAlgorithm end
 struct BCOCB <: StochasticDiffEq.StochasticDiffEqAlgorithm end
