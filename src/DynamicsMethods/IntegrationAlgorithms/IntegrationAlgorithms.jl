@@ -12,11 +12,14 @@ using NQCDynamics:
 using NQCDynamics.DynamicsMethods.SurfaceHoppingMethods
 using NQCDynamics.DynamicsMethods.EhrenfestMethods
 using NQCCalculators
-using OrdinaryDiffEq: OrdinaryDiffEq, OrdinaryDiffEqAlgorithm
-using OrdinaryDiffEq.OrdinaryDiffEqCore: get_fsalfirstlast
+using OrdinaryDiffEq:
+    OrdinaryDiffEq, OrdinaryDiffEqMutableCache
+using DiffEqBase # potentially don't need this
+# using OrdinaryDiffEq.OrdinaryDiffEqCore: get_fsalfirstlast
 using StochasticDiffEq: StochasticDiffEq
 
-struct BCB <: OrdinaryDiffEqAlgorithm end
+# abstract type OrdinaryDiffEqAlgorithm <: DiffEqBase.AbstractODEAlgorithm end # in current verison of OrdinaryDiffEq, cannot access the correct type, so have constructed it manually
+struct BCB <: OrdinaryDiffEq.OrdinaryDiffEqAlgorithm end
 struct BCBFull <: OrdinaryDiffEqAlgorithm end
 
 struct BCBwithTsit5{T<:OrdinaryDiffEqAlgorithm} <: OrdinaryDiffEqAlgorithm
@@ -30,7 +33,7 @@ struct BABwithTsit5{T<:OrdinaryDiffEqAlgorithm} <: OrdinaryDiffEqAlgorithm
 end
 
 """
-    RingPolymerMInt <: OrdinaryDiffEq.OrdinaryDiffEqAlgorithm
+    RingPolymerMInt <: OrdinaryDiffEqAlgorithm
 
 Second order symplectic momentum integral algorithm applied to NRPMD.
 
@@ -38,10 +41,10 @@ Second order symplectic momentum integral algorithm applied to NRPMD.
 
 [J. Chem. Phys. 148, 102326 (2018)](https://doi.org/10.1063/1.5005557)
 """
-struct RingPolymerMInt <: OrdinaryDiffEq.OrdinaryDiffEqAlgorithm end
+struct RingPolymerMInt <: OrdinaryDiffEqAlgorithm end
 
 """
-    MInt <: OrdinaryDiffEq.OrdinaryDiffEqAlgorithm
+    MInt <: OrdinaryDiffEqAlgorithm
 
 Second order symplectic momentum integral algorithm.
 
@@ -49,8 +52,8 @@ Second order symplectic momentum integral algorithm.
 
 [J. Chem. Phys. 148, 102326 (2018)](https://doi.org/10.1063/1.5005557)
 """
-struct MInt <: OrdinaryDiffEq.OrdinaryDiffEqAlgorithm end
-struct VerletwithElectronics <: OrdinaryDiffEq.OrdinaryDiffEqAlgorithm end
+struct MInt <: OrdinaryDiffEqAlgorithm end
+struct VerletwithElectronics <: OrdinaryDiffEqAlgorithm end
 
 struct MDEF_BAOAB <: StochasticDiffEq.StochasticDiffEqAlgorithm end
 struct BCOCB <: StochasticDiffEq.StochasticDiffEqAlgorithm end
