@@ -50,8 +50,6 @@ UnitfulAtomic = "a7773ee8-282e-5fa2-be4e-bd808c38a91a"
 [weakdeps]
 MACEModels = "29bafc4c-4f38-420f-a153-8a5a5e0bd5f6"
 
-[sources]
-JuLIP = {url = "https://github.com/JuliaMolSim/JuLIP.jl.git"}
 
 [compat]
 AdvancedHMC = "0.5, 0.6"
@@ -97,14 +95,12 @@ julia = "1"
 
 [extras]
 CSV = "336ed68f-0bac-5ca0-87d4-7b16caf5d00b"
-CairoMakie = "13f3f980-e62b-5c42-98c6-ff1f3baf88f0"
 DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
 DiffEqDevTools = "f3b72e0c-5b89-59e1-b016-84e28bfd966d"
 DiffEqNoiseProcess = "77a26b50-5914-5dd7-bc55-306e6241c503"
 FiniteDiff = "6a86dc24-6348-571c-b903-95158fe2bd41"
 JLD2 = "033835bb-8acc-5ee8-8aae-3f567f8a3819"
 JSON = "682c06a0-de6a-54ab-a142-c8b1cf79cde6"
-JuLIP = "945c410c-986d-556a-acb1-167a618e0462"
 Logging = "56ddb016-857b-54e1-b83d-db4d58db5568"
 MKL = "33e6dc65-8f57-5167-99aa-e5a354878fb2"
 NQCDInterfASE = "4606675f-2246-4a0b-99d5-75b910de637b"
@@ -116,4 +112,4 @@ OrdinaryDiffEq = "1dea7af3-3e70-54e6-95c3-0bf5283fa5ed"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]
-test = ["Test", "SafeTestsets", "CSV", "DataFrames", "DiffEqNoiseProcess", "FiniteDiff", "DiffEqDevTools", "Logging", "MKL", "PythonCall", "JuLIP", "Statistics", "CairoMakie", "JLD2", "JSON", "NQCDInterfASE", "OrdinaryDiffEq"]
+test = ["Test", "SafeTestsets", "CSV", "DataFrames", "DiffEqNoiseProcess", "FiniteDiff", "DiffEqDevTools", "Logging", "MKL", "PythonCall", "Statistics", "JLD2", "JSON", "NQCDInterfASE", "OrdinaryDiffEq"]
