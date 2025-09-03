@@ -23,7 +23,7 @@ function OrdinaryDiffEq.alg_cache(::BCB,u,rate_prototype,::Type{uEltypeNoUnits},
     BCBCache(u, uprev, k, tmp, fsalfirst, halfdt, cayley)
 end
 
-function OrdinaryDiffEq.verify_f2(f, res, p, q, pa, t, integrator, ::BCBCache)
+function OrdinaryDiffEq.OrdinaryDiffEqSymplecticRK.verify_f2(f, res, p, q, pa, t, integrator, ::BCBCache)
     f(res, p, q, pa, t)
     res == p ? res : OrdinaryDiffEq.throwex(integrator)
 end
@@ -40,7 +40,7 @@ function OrdinaryDiffEq.initialize!(integrator, integrator_cache::BCBCache)
   
     duprev,uprev = integrator.uprev.x
     integrator.f.f1(integrator.k[2].x[1],duprev,uprev,integrator.p,integrator.t)
-    OrdinaryDiffEq.verify_f2(integrator.f.f2, integrator.k[2].x[2], duprev, uprev, integrator.p, integrator.t, integrator, integrator_cache)
+    OrdinaryDiffEq.OrdinaryDiffEqSymplecticRK.verify_f2(integrator.f.f2, integrator.k[2].x[2], duprev, uprev, integrator.p, integrator.t, integrator, integrator_cache)
 end
 
 @muladd function OrdinaryDiffEq.perform_step!(integrator, integrator_cache::BCBCache, repeat_step=false)

@@ -13,13 +13,13 @@ using NQCDynamics.DynamicsMethods.SurfaceHoppingMethods
 using NQCDynamics.DynamicsMethods.EhrenfestMethods
 using NQCCalculators
 using OrdinaryDiffEq:
-    OrdinaryDiffEq, OrdinaryDiffEqMutableCache
+    OrdinaryDiffEq, OrdinaryDiffEqAlgorithm, OrdinaryDiffEqMutableCache
 using DiffEqBase # potentially don't need this
 # using OrdinaryDiffEq.OrdinaryDiffEqCore: get_fsalfirstlast
 using StochasticDiffEq: StochasticDiffEq
 
 # abstract type OrdinaryDiffEqAlgorithm <: DiffEqBase.AbstractODEAlgorithm end # in current verison of OrdinaryDiffEq, cannot access the correct type, so have constructed it manually
-struct BCB <: OrdinaryDiffEq.OrdinaryDiffEqAlgorithm end
+struct BCB <: OrdinaryDiffEqAlgorithm end
 struct BCBFull <: OrdinaryDiffEqAlgorithm end
 
 struct BCBwithTsit5{T<:OrdinaryDiffEqAlgorithm} <: OrdinaryDiffEqAlgorithm
