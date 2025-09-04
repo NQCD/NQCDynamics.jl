@@ -1,3 +1,11 @@
+# debug function to print contents of a struct (particularly for NCQCalculators caches)
+function print_contents(container)
+    println("Contents of $(typeof(container)):\n")
+    for name in fieldnames(typeof(container))
+        println("$(name) = ", getfield(container, name))
+        println("")
+    end
+end
 
 """
     run_dynamics(sim::AbstractSimulation, tspan, distribution;
@@ -58,6 +66,7 @@ function run_dynamics(
         prob_func = Selection(distribution, selection, trajectories)
         
         u0 = sample_distribution(sim, distribution)
+        @debug print_contents(sim.cache)
         problem = DynamicsMethods.create_problem(u0, tspan, sim)
         
         output_func = EnsembleSaver(output, savetime)

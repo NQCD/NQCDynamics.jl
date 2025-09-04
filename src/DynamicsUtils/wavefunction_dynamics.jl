@@ -44,15 +44,15 @@ function get_quantum_propagator(sim, v, r, dt)
     end
 
     tmp1 .= Hermitian(prop)
-    vals, _ = LAPACK.syev!('V', 'U', tmp1)
+    vals, vecs = LAPACK.syevr!('V', 'A', 'U', tmp1, 0.0, 0.0, 0, 0, 1e-5)
     
     fill!(prop, zero(eltype(prop)))
     @inbounds for i in eachindex(vals)
         prop[i,i] = exp(-1im * vals[i] * dt)
     end
 
-    mul!(tmp2, prop, tmp1')
-    mul!(prop, tmp1, tmp2)
+    mul!(tmp2, prop, vecs')
+    mul!(prop, vecs, tmp2)
 
     return prop
 end
