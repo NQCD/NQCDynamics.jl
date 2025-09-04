@@ -111,7 +111,7 @@ function DynamicsMethods.DynamicsVariables(sim::AbstractSimulation{<:AdiabaticIE
         """
     ))
 
-    NQCDynamics.NQCCalculators.update_cache!(sim.cache, tmp_r) # Ensure hopping eigenvalues are up to date
+    # NQCDynamics.NQCCalculators.update_cache!(sim.cache, tmp_r) # Ensure hopping eigenvalues are up to date
     eigenvalues = DynamicsUtils.get_hopping_eigenvalues(sim, tmp_r)
 
 

@@ -1,5 +1,6 @@
 
 using NQCDistributions: DynamicalDistribution, ProductDistribution
+using NQCCalculators: update_cache!
 
 abstract type AbstractSelection end
 
@@ -42,11 +43,13 @@ end
 
 function sample_distribution(sim::AbstractSimulation, distribution::DynamicalDistribution, i)
     u = distribution[i]
+    update_cache!(sim.cache, copy(u.r))
     DynamicsMethods.DynamicsVariables(sim, u.v, u.r)
 end
 
 function sample_distribution(sim::AbstractSimulation, distribution::ProductDistribution, i)
     u = distribution.nuclear[i]
+    update_cache!(sim.cache, copy(u.r))
     DynamicsMethods.DynamicsVariables(sim, copy(u.v), copy(u.r), distribution.electronic)
 end
 
@@ -57,11 +60,13 @@ end
 
 function sample_distribution(sim::AbstractSimulation, distribution::DynamicalDistribution)
     u = rand(distribution)
+    update_cache!(sim.cache, copy(u.r))
     DynamicsMethods.DynamicsVariables(sim, u.v, u.r)
 end
 
 function sample_distribution(sim::AbstractSimulation, distribution::ProductDistribution)
     u = rand(distribution.nuclear)
+    update_cache!(sim.cache, copy(u.r))
     DynamicsMethods.DynamicsVariables(sim, copy(u.v), copy(u.r), distribution.electronic)
 end
 
