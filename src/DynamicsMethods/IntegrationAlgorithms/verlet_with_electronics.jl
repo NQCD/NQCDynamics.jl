@@ -1,6 +1,4 @@
-# using OrdinaryDiffEq: OrdinaryDiffEqAlgorithm, OrdinaryDiffEqMutableCache, update_coefficients!
-# using OrdinaryDiffEq.OrdinaryDiffEqCore: get_fsalfirstlast
-# using OrdinaryDiffEq: OrdinaryDiffEqMutableCache, update_coefficients!
+
 using OrdinaryDiffEqCore: get_fsalfirstlast, OrdinaryDiffEqAlgorithm, update_coefficients!
 using SciMLBase: SciMLBase, set_ut!
 using NQCDynamics: DynamicsUtils
@@ -97,6 +95,7 @@ mutable struct VerletwithElectronics2Cache{uType,vType,rateType,E} <: OrdinaryDi
     k::rateType
     electronic_integrator::E
 end
+
 
 OrdinaryDiffEqCore.get_fsalfirstlast(cache::VerletwithElectronics2Cache, u::Any) = (nothing, nothing)
 

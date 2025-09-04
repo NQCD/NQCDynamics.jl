@@ -1,5 +1,4 @@
 using RingPolymerArrays: RingPolymerArrays
-# using OrdinaryDiffEqCore: get_fsalfirstlast
 
 mutable struct BCBWavefunctionCache{uType,vType,rateType,uEltypeNoUnits} <: OrdinaryDiffEqCore.OrdinaryDiffEqMutableCache
     u::uType
@@ -11,6 +10,7 @@ mutable struct BCBWavefunctionCache{uType,vType,rateType,uEltypeNoUnits} <: Ordi
 end
 
 OrdinaryDiffEqCore.isfsal(::BCBWavefunction) = false
+
 
 OrdinaryDiffEqCore.get_fsalfirstlast(cache::BCBWavefunctionCache, u::Any) = (nothing, nothing)
 

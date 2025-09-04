@@ -138,3 +138,4 @@ function log_simulation_duration(duration_seconds)
         @info "Finished after $duration_hours hours."
     end
 end
+

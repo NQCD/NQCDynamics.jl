@@ -1,4 +1,3 @@
-# using OrdinaryDiffEqCore: get_fsalfirstlast
 
 struct BCBFullCache{uType,rateType,uNoUnitsType} <: OrdinaryDiffEqCore.OrdinaryDiffEqMutableCache
     u::uType

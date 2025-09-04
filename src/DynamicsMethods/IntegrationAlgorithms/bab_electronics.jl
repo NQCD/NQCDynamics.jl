@@ -1,4 +1,3 @@
-# using OrdinaryDiffEqCore: get_fsalfirstlast
 
 mutable struct BABwithTsit5Cache{uType,vType,rateType,E} <: OrdinaryDiffEqCore.OrdinaryDiffEqMutableCache
     u::uType

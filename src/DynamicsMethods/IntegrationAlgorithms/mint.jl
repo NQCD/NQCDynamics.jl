@@ -3,7 +3,6 @@ using UnPack: @unpack
 using MuladdMacro: @muladd
 using StaticArrays: SMatrix
 using LinearAlgebra: Hermitian, tr, Eigen, dot
-# using OrdinaryDiffEqCore: get_fsalfirstlast
 using NQCDynamics.DynamicsMethods: MappingVariableMethods
 using NQCModels: nstates, NQCModels
 

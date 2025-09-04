@@ -4,7 +4,6 @@ using DiffEqBase: DiffEqBase
 using FastBroadcast: @..
 using LinearAlgebra: LAPACK, diagm, diag, mul!, diagind
 using RecursiveArrayTools: ArrayPartition
-# using OrdinaryDiffEqCore: get_fsalfirstlast
 using NQCDynamics: get_temperature
 
 StochasticDiffEq.alg_compatible(::DiffEqBase.AbstractSDEProblem,::MDEF_BAOAB) = true
@@ -41,6 +40,7 @@ struct MDEF_BAOABCache{uType,rType,vType,uTypeFlat,uEltypeNoUnits,rateNoiseType,
     c1::Matrix{uEltypeNoUnits}
     c2::Matrix{uEltypeNoUnits}
 end
+
 
 OrdinaryDiffEqCore.get_fsalfirstlast(cache::MDEF_BAOABCache, u::Any) = (nothing, nothing)
 

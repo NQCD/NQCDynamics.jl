@@ -1,4 +1,4 @@
-# using OrdinaryDiffEqCore: get_fsalfirstlast
+
 using OrdinaryDiffEq
 
 mutable struct BCBCache{uType,rateType,uEltypeNoUnits} <: OrdinaryDiffEqCore.OrdinaryDiffEqMutableCache
@@ -26,7 +26,7 @@ end
 
 function OrdinaryDiffEq.OrdinaryDiffEqSymplecticRK.verify_f2(f, res, p, q, pa, t, integrator, ::BCBCache)
     f(res, p, q, pa, t)
-    res == p ? res : OrdinaryDiffEq.OrdinaryDiffEqSymplecticRK.throwex(integrator)
+    res == p ? res : OrdinaryDiffEq.throwex(integrator)
 end
 
 function OrdinaryDiffEqCore.initialize!(integrator, integrator_cache::BCBCache)
@@ -44,11 +44,12 @@ function OrdinaryDiffEqCore.initialize!(integrator, integrator_cache::BCBCache)
 end
 
 @muladd function OrdinaryDiffEqCore.perform_step!(integrator, integrator_cache::BCBCache, repeat_step=false)
+
     @unpack t, dt, p = integrator
     (;cayley, halfdt) = integrator_cache
 
-    vprev, rprev, acceleration = OrdinaryDiffEq.OrdinaryDiffEqSymplecticRK.load_symp_state(integrator)
-    v, r, vtmp = OrdinaryDiffEq.OrdinaryDiffEqSymplecticRK.alloc_symp_state(integrator)
+    vprev, rprev, acceleration = OrdinaryDiffEq.load_symp_state(integrator)
+    v, r, vtmp = OrdinaryDiffEq.alloc_symp_state(integrator)
 
     copy!(r, rprev)
 
@@ -66,5 +67,5 @@ end
 
     step_B!(v, vtmp, halfdt, acceleration)
 
-    OrdinaryDiffEq.OrdinaryDiffEqSymplecticRK.store_symp_state!(integrator, integrator_cache, acceleration, v)
+    OrdinaryDiffEq.store_symp_state!(integrator, integrator_cache, acceleration, v)
 end

@@ -4,7 +4,6 @@ using DiffEqBase: @..
 using LinearAlgebra: Diagonal
 using NQCDynamics: RingPolymers, ndofs
 using RingPolymerArrays: RingPolymerArray
-# using OrdinaryDiffEqCore: get_fsalfirstlast
 
 StochasticDiffEq.alg_compatible(prob::DiffEqBase.AbstractSDEProblem, alg::BCOCB) = true
 
@@ -99,7 +98,7 @@ end
 
     vprev, rprev = integrator.uprev.x
     acceleration = integrator_cache.k
-    v, r, vtmp = OrdinaryDiffEq.OrdinaryDiffEqSymplecticRK.alloc_symp_state(integrator)
+    v, r, vtmp = OrdinaryDiffEq.alloc_symp_state(integrator)
 
     copy!(r, rprev)
 

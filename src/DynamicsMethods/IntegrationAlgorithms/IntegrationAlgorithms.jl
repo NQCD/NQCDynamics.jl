@@ -15,6 +15,7 @@ using NQCCalculators
 using OrdinaryDiffEqCore: OrdinaryDiffEqCore, get_fsalfirstlast, OrdinaryDiffEqAlgorithm
 using StochasticDiffEq: StochasticDiffEq
 
+
 struct BCB <: OrdinaryDiffEqAlgorithm end
 struct BCBFull <: OrdinaryDiffEqAlgorithm end
 
@@ -29,7 +30,7 @@ struct BABwithTsit5{T<:OrdinaryDiffEqAlgorithm} <: OrdinaryDiffEqAlgorithm
 end
 
 """
-    RingPolymerMInt <: OrdinaryDiffEq.OrdinaryDiffEqAlgorithm
+    RingPolymerMInt <: OrdinaryDiffEqAlgorithm
 
 Second order symplectic momentum integral algorithm applied to NRPMD.
 
@@ -40,7 +41,7 @@ Second order symplectic momentum integral algorithm applied to NRPMD.
 struct RingPolymerMInt <: OrdinaryDiffEqAlgorithm end
 
 """
-    MInt <: OrdinaryDiffEq.OrdinaryDiffEqAlgorithm
+    MInt <: OrdinaryDiffEqAlgorithm
 
 Second order symplectic momentum integral algorithm.
 
