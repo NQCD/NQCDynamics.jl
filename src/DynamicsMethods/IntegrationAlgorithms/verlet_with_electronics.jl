@@ -1,5 +1,5 @@
 using OrdinaryDiffEq: OrdinaryDiffEqAlgorithm, OrdinaryDiffEqMutableCache, update_coefficients!
-using OrdinaryDiffEq.OrdinaryDiffEqCore: get_fsalfirstlast
+# using OrdinaryDiffEq.OrdinaryDiffEqCore: get_fsalfirstlast
 using SciMLBase: SciMLBase, set_ut!
 using NQCDynamics: DynamicsUtils
 using NQCDynamics.DynamicsMethods.SurfaceHoppingMethods
@@ -18,7 +18,7 @@ end
 OrdinaryDiffEq.isfsal(::VerletwithElectronics) = false
 alg_order(alg::VerletwithElectronics) = 2
 
-OrdinaryDiffEq.get_fsalfirstlast(cache::VerletwithElectronicsCache, u::Any) = (nothing, nothing)
+# OrdinaryDiffEq.get_fsalfirstlast(cache::VerletwithElectronicsCache, u::Any) = (nothing, nothing)
 
 function OrdinaryDiffEq.alg_cache(::VerletwithElectronics,u,rate_prototype,::Type{uEltypeNoUnits},::Type{uBottomEltypeNoUnits},::Type{tTypeNoUnits},uprev,uprev2,f,t,dt,reltol,p,calck,inplace::Val{true}) where {uEltypeNoUnits,uBottomEltypeNoUnits,tTypeNoUnits}
     tmp = zero(u)
@@ -96,7 +96,7 @@ mutable struct VerletwithElectronics2Cache{uType,vType,rateType,E} <: OrdinaryDi
     electronic_integrator::E
 end
 
-OrdinaryDiffEq.get_fsalfirstlast(cache::VerletwithElectronics2Cache, u::Any) = (nothing, nothing)
+# OrdinaryDiffEq.get_fsalfirstlast(cache::VerletwithElectronics2Cache, u::Any) = (nothing, nothing)
 
 function OrdinaryDiffEq.alg_cache(alg::VerletwithElectronics2,u,rate_prototype,::Type{uEltypeNoUnits},::Type{uBottomEltypeNoUnits},::Type{tTypeNoUnits},uprev,uprev2,f,t,dt,reltol,p,calck,inplace::Val{true}) where {uEltypeNoUnits,uBottomEltypeNoUnits,tTypeNoUnits}
     tmp = zero(u)

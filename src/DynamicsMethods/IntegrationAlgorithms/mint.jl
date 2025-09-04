@@ -3,7 +3,7 @@ using UnPack: @unpack
 using MuladdMacro: @muladd
 using StaticArrays: SMatrix
 using LinearAlgebra: Hermitian, tr, Eigen, dot
-using OrdinaryDiffEq.OrdinaryDiffEqCore: get_fsalfirstlast
+# using OrdinaryDiffEq.OrdinaryDiffEqCore: get_fsalfirstlast
 using NQCDynamics.DynamicsMethods: MappingVariableMethods
 using NQCModels: nstates, NQCModels
 
@@ -22,7 +22,7 @@ mutable struct MIntCache{uType,T} <: OrdinaryDiffEq.OrdinaryDiffEqMutableCache
     tmp_vec2::Vector{T}
 end
 
-OrdinaryDiffEq.get_fsalfirstlast(cache::MIntCache, u::Any) = (nothing, nothing)
+#OrdinaryDiffEq.OrdinaryDiffEqCore.get_fsalfirstlast(cache::MIntCache, u::Any) = (nothing, nothing)
 
 function OrdinaryDiffEq.alg_cache(::MInt,u,rate_prototype,::Type{uEltypeNoUnits},::Type{uBottomEltypeNoUnits},::Type{tTypeNoUnits},uprev,uprev2,f,t,dt,reltol,p,calck,::Val{true}) where {uEltypeNoUnits,uBottomEltypeNoUnits,tTypeNoUnits}
     tmp = zero(u)

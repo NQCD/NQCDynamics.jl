@@ -1,4 +1,4 @@
-using OrdinaryDiffEq.OrdinaryDiffEqCore: get_fsalfirstlast
+# using OrdinaryDiffEq.OrdinaryDiffEqCore: get_fsalfirstlast
 
 struct BCBFullCache{uType,rateType,uNoUnitsType} <: OrdinaryDiffEq.OrdinaryDiffEqMutableCache
     u::uType
@@ -11,7 +11,7 @@ end
 
 OrdinaryDiffEq.isfsal(::BCBFull) = false
 
-OrdinaryDiffEq.get_fsalfirstlast(cache::BCBFullCache, u::Any) = (nothing, nothing)
+# OrdinaryDiffEq.get_fsalfirstlast(cache::BCBFullCache, u::Any) = (nothing, nothing)
 
 function OrdinaryDiffEq.alg_cache(::BCBFull,u,rate_prototype,::Type{uEltypeNoUnits},::Type{uBottomEltypeNoUnits},::Type{tTypeNoUnits},uprev,uprev2,f,t,dt,reltol,p,calck,::Val{true}) where {uEltypeNoUnits,uBottomEltypeNoUnits,tTypeNoUnits}
     tmp = zero(u)
