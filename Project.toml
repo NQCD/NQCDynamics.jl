@@ -23,6 +23,7 @@ NQCDistributions = "657014a1-bd25-4aa2-92cb-cbcede0310ad"
 NQCModels = "c814dc9f-a51f-4eaf-877f-82eda4edad48"
 Optim = "429524aa-4258-5aef-a3af-852621145aeb"
 OrdinaryDiffEq = "1dea7af3-3e70-54e6-95c3-0bf5283fa5ed"
+OrdinaryDiffEqCore = "bbf590c4-e513-4bbe-9b18-05decba2e5d8"
 Parameters = "d96e819e-fc66-5662-9728-84c9c7592b0a"
 PeriodicTable = "7b2266bf-644c-5ea3-82d8-af4bbd25a884"
 ProgressMeter = "92933f4c-e287-5a05-a399-4b506db050ca"
@@ -49,6 +50,9 @@ UnitfulAtomic = "a7773ee8-282e-5fa2-be4e-bd808c38a91a"
 
 [weakdeps]
 MACEModels = "29bafc4c-4f38-420f-a153-8a5a5e0bd5f6"
+
+[sources]
+NQCModels = {url = "https://github.com/NQCD/NQCModels.jl.git"}
 
 [compat]
 AdvancedHMC = "0.5, 0.6"
@@ -77,7 +81,8 @@ NQCDInterfASE = "1.0.2"
 NQCDistributions = "0.1, 1"
 NQCModels = "0.10, 1"
 Optim = "1"
-OrdinaryDiffEq = "6.87"
+OrdinaryDiffEq = "5, 6"
+OrdinaryDiffEqCore = "1.30.0"
 Parameters = "0.12"
 PeriodicTable = "1"
 Plots = "1"

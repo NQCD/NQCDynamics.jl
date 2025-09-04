@@ -3,13 +3,12 @@ using UnPack: @unpack
 using MuladdMacro: @muladd
 using StaticArrays: SMatrix
 using LinearAlgebra: Hermitian, tr, Eigen, dot
-# using OrdinaryDiffEq.OrdinaryDiffEqCore: get_fsalfirstlast
 using NQCDynamics.DynamicsMethods: MappingVariableMethods
 using NQCModels: nstates, NQCModels
 
-OrdinaryDiffEq.isfsal(::MInt) = false
+OrdinaryDiffEqCore.isfsal(::MInt) = false
 
-mutable struct MIntCache{uType,T} <: OrdinaryDiffEq.OrdinaryDiffEqMutableCache
+mutable struct MIntCache{uType,T} <: OrdinaryDiffEqCore.OrdinaryDiffEqMutableCache
     u::uType
     uprev::uType
     tmp::uType
@@ -22,9 +21,9 @@ mutable struct MIntCache{uType,T} <: OrdinaryDiffEq.OrdinaryDiffEqMutableCache
     tmp_vec2::Vector{T}
 end
 
-#OrdinaryDiffEq.OrdinaryDiffEqCore.get_fsalfirstlast(cache::MIntCache, u::Any) = (nothing, nothing)
+OrdinaryDiffEqCore.get_fsalfirstlast(cache::MIntCache, u::Any) = (nothing, nothing)
 
-function OrdinaryDiffEq.alg_cache(::MInt,u,rate_prototype,::Type{uEltypeNoUnits},::Type{uBottomEltypeNoUnits},::Type{tTypeNoUnits},uprev,uprev2,f,t,dt,reltol,p,calck,::Val{true}) where {uEltypeNoUnits,uBottomEltypeNoUnits,tTypeNoUnits}
+function OrdinaryDiffEqCore.alg_cache(::MInt,u,rate_prototype,::Type{uEltypeNoUnits},::Type{uBottomEltypeNoUnits},::Type{tTypeNoUnits},uprev,uprev2,f,t,dt,reltol,p,calck,::Val{true}) where {uEltypeNoUnits,uBottomEltypeNoUnits,tTypeNoUnits}
     tmp = zero(u)
     n = NQCModels.nstates(p.cache.model)
     C = zeros(n,n)
@@ -37,9 +36,9 @@ function OrdinaryDiffEq.alg_cache(::MInt,u,rate_prototype,::Type{uEltypeNoUnits}
     MIntCache(u, uprev, tmp, C, D, Γ, Ξ, tmp_mat, tmp_vec1, tmp_vec2)
 end
 
-function OrdinaryDiffEq.initialize!(_, ::MIntCache) end
+function OrdinaryDiffEqCore.initialize!(_, ::MIntCache) end
 
-@muladd function OrdinaryDiffEq.perform_step!(integrator, integrator_cache::MIntCache, repeat_step=false)
+@muladd function OrdinaryDiffEqCore.perform_step!(integrator, integrator_cache::MIntCache, repeat_step=false)
     @unpack dt,uprev,u,p = integrator
     @unpack tmp, Γ, Ξ = integrator_cache
 

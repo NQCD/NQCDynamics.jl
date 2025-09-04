@@ -1,5 +1,5 @@
-using OrdinaryDiffEq: OrdinaryDiffEqAlgorithm, OrdinaryDiffEqMutableCache, update_coefficients!
-# using OrdinaryDiffEq.OrdinaryDiffEqCore: get_fsalfirstlast
+
+using OrdinaryDiffEqCore: get_fsalfirstlast, OrdinaryDiffEqAlgorithm, update_coefficients!
 using SciMLBase: SciMLBase, set_ut!
 using NQCDynamics: DynamicsUtils
 using NQCDynamics.DynamicsMethods.SurfaceHoppingMethods
@@ -7,7 +7,7 @@ using NQCDynamics.DynamicsMethods.EhrenfestMethods
 using .DynamicsUtils: acceleration!, get_positions, get_velocities, get_quantum_subsystem
 using NQCCalculators
 
-mutable struct VerletwithElectronicsCache{uType,vType,rateType} <: OrdinaryDiffEq.OrdinaryDiffEqMutableCache
+mutable struct VerletwithElectronicsCache{uType,vType,rateType} <: OrdinaryDiffEqCore.OrdinaryDiffEqMutableCache
     u::uType
     uprev::uType
     tmp::uType
@@ -15,19 +15,19 @@ mutable struct VerletwithElectronicsCache{uType,vType,rateType} <: OrdinaryDiffE
     k::rateType
 end
 
-OrdinaryDiffEq.isfsal(::VerletwithElectronics) = false
+OrdinaryDiffEqCore.isfsal(::VerletwithElectronics) = false
 alg_order(alg::VerletwithElectronics) = 2
 
-# OrdinaryDiffEq.get_fsalfirstlast(cache::VerletwithElectronicsCache, u::Any) = (nothing, nothing)
+OrdinaryDiffEqCore.get_fsalfirstlast(cache::VerletwithElectronicsCache, u::Any) = (nothing, nothing)
 
-function OrdinaryDiffEq.alg_cache(::VerletwithElectronics,u,rate_prototype,::Type{uEltypeNoUnits},::Type{uBottomEltypeNoUnits},::Type{tTypeNoUnits},uprev,uprev2,f,t,dt,reltol,p,calck,inplace::Val{true}) where {uEltypeNoUnits,uBottomEltypeNoUnits,tTypeNoUnits}
+function OrdinaryDiffEqCore.alg_cache(::VerletwithElectronics,u,rate_prototype,::Type{uEltypeNoUnits},::Type{uBottomEltypeNoUnits},::Type{tTypeNoUnits},uprev,uprev2,f,t,dt,reltol,p,calck,inplace::Val{true}) where {uEltypeNoUnits,uBottomEltypeNoUnits,tTypeNoUnits}
     tmp = zero(u)
     vtmp = zero(DynamicsUtils.get_velocities(u))
     k = zero(DynamicsUtils.get_positions(rate_prototype))
     VerletwithElectronicsCache(u, uprev, tmp, vtmp, k)
 end
 
-function OrdinaryDiffEq.initialize!(integrator, integrator_cache::VerletwithElectronicsCache)
+function OrdinaryDiffEqCore.initialize!(integrator, integrator_cache::VerletwithElectronicsCache)
     r = DynamicsUtils.get_positions(integrator.u)
     v = DynamicsUtils.get_velocities(integrator.u)
     NQCCalculators.update_cache!(integrator.p.cache, r)
@@ -39,7 +39,7 @@ function OrdinaryDiffEq.initialize!(integrator, integrator_cache::VerletwithElec
     end
 end
 
-@muladd function OrdinaryDiffEq.perform_step!(integrator, integrator_cache::VerletwithElectronicsCache, repeat_step=false)
+@muladd function OrdinaryDiffEqCore.perform_step!(integrator, integrator_cache::VerletwithElectronicsCache, repeat_step=false)
 
     @unpack t, dt, uprev, u, p = integrator
     @unpack k, vtmp = integrator_cache
@@ -85,9 +85,9 @@ end
 
 VerletwithElectronics2(electronic_algorithm; kwargs...) = VerletwithElectronics2(electronic_algorithm, kwargs)
 
-OrdinaryDiffEq.isfsal(::VerletwithElectronics2) = false
+OrdinaryDiffEqCore.isfsal(::VerletwithElectronics2) = false
 
-mutable struct VerletwithElectronics2Cache{uType,vType,rateType,E} <: OrdinaryDiffEqMutableCache
+mutable struct VerletwithElectronics2Cache{uType,vType,rateType,E} <: OrdinaryDiffEqCore.OrdinaryDiffEqMutableCache
     u::uType
     uprev::uType
     tmp::uType
@@ -96,9 +96,10 @@ mutable struct VerletwithElectronics2Cache{uType,vType,rateType,E} <: OrdinaryDi
     electronic_integrator::E
 end
 
-# OrdinaryDiffEq.get_fsalfirstlast(cache::VerletwithElectronics2Cache, u::Any) = (nothing, nothing)
 
-function OrdinaryDiffEq.alg_cache(alg::VerletwithElectronics2,u,rate_prototype,::Type{uEltypeNoUnits},::Type{uBottomEltypeNoUnits},::Type{tTypeNoUnits},uprev,uprev2,f,t,dt,reltol,p,calck,inplace::Val{true}) where {uEltypeNoUnits,uBottomEltypeNoUnits,tTypeNoUnits}
+OrdinaryDiffEqCore.get_fsalfirstlast(cache::VerletwithElectronics2Cache, u::Any) = (nothing, nothing)
+
+function OrdinaryDiffEqCore.alg_cache(alg::VerletwithElectronics2,u,rate_prototype,::Type{uEltypeNoUnits},::Type{uBottomEltypeNoUnits},::Type{tTypeNoUnits},uprev,uprev2,f,t,dt,reltol,p,calck,inplace::Val{true}) where {uEltypeNoUnits,uBottomEltypeNoUnits,tTypeNoUnits}
     tmp = zero(u)
     vtmp = zero(DynamicsUtils.get_velocities(u))
     k = zero(DynamicsUtils.get_positions(rate_prototype))
@@ -109,14 +110,14 @@ function OrdinaryDiffEq.alg_cache(alg::VerletwithElectronics2,u,rate_prototype,:
     VerletwithElectronics2Cache(u, uprev, tmp, vtmp, k, electronic_integrator)
 end
 
-function OrdinaryDiffEq.initialize!(integrator, integrator_cache::VerletwithElectronics2Cache)
+function OrdinaryDiffEqCore.initialize!(integrator, integrator_cache::VerletwithElectronics2Cache)
     r = get_positions(integrator.u)
     v = get_velocities(integrator.u)
     NQCCalculators.update_cache!(integrator.p.cache, r)
     acceleration!(integrator_cache.k, v, r, integrator.p, integrator.t, integrator.p.method.state)
 end
 
-@muladd function OrdinaryDiffEq.perform_step!(integrator, integrator_cache::VerletwithElectronics2Cache, repeat_step=false)
+@muladd function OrdinaryDiffEqCore.perform_step!(integrator, integrator_cache::VerletwithElectronics2Cache, repeat_step=false)
     @unpack t, dt, uprev, u, p = integrator
     @unpack k, vtmp, electronic_integrator = integrator_cache
     sim = p

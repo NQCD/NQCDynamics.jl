@@ -12,9 +12,7 @@ using NQCDynamics:
 using NQCDynamics.DynamicsMethods.SurfaceHoppingMethods
 using NQCDynamics.DynamicsMethods.EhrenfestMethods
 using NQCCalculators
-using OrdinaryDiffEq:
-    OrdinaryDiffEq, OrdinaryDiffEqAlgorithm, OrdinaryDiffEqMutableCache
-# using OrdinaryDiffEq.OrdinaryDiffEqCore: get_fsalfirstlast
+using OrdinaryDiffEqCore: OrdinaryDiffEqCore, get_fsalfirstlast, OrdinaryDiffEqAlgorithm
 using StochasticDiffEq: StochasticDiffEq
 
 

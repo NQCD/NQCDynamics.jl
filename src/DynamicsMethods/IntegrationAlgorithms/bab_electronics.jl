@@ -1,6 +1,5 @@
-# using OrdinaryDiffEq.OrdinaryDiffEqCore: get_fsalfirstlast
 
-mutable struct BABwithTsit5Cache{uType,vType,rateType,E} <: OrdinaryDiffEq.OrdinaryDiffEqMutableCache
+mutable struct BABwithTsit5Cache{uType,vType,rateType,E} <: OrdinaryDiffEqCore.OrdinaryDiffEqMutableCache
     u::uType
     uprev::uType
     tmp::uType
@@ -9,11 +8,11 @@ mutable struct BABwithTsit5Cache{uType,vType,rateType,E} <: OrdinaryDiffEq.Ordin
     electronic_integrator::E
 end
 
-OrdinaryDiffEq.isfsal(::BABwithTsit5) = false
+OrdinaryDiffEqCore.isfsal(::BABwithTsit5) = false
 
-# OrdinaryDiffEq.get_fsalfirstlast(cache::BABwithTsit5Cache, u::Any) = (nothing, nothing)
+OrdinaryDiffEqCore.get_fsalfirstlast(cache::BABwithTsit5Cache, u::Any) = (nothing, nothing)
 
-function OrdinaryDiffEq.alg_cache(
+function OrdinaryDiffEqCore.alg_cache(
     alg::BABwithTsit5,u,rate_prototype,
     ::Type{uEltypeNoUnits},
     ::Type{uBottomEltypeNoUnits},
@@ -46,7 +45,7 @@ function OrdinaryDiffEq.alg_cache(
     BABwithTsit5Cache(u, uprev, tmp, vtmp, k, electronic_integrator)
 end
 
-function OrdinaryDiffEq.initialize!(integrator, integrator_cache::BABwithTsit5Cache)
+function OrdinaryDiffEqCore.initialize!(integrator, integrator_cache::BABwithTsit5Cache)
 
     r = DynamicsUtils.get_positions(integrator.u)
     v = DynamicsUtils.get_velocities(integrator.u)
@@ -59,7 +58,7 @@ function OrdinaryDiffEq.initialize!(integrator, integrator_cache::BABwithTsit5Ca
     end
 end
 
-@muladd function OrdinaryDiffEq.perform_step!(integrator, cache::BABwithTsit5Cache, repeat_step=false)
+@muladd function OrdinaryDiffEqCore.perform_step!(integrator, cache::BABwithTsit5Cache, repeat_step=false)
     @unpack t, dt, uprev, u, p = integrator
     @unpack k, vtmp, electronic_integrator = cache
 
