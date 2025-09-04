@@ -24,6 +24,9 @@ end
 
 function get_quantum_propagator(sim, v, r, dt)
     prop = sim.method.quantum_propagator
+    tmp1 = sim.method.tmp_matrix_complex_square1
+    tmp2 = sim.method.tmp_matrix_complex_square2
+
     v = DynamicsUtils.get_hopping_velocity(sim, v)
     eigenvalues = DynamicsUtils.get_hopping_eigenvalues(sim, r)
     fill!(prop, zero(eltype(prop)))
@@ -38,17 +41,15 @@ function get_quantum_propagator(sim, v, r, dt)
         end
     end
 
-
     tmp1 .= Hermitian(prop)
     vals, vecs = LAPACK.syevr!('V', 'A', 'U', tmp1, 0.0, 0.0, 0, 0, 1e-5)
     
-
     fill!(prop, zero(eltype(prop)))
-    @inbounds for (i, I) in zip(eachindex(eigs.values), diagind(prop))
-        prop[I] = exp(-1im * eigs.values[i] * dt)
+    @inbounds for i in eachindex(vals)
+        prop[i,i] = exp(-1im * vals[i] * dt)
     end
 
-  
+
     mul!(tmp2, prop, vecs')
     mul!(prop, vecs, tmp2)
 
