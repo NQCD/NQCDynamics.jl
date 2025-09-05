@@ -30,8 +30,8 @@ function get_quantum_propagator(sim, v, r, dt)
     v = DynamicsUtils.get_hopping_velocity(sim, v)
     eigenvalues = DynamicsUtils.get_hopping_eigenvalues(sim, r)
     fill!(prop, zero(eltype(prop)))
-    @inbounds for (i, I) in zip(eachindex(eigenvalues), diagind(prop))
-        prop[I] = eigenvalues[i]
+    @inbounds for i in eachindex(eigenvalues)
+        prop[i,i] = eigenvalues[i]
     end
 
     d = DynamicsUtils.get_hopping_nonadiabatic_coupling(sim, r)
