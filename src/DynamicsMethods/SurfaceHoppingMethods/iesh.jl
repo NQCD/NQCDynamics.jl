@@ -111,7 +111,7 @@ function DynamicsMethods.DynamicsVariables(sim::AbstractSimulation{<:AdiabaticIE
         """
     ))
 
-    NQCDynamics.NQCCalculators.update_cache!(sim.cache, tmp_r) # Ensure hopping eigenvalues are up to date
+    # NQCDynamics.NQCCalculators.update_cache!(sim.cache, tmp_r) # Ensure hopping eigenvalues are up to date
     eigenvalues = DynamicsUtils.get_hopping_eigenvalues(sim, tmp_r)
 
 
@@ -128,7 +128,8 @@ function DynamicsMethods.DynamicsVariables(sim::AbstractSimulation{<:AdiabaticIE
 end
 
 function DynamicsMethods.create_problem(u0, tspan, sim::AbstractSimulation{<:AbstractIESH})
-    set_state!(sim.method, convert(Vector{Int},u0.state)) # state 
+    
+    set_state!(sim.method, convert(Vector{Int},u0.state), sim) # state 
     set_unoccupied_states!(sim)
     OrdinaryDiffEq.ODEProblem(DynamicsMethods.motion!, u0, tspan, sim;
         callback=DynamicsMethods.get_callbacks(sim))
@@ -191,7 +192,7 @@ function DynamicsUtils.acceleration!(dv, v, r, sim::Simulation{<:AbstractIESH}, 
     NQCModels.state_independent_derivative!(sim.cache.model, dv, r)
     LinearAlgebra.lmul!(-1, dv)
 
-    NQCDynamics.NQCCalculators.update_cache!(sim.cache, r)
+    #NQCDynamics.NQCCalculators.update_cache!(sim.cache, r)
     adiabatic_derivative = NQCCalculators.get_adiabatic_derivative(sim.cache, r)
     @inbounds for i in mobileatoms(sim)
         for j in dofs(sim)
@@ -213,6 +214,7 @@ In IESH each electron is independent so we can loop through electrons and set th
 derivative one at a time, in the standard way for FSSH.
 """
 function DynamicsUtils.set_quantum_derivative!(dσ, u, sim::AbstractSimulation{<:AdiabaticIESH})
+    
     v = DynamicsUtils.get_hopping_velocity(sim, DynamicsUtils.get_velocities(u))
     σ = DynamicsUtils.get_quantum_subsystem(u)
     r = DynamicsUtils.get_positions(u)
@@ -265,13 +267,15 @@ function evaluate_hopping_probability!(sim::AbstractSimulation{<:AbstractIESH}, 
 
     clamp!(prob, 0, 1) # Restrict probabilities between 0 and 1
 
-    maximum_probability = sum(prob)
-    maximum_probability > 1 && @warn "Hopping probability is large, consider reducing the time step" maximum_probability
+    @debug begin
+        maximum_probability = sum(prob)
+        maximum_probability > 1 && @warn "Hopping probability is large, consider reducing the time step" maximum_probability
 
-    if sim.method.estimate_probability
-        if !(maximum_probability < estimate)
-            @warn "Hopping probability exceeded estimate!" maximum_probability estimate det_current Akk
-            error("The hopping probability should never exceed the estimate.")
+        if sim.method.estimate_probability
+            if !(maximum_probability < estimate)
+                @warn "Hopping probability exceeded estimate!" maximum_probability estimate det_current Akk
+                error("The hopping probability should never exceed the estimate.")
+            end
         end
     end
 
@@ -330,31 +334,13 @@ function select_new_state(sim::AbstractSimulation{<:AbstractIESH}, u, random)::V
     return sim.method.state
 end
 
-"""
-Converts the IESH state vector containing floats into one containing integers.
-Handles `InexactError`s by rounding to the closest integer.
-"""
-function state_int_convert(state)
-    try
-        int_state = convert(Vector{Int}, state)
-        return int_state
-    catch e
-        if e isa InexactError
-            int_state = round.(Int, state)
-            return int_state
-        else
-            throw(e)
-        end
-    end
-end
-
 function Estimators.diabatic_population(sim::Simulation{<:AdiabaticIESH}, u)
     ψ = DynamicsUtils.get_quantum_subsystem(u).re
 
     eigen = NQCCalculators.get_eigen(sim.cache, DynamicsUtils.get_positions(u))
     transformation = eigen.vectors
 
-    return iesh_diabatic_population(ψ, transformation, state_int_convert(u.state))
+    return iesh_diabatic_population(ψ, transformation, sim.method.state)
 end
 
 """
@@ -384,7 +370,7 @@ end
 
 function Estimators.adiabatic_population(sim::Simulation{<:AdiabaticIESH}, u)
     population = zeros(NQCModels.nstates(sim.cache.model))
-    population[state_int_convert(u.state)] .= 1
+    population[round.(Int, u.state)] .= 1
     return population
 end
 
@@ -395,7 +381,7 @@ function DynamicsUtils.classical_potential_energy(sim::Simulation{<:AbstractIESH
     NQCCalculators.update_cache!(sim.cache, DynamicsUtils.get_positions(u)) # Ensure eigen is populated
     eigen = NQCCalculators.get_eigen(sim.cache, DynamicsUtils.get_positions(u))
     potential = NQCModels.state_independent_potential(sim.cache.model, DynamicsUtils.get_positions(u))
-    for i in state_int_convert(u.state)
+    for i in sim.method.state
         potential += eigen.values[i]
     end
     return potential
@@ -413,8 +399,8 @@ end
 function iesh_execute_hop!(integrator)
     sim = integrator.p
     if rescale_velocity!(sim, integrator.u)
-        set_state!(integrator.u, sim.method.new_state)
-        set_state!(sim.method, sim.method.new_state)
+        set_state!(integrator.u, sim.method.new_state, sim)
+        set_state!(sim.method, sim.method.new_state, sim)
         set_unoccupied_states!(sim)
     end
     return nothing
@@ -454,3 +440,6 @@ function iesh_apply_decoherence_correction_edc!(integrator)
     end
 end
 
+function set_state!(container, new_state::AbstractVector, sim::AbstractSimulation{<:AbstractIESH})
+    container.state .= new_state
+end

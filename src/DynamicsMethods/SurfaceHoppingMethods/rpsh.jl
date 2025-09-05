@@ -18,7 +18,7 @@ function DynamicsMethods.motion!(du, u, sim::RingPolymerSimulation{<:SurfaceHopp
     v = DynamicsUtils.get_velocities(u)
     σ = DynamicsUtils.get_quantum_subsystem(u)
 
-    set_state!(u, sim.method.state) # Make sure the state variables match, 
+    set_state!(u, sim.method.state, sim) # Make sure the state variables match, 
 
     DynamicsUtils.velocity!(dr, v, r, sim, t)
     NQCCalculators.update_cache!(sim.cache, r)

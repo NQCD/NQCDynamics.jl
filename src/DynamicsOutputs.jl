@@ -189,7 +189,7 @@ export OutputDiabaticPopulation
 """
     OutputTotalDiabaticPopulation(sol, i)
 
-Output the total diabatic population at eah timestep during the trajectory.
+Output the total diabatic population at each timestep during the trajectory.
 """
 OutputTotalDiabaticPopulation(sol, i) = sum.(Estimators.diabatic_population.(sol.prob.p, sol.u))
 export OutputTotalDiabaticPopulation

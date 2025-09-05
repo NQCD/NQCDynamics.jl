@@ -1,4 +1,5 @@
 using LinearAlgebra: LinearAlgebra, mul!, lmul!, diagind, Hermitian
+using LinearAlgebra.LAPACK
 using NQCModels: NQCModels
 
 function set_single_electron_derivative!(dc, c, V, v, d, tmp)
@@ -23,11 +24,14 @@ end
 
 function get_quantum_propagator(sim, v, r, dt)
     prop = sim.method.quantum_propagator
+    tmp1 = sim.method.tmp_matrix_complex_square1
+    tmp2 = sim.method.tmp_matrix_complex_square2
+
     v = DynamicsUtils.get_hopping_velocity(sim, v)
     eigenvalues = DynamicsUtils.get_hopping_eigenvalues(sim, r)
     fill!(prop, zero(eltype(prop)))
-    @inbounds for (i, I) in zip(eachindex(eigenvalues), diagind(prop))
-        prop[I] = eigenvalues[i]
+    @inbounds for i in eachindex(eigenvalues)
+        prop[i,i] = eigenvalues[i]
     end
 
     d = DynamicsUtils.get_hopping_nonadiabatic_coupling(sim, r)
@@ -37,18 +41,21 @@ function get_quantum_propagator(sim, v, r, dt)
         end
     end
 
-    eigs = LinearAlgebra.eigen!(Hermitian(prop))
+    tmp1 .= Hermitian(prop)
+    vals, vecs = LAPACK.syevr!('V', 'A', 'U', tmp1, 0.0, 0.0, 0, 0, 1e-5)
+    
     fill!(prop, zero(eltype(prop)))
-    @inbounds for (i, I) in zip(eachindex(eigs.values), diagind(prop))
-        prop[I] = exp(-1im * eigs.values[i] * dt)
+    @inbounds for i in eachindex(vals)
+        prop[i,i] = exp(-1im * vals[i] * dt)
     end
 
-    tmp1 = sim.method.tmp_matrix_complex_square1
-    tmp2 = sim.method.tmp_matrix_complex_square2
 
-    copy!(tmp1, eigs.vectors) # Copy real->complex for faster mul!
-    mul!(tmp2, prop, tmp1')
-    mul!(prop, tmp1, tmp2)
+    mul!(tmp2, prop, vecs')
+    mul!(prop, vecs, tmp2)
+
 
     return prop
 end
+
+
+

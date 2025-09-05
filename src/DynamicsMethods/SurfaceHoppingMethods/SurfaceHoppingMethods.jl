@@ -43,6 +43,7 @@ See `fssh.jl` for an example implementation.
 abstract type SurfaceHopping <: DynamicsMethods.Method end
 
 function DynamicsMethods.motion!(du, u, sim::Simulation{<:SurfaceHopping}, t)
+
     dr = DynamicsUtils.get_positions(du)
     dv = DynamicsUtils.get_velocities(du)
     dσ = DynamicsUtils.get_quantum_subsystem(du)
@@ -51,7 +52,7 @@ function DynamicsMethods.motion!(du, u, sim::Simulation{<:SurfaceHopping}, t)
     v = DynamicsUtils.get_velocities(u)
     #σ = DynamicsUtils.get_quantum_subsystem(u)
 
-    set_state!(u, sim.method.state) # Make sure the state variables match, 
+    set_state!(u, sim.method.state, sim) # Make sure the state variables match, 
 
     DynamicsUtils.velocity!(dr, v, r, sim, t) # Set the velocity
     NQCCalculators.update_cache!(sim.cache, r) # Calculate electronic quantities
@@ -72,7 +73,7 @@ function DynamicsUtils.set_quantum_derivative!(dσ, u, sim::AbstractSimulation{<
 end
 
 function DynamicsMethods.create_problem(u0, tspan, sim::AbstractSimulation{<:SurfaceHopping})
-    set_state!(sim.method, u0.state)
+    set_state!(sim.method, u0.state, sim)
     OrdinaryDiffEq.ODEProblem(DynamicsMethods.motion!, u0, tspan, sim;
         callback=DynamicsMethods.get_callbacks(sim))
 end

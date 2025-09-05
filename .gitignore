@@ -1,6 +1,8 @@
 Manifest.toml
 *.xyz
 docs/build
+docs/.CondaPkg
+docs/.CondaPkg/*
 dev/
 .*
 *.jld2

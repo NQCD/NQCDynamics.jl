@@ -160,8 +160,12 @@ find_SurfaceHoppingVariables(::Any, rest) = find_SurfaceHoppingVariables(rest)
 
 DynamicsUtils.get_velocities(u::SurfaceHoppingVariables) = u.v
 DynamicsUtils.get_positions(u::SurfaceHoppingVariables) = u.r
-DynamicsUtils.get_quantum_subsystem(u::SurfaceHoppingVariables) = StructArray{Complex{eltype(u.σreal)}}((u.σreal, u.σimag))
-
+function DynamicsUtils.get_quantum_subsystem(u::SurfaceHoppingVariables)
+    T = eltype(u)
+    real::Matrix{T} = u.σreal
+    imag::Matrix{T} = u.σimag
+    return StructArray{Complex{T}}((real, imag))
+end
 
 # -------------------------------------------- TESTING ------------------------------------------- #
 #= function int(du,u,p,t)
