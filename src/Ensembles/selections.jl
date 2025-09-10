@@ -41,12 +41,26 @@ function (select::OrderedSelection)(prob, i, repeat)
     DynamicsMethods.create_problem(u0, prob.tspan, prob.p)
 end
 
+"""
+    sample_distribution(sim::AbstractSimulation, distribution::DynamicalDistribution, i)
+
+Generate initial conditions for a dynamics simulation as a selection, `i`, from the provided distribution of nuclear degrees of freedom.
+Simulation cache is updated to according to the sampled positions.\n
+A container of dynamics variables are created from the intial condtions and returned in the format of a `ComponentVector`.
+"""
 function sample_distribution(sim::AbstractSimulation, distribution::DynamicalDistribution, i)
     u = distribution[i]
     update_cache!(sim.cache, copy(u.r))
     DynamicsMethods.DynamicsVariables(sim, u.v, u.r)
 end
 
+"""
+    sample_distribution(sim::AbstractSimulation, distribution::ProductDistribution, i)
+
+Generate initial conditions for a dynamics simulation as a selection, `i`, from the provided product distribution of nuclear degrees of freedom and the electronic state.
+Simulation cache is updated to according to the sampled positions.\n
+A container of dynamics variables are created from the intial condtions and returned in the format of a `ComponentVector`.
+"""
 function sample_distribution(sim::AbstractSimulation, distribution::ProductDistribution, i)
     u = distribution.nuclear[i]
     update_cache!(sim.cache, copy(u.r))
@@ -58,12 +72,26 @@ function (select::RandomSelection)(prob, i, repeat)
     DynamicsMethods.create_problem(u0, prob.tspan, prob.p)
 end
 
+"""
+    sample_distribution(sim::AbstractSimulation, distribution::DynamicalDistribution)
+
+Generate initial conditions for a dynamics simulation by randomly sampling from the provided distribution of nuclear degrees of freedom.
+Simulation cache is updated to according to the sampled positions.\n
+A container of dynamics variables are created from the intial condtions and returned in the format of a `ComponentVector`.
+"""
 function sample_distribution(sim::AbstractSimulation, distribution::DynamicalDistribution)
     u = rand(distribution)
     update_cache!(sim.cache, copy(u.r))
     DynamicsMethods.DynamicsVariables(sim, u.v, u.r)
 end
 
+"""
+    sample_distribution(sim::AbstractSimulation, distribution::ProductDistribution)
+
+Generate initial conditions for a dynamics simulation by randomly sampling from the provided product distribution of nuclear degrees of freedom and the electronic state.
+Simulation cache is updated to according to the sampled positions.\n
+A container of dynamics variables are created from the intial condtions and returned in the format of a `ComponentVector`.
+"""
 function sample_distribution(sim::AbstractSimulation, distribution::ProductDistribution)
     u = rand(distribution.nuclear)
     update_cache!(sim.cache, copy(u.r))

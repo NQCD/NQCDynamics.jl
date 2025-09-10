@@ -1,4 +1,11 @@
 # debug function to print contents of a struct (particularly for NCQCalculators caches)
+"""
+    print_contents(container)
+
+Print the contents of a struct to the console.\n
+Output is of the form:
+    `fieldname = value`
+"""
 function print_contents(container)
     println("Contents of $(typeof(container)):\n")
     for name in fieldnames(typeof(container))
@@ -119,14 +126,17 @@ function run_dynamics(
     log_simulation_duration(stats.time)
 
     if trajectories == 1
-        if rjm NQCCalculators.get_maurergroup() end
         return stats.value.u[1]
     else
-        if rjm NQCCalculators.get_maurergroup() end
         return stats.value.u
     end
 end
 
+"""
+    log_simulation_duration(duration_seconds)
+
+Print the duration of a simulation in a human-readable format.
+"""
 function log_simulation_duration(duration_seconds)
     if duration_seconds < 60
         @info "Finished after $duration_seconds seconds."
