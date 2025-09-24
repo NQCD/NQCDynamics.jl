@@ -109,13 +109,7 @@ function run_dynamics(
     stats = dynamics(tspan)
     log_simulation_duration(stats.time)
 
-    if trajectories == 1
-        if rjm NQCCalculators.get_maurergroup() end
-        return stats.value.u[1]
-    else
-        if rjm NQCCalculators.get_maurergroup() end
-        return stats.value.u
-    end
+    return stats
 end
 
 function log_simulation_duration(duration_seconds)
