@@ -127,7 +127,7 @@ atoms = Atoms(2)
         v = hcat(100 / 2000)
         r = hcat(-10.0)
         u = DynamicsVariables(sim, v, r, PureState(1, Adiabatic()))
-        dyn_test = @timed run_dynamics(sim, (0.0, 500.0), u, output=OutputTotalEnergy, reltol=1e-6)
+        dyn_test = @timed run_dynamics(sim, (0.0, 500.0), u, output=OutputTotalEnergy, dt=0.1, reltol=1e-6)
         solution =  dyn_test.value
         @test solution[:OutputTotalEnergy][1] ≈ solution[:OutputTotalEnergy][end] rtol=1e-2
         benchmark_results["FSSH"] = Dict("Time" => dyn_test.time, "Allocs" => dyn_test.bytes)
