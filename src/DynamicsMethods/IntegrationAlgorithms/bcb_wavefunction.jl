@@ -1,7 +1,6 @@
 using RingPolymerArrays: RingPolymerArrays
-using OrdinaryDiffEq.OrdinaryDiffEqCore: get_fsalfirstlast
 
-mutable struct BCBWavefunctionCache{uType,vType,rateType,uEltypeNoUnits} <: OrdinaryDiffEq.OrdinaryDiffEqMutableCache
+mutable struct BCBWavefunctionCache{uType,vType,rateType,uEltypeNoUnits} <: OrdinaryDiffEqCore.OrdinaryDiffEqMutableCache
     u::uType
     uprev::uType
     tmp::uType
@@ -10,11 +9,12 @@ mutable struct BCBWavefunctionCache{uType,vType,rateType,uEltypeNoUnits} <: Ordi
     cayley::Vector{Matrix{uEltypeNoUnits}}
 end
 
-OrdinaryDiffEq.isfsal(::BCBWavefunction) = false
+OrdinaryDiffEqCore.isfsal(::BCBWavefunction) = false
 
-OrdinaryDiffEq.get_fsalfirstlast(cache::BCBWavefunctionCache, u::Any) = (nothing, nothing)
 
-function OrdinaryDiffEq.alg_cache(::BCBWavefunction,u,rate_prototype,::Type{uEltypeNoUnits},::Type{uBottomEltypeNoUnits},::Type{tTypeNoUnits},uprev,uprev2,f,t,dt,reltol,p,calck,inplace::Val{true}) where {uEltypeNoUnits,uBottomEltypeNoUnits,tTypeNoUnits}
+OrdinaryDiffEqCore.get_fsalfirstlast(cache::BCBWavefunctionCache, u::Any) = (nothing, nothing)
+
+function OrdinaryDiffEqCore.alg_cache(::BCBWavefunction,u,rate_prototype,::Type{uEltypeNoUnits},::Type{uBottomEltypeNoUnits},::Type{tTypeNoUnits},uprev,uprev2,f,t,dt,reltol,p,calck,inplace::Val{true}) where {uEltypeNoUnits,uBottomEltypeNoUnits,tTypeNoUnits}
     tmp = zero(u)
     vtmp = zero(DynamicsUtils.get_velocities(u))
     k = zero(DynamicsUtils.get_positions(rate_prototype))
@@ -22,7 +22,7 @@ function OrdinaryDiffEq.alg_cache(::BCBWavefunction,u,rate_prototype,::Type{uElt
     BCBWavefunctionCache(u, uprev, tmp, vtmp, k, cayley)
 end
 
-function OrdinaryDiffEq.initialize!(integrator, integrator_cache::BCBWavefunctionCache)
+function OrdinaryDiffEqCore.initialize!(integrator, integrator_cache::BCBWavefunctionCache)
     r = DynamicsUtils.get_positions(integrator.u)
     v = DynamicsUtils.get_velocities(integrator.u)
     σprev = DynamicsUtils.get_quantum_subsystem(integrator.u)
@@ -34,7 +34,7 @@ function OrdinaryDiffEq.initialize!(integrator, integrator_cache::BCBWavefunctio
     end
 end
 
-@muladd function OrdinaryDiffEq.perform_step!(integrator, integrator_cache::BCBWavefunctionCache, repeat_step=false)
+@muladd function OrdinaryDiffEqCore.perform_step!(integrator, integrator_cache::BCBWavefunctionCache, repeat_step=false)
     @unpack t, dt, uprev, u, p = integrator
     @unpack k, vtmp, cayley = integrator_cache
 

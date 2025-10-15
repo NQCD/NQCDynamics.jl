@@ -3,30 +3,29 @@ using UnPack: @unpack
 using MuladdMacro: @muladd
 using StaticArrays: SMatrix
 using LinearAlgebra: Hermitian, tr
-using OrdinaryDiffEq.OrdinaryDiffEqCore: get_fsalfirstlast
 using NQCDynamics.DynamicsMethods: MappingVariableMethods
 using NQCModels: nstates
 
-OrdinaryDiffEq.isfsal(::RingPolymerMInt) = false
+OrdinaryDiffEqCore.isfsal(::RingPolymerMInt) = false
 
-mutable struct RingPolymerMIntCache{uType,uEltypeNoUnits} <: OrdinaryDiffEq.OrdinaryDiffEqMutableCache
+mutable struct RingPolymerMIntCache{uType,uEltypeNoUnits} <: OrdinaryDiffEqCore.OrdinaryDiffEqMutableCache
     u::uType
     uprev::uType
     tmp::uType
     cayley::Vector{Matrix{uEltypeNoUnits}}
 end
 
-OrdinaryDiffEq.get_fsalfirstlast(cache::RingPolymerMIntCache, u::Any) = (nothing, nothing)
+OrdinaryDiffEqCore.get_fsalfirstlast(cache::RingPolymerMIntCache, u::Any) = (nothing, nothing)
 
-function OrdinaryDiffEq.alg_cache(::RingPolymerMInt,u,rate_prototype,::Type{uEltypeNoUnits},::Type{uBottomEltypeNoUnits},::Type{tTypeNoUnits},uprev,uprev2,f,t,dt,reltol,p,calck,::Val{true}) where {uEltypeNoUnits,uBottomEltypeNoUnits,tTypeNoUnits}
+function OrdinaryDiffEqCore.alg_cache(::RingPolymerMInt,u,rate_prototype,::Type{uEltypeNoUnits},::Type{uBottomEltypeNoUnits},::Type{tTypeNoUnits},uprev,uprev2,f,t,dt,reltol,p,calck,::Val{true}) where {uEltypeNoUnits,uBottomEltypeNoUnits,tTypeNoUnits}
     tmp = zero(u)
     cayley = RingPolymers.cayley_propagator(p.beads, dt; half=true)
     RingPolymerMIntCache(u, uprev, tmp, cayley)
 end
 
-function OrdinaryDiffEq.initialize!(_, ::RingPolymerMIntCache) end
+function OrdinaryDiffEqCore.initialize!(_, ::RingPolymerMIntCache) end
 
-@muladd function OrdinaryDiffEq.perform_step!(integrator, integrator_cache::RingPolymerMIntCache, repeat_step=false)
+@muladd function OrdinaryDiffEqCore.perform_step!(integrator, integrator_cache::RingPolymerMIntCache, repeat_step=false)
     @unpack dt,uprev,u,p = integrator
     @unpack cayley = integrator_cache
 

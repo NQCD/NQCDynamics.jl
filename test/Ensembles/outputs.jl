@@ -44,7 +44,7 @@ end
         sim = Simulation{FSSH}(Atoms(2000), TullyModelTwo())
         output = TimeCorrelationFunctions.PopulationCorrelationFunction(sim, Adiabatic())
         u = DynamicsVariables(sim, hcat(20/2000), hcat(-5), PureState(1, Adiabatic()))
-        sol = run_dynamics(sim, (0, 1000.0), u; output)
+        sol = run_dynamics(sim, (0, 1000.0), u; output, dt=0.01)
         out = sol[:PopulationCorrelationFunction]
         @test out[1][1,1] ≈ 1
         @test out[1][2,2] ≈ 0
@@ -55,7 +55,7 @@ end
         sim = Simulation{eCMM}(Atoms(2000), TullyModelTwo())
         output = TimeCorrelationFunctions.PopulationCorrelationFunction(sim, Diabatic())
         u = DynamicsVariables(sim, hcat(20/2000), hcat(-5), PureState(1, Diabatic()))
-        sol = run_dynamics(sim, (0, 1000.0), u; output)
+        sol = run_dynamics(sim, (0, 1000.0), u; output, dt=0.01)
         out = sol[:PopulationCorrelationFunction]
     end
     

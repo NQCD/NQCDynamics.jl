@@ -9,10 +9,12 @@ using NQCDynamics:
     DynamicsMethods,
     DynamicsUtils,
     natoms, nbeads, ndofs
+using NQCDynamics.DynamicsMethods.SurfaceHoppingMethods
+using NQCDynamics.DynamicsMethods.EhrenfestMethods
 using NQCCalculators
-using OrdinaryDiffEq: OrdinaryDiffEq, OrdinaryDiffEqAlgorithm
-using OrdinaryDiffEq.OrdinaryDiffEqCore: get_fsalfirstlast
+using OrdinaryDiffEqCore: OrdinaryDiffEqCore, get_fsalfirstlast, OrdinaryDiffEqAlgorithm
 using StochasticDiffEq: StochasticDiffEq
+
 
 struct BCB <: OrdinaryDiffEqAlgorithm end
 struct BCBFull <: OrdinaryDiffEqAlgorithm end
@@ -28,7 +30,7 @@ struct BABwithTsit5{T<:OrdinaryDiffEqAlgorithm} <: OrdinaryDiffEqAlgorithm
 end
 
 """
-    RingPolymerMInt <: OrdinaryDiffEq.OrdinaryDiffEqAlgorithm
+    RingPolymerMInt <: OrdinaryDiffEqAlgorithm
 
 Second order symplectic momentum integral algorithm applied to NRPMD.
 
@@ -36,10 +38,10 @@ Second order symplectic momentum integral algorithm applied to NRPMD.
 
 [J. Chem. Phys. 148, 102326 (2018)](https://doi.org/10.1063/1.5005557)
 """
-struct RingPolymerMInt <: OrdinaryDiffEq.OrdinaryDiffEqAlgorithm end
+struct RingPolymerMInt <: OrdinaryDiffEqAlgorithm end
 
 """
-    MInt <: OrdinaryDiffEq.OrdinaryDiffEqAlgorithm
+    MInt <: OrdinaryDiffEqAlgorithm
 
 Second order symplectic momentum integral algorithm.
 
@@ -47,8 +49,8 @@ Second order symplectic momentum integral algorithm.
 
 [J. Chem. Phys. 148, 102326 (2018)](https://doi.org/10.1063/1.5005557)
 """
-struct MInt <: OrdinaryDiffEq.OrdinaryDiffEqAlgorithm end
-struct VerletwithElectronics <: OrdinaryDiffEq.OrdinaryDiffEqAlgorithm end
+struct MInt <: OrdinaryDiffEqAlgorithm end
+struct VerletwithElectronics <: OrdinaryDiffEqAlgorithm end
 
 struct MDEF_BAOAB <: StochasticDiffEq.StochasticDiffEqAlgorithm end
 struct BCOCB <: StochasticDiffEq.StochasticDiffEqAlgorithm end
@@ -59,11 +61,13 @@ DynamicsMethods.select_algorithm(::Simulation{<:DynamicsMethods.ClassicalMethods
 DynamicsMethods.select_algorithm(::RingPolymerSimulation{<:DynamicsMethods.ClassicalMethods.AbstractMDEF}) = BCOCB()
 DynamicsMethods.select_algorithm(::RingPolymerSimulation{<:DynamicsMethods.ClassicalMethods.ThermalLangevin}) = BCOCB()
 DynamicsMethods.select_algorithm(::Simulation{<:DynamicsMethods.MappingVariableMethods.SpinMappingW}) = MInt()
+DynamicsMethods.select_algorithm(::Simulation{<:DynamicsMethods.eCMM}) = MInt()
 DynamicsMethods.select_algorithm(::RingPolymerSimulation{<:DynamicsMethods.MappingVariableMethods.NRPMD}) = RingPolymerMInt()
 DynamicsMethods.select_algorithm(::RingPolymerSimulation{<:DynamicsMethods.MappingVariableMethods.eCMM}) = RingPolymerMInt()
 DynamicsMethods.select_algorithm(::RingPolymerSimulation{DynamicsMethods.ClassicalMethods.Classical}) = BCB()
 DynamicsMethods.select_algorithm(::Simulation{<:DynamicsMethods.SurfaceHoppingMethods.AbstractIESH}) = VerletwithElectronics()
 DynamicsMethods.select_algorithm(::RingPolymerSimulation{<:DynamicsMethods.SurfaceHoppingMethods.AbstractIESH}) = BCBWavefunction()
+DynamicsMethods.select_algorithm(::Simulation{<:DynamicsMethods.SurfaceHoppingMethods.FSSH}) = BABwithTsit5(OrdinaryDiffEq.Tsit5())
 DynamicsMethods.select_algorithm(::Simulation{<:DynamicsMethods.EhrenfestMethods.Ehrenfest}) = BABwithTsit5(OrdinaryDiffEq.Tsit5())
 DynamicsMethods.select_algorithm(::Simulation{<:DynamicsMethods.EhrenfestMethods.EhrenfestNA}) = VerletwithElectronics()
 DynamicsMethods.select_algorithm(::RingPolymerSimulation{<:DynamicsMethods.EhrenfestMethods.EhrenfestNA}) = BCBWavefunction()

@@ -130,7 +130,7 @@ function unpack_states(sim::AbstractSimulation{<:FSSH})
 end
 
 function Estimators.diabatic_population(sim::AbstractSimulation{<:FSSH}, u)
-    int_state = convert(Int, first(u.state))
+    int_state = round(Int, first(u.state))
     r = DynamicsUtils.get_positions(u)
     U = DynamicsUtils.evaluate_transformation(sim.cache, r)
 

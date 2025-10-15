@@ -11,7 +11,7 @@ function DynamicsMethods.motion!(du, u, sim::Simulation{<:ClassicalMasterEquatio
     r = DynamicsUtils.get_positions(u)
     v = DynamicsUtils.get_velocities(u)
 
-    set_state!(u, sim.method.state) # Make sure the state variables match, 
+    set_state!(u, sim.method.state, sim) # Make sure the state variables match, 
 
     DynamicsUtils.velocity!(dr, v, r, sim, t) # Set the velocity
     DynamicsUtils.acceleration!(dv, v, r, sim, t) # Set the acceleration

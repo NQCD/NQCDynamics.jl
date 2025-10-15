@@ -1,7 +1,7 @@
 using RingPolymerArrays: RingPolymerArrays
 
 
-mutable struct BCBwithTsit5Cache{uType,rType,vType,rateType,uEltypeNoUnits,E} <: OrdinaryDiffEq.OrdinaryDiffEqMutableCache
+mutable struct BCBwithTsit5Cache{uType,rType,vType,rateType,uEltypeNoUnits,E} <: OrdinaryDiffEqCore.OrdinaryDiffEqMutableCache
     u::uType
     uprev::uType
     tmp::uType
@@ -12,11 +12,13 @@ mutable struct BCBwithTsit5Cache{uType,rType,vType,rateType,uEltypeNoUnits,E} <:
     electronic_integrator::E
 end
 
-OrdinaryDiffEq.isfsal(::BCBwithTsit5) = false
+OrdinaryDiffEqCore.isfsal(::BCBwithTsit5) = false
 
-OrdinaryDiffEq.get_fsalfirstlast(cache::BCBwithTsit5Cache, u::Any) = (nothing, nothing)
 
-function OrdinaryDiffEq.alg_cache(alg::BCBwithTsit5,u,rate_prototype,::Type{uEltypeNoUnits},::Type{uBottomEltypeNoUnits},::Type{tTypeNoUnits},uprev,uprev2,f,t,dt,reltol,p,calck,inplace::Val{true}) where {uEltypeNoUnits,uBottomEltypeNoUnits,tTypeNoUnits}
+OrdinaryDiffEqCore.get_fsalfirstlast(cache::BCBwithTsit5Cache, u::Any) = (nothing, nothing)
+
+
+function OrdinaryDiffEqCore.alg_cache(alg::BCBwithTsit5,u,rate_prototype,::Type{uEltypeNoUnits},::Type{uBottomEltypeNoUnits},::Type{tTypeNoUnits},uprev,uprev2,f,t,dt,reltol,p,calck,inplace::Val{true}) where {uEltypeNoUnits,uBottomEltypeNoUnits,tTypeNoUnits}
     electronic_problem = DynamicsMethods.DensityMatrixODEProblem(
         Array(DynamicsUtils.get_quantum_subsystem(u)),
         (0.0, dt),
@@ -35,7 +37,7 @@ function OrdinaryDiffEq.alg_cache(alg::BCBwithTsit5,u,rate_prototype,::Type{uElt
     BCBwithTsit5Cache(u, uprev, tmp, rtmp, vtmp, k, cayley, electronic_integrator)
 end
 
-function OrdinaryDiffEq.initialize!(integrator, integrator_cache::BCBwithTsit5Cache)
+function OrdinaryDiffEqCore.initialize!(integrator, integrator_cache::BCBwithTsit5Cache)
 
     r = DynamicsUtils.get_positions(integrator.u)
     v = DynamicsUtils.get_velocities(integrator.u)
@@ -48,7 +50,7 @@ function OrdinaryDiffEq.initialize!(integrator, integrator_cache::BCBwithTsit5Ca
     end
 end
 
-@muladd function OrdinaryDiffEq.perform_step!(integrator, integrator_cache::BCBwithTsit5Cache, repeat_step=false)
+@muladd function OrdinaryDiffEqCore.perform_step!(integrator, integrator_cache::BCBwithTsit5Cache, repeat_step=false)
     @unpack t, dt, uprev, u, p = integrator
     @unpack k, rtmp, vtmp, cayley, electronic_integrator = integrator_cache
 

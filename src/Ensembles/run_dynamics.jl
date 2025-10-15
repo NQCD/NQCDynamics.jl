@@ -1,3 +1,18 @@
+# debug function to print contents of a struct (particularly for NCQCalculators caches)
+"""
+    print_contents(container)
+
+Print the contents of a struct to the console.\n
+Output is of the form:
+    `fieldname = value`
+"""
+function print_contents(container)
+    println("Contents of $(typeof(container)):\n")
+    for name in fieldnames(typeof(container))
+        println("$(name) = ", getfield(container, name))
+        println("")
+    end
+end
 
 """
     run_dynamics(sim::AbstractSimulation, tspan, distribution;
@@ -58,6 +73,7 @@ function run_dynamics(
         prob_func = Selection(distribution, selection, trajectories)
         
         u0 = sample_distribution(sim, distribution)
+        @debug print_contents(sim.cache)
         problem = DynamicsMethods.create_problem(u0, tspan, sim)
         
         output_func = EnsembleSaver(output, savetime)
@@ -110,14 +126,17 @@ function run_dynamics(
     log_simulation_duration(stats.time)
 
     if trajectories == 1
-        if rjm NQCCalculators.get_maurergroup() end
         return stats.value.u[1]
     else
-        if rjm NQCCalculators.get_maurergroup() end
         return stats.value.u
     end
 end
 
+"""
+    log_simulation_duration(duration_seconds)
+
+Print the duration of a simulation in a human-readable format.
+"""
 function log_simulation_duration(duration_seconds)
     if duration_seconds < 60
         @info "Finished after $duration_seconds seconds."
@@ -129,3 +148,4 @@ function log_simulation_duration(duration_seconds)
         @info "Finished after $duration_hours hours."
     end
 end
+
