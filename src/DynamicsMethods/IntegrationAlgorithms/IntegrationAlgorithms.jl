@@ -94,5 +94,6 @@ include("steps.jl")
 include("verlet_with_electronics.jl")
 include("bcb_wavefunction.jl")
 include("bcb_full.jl")
+include("CoupledIntegrators.jl")
 
 end # module

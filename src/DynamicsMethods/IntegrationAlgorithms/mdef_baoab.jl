@@ -122,34 +122,34 @@ end
 @muladd function StochasticDiffEq.perform_step!(integrator, integrator_cache::MDEF_BAOABConstantCache, f=integrator.f)
     @unpack t,dt,sqdt,uprev,p,W = integrator
     @unpack k, half = integrator_cache
-    du1 = uprev.x[1]
-    u1 = uprev.x[2]
+    du1 = uprev.x[1] # first index is velocity, so getting velocity of previous step
+    u1 = uprev.x[2] # second index is position, 
 
     # B
-    du2 = du1 + half*dt*k
+    du2 = du1 + half*dt*k # k is gradient of potential energy so half the acceleration function
 
     # A
-    u2 = u1 + half*dt*du2
+    u2 = u1 + half*dt*du2 # update half the position (velocity verlet style)
 
     # O
     Λ = integrator.g(u2,p,t+dt*half) # friction tensor
     # noise strength: σ = square root of (temperature / mass) for each atom 
     σ = repeat(@. sqrt(get_temperature(p, t+dt*half) / p.atoms.masses);inner=ndofs(p))
     # eigen decomposition of Λ
-    γ, c = LAPACK.syev!('V', 'U', Λ) # symmetric eigen
-    clamp!(γ, 0, Inf)
+    γ, c = LAPACK.syev!('V', 'U', Λ) # symmetric eigen (so far just calculated some values)
+    clamp!(γ, 0, Inf) # makes positive semidefinite
     c1 = diagm(exp.(-γ.*dt))
-    c2 = diagm(sqrt.(1 .- diag(c1).^2))
+    c2 = diagm(sqrt.(1 .- diag(c1).^2)) #more calculating shit 
     noise = σ.*W.dW[:] / sqdt # W.dW[:] noise rescaled by square root of time step to make it normal distributed
     du3 = c*c1*c'*du2[:] + c*c2*c'*noise # O step from Leimkuhler and Matthews (2013) 
     du3 = reshape(du3, size(du2))
 
     # A
-    u = u2 + half*dt*du3
+    u = u2 + half*dt*du3 #last position update
 
     # B
     k .= f.f1(du3,u,p,t+dt)
-    du = du3 + half*dt*k
+    du = du3 + half*dt*k #last velocity update 
 
     integrator.u = ArrayPartition((du, u))
 end
@@ -165,7 +165,6 @@ end
     @unpack utmp, dutmp, k, half, gtmp = integrator_cache
     du1 = uprev.x[1]
     u1 = uprev.x[2]
-
     step_B!(dutmp, du1, half*dt, k)
 
     step_A!(utmp, u1, half*dt, dutmp)
