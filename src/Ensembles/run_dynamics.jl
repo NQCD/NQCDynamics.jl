@@ -54,7 +54,6 @@ function run_dynamics(
     rjm = false,
     kwargs...,
 )
-
     """
     Due to how Julia compiles code, running the same dynamics for a single time step forces precompilation, which will make subsequent simulations faster. 
     This effect is negligible for smaller models, but begins to matter for more computationally intensive dynamics. 
