@@ -16,10 +16,10 @@ function matrix_friction_update!(dutmp, utmp, integrator, cache::BAOABCache)
     DynamicsMethods.IntegrationAlgorithms.step_O!(cache, integrator)
 end
 
-function matrix_friction_update!(dutmp, utmp, integrator, cache::BAOABConstantCache)
+function matrix_friction_update!(utmp, integrator, cache::BAOABConstantCache)
     @unpack t,dt,sqdt,p,W = integrator
     @unpack half = cache
-    Λ = integrator.g(u2,p,t+dt*half) # friction tensor
+    Λ = integrator.g(utmp,p,t+dt*half) # friction tensor
     # noise strength: σ = square root of (temperature / mass) for each atom 
     σ = repeat(@. sqrt(get_temperature(p, t+dt*half) / p.atoms.masses);inner=ndofs(p))
     # eigen decomposition of Λ
