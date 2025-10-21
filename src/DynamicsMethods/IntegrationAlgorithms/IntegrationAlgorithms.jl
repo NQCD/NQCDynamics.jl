@@ -15,7 +15,6 @@ using NQCCalculators
 using OrdinaryDiffEqCore: OrdinaryDiffEqCore, get_fsalfirstlast, OrdinaryDiffEqAlgorithm
 using StochasticDiffEq: StochasticDiffEq
 
-
 struct BCB <: OrdinaryDiffEqAlgorithm end
 struct BCBFull <: OrdinaryDiffEqAlgorithm end
 
@@ -95,5 +94,6 @@ include("verlet_with_electronics.jl")
 include("bcb_wavefunction.jl")
 include("bcb_full.jl")
 include("CoupledIntegrators.jl")
+include("create_problem.jl")
 
 end # module
