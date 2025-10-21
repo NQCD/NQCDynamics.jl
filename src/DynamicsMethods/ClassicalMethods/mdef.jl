@@ -8,10 +8,15 @@ using LinearAlgebra
 
 abstract type AbstractMDEF <: DynamicsMethods.Method end
 
-function DynamicsMethods.create_problem(u0, tspan::Tuple, sim::AbstractSimulation{<:AbstractMDEF})
+#= function DynamicsMethods.create_problem(u0, tspan::Tuple, sim::AbstractSimulation{<:AbstractMDEF})
     StochasticDiffEq.DynamicalSDEProblem(acceleration!, DynamicsUtils.velocity!, friction!,
         DynamicsUtils.get_velocities(u0), DynamicsUtils.get_positions(u0), tspan, sim)
-end
+end =#
+
+#= function DynamicsMethods.create_problem(u0, tspan::Tuple, sim::AbstractSimulation{<:AbstractMDEF})
+    StochasticDiffEq.DynamicalSDEProblem(acceleration!, DynamicsUtils.velocity!, SciMlBase.DynamicalNoiseFunction(matrix_friction_update!),
+        DynamicsUtils.get_velocities(u0), DynamicsUtils.get_positions(u0), tspan, sim)
+end =#
 
 """
 ```math
@@ -172,4 +177,11 @@ function DynamicsUtils.classical_potential_energy(
         potential += ϵ * NQCCalculators.fermi(ϵ, μ, β)
     end
     return potential
+end
+
+function matrix_friction_update!(dutmp, utmp, integrator, cache)
+    int = integrator
+
+    DynamicsMethods.ClassicalMethods.friction!(cache.gtmp, int.utmp, int.p, int.t+int.dt*cache.half)
+    DynamicsMethods.IntegrationAlgorithms.step_O!(cache, int)
 end
