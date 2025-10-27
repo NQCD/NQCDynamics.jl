@@ -35,8 +35,8 @@ function H2_surface_distance(
         surface_normal_height(x, surface_normal) for
         x in eachcol(positions[:, toplayer_indices])
     ])
-    h2_height = surface_normal(
-        pbc_center_of_mass(positions, diatomic_indices..., simulation.cell),
+    h2_height = surface_normal_height(
+        Structure.pbc_center_of_mass(positions, diatomic_indices..., simulation),
         surface_normal,
     )
     return h2_height - slab_height
@@ -177,8 +177,8 @@ function get_desorption_frame(
             trajectory[idx],
             diatomic_indices,
             simulation,
-        )
-        if surface_distance ≤ bond_length
+        ) |> austrip
+        if surface_distance[idx] ≤ bond_length
             @debug "Transition state observed with bond length $(bond_length) ≤ surface distance $(surface_distance) at index $(idx)"
             return idx
         end
