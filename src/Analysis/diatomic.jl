@@ -36,7 +36,7 @@ function H2_surface_distance(
         x in eachcol(positions[:, toplayer_indices])
     ])
     h2_height = surface_normal(
-        pbc_center_of_mass(positions, diatomic_indices..., simulation.cell),
+        Structure.pbc_center_of_mass(positions, diatomic_indices..., simulation.cell),
         surface_normal,
     )
     return h2_height - slab_height
