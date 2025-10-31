@@ -54,27 +54,11 @@ struct VerletwithElectronics <: OrdinaryDiffEqAlgorithm end
 struct MDEF_BAOAB <: StochasticDiffEq.StochasticDiffEqAlgorithm end
 struct BCOCB <: StochasticDiffEq.StochasticDiffEqAlgorithm end
 
-# Simulation Integrators
-
-    # Classical Integrators
-# AbstractSimulation{<:Classical} uses VelocityVerlet() - (see ClassicalMethods/classical.jl)
-# AbstractSimulation{<:Langevin} uses StochasticDiffEq.BAOAB(;gamma=sim.method.γ) - (see ClassicalMethods/langevin.jl)
-
-    # Surface Hopping Integrators
-DynamicsMethods.select_algorithm(::Simulation{<:DynamicsMethods.SurfaceHoppingMethods.SurfaceHopping}) = BABwithTsit5(OrdinaryDiffEq.Tsit5())
-DynamicsMethods.select_algorithm(::Simulation{<:DynamicsMethods.SurfaceHoppingMethods.FSSH}) = BABwithTsit5(OrdinaryDiffEq.Tsit5())
-DynamicsMethods.select_algorithm(::Simulation{<:DynamicsMethods.SurfaceHoppingMethods.AbstractIESH}) = VerletwithElectronics()
-DynamicsMethods.select_algorithm(::Simulation{<:DynamicsMethods.SurfaceHoppingMethods.ClassicalMasterEquation}) = OrdinaryDiffEq.Tsit5()
-
-    #Ehrenfest Integrators
-DynamicsMethods.select_algorithm(::Simulation{<:DynamicsMethods.EhrenfestMethods.Ehrenfest}) = BABwithTsit5(OrdinaryDiffEq.Tsit5())
-DynamicsMethods.select_algorithm(::Simulation{<:DynamicsMethods.EhrenfestMethods.EhrenfestNA}) = VerletwithElectronics()
-
-    #MDEF Integrators
-DynamicsMethods.select_algorithm(::Simulation{<:DynamicsMethods.ClassicalMethods.AbstractMDEF}) = MDEF_BAOAB()
-
-    #Mapping Varibale Integrators
-DynamicsMethods.select_algorithm(::Simulation{<:DynamicsMethods.eCMM}) = MInt()
+DynamicsMethods.select_algorithm(::RingPolymerSimulation{<:DynamicsMethods.SurfaceHoppingMethods.SurfaceHopping}) = BCBwithTsit5(OrdinaryDiffEq.Tsit5())
+DynamicsMethods.select_algorithm(::RingPolymerSimulation{<:DynamicsMethods.EhrenfestMethods.AbstractEhrenfest}) = BCBwithTsit5(OrdinaryDiffEq.Tsit5())
+DynamicsMethods.select_algorithm(::Simulation{<:DynamicsMethods.ClassicalMethods.AbstractMDEF}) = StochasticDiffEq.BAOAB(noise_mtx=true)#MDEF_BAOAB()
+DynamicsMethods.select_algorithm(::RingPolymerSimulation{<:DynamicsMethods.ClassicalMethods.AbstractMDEF}) = BCOCB()
+DynamicsMethods.select_algorithm(::RingPolymerSimulation{<:DynamicsMethods.ClassicalMethods.ThermalLangevin}) = BCOCB()
 DynamicsMethods.select_algorithm(::Simulation{<:DynamicsMethods.MappingVariableMethods.SpinMappingW}) = MInt()
 
 
@@ -83,10 +67,7 @@ DynamicsMethods.select_algorithm(::Simulation{<:DynamicsMethods.MappingVariableM
 
     # Classical Integrators
 DynamicsMethods.select_algorithm(::RingPolymerSimulation{DynamicsMethods.ClassicalMethods.Classical}) = BCB()
-DynamicsMethods.select_algorithm(::RingPolymerSimulation{<:DynamicsMethods.ClassicalMethods.ThermalLangevin}) = BCOCB()
-
-    # Surface Hopping Integrators 
-DynamicsMethods.select_algorithm(::RingPolymerSimulation{<:DynamicsMethods.SurfaceHoppingMethods.SurfaceHopping}) = BCBwithTsit5(OrdinaryDiffEq.Tsit5())
+DynamicsMethods.select_algorithm(::Simulation{<:DynamicsMethods.SurfaceHoppingMethods.AbstractIESH}) = (VelocityVerlet(), LinearExponential())
 DynamicsMethods.select_algorithm(::RingPolymerSimulation{<:DynamicsMethods.SurfaceHoppingMethods.AbstractIESH}) = BCBWavefunction()
 DynamicsMethods.select_algorithm(::RingPolymerSimulation{<:DynamicsMethods.SurfaceHoppingMethods.ClassicalMasterEquation}) = BCBFull()
 
@@ -111,7 +92,7 @@ export BCOCB
 export BCBWavefunction
 export BCBFull
 
-include("mdef_baoab.jl")
+include("../../../lib/mdef_baoab.jl")
 include("bcocb.jl")
 include("mint.jl")
 include("ringpolymer_mint.jl")
@@ -119,10 +100,10 @@ include("bcb_electronics.jl")
 include("bab_electronics.jl")
 include("bcb.jl")
 include("steps.jl")
-include("verlet_with_electronics.jl")
+include("../../../lib/verlet_with_electronics.jl")
 include("bcb_wavefunction.jl")
 include("bcb_full.jl")
-include("CoupledIntegrators.jl")
+include("coupledintegrators.jl")
 include("create_problem.jl")
 
 end # module

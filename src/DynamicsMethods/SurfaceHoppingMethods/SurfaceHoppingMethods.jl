@@ -78,7 +78,12 @@ function DynamicsMethods.create_problem(u0, tspan, sim::AbstractSimulation{<:Sur
         callback=DynamicsMethods.get_callbacks(sim))
 end
 
+#= function DynamicsUtils.get_hopping_eigenvalues(sim::Simulation, r::AbstractMatrix)
+    return NQCCalculators.get_eigen(sim.cache, r).values
+end =#
+
 function DynamicsUtils.get_hopping_eigenvalues(sim::Simulation, r::AbstractMatrix)
+    return NQCCalculators.get_eigen(sim.cache, r).w
     return NQCCalculators.get_eigen(sim.cache, r).w
 end
 

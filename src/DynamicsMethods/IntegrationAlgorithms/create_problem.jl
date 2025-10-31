@@ -3,7 +3,6 @@ using SciMLBase
 using NQCDynamics.DynamicsMethods.ClassicalMethods
 
 function DynamicsMethods.create_problem(u0, tspan::Tuple, sim::AbstractSimulation{<:DynamicsMethods.ClassicalMethods.AbstractMDEF})
-
     StochasticDiffEq.DynamicalSDEProblem(ClassicalMethods.acceleration!, DynamicsUtils.velocity!, SciMLBase.DynamicalNoiseFunction(matrix_friction_update!),
         DynamicsUtils.get_velocities(u0), DynamicsUtils.get_positions(u0), tspan, sim)
 end
