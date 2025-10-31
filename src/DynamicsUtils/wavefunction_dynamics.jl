@@ -57,5 +57,25 @@ function get_quantum_propagator(sim, v, r, dt)
     return prop
 end
 
+function get_quantum_propagator!(prop, u, p, t)
+
+    sim, nuclei = p
+    r, v = nuclei.r, nuclei.v
+    v = DynamicsUtils.get_hopping_velocity(sim, v)
+    eigenvalues = DynamicsUtils.get_hopping_eigenvalues(sim, r)
+    fill!(prop, zero(eltype(prop)))
+    @inbounds for i in eachindex(eigenvalues)
+        prop[i,i] = -im * eigenvalues[i]
+    end
+
+    d = DynamicsUtils.get_hopping_nonadiabatic_coupling(sim, r)
+    
+    @inbounds for i in NQCModels.mobileatoms(sim)
+        for j in NQCModels.dofs(sim)
+            @. prop -= d[j,i] * v[j,i]
+        end
+    end
+    return nothing
+end
 
 

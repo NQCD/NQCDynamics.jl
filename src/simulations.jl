@@ -17,7 +17,6 @@ struct Simulation{M,Cache,T,Ttype,C,S} <: AbstractSimulation{M}
     method::M
     solver::S
 end
-
 """
     Simulation(atoms::Atoms{T}, model::Model, method::M;
         temperature=0u"K", cell::AbstractCell=InfiniteCell()) where {M,S,T}

@@ -167,6 +167,46 @@ function DynamicsUtils.get_quantum_subsystem(u::SurfaceHoppingVariables)
     return StructArray{Complex{T}}((real, imag))
 end
 
+function LinearAlgebra.mul!(C::SurfaceHoppingVariables, A, v::SurfaceHoppingVariables)
+    σ = DynamicsUtils.get_quantum_subsystem(v)
+    C = DynamicsUtils.get_quantum_subsystem(C)
+    return mul!(C, A, σ)
+end
+
+OrdinaryDiffEq.OrdinaryDiffEqCore._vec(x::SurfaceHoppingVariables) = x.σreal[:,1]
+
+import Base.(*)
+
+function (*)(A::AbstractMatrix{T}, x::SurfaceHoppingVariables) where {T}
+    σ = DynamicsUtils.get_quantum_subsystem(x)
+    mul!(similar(σ), A, σ)
+end
+
+function (*)(x::SurfaceHoppingVariables, A::AbstractMatrix{T}, ) where {T}
+    σ = DynamicsUtils.get_quantum_subsystem(x)
+    mul!(similar(σ), A, σ)
+end
+
+@inline function Base.materialize!(dest::SurfaceHoppingVariables, bc::Base.Broadcast.Broadcasted{<:Any})
+    SurfaceHoppingVariables_broadcast(dest, bc, bc.style)
+end
+
+@inline function SurfaceHoppingVariables_broadcast(dest, bc, ::Any)
+    return Base.materialize!(Base.Broadcast.combine_styles(dest, bc), dest, bc)
+end
+
+@inline function SurfaceHoppingVariables_broadcast(dest, bc, ::Base.Broadcast.ArrayStyle{SurfaceHoppingVariables})
+    new_des = DynamicsUtils.get_quantum_subsystem(dest)
+    original = DynamicsUtils.get_quantum_subsystem(bc.args[1])
+    new_des .= original
+end
+
+@inline function SurfaceHoppingVariables_broadcast(dest, bc, ::StructArrays.StructArrayStyle)
+    new_des = DynamicsUtils.get_quantum_subsystem(dest)
+    original = bc.args[1]
+    new_des .= original
+end
+
 # -------------------------------------------- TESTING ------------------------------------------- #
 #= function int(du,u,p,t)
     du.y .= u.y .+ t/10

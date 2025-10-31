@@ -72,6 +72,11 @@ function (select::RandomSelection)(prob, i, repeat)
     DynamicsMethods.create_problem(u0, prob.tspan, prob.p)
 end
 
+function (select::RandomSelection)(prob::DynamicsMethods.IntegrationAlgorithms.CoupledODEProblem, i, repeat)
+    u0 = sample_distribution(prob.prob1.p[1], select.distribution)
+    DynamicsMethods.create_problem(u0, prob.prob1.tspan, prob.prob1.p[1])
+end
+
 """
     sample_distribution(sim::AbstractSimulation, distribution::DynamicalDistribution)
 

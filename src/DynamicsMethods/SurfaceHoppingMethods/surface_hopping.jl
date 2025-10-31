@@ -61,12 +61,12 @@ Rescale the velocity in the direction of the nonadiabatic coupling.
 
 [HammesSchiffer1994](@cite)
 """
-function rescale_velocity!(sim::AbstractSimulation{<:SurfaceHopping}, u)::Bool #23 allocations total
+function rescale_velocity!(sim::AbstractSimulation{<:SurfaceHopping}, electrons, nuclei)::Bool #23 allocations total
     sim.method.rescaling === :off && return true #no rescaling so always accept hop
 
     new_state, old_state = unpack_states(sim) #symdiff is awful 21 allocations, could replace this by creating a mask, needs adding to simulation or method
-    velocity = DynamicsUtils.get_hopping_velocity(sim, DynamicsUtils.get_velocities(u))
-    r = DynamicsUtils.get_positions(u)
+    velocity = DynamicsUtils.get_velocities(nuclei)
+    r = DynamicsUtils.get_positions(nuclei)
     eigs = DynamicsUtils.get_hopping_eigenvalues(sim, r)
     
     d = extract_nonadiabatic_coupling(DynamicsUtils.get_hopping_nonadiabatic_coupling(sim, r), new_state, old_state) #2 allocations
@@ -84,7 +84,7 @@ function rescale_velocity!(sim::AbstractSimulation{<:SurfaceHopping}, u)::Bool #
         elseif rescaling === :vinversion
             # Frustrated hop with insufficient kinetic energy
             # perform inversion of the velocity component along the nonadiabatic coupling vector
-            frustrated_hop_invert_velocity!(sim, DynamicsUtils.get_velocities(u), d)
+            frustrated_hop_invert_velocity!(sim, v, d)
             return false
         else   
             throw(error("This mode of rescaling is not implemented"))
@@ -93,7 +93,7 @@ function rescale_velocity!(sim::AbstractSimulation{<:SurfaceHopping}, u)::Bool #
     #sufficient energy for hopping
     root = sqrt(discriminant)
     γ = (b < 0) ? (b + root) / (2a) : (b - root) / (2a)
-    perform_rescaling!(sim, DynamicsUtils.get_velocities(u), γ, d)
+    perform_rescaling!(sim, velocity, γ, d)
 
     return true
 end

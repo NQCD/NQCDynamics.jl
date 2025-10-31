@@ -56,7 +56,7 @@ struct BCOCB <: StochasticDiffEq.StochasticDiffEqAlgorithm end
 
 DynamicsMethods.select_algorithm(::RingPolymerSimulation{<:DynamicsMethods.SurfaceHoppingMethods.SurfaceHopping}) = BCBwithTsit5(OrdinaryDiffEq.Tsit5())
 DynamicsMethods.select_algorithm(::RingPolymerSimulation{<:DynamicsMethods.EhrenfestMethods.AbstractEhrenfest}) = BCBwithTsit5(OrdinaryDiffEq.Tsit5())
-DynamicsMethods.select_algorithm(::Simulation{<:DynamicsMethods.ClassicalMethods.AbstractMDEF}) = MDEF_BAOAB()
+DynamicsMethods.select_algorithm(::Simulation{<:DynamicsMethods.ClassicalMethods.AbstractMDEF}) = StochasticDiffEq.BAOAB(noise_mtx=true)#MDEF_BAOAB()
 DynamicsMethods.select_algorithm(::RingPolymerSimulation{<:DynamicsMethods.ClassicalMethods.AbstractMDEF}) = BCOCB()
 DynamicsMethods.select_algorithm(::RingPolymerSimulation{<:DynamicsMethods.ClassicalMethods.ThermalLangevin}) = BCOCB()
 DynamicsMethods.select_algorithm(::Simulation{<:DynamicsMethods.MappingVariableMethods.SpinMappingW}) = MInt()
@@ -64,7 +64,7 @@ DynamicsMethods.select_algorithm(::Simulation{<:DynamicsMethods.eCMM}) = MInt()
 DynamicsMethods.select_algorithm(::RingPolymerSimulation{<:DynamicsMethods.MappingVariableMethods.NRPMD}) = RingPolymerMInt()
 DynamicsMethods.select_algorithm(::RingPolymerSimulation{<:DynamicsMethods.MappingVariableMethods.eCMM}) = RingPolymerMInt()
 DynamicsMethods.select_algorithm(::RingPolymerSimulation{DynamicsMethods.ClassicalMethods.Classical}) = BCB()
-DynamicsMethods.select_algorithm(::Simulation{<:DynamicsMethods.SurfaceHoppingMethods.AbstractIESH}) = VerletwithElectronics()
+DynamicsMethods.select_algorithm(::Simulation{<:DynamicsMethods.SurfaceHoppingMethods.AbstractIESH}) = (VelocityVerlet(), LinearExponential())
 DynamicsMethods.select_algorithm(::RingPolymerSimulation{<:DynamicsMethods.SurfaceHoppingMethods.AbstractIESH}) = BCBWavefunction()
 DynamicsMethods.select_algorithm(::Simulation{<:DynamicsMethods.SurfaceHoppingMethods.FSSH}) = BABwithTsit5(OrdinaryDiffEq.Tsit5())
 DynamicsMethods.select_algorithm(::Simulation{<:DynamicsMethods.EhrenfestMethods.Ehrenfest}) = BABwithTsit5(OrdinaryDiffEq.Tsit5())
@@ -82,7 +82,7 @@ export BCOCB
 export BCBWavefunction
 export BCBFull
 
-include("mdef_baoab.jl")
+include("../../../lib/mdef_baoab.jl")
 include("bcocb.jl")
 include("mint.jl")
 include("ringpolymer_mint.jl")
@@ -90,10 +90,10 @@ include("bcb_electronics.jl")
 include("bab_electronics.jl")
 include("bcb.jl")
 include("steps.jl")
-include("verlet_with_electronics.jl")
+include("../../../lib/verlet_with_electronics.jl")
 include("bcb_wavefunction.jl")
 include("bcb_full.jl")
-include("CoupledIntegrators.jl")
+include("coupledintegrators.jl")
 include("create_problem.jl")
 
 end # module

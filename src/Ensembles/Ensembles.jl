@@ -42,7 +42,8 @@ end
 
 function (output::EnsembleSaver)(sol, i)
     if output.savetime
-        out = Dictionary{Symbol,Any}([:Time], [sol.t])
+        t = ifelse(length(sol.sol1.t) < length(sol.sol2.t), sol.sol1.t, sol.sol2.t)
+        out = Dictionary{Symbol,Any}([:Time], [t])
     else
         out = Dictionary{Symbol,Any}()
     end
