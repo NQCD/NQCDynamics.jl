@@ -159,7 +159,7 @@ Classifies the adsorption site of adsorbate atoms for every frame in a trajector
 function classify_every_frame(
 	trajectory, 
     cell::PeriodicCell,
-    slab::SlabStructure,
+    slab::SlabStructure;
 	fractional::Bool = false,
 	snap_to_site::Float64 = 0.03,
 )
