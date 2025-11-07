@@ -51,15 +51,14 @@ const FCC110Sites = Dict(
 )
 const FCC111Sites = Dict(
     :top => vec([vcat(i...) for i in Iterators.product([0.0,1.0], [0.0,1.0])]),
-    :hollow => [
-      [0.33,0.33],
-      [0.66,0.66],
-    ],
+    :fcc => [[0.33,0.33]],
+    :hcp => [[0.66,0.66]],
     :bridge => [
-      [0.5, 0.0],
-      [0.5, 1.0],
-      [0.0, 0.5],
-      [1.0, 0.5],
+      [0.5,0.0],
+      [0.5,0.5],
+      [0.0,0.5],
+      [1.0,0.5],
+      [0.5,1.0],
     ],
 )
 const FCC211Sites = Dict( # Based on Cao2018 site definitions
@@ -124,7 +123,6 @@ function positions_to_category(
 			end
 		end
 	end
-  @debug "Site distances:" sites = category_names distances = site_distances
 	if any(site_distances .≤ snap_to_site) # Check if any category is sufficiently close
 		return category_names[argmin(site_distances)] # Return the classified category
 	else
