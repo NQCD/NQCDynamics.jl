@@ -30,6 +30,9 @@ if GROUP == "All" || GROUP == "Analysis"
     @safetestset "Diatomic Analysis" begin
         include("Analysis/diatomic.jl")
     end
+    @safetestset "Surface site selectivity" begin
+        include("Analysis/high_symmetry.jl")
+    end
 end
 
 if GROUP == "All" || GROUP == "InitialConditions"
