@@ -6,7 +6,7 @@ function DynamicsMethods.motion!(du, u, sim::RingPolymerSimulation{<:ClassicalMa
     r = DynamicsUtils.get_positions(u)
     v = DynamicsUtils.get_velocities(u)
 
-    set_state!(u, sim.method.state) # Make sure the state variables match, 
+    set_state!(u, sim.method.state, sim) # Make sure the state variables match, 
 
     NQCDynamics.NQCCalculators.update_cache!(sim.cache, r)
     DynamicsUtils.velocity!(dr, v, r, sim, t) # Set the velocity

@@ -35,7 +35,12 @@ multiply_by_mass!(dv, masses) = dv .*= masses'
 Write the velocity `v` into `dr`.
 Has extra arguments to work with `Dynamical(O/S)DEProblem`s.
 """
-velocity!(dr, v, r, sim, t) = dr .= v
+function velocity!(dr, v, r, sim, t)
+    @inbounds for i in eachindex(dr)
+        dr[i] = v[i]
+    end
+    return nothing
+end
 
 function acceleration! end
 

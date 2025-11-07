@@ -41,6 +41,9 @@ function DynamicsMethods.DynamicsVariables(sim::AbstractSimulation{<:EhrenfestNA
 end
 
 function DynamicsMethods.DynamicsVariables(sim::AbstractSimulation{<:EhrenfestNA}, v, r, electronic::FermiDiracState{Adiabatic})
+    tmp_v = copy(v)
+    tmp_r = copy(r)
+    
     ef_model = NQCModels.fermilevel(sim)
     ef_distribution = electronic.fermi_level
     ef_model ≈ ef_distribution || throw(error(
@@ -52,7 +55,8 @@ function DynamicsMethods.DynamicsVariables(sim::AbstractSimulation{<:EhrenfestNA
         """
     ))
 
-    eigenvalues = DynamicsUtils.get_hopping_eigenvalues(sim, r)
+    # NQCDynamics.NQCCalculators.update_cache!(sim.cache, tmp_r)
+    eigenvalues = DynamicsUtils.get_hopping_eigenvalues(sim, tmp_r)
 
     available_states = DynamicsUtils.get_available_states(electronic.available_states, NQCModels.nstates(sim))
     state = DynamicsUtils.sample_fermi_dirac_distribution(eigenvalues, NQCModels.nelectrons(sim), available_states, electronic.β)
@@ -62,7 +66,7 @@ function DynamicsMethods.DynamicsVariables(sim::AbstractSimulation{<:EhrenfestNA
         ψ[j,i] = 1
     end
 
-    ComponentVector(v=v, r=r, σreal=ψ, σimag=zero(ψ))
+    ComponentVector(v=Float64.(tmp_v), r=Float64.(tmp_r), σreal=Float64.(ψ), σimag=zero(ψ))
 end
 
 function DynamicsUtils.acceleration!(dv, v, r, sim::Simulation{<:EhrenfestNA}, t, ψ)

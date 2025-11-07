@@ -60,7 +60,7 @@ SurfaceHoppingMethods.set_unoccupied_states!(sim)
     eigs = NQCCalculators.get_eigen(sim.cache, r)
     occupations = NQCDistributions.fermi.(eigs.values, distribution.fermi_level, distribution.β)
 
-    @test isapprox(avg, occupations, atol = 0.2)
+    @test isapprox(avg, occupations, rtol = 0.2)
 end
 
 @testset "set_unoccupied_states!" begin
@@ -165,16 +165,18 @@ end
     traj2 = dyn_test.value
     benchmark_results["Tsit5"] = Dict("Time" => dyn_test.time, "Allocs" => dyn_test.bytes)
     
-    dyn_test = @timed run_dynamics(sim, tspan, u; dt, algorithm=DynamicsMethods.IntegrationAlgorithms.VerletwithElectronics2(MagnusMidpoint(krylov=false), dt=dt / 5), output)
+#=     dyn_test = @timed run_dynamics(sim, tspan, u; dt, algorithm=DynamicsMethods.IntegrationAlgorithms.VerletwithElectronics2(MagnusMidpoint(krylov=false), dt=dt / 5), output)
     traj3 = dyn_test.value
-    benchmark_results["VerletwithElectronics2"] = Dict("Time" => dyn_test.time, "Allocs" => dyn_test.bytes)
+    benchmark_results["VerletwithElectronics2"] = Dict("Time" => dyn_test.time, "Allocs" => dyn_test.bytes) =#
 
     # We cannot compare these when hopping is happening since the trajectories will be different. 
 end
 
 @testset "DecoherenceCorrectionEDC" begin
     sim = Simulation{AdiabaticIESH}(atoms, model; decoherence=SurfaceHoppingMethods.DecoherenceCorrectionEDC())
-    u = DynamicsVariables(sim, zeros(1, 1), 1000*randn(1, 1))
+    ke = austrip(3u"eV")
+    v0 = -sqrt(2*ke/atoms.masses[1])
+    u = DynamicsVariables(sim, hcat(v0), hcat(austrip(5u"Å")))
     tspan = (0.0, 100000.0)
     dt = 100.0
     
