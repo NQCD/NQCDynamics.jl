@@ -8,6 +8,10 @@ using Reexport: @reexport
 include("diatomic.jl")
 export Diatomic
 
+# Surface facet symmetry site classification
+include("high-symmetry_sites.jl")
+export HighSymmetrySites
+
 # Allow re-processing of simulation data.
 include("postprocess.jl")
 export Postprocess
