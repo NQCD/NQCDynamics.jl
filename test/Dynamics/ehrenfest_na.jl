@@ -2,6 +2,10 @@ using Test
 using NQCDynamics
 using Statistics: var
 using OrdinaryDiffEq: Vern9
+import JSON
+
+benchmark_dir = get(ENV, "BENCHMARK_OUTPUT_DIR", "tmp/nqcd_benchmark")
+benchmark_results = Dict{String, Any}("title_for_plotting" => "EhrenfestNA Tests")
 
 kT = 9.5e-4
 M = 30 # number of bath states
@@ -24,12 +28,18 @@ n_electrons = M ÷ 2
     tspan = (0.0, 2000.0)
     dt = 10.0
     output = (OutputTotalEnergy, OutputKineticEnergy, OutputPotentialEnergy, OutputPosition, OutputVelocity, OutputQuantumSubsystem)
-    traj1 = run_dynamics(sim, tspan, u; dt, output, algorithm=Vern9(), abstol=1e-15, reltol=1e-15, saveat=dt)
+    
+    dyn_test = @timed run_dynamics(sim, tspan, u; dt, output, algorithm=Vern9(), abstol=1e-15, reltol=1e-15, saveat=dt)
+    traj1 = dyn_test.value
     @test isapprox(var(traj1[:OutputTotalEnergy]), 0; atol=1e-6)
+    benchmark_results["Vern9"] = Dict("Time" => dyn_test.time, "Allocs" => dyn_test.bytes)
 
     u = DynamicsVariables(sim, v, r)
-    traj2 = run_dynamics(sim, tspan, u; dt, output) # default algorithm is fixed timestep
+    
+    dyn_test = @timed run_dynamics(sim, tspan, u; dt, output) # default algorithm is fixed timestep
+    traj2 = dyn_test.value
     @test isapprox(var(traj2[:OutputTotalEnergy]), 0; atol=1e-6)
+    benchmark_results["Fixed timestep"] = Dict("Time" => dyn_test.time, "Allocs" => dyn_test.bytes)
 
     # Confirm all quantities are the same for the different algorithms
     @test traj1[:OutputKineticEnergy] ≈ traj2[:OutputKineticEnergy] rtol=1e-3
@@ -38,6 +48,19 @@ n_electrons = M ÷ 2
     @test traj1[:OutputPosition] ≈ traj2[:OutputPosition] rtol=1e-3
     @test traj1[:OutputQuantumSubsystem] ≈ traj2[:OutputQuantumSubsystem] rtol=1e-2
 end
+
+# Make benchmark directory if it doesn't already exist.
+if !isdir(benchmark_dir)
+    mkpath(benchmark_dir)
+    @info "Benchmark data ouput directory created at $(benchmark_dir)."
+else
+    @info "Benchmark data ouput directory exists at $(benchmark_dir)."
+end
+
+# Output benchmarking dict
+output_file = open("$(benchmark_dir)/EhrenfestNA.json", "w")
+JSON.print(output_file, benchmark_results)
+close(output_file)
 
 # sim = Simulation{EhrenfestNA}(atoms, model)
 # v = zeros(1,1)

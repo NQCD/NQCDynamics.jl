@@ -7,6 +7,7 @@ using NQCDistributions: FermiDiracState, Adiabatic, Diabatic
 using StatsBase: sample, Weights
 using FastLapackInterface: FastLapackInterface
 using SciMLBase: SciMLBase
+using RecursiveArrayTools
 
 export AdiabaticIESH
 
@@ -92,11 +93,13 @@ function DynamicsMethods.DynamicsVariables(sim::AbstractSimulation{<:AdiabaticIE
         ψ[i,i] = 1
     end
     state = collect(eachelectron(sim))
-
-    SurfaceHoppingVariables(ComponentVector(v=v, r=r, σreal=ψ, σimag=zero(ψ)), state)
+    SurfaceHoppingVariables(v=Float64.(v), r=Float64.(r), σreal=Float64.(ψ), σimag=Float64.(zero(ψ)), state=Float64.(state))
 end
 
 function DynamicsMethods.DynamicsVariables(sim::AbstractSimulation{<:AdiabaticIESH}, v, r, electronic::FermiDiracState{Adiabatic})
+    tmp_v = copy(v)
+    tmp_r = copy(r)
+    
     ef_model = NQCModels.fermilevel(sim)
     ef_distribution = electronic.fermi_level
     ef_model ≈ ef_distribution || throw(error(
@@ -108,21 +111,25 @@ function DynamicsMethods.DynamicsVariables(sim::AbstractSimulation{<:AdiabaticIE
         """
     ))
 
-    eigenvalues = DynamicsUtils.get_hopping_eigenvalues(sim, r)
+    # NQCDynamics.NQCCalculators.update_cache!(sim.cache, tmp_r) # Ensure hopping eigenvalues are up to date
+    eigenvalues = DynamicsUtils.get_hopping_eigenvalues(sim, tmp_r)
+
 
     available_states = DynamicsUtils.get_available_states(electronic.available_states, NQCModels.nstates(sim))
     state = DynamicsUtils.sample_fermi_dirac_distribution(eigenvalues, NQCModels.nelectrons(sim), available_states, electronic.β)
+    # state = DynamicsUtils.sample_fermi_dirac_distribution(eigenvalues, NQCModels.nelectrons(sim), available_states, electronic.β, electronic.fermi_level)
 
     ψ = zeros(NQCModels.nstates(sim), NQCModels.nelectrons(sim))
     for (i, j) in enumerate(state)
         ψ[j,i] = 1
     end
 
-    SurfaceHoppingVariables(ComponentVector(v=v, r=r, σreal=ψ, σimag=zero(ψ)), state)
+    SurfaceHoppingVariables(v=Float64.(tmp_v), r=Float64.(tmp_r), σreal=Float64.(ψ), σimag=Float64.(zero(ψ)), state=Float64.(state))
 end
 
 function DynamicsMethods.create_problem(u0, tspan, sim::AbstractSimulation{<:AbstractIESH})
-    set_state!(sim.method, u0.state)
+    
+    set_state!(sim.method, convert(Vector{Int},u0.state), sim) # state 
     set_unoccupied_states!(sim)
     OrdinaryDiffEq.ODEProblem(DynamicsMethods.motion!, u0, tspan, sim;
         callback=DynamicsMethods.get_callbacks(sim))
@@ -140,15 +147,16 @@ function DynamicsMethods.DynamicsVariables(sim::Simulation{<:AdiabaticIESH}, v, 
         """
     ))
 
+    #NQCDynamics.NQCCalculators.update_cache!(sim.cache, r) # Ensure potential is up to date
     available_states = get_available_states(electronic.available_states, NQCModels.nstates(sim))
 
-    potential = Calculators.get_potential(sim.calculator, r)
+    potential = NQCCalculators.get_potential(sim.cache, r)
     energies = @view potential[diagind(potential)]
 
     available_states = get_available_states(electronic.available_states, NQCModels.nstates(sim))
     diabatic_state = sample_fermi_dirac_distribution(energies, NQCModels.nelectrons(sim), available_states, electronic.β)
 
-    U = DynamicsUtils.evaluate_transformation(sim.calculator, r)
+    U = DynamicsUtils.evaluate_transformation(sim.cache, r)
 
     ψ = zeros(NQCModels.nstates(sim), NQCModels.nelectrons(sim))
     adiabatic_state = zeros(Int, NQCModels.nelectrons(sim))
@@ -172,8 +180,7 @@ function DynamicsMethods.DynamicsVariables(sim::Simulation{<:AdiabaticIESH}, v, 
     end
 
     sort!(adiabatic_state)
-
-    SurfaceHoppingVariables(ComponentVector(v=v, r=r, σreal=ψ, σimag=zero(ψ)), adiabatic_state)
+    SurfaceHoppingVariables(v=Float64.(v), r=Float64.(r), σreal=Float64.(ψ), σimag=Float64.(zero(ψ)), state=Float64.(adiabatic_state))
 end
 
 """
@@ -182,10 +189,11 @@ See Eq. 12 of Shenvi, Tully JCP 2009 paper.
 """
 function DynamicsUtils.acceleration!(dv, v, r, sim::Simulation{<:AbstractIESH}, t, state)
     dv .= zero(eltype(dv))
-    NQCModels.state_independent_derivative!(sim.calculator.model, dv, r)
+    NQCModels.state_independent_derivative!(sim.cache.model, dv, r)
     LinearAlgebra.lmul!(-1, dv)
 
-    adiabatic_derivative = Calculators.get_adiabatic_derivative(sim.calculator, r)
+    #NQCDynamics.NQCCalculators.update_cache!(sim.cache, r)
+    adiabatic_derivative = NQCCalculators.get_adiabatic_derivative(sim.cache, r)
     @inbounds for i in mobileatoms(sim)
         for j in dofs(sim)
             for k in state
@@ -206,6 +214,7 @@ In IESH each electron is independent so we can loop through electrons and set th
 derivative one at a time, in the standard way for FSSH.
 """
 function DynamicsUtils.set_quantum_derivative!(dσ, u, sim::AbstractSimulation{<:AdiabaticIESH})
+    
     v = DynamicsUtils.get_hopping_velocity(sim, DynamicsUtils.get_velocities(u))
     σ = DynamicsUtils.get_quantum_subsystem(u)
     r = DynamicsUtils.get_positions(u)
@@ -258,13 +267,15 @@ function evaluate_hopping_probability!(sim::AbstractSimulation{<:AbstractIESH}, 
 
     clamp!(prob, 0, 1) # Restrict probabilities between 0 and 1
 
-    maximum_probability = sum(prob)
-    maximum_probability > 1 && @warn "Hopping probability is large, consider reducing the time step" maximum_probability
+    @debug begin
+        maximum_probability = sum(prob)
+        maximum_probability > 1 && @warn "Hopping probability is large, consider reducing the time step" maximum_probability
 
-    if sim.method.estimate_probability
-        if !(maximum_probability < estimate)
-            @warn "Hopping probability exceeded estimate!" maximum_probability estimate det_current Akk
-            error("The hopping probability should never exceed the estimate.")
+        if sim.method.estimate_probability
+            if !(maximum_probability < estimate)
+                @warn "Hopping probability exceeded estimate!" maximum_probability estimate det_current Akk
+                error("The hopping probability should never exceed the estimate.")
+            end
         end
     end
 
@@ -326,10 +337,10 @@ end
 function Estimators.diabatic_population(sim::Simulation{<:AdiabaticIESH}, u)
     ψ = DynamicsUtils.get_quantum_subsystem(u).re
 
-    eigen = Calculators.get_eigen(sim.calculator, DynamicsUtils.get_positions(u))
+    eigen = NQCCalculators.get_eigen(sim.cache, DynamicsUtils.get_positions(u))
     transformation = eigen.vectors
 
-    return iesh_diabatic_population(ψ, transformation, u.state)
+    return iesh_diabatic_population(ψ, transformation, sim.method.state)
 end
 
 """
@@ -358,8 +369,8 @@ function iesh_diabatic_population(ψ::AbstractMatrix, transformation::AbstractMa
 end
 
 function Estimators.adiabatic_population(sim::Simulation{<:AdiabaticIESH}, u)
-    population = zeros(NQCModels.nstates(sim.calculator.model))
-    population[u.state] .= 1
+    population = zeros(NQCModels.nstates(sim.cache.model))
+    population[round.(Int, u.state)] .= 1
     return population
 end
 
@@ -367,9 +378,10 @@ unpack_states(sim::AbstractSimulation{<:AbstractIESH}) = symdiff(sim.method.new_
 ishoppingdisabled(method::AbstractIESH) = method.disable_hopping
 
 function DynamicsUtils.classical_potential_energy(sim::Simulation{<:AbstractIESH}, u)
-    eigen = Calculators.get_eigen(sim.calculator, DynamicsUtils.get_positions(u))
-    potential = NQCModels.state_independent_potential(sim.calculator.model, DynamicsUtils.get_positions(u))
-    for i in u.state
+    NQCCalculators.update_cache!(sim.cache, DynamicsUtils.get_positions(u)) # Ensure eigen is populated
+    eigen = NQCCalculators.get_eigen(sim.cache, DynamicsUtils.get_positions(u))
+    potential = NQCModels.state_independent_potential(sim.cache.model, DynamicsUtils.get_positions(u))
+    for i in sim.method.state
         potential += eigen.values[i]
     end
     return potential
@@ -387,8 +399,8 @@ end
 function iesh_execute_hop!(integrator)
     sim = integrator.p
     if rescale_velocity!(sim, integrator.u)
-        set_state!(integrator.u, sim.method.new_state)
-        set_state!(sim.method, sim.method.new_state)
+        set_state!(integrator.u, sim.method.new_state, sim)
+        set_state!(sim.method, sim.method.new_state, sim)
         set_unoccupied_states!(sim)
     end
     return nothing
@@ -420,7 +432,7 @@ end
 function iesh_apply_decoherence_correction_edc!(integrator)
     sim = integrator.p
     dt = OrdinaryDiffEq.get_proposed_dt(integrator)
-    eigen = Calculators.get_eigen(sim.calculator, DynamicsUtils.get_positions(integrator.u))
+    eigen = NQCCalculators.get_eigen(sim.cache, DynamicsUtils.get_positions(integrator.u))
     Ekin = DynamicsUtils.classical_kinetic_energy(sim, integrator.u)
     ψ = DynamicsUtils.get_quantum_subsystem(integrator.u)
     @views for (i, state) in enumerate(sim.method.state)
@@ -428,3 +440,6 @@ function iesh_apply_decoherence_correction_edc!(integrator)
     end
 end
 
+function set_state!(container, new_state::AbstractVector, sim::AbstractSimulation{<:AbstractIESH})
+    container.state .= new_state
+end

@@ -1,11 +1,12 @@
 ```@setup logging
-@info "Expanding src/api/NQCDynamics/calculators.md..."
+@info "Expanding src/api/NQCModels/adiabaticmodels.md..."
 start_time = time()
 ```
-# Calculators
+
+# BathDiscretisations
 
 ```@autodocs
-Modules=[NQCDynamics.Calculators]
+Modules=[NQCModels.BathDiscretisations]
 ```
 ```@setup logging
 runtime = round(time() - start_time; digits=2)

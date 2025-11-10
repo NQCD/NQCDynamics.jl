@@ -17,6 +17,10 @@ struct BCOCBCache{U,A,K,uEltypeNoUnits,F} <: StochasticDiffEq.StochasticDiffEqMu
     friction::F
 end
 
+OrdinaryDiffEqCore.isfsal(::BCOCB) = false
+
+OrdinaryDiffEqCore.get_fsalfirstlast(cache::BCOCBCache, u::Any) = (nothing, nothing)
+
 function StochasticDiffEq.alg_cache(::BCOCB,prob,u,ΔW,ΔZ,p,rate_prototype,noise_rate_prototype,jump_rate_prototype,uEltypeNoUnits,uBottomEltypeNoUnits,tTypeNoUnits,uprev,f,t,dt,::Type{Val{true}})
     tmp = zero(u)
     rtmp = zero(u.x[1])
@@ -82,18 +86,18 @@ function FrictionCache(sim::RingPolymerSimulation{<:DynamicsMethods.ClassicalMet
     LangevinCache(c1, c2, sqrtmass, σ)
 end
 
-function StochasticDiffEq.initialize!(integrator, cache::BCOCBCache)
+function StochasticDiffEq.initialize!(integrator, integrator_cache::BCOCBCache)
     (;t, p) = integrator
     v, r = integrator.uprev.x
-    integrator.f.f1(cache.k, v, r, p, t)
+    integrator.f.f1(integrator_cache.k, v, r, p, t)
 end
 
-@muladd function StochasticDiffEq.perform_step!(integrator,cache::BCOCBCache,f=integrator.f)
+@muladd function StochasticDiffEq.perform_step!(integrator, integrator_cache::BCOCBCache, f=integrator.f)
     (;t,p) = integrator
-    (;vtmp, cayley, halfdt, friction) = cache
+    (;vtmp, cayley, halfdt, friction) = integrator_cache
 
     vprev, rprev = integrator.uprev.x
-    acceleration = cache.k
+    acceleration = integrator_cache.k
     v, r, vtmp = OrdinaryDiffEq.alloc_symp_state(integrator)
 
     copy!(r, rprev)

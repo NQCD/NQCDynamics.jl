@@ -15,8 +15,8 @@ using NQCDynamics:
     AbstractSimulation,
     Simulation,
     RingPolymerSimulation,
-    Calculators,
     masses
+using NQCCalculators
 
 """
     divide_by_mass!(dv, masses)
@@ -35,7 +35,12 @@ multiply_by_mass!(dv, masses) = dv .*= masses'
 Write the velocity `v` into `dr`.
 Has extra arguments to work with `Dynamical(O/S)DEProblem`s.
 """
-velocity!(dr, v, r, sim, t) = dr .= v
+function velocity!(dr, v, r, sim, t)
+    @inbounds for i in eachindex(dr)
+        dr[i] = v[i]
+    end
+    return nothing
+end
 
 function acceleration! end
 
@@ -131,12 +136,14 @@ function classical_potential_energy(sim::AbstractSimulation, u)
 end
 
 function classical_potential_energy(sim::Simulation, r::AbstractMatrix)
-    Calculators.get_potential(sim.calculator, r)
+    NQCCalculators.update_potential!(sim.cache, r)
+    return NQCCalculators.get_potential(sim.cache, r)[1]
 end
 
 function classical_potential_energy(sim::RingPolymerSimulation, r::AbstractArray{T,3}) where {T}
-    V = Calculators.get_potential(sim.calculator, r)
-    return sum(V)
+    NQCCalculators.update_potential!(sim.cache, r)
+    V = NQCCalculators.get_potential(sim.cache, r)
+    return sum(V)[1]
 end
 
 function get_hopping_eigenvalues end
@@ -165,7 +172,26 @@ end
 
 fermi(ϵ, μ, β) = 1 / (1 + exp(β*(ϵ-μ)))
 
-function sample_fermi_dirac_distribution(energies, nelectrons, available_states, β)
+
+function sample_fermi_dirac_distribution(energies, nelectrons, available_states, β, μ) #Uses ratio of Fermi probabilities
+    nstates = length(available_states)
+    state = collect(Iterators.take(available_states, nelectrons))
+    for _ in 1:(nstates * nelectrons)
+        current_index = rand(eachindex(state))
+        i = state[current_index] # Pick random occupied state
+        j = rand(setdiff(available_states, state)) # Pick random unoccupied state
+        f1 = 1/(exp((energies[i]-μ)β)+1)
+        f2 = 1/(exp((energies[j]-μ)β)+1)
+        prob = f2/f1 # Calculate Boltzmann factor
+        if prob > rand()
+            state[current_index] = j # Set unoccupied state to occupied
+        end
+    end
+    sort!(state)
+    return state
+end
+
+function sample_fermi_dirac_distribution(energies, nelectrons, available_states, β) # Uses Boltzmann Factor
     nstates = length(available_states)
     state = collect(Iterators.take(available_states, nelectrons))
     for _ in 1:(nstates * nelectrons)

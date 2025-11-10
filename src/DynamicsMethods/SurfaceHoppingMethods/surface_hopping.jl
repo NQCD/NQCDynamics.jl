@@ -9,14 +9,26 @@ end
 function execute_hop!(integrator)
     sim = integrator.p
     if rescale_velocity!(sim, integrator.u)
-        set_state!(integrator.u, sim.method.new_state)
-        set_state!(sim.method, sim.method.new_state)
+        set_state!(integrator.u, sim.method.new_state, sim)
+        set_state!(sim.method, sim.method.new_state, sim)
     end
     return nothing
 end
 
-set_state!(container, new_state::Integer) = container.state = new_state
-set_state!(container, new_state::AbstractVector) = copyto!(container.state, new_state)
+function set_state!(container, new_state::Number, sim::AbstractSimulation{<:SurfaceHopping})
+    container.state = convert(typeof(container.state), new_state)
+end
+function set_state!(container::SurfaceHoppingVariables, new_state::Number, sim::AbstractSimulation{<:SurfaceHopping})
+    container.state[1] = convert(eltype(container.state), new_state)
+end
+function set_state!(container, new_state::AbstractVector, sim::AbstractSimulation{<:SurfaceHopping})
+    if isa(container.state, AbstractVector)
+        copyto!(container.state, convert(typeof(container.state), new_state))
+    else
+        container.state = convert(typeof(container.state), first(new_state))
+    end
+end
+
 set_new_state!(container, new_state::Integer) = container.new_state = new_state
 set_new_state!(container, new_state::AbstractVector) = copyto!(container.new_state, new_state)
 
@@ -49,26 +61,27 @@ Rescale the velocity in the direction of the nonadiabatic coupling.
 
 [HammesSchiffer1994](@cite)
 """
-function rescale_velocity!(sim::AbstractSimulation{<:SurfaceHopping}, u)::Bool
+function rescale_velocity!(sim::AbstractSimulation{<:SurfaceHopping}, u)::Bool #23 allocations total
     sim.method.rescaling === :off && return true #no rescaling so always accept hop
 
-    new_state, old_state = unpack_states(sim)
+    new_state, old_state = unpack_states(sim) #symdiff is awful 21 allocations, could replace this by creating a mask, needs adding to simulation or method
     velocity = DynamicsUtils.get_hopping_velocity(sim, DynamicsUtils.get_velocities(u))
     r = DynamicsUtils.get_positions(u)
     eigs = DynamicsUtils.get_hopping_eigenvalues(sim, r)
     
-    d = extract_nonadiabatic_coupling(DynamicsUtils.get_hopping_nonadiabatic_coupling(sim, r), new_state, old_state)
+    d = extract_nonadiabatic_coupling(DynamicsUtils.get_hopping_nonadiabatic_coupling(sim, r), new_state, old_state) #2 allocations
     a = calculate_a(sim, d)
     b = calculate_b(d, velocity)
     c = calculate_potential_energy_change(eigs, new_state, old_state)
 
     discriminant = b^2 - 4a * c
     if discriminant < 0 # frustrated hop
-        if sim.method.rescaling == :standard
+        rescaling = sim.method.rescaling
+        if rescaling === :standard
             # Frustrated hop with insufficient kinetic energy, no velocity inversion
             # Follow 1990 Tully recipe and do nothing
             return false 
-        elseif sim.method.rescaling == :vinversion
+        elseif rescaling === :vinversion
             # Frustrated hop with insufficient kinetic energy
             # perform inversion of the velocity component along the nonadiabatic coupling vector
             frustrated_hop_invert_velocity!(sim, DynamicsUtils.get_velocities(u), d)
@@ -76,17 +89,13 @@ function rescale_velocity!(sim::AbstractSimulation{<:SurfaceHopping}, u)::Bool
         else   
             throw(error("This mode of rescaling is not implemented"))
         end
-    else     #sufficient energy for hopping
-        root = sqrt(discriminant)
-        if b < 0
-            γ = (b + root) / 2a
-        else
-            γ = (b - root) / 2a
-        end
-        perform_rescaling!(sim, DynamicsUtils.get_velocities(u), γ, d)
+    end 
+    #sufficient energy for hopping
+    root = sqrt(discriminant)
+    γ = (b < 0) ? (b + root) / (2a) : (b - root) / (2a)
+    perform_rescaling!(sim, DynamicsUtils.get_velocities(u), γ, d)
 
-        return true
-    end
+    return true
 end
 
 """
@@ -154,6 +163,6 @@ function frustrated_hop_invert_velocity!(
     return nothing
 end
 
-function calculate_potential_energy_change(eigs::AbstractVector, new_state::Integer, current_state::Integer)
-    return eigs[new_state] - eigs[current_state]
+function calculate_potential_energy_change(eigs::AbstractVector, new_state::Integer, old_state::Integer)
+    return eigs[new_state] - eigs[old_state]
 end

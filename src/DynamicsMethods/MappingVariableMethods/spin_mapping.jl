@@ -67,10 +67,11 @@ function acceleration!(dv, u, sim::Simulation{<:SpinMappingW})
     r = DynamicsUtils.get_positions(u)
 
     # Set state-independent force
-    NQCModels.state_independent_derivative!(sim.calculator.model, dv, r)
+    NQCModels.state_independent_derivative!(sim.cache.model, dv, r)
     lmul!(-1, dv)
 
-    ∂V = Calculators.get_derivative(sim.calculator, r)
+    NQCDynamics.NQCCalculators.update_cache!(sim.cache, r) # Ensure derivative is updated
+    ∂V = NQCCalculators.get_derivative(sim.cache, r)
     X = get_mapping_positions(u)
     P = get_mapping_momenta(u)
     γ = sim.method.γ
@@ -90,8 +91,9 @@ function acceleration!(dv, u, sim::Simulation{<:SpinMappingW})
 end
 
 function set_mapping_force!(du, u, sim::Simulation{<:SpinMappingW})
+    NQCDynamics.NQCCalculators.update_cache!(sim.cache, NQCDynamics.get_positions(u))
     r = DynamicsUtils.get_positions(u)
-    V = Calculators.get_potential(sim.calculator, r)
+    V = NQCCalculators.get_potential(sim.cache, r)
     mul!(get_mapping_positions(du), V, get_mapping_momenta(u))
     mul!(get_mapping_momenta(du), V, get_mapping_positions(u))
     lmul!(-1, get_mapping_momenta(du))
@@ -102,10 +104,11 @@ function DynamicsUtils.classical_potential_energy(sim::Simulation{<:SpinMappingW
     r = DynamicsUtils.get_positions(u)
     X = get_mapping_positions(u)
     P = get_mapping_momenta(u)
-    V = Calculators.get_potential(sim.calculator, r)
+    NQCDynamics.NQCCalculators.update_cache!(sim.cache, r) # Ensure potential is updated
+    V = NQCCalculators.get_potential(sim.cache, r)
     γ = sim.method.γ
 
-    potential = NQCModels.state_independent_potential(sim.calculator.model, r)
+    potential = NQCModels.state_independent_potential(sim.cache.model, r)
     for i in eachindex(X,P)
         potential += V[i,i] * (X[i]^2 + P[i]^2 - γ) / 2
         for j=i+1:length(X)

@@ -1,7 +1,5 @@
 
-OrdinaryDiffEq.isfsal(::BABwithTsit5) = false
-
-mutable struct BABwithTsit5Cache{uType,vType,rateType,E} <: OrdinaryDiffEq.OrdinaryDiffEqMutableCache
+mutable struct BABwithTsit5Cache{uType,vType,rateType,E} <: OrdinaryDiffEqCore.OrdinaryDiffEqMutableCache
     u::uType
     uprev::uType
     tmp::uType
@@ -10,7 +8,26 @@ mutable struct BABwithTsit5Cache{uType,vType,rateType,E} <: OrdinaryDiffEq.Ordin
     electronic_integrator::E
 end
 
-function OrdinaryDiffEq.alg_cache(alg::BABwithTsit5,u,rate_prototype,::Type{uEltypeNoUnits},::Type{uBottomEltypeNoUnits},::Type{tTypeNoUnits},uprev,uprev2,f,t,dt,reltol,p,calck,inplace::Val{true}) where {uEltypeNoUnits,uBottomEltypeNoUnits,tTypeNoUnits}
+OrdinaryDiffEqCore.isfsal(::BABwithTsit5) = false
+
+OrdinaryDiffEqCore.get_fsalfirstlast(cache::BABwithTsit5Cache, u::Any) = (nothing, nothing)
+
+function OrdinaryDiffEqCore.alg_cache(
+    alg::BABwithTsit5,u,rate_prototype,
+    ::Type{uEltypeNoUnits},
+    ::Type{uBottomEltypeNoUnits},
+    ::Type{tTypeNoUnits},
+    uprev,
+    uprev2,
+    f,
+    t,
+    dt,
+    reltol,
+    p,
+    calck,
+    inplace::Val{true}
+    ) where {uEltypeNoUnits,uBottomEltypeNoUnits,tTypeNoUnits}
+    
     tmp = zero(u)
     vtmp = zero(DynamicsUtils.get_velocities(u))
     k = zero(DynamicsUtils.get_positions(rate_prototype))
@@ -28,20 +45,20 @@ function OrdinaryDiffEq.alg_cache(alg::BABwithTsit5,u,rate_prototype,::Type{uElt
     BABwithTsit5Cache(u, uprev, tmp, vtmp, k, electronic_integrator)
 end
 
-function OrdinaryDiffEq.initialize!(integrator, cache::BABwithTsit5Cache)
+function OrdinaryDiffEqCore.initialize!(integrator, integrator_cache::BABwithTsit5Cache)
 
     r = DynamicsUtils.get_positions(integrator.u)
     v = DynamicsUtils.get_velocities(integrator.u)
     σprev = DynamicsUtils.get_quantum_subsystem(integrator.u)
-    Calculators.update_electronics!(integrator.p.calculator, r)
+    NQCCalculators.update_cache!(integrator.p.cache, r)
     if integrator.p.method isa DynamicsMethods.EhrenfestMethods.AbstractEhrenfest
-        DynamicsUtils.acceleration!(cache.k, v, r, integrator.p, integrator.t, σprev)
+        DynamicsUtils.acceleration!(integrator_cache.k, v, r, integrator.p, integrator.t, σprev)
     elseif integrator.p.method isa DynamicsMethods.SurfaceHoppingMethods.SurfaceHopping
-        DynamicsUtils.acceleration!(cache.k, v, r, integrator.p, integrator.t, integrator.p.method.state)
+        DynamicsUtils.acceleration!(integrator_cache.k, v, r, integrator.p, integrator.t, integrator.p.method.state)
     end
 end
 
-@muladd function OrdinaryDiffEq.perform_step!(integrator, cache::BABwithTsit5Cache, repeat_step=false)
+@muladd function OrdinaryDiffEqCore.perform_step!(integrator, cache::BABwithTsit5Cache, repeat_step=false)
     @unpack t, dt, uprev, u, p = integrator
     @unpack k, vtmp, electronic_integrator = cache
 
@@ -55,7 +72,7 @@ end
     step_B!(vtmp, vprev, dt/2, k)
     step_A!(rfinal, rprev, dt, vtmp)
 
-    Calculators.update_electronics!(p.calculator, rfinal)
+    NQCCalculators.update_cache!(p.cache, rfinal)
     if p.method isa DynamicsMethods.EhrenfestMethods.AbstractEhrenfest
        DynamicsUtils.acceleration!(k, vtmp, rfinal, p, t, σprev)
     elseif p.method isa DynamicsMethods.SurfaceHoppingMethods.SurfaceHopping
@@ -63,8 +80,8 @@ end
     end
     step_B!(DynamicsUtils.get_velocities(u), vtmp, dt/2, k)
 
-    d = Calculators.get_nonadiabatic_coupling(p.calculator, rfinal)
-    vals = Calculators.get_eigen(p.calculator, rfinal).values
+    d = NQCCalculators.get_nonadiabatic_coupling(p.cache, rfinal)
+    vals = NQCCalculators.get_eigen(p.cache, rfinal).values
     DynamicsMethods.update_parameters!(electronic_integrator.p, vals, d, vfinal, t+dt)
 
     density_matrix = DynamicsUtils.get_quantum_subsystem(u)

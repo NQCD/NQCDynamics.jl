@@ -47,6 +47,9 @@ makes the implementation of new methods relatively simple since we
 build upon an already successful package providing a vast array of features.
 We hope that the package will be of use to new students and experienced researchers alike, acting as a tool for learning and for developing new methods.
 
+> [!NOTE]
+> [ACEregistry](https://github.com/ACEsuit/ACEregistry) must be installed if you are running Julia < v1.11. 
+
 --- 
 
 If you find this package to be useful, please cite the following paper:

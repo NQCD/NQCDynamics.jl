@@ -7,6 +7,8 @@ on:
     branches: [main]
     tags: '*'
   pull_request:
+  release:
+    types: [published]
 
 jobs:
   Documenter:
@@ -28,7 +30,6 @@ jobs:
       - name: Add registries
         run: |
           using Pkg
-          Pkg.Registry.add(RegistrySpec(url="https://github.com/NQCD/NQCRegistry"))
           Pkg.Registry.add(RegistrySpec(url="https://github.com/JuliaMolSim/MolSim"))
           Pkg.Registry.add(RegistrySpec(url="https://github.com/ACEsuit/ACEregistry"))
           Pkg.Registry.add(RegistrySpec(name="General"))
@@ -40,7 +41,7 @@ jobs:
       - name: Dev dependencies
         run: |
           using Pkg
-          Pkg.develop([(;path=pwd()), (;name="NQCModels")])
+          Pkg.develop(;path=".")
           Pkg.instantiate()
         shell: julia --color=yes --project=docs/ {0}
 

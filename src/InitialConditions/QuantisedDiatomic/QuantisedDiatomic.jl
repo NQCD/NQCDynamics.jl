@@ -31,10 +31,11 @@ using TimerOutputs: TimerOutputs, @timeit
 using ProgressMeter
 using Interpolations: interpolate, BSpline, Cubic, Line, OnGrid, scale, hessian, knots
 
-using NQCDynamics: Simulation, Calculators, DynamicsUtils, masses
+using NQCDynamics: Simulation, DynamicsUtils, masses
+using NQCCalculators
 using NQCBase: Atoms, PeriodicCell, InfiniteCell
 using NQCModels: NQCModels
-using NQCModels.AdiabaticModels: AdiabaticModel
+using NQCModels.ClassicalModels: ClassicalModel
 
 export generate_configurations
 export quantise_diatomic
@@ -105,7 +106,7 @@ function generate_configurations(sim, ν, J;
     generation = GenerationParameters(direction, austrip(translational_energy), samples)
     environment = EvaluationEnvironment(atom_indices, size(sim), slab, austrip(height), surface_normal)
 
-    binding_curve = calculate_binding_curve(bond_lengths, sim.calculator.model, environment)
+    binding_curve = calculate_binding_curve(bond_lengths, sim.cache.model, environment)
     plot_binding_curve(binding_curve.bond_lengths, binding_curve.potential, binding_curve.fit)
 
     V = EffectivePotential(μ, J, binding_curve, langer_modification)
@@ -122,7 +123,7 @@ function generate_configurations(sim, ν, J;
     configure_diatomic.(sim, bonds, velocities, J, environment, generation, μ)
 end
 
-function generate_1D_vibrations(model::AdiabaticModel, μ::Real, ν::Integer;
+function generate_1D_vibrations(model::ClassicalModel, μ::Real, ν::Integer;
     samples=1000, bond_lengths=0.5:0.01:5.0, langer_modification=false
 )
 
@@ -270,7 +271,7 @@ function binding_curve_from_structure(sim::Simulation, v::Matrix, r::Matrix;
     v, slab_v = separate_slab_and_molecule(atom_indices, v)
     environment = EvaluationEnvironment(atom_indices, size(sim), slab, austrip(height), surface_normal)
 
-    binding_curve = calculate_binding_curve(bond_lengths, sim.calculator.model, environment)
+    binding_curve = calculate_binding_curve(bond_lengths, sim.cache.model, environment)
     @debug "Finished generating binding curve for the given potential."
 
     return binding_curve
@@ -422,7 +423,7 @@ function quantise_diatomic(sim::Simulation, v::Matrix, r::Matrix, binding_curve:
 
     k = DynamicsUtils.classical_kinetic_energy(masses(sim)[atom_indices], v_com)
     @debug "Diatomic Kinetic energy: $(auconvert(u"eV", k))"
-    p = calculate_diatomic_energy(bond_length(r_com), sim.calculator.model, environment)
+    p = calculate_diatomic_energy(bond_length(r_com), sim.cache.model, environment)
     @debug "Diatomic Potential energy: $(auconvert(u"eV", p))"
     E = k + p
 
@@ -472,7 +473,7 @@ function quantise_diatomic(sim::Simulation, v::Matrix, r::Matrix, binding_curve:
     end
 end
 
-function quantise_1D_vibration(model::AdiabaticModel, μ::Real, r::Real, v::Real;
+function quantise_1D_vibration(model::ClassicalModel, μ::Real, r::Real, v::Real;
     bond_lengths=0.5:0.01:5.0, reset_timer=false, show_timer=false, langer_modification=false
 )
     reset_timer && TimerOutputs.reset_timer!(TIMER)

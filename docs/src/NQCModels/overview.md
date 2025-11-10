@@ -5,15 +5,9 @@ start_time = time()
 
 # NQCModels.jl
 
-!!! details "Overview of all model types currently implemented."
-
-    ```@raw html
-    <img src="../assets/figures/Model_types.svg"  width=100% caption="Overview of all Model types currently implemented.">
-    ```
-
 To perform nonadiabatic molecular dynamics simulations, it is necessary to define
 the system Hamiltonian.
-For simple models, this often comes in the form of small matrix in the diabatic
+For simple models, this often comes in the form of a small matrix in the diabatic
 representation but equally the electronic Hamiltonian could be obtained directly
 from _ab initio_ electronic structure theory.
 
@@ -22,8 +16,8 @@ for defining these models that is flexible enough to allow for a wide range
 of specifications and requirements.
 `NQCDynamics.jl` uses this interface to obtain the potentials
 and couplings necessary to perform the dynamics simulations.
-Along with the minimal interface, `NQCModels.jl` also provides a small
-set of popular models often used in the field of nonadiabatic dynamics.
+Along with the minimal interface, `NQCModels.jl` also provides a library of 
+popular models often used in the field of nonadiabatic dynamics.
 
 !!! note
 
@@ -32,23 +26,24 @@ set of popular models often used in the field of nonadiabatic dynamics.
 
 Depending on the quantities provided by the `Model`, we use Julia's abstract type system
 to group models that provide the same quantities.
-Currently, there are two top-level abstract types: [`AdiabaticModel`](@ref NQCModels.AdiabaticModels.AdiabaticModel)
-and [`DiabaticModel`](@ref NQCModels.DiabaticModels.DiabaticModel).
-The [`AdiabaticModel`](@ref NQCModels.AdiabaticModels.AdiabaticModel)
-is used for adiabatic dynamics, providing only the potential
-and force used in classical mechanics.
-The [`DiabaticModel`](@ref NQCModels.DiabaticModels.DiabaticModel) is used for nonadiabatic dynamics,
-where the potential is instead a `Hermitian` matrix.
+Currently, there are two top-level abstract types: [`ClassicalModel`](@ref ClassicalModels.ClassicalModel)
+and [`QuantumModel`](@ref QuantumModels.QuantumModel).
+The [`ClassicalModel`](@ref ClassicalModels.ClassicalModel)
+is used for adiabatic dynamics, providing only a classical potential in 
+the form of an analytical function and its derivative, the force used in 
+classical mechanics.
+The [`QuantumModel`](@ref QuantumModels.QuantumModel) is used for nonadiabatic dynamics,
+where the potential is no longer an analytical function but instead a `Hermitian` matrix.
 
 ## Using `Model`s
 
 In the [Getting started](@ref) section we briefly touched on how the
-[`AdiabaticModel`](@ref NQCModels.AdiabaticModels.AdiabaticModel)
+[`ClassicalModel`](@ref ClassicalModels.ClassicalModel)
 works and introduced one of the included models.
-Here let's take a look at a [`DiabaticModel`](@ref NQCModels.DiabaticModels.DiabaticModel),
+Here let's take a look at a [`QuantumModel`](@ref QuantumModels.QuantumModel),
 which is more appropriate for nonadiabatic dynamics.
 
-The [`DoubleWell`](@ref) is a two state, 1 dimensional model where each state is harmonic
+The [`DoubleWell`](@ref) is a one-dimensional model with two electronic states, where each electronic state is harmonic
 with linear coupling to the single degree of freedom.
 
 ```@example diabaticmodel
@@ -57,35 +52,43 @@ using NQCModels
 model = DoubleWell()
 ```
 
-Our [`DoubleWell`](@ref) implements the functions [`potential`](@ref), [`derivative`](@ref),
-[`nstates`](@ref) and [`ndofs`](@ref)
+Our [`DoubleWell`](@ref) implements the functions [`potential`](@ref) and [`derivative`](@ref), 
+their in-place versions, [`nstates`](@ref) and [`ndofs`](@ref)
 that return the potential, the derivative of the potential, the number of states,
 and the number of degrees of freedom, respectively.
 
 ```@repl diabaticmodel
-potential(model, 0.2)
-derivative(model, 0.2)
+p = potential(model, hcat(0.2))
+d = derivative(model, hcat(0.2))
+
+potential!(model, p, hcat(0.5))
+derivative!(model, d, hcat(0.5))
+
 nstates(model)
 ndofs(model)
 ```
 
-Since this is a 1D model, the position argument that appears in the derivative and the potential
-is a real number.
-For higher dimensional models with multiple atoms, the position will need to be provided as
-an `AbstractMatrix`.
+In general the position argument that appears in the derivative and the potential
+will need to be provided as an `AbstractMatrix` with dimensions `dofs`x`natoms`.
+In the case of 1D models of a single atom, `potential` and `derivative` accept a 
+position of type `Real`, but for the most consistent results it's recommended that 
+the user wraps real valued positions in 1x1 matrices using the `hcat` function.
 
 To understand how this can extend to another dimension, we can take a quick look at the
 [`GatesHollowayElbow`](@ref) model which is another two state diabatic model, but this
 one uses two dimensions to model a diatomic molecule interacting with a surface.
-The two coordinates are the molecular bond length and the distance from the surface.
-Technically, the model has been defined such that there are two atoms, each with only a
-single degree of freedom.
-This allows us to use different masses for each of the coordinates when performing dynamics.
+The two degrees of freedom are the molecular bond length and the distance from the surface 
+respectively and so the `potential` and `derivative` functions accept a position argument 
+with two values, one for each degree of freedom.
 
 ```@repl diabaticmodel
 model = GatesHollowayElbow()
-potential(model, [1.0 1.0])
-derivative(model, [1.0 1.0])
+p = potential(model, [1.0 1.0])
+d = derivative(model, [1.0 1.0])
+
+potential!(model, p, [1.2 0.5])
+derivative!(model, d, [1.2 0.5])
+
 nstates(model)
 ndofs(model)
 ```
@@ -93,8 +96,9 @@ ndofs(model)
 Here we see how the derivative now becomes a `Matrix` with size matching our input,
 but each entry is a `Hermitian` containing the elementwise derivative of the potential
 with respect to each degree of freedom.
-In this case, the `Matrix` has `size = (1, 2)`, but it should be clear how this can extend
-to arbitrary numbers of atoms and degrees of freedom for complex models.
+In this case, the `Matrix` has `size = (1, 2)`, and in general the dimensions of the `Matrix`
+that wraps the `Hermitian` derivatives should match the dimensions of the position `Matrix`
+a given model takes as input.
 
 ## Included models
 

@@ -52,12 +52,6 @@ For classical dynamics, this would include only the positions and velocities,
 however, for [FSSH](@ref fssh-dynamics) we must also include the continuous electronic variables
 and the discrete state.
 
-!!! note "Discrete variables"
-    Some methods such as [FSSH](@ref fssh-dynamics) have discontinuous variables, like the current occupied state.
-    Discrete variables be handled separately using [DEDataArrays.jl](https://github.com/SciML/DEDataArrays.jl).
-    For surface hopping methods, we have the `SurfaceHoppingVariables` type that uses this to combine a `ComponentVector`
-    containing the continuous variables and the discrete state label.
-
 For our new method, `MyMethod`, we implement the `DynamicsVariables` function and return a `ComponentVector` containing
 the velocities, positions and extra variables `x`.
 Inside this function we are free to take any inputs and manipulate them before returning the result.

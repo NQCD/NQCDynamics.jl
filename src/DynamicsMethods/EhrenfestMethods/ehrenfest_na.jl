@@ -41,6 +41,9 @@ function DynamicsMethods.DynamicsVariables(sim::AbstractSimulation{<:EhrenfestNA
 end
 
 function DynamicsMethods.DynamicsVariables(sim::AbstractSimulation{<:EhrenfestNA}, v, r, electronic::FermiDiracState{Adiabatic})
+    tmp_v = copy(v)
+    tmp_r = copy(r)
+    
     ef_model = NQCModels.fermilevel(sim)
     ef_distribution = electronic.fermi_level
     ef_model ≈ ef_distribution || throw(error(
@@ -52,7 +55,8 @@ function DynamicsMethods.DynamicsVariables(sim::AbstractSimulation{<:EhrenfestNA
         """
     ))
 
-    eigenvalues = DynamicsUtils.get_hopping_eigenvalues(sim, r)
+    # NQCDynamics.NQCCalculators.update_cache!(sim.cache, tmp_r)
+    eigenvalues = DynamicsUtils.get_hopping_eigenvalues(sim, tmp_r)
 
     available_states = DynamicsUtils.get_available_states(electronic.available_states, NQCModels.nstates(sim))
     state = DynamicsUtils.sample_fermi_dirac_distribution(eigenvalues, NQCModels.nelectrons(sim), available_states, electronic.β)
@@ -62,15 +66,15 @@ function DynamicsMethods.DynamicsVariables(sim::AbstractSimulation{<:EhrenfestNA
         ψ[j,i] = 1
     end
 
-    ComponentVector(v=v, r=r, σreal=ψ, σimag=zero(ψ))
+    ComponentVector(v=Float64.(tmp_v), r=Float64.(tmp_r), σreal=Float64.(ψ), σimag=zero(ψ))
 end
 
 function DynamicsUtils.acceleration!(dv, v, r, sim::Simulation{<:EhrenfestNA}, t, ψ)
     fill!(dv, zero(eltype(dv)))
-    NQCModels.state_independent_derivative!(sim.calculator.model, dv, r)
+    NQCModels.state_independent_derivative!(sim.cache.model, dv, r)
     LinearAlgebra.lmul!(-1, dv)
 
-    adiabatic_derivative = Calculators.get_adiabatic_derivative(sim.calculator, r)
+    adiabatic_derivative = NQCCalculators.get_adiabatic_derivative(sim.cache, r)
     @inbounds for i in mobileatoms(sim)
         for j in dofs(sim)
             for electron in eachelectron(sim)
@@ -98,8 +102,8 @@ function DynamicsUtils.set_quantum_derivative!(dσ, u, sim::AbstractSimulation{<
 end
 
 function DynamicsUtils.classical_potential_energy(sim::Simulation{<:EhrenfestNA}, u)
-    eigen = Calculators.get_eigen(sim.calculator, DynamicsUtils.get_positions(u))
-    potential = NQCModels.state_independent_potential(sim.calculator.model, DynamicsUtils.get_positions(u))
+    eigen = NQCCalculators.get_eigen(sim.cache, DynamicsUtils.get_positions(u))
+    potential = NQCModels.state_independent_potential(sim.cache.model, DynamicsUtils.get_positions(u))
     ψ = DynamicsUtils.get_quantum_subsystem(u)
 
     for electron in eachelectron(sim)

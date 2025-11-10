@@ -16,14 +16,12 @@ intricacies of the implementations, hoping to make further contributions as simp
 - Highlight the advantages of Julia in the field of nonadiabatic dynamics
 - Encourage code sharing and reuse within the nonadiabatic dynamics community
 
-Reproducibility is a pressing issue in the field of theoretical chemistry and physics as often studies either do not attempt to provide all necessary data or code for full reproducibility of the work. This can lead to difficulties when attempting to better understand the theory and implementation of the method and makes it difficult for students not only to learn existing models and theories, but also to improve and extend these. 
-This project provides implementations for existing dynamics methods along with
-a framework that can be used for future research with the goal of encouraging greater
-code sharing and reuse within the nonadiabatic dynamics community.
+Reproducibility is a pressing issue in the fields of theoretical chemistry and computational materials physics as many studies do not provide all necessary data or code for full reproducibility of the work. This can lead to difficulties when attempting to better understand the theory and implementation of the method and makes it difficult for students to learn existing models and theories, but also to improve upon them. 
+This project provides implementations for existing dynamics methods along with a framework that can be used for future research with the goal of encouraging greater code sharing and reuse within the nonadiabatic dynamics community.
 
 ### Features
 
-Here we provide a list of currently implemented features of the code.
+Here we provide a list of some of the currently implemented features of the code. 
 We encourage contributions and implementations of methods. To do so, please open up an
 issue/pull request on Github!
 
@@ -31,12 +29,14 @@ issue/pull request on Github!
 
 - [Classical molecular dynamics](@ref classical-dynamics)
 - [Classical Langevin dynamics](@ref langevin-dynamics)
+- [Ehrenfest molecular dynamics](@ref ehrenfest-dynamics)
 - [Fewest-switches surface hopping (FSSH)](@ref fssh-dynamics)
+- [Independent Electron Surface Hopping (IESH)](@ref iesh-dynamics)
 - [Molecular dynamics with electronic friction (MDEF)](@ref mdef-dynamics)
 - [Ring polymer molecular dynamics (RPMD)](@ref rpmd-dynamics)
 - [Nonadiabatic ring polymer molecular dynamics (NRPMD)](@ref nrpmd-dynamics)
 - [Ring polymer surface hopping (RPSH)](@ref rpsh-dynamics)
-- [Ehrenfest molecular dynamics](@ref ehrenfest-dynamics)
+
 
 #### Generating initial conditions
 
@@ -62,13 +62,13 @@ which significantly simplifies the implementation of new methods.
 
 #### 1. Install Julia
 Download and install the current stable release from the [Julia website](https://julialang.org/downloads/).
-For most platforms `julia` is provided as a precompiled binary and do not require any installation procedure. However, you need to specify the path to julia or create a symbolic link to the executable that is in your systempath. 
+For most platforms `julia` is provided as a precompiled binary and does not require any installation procedure. However, you need to specify the path to julia or create a symbolic link to the executable that is in your systempath. 
 
-#### 2. Install the `NQCRegistry`
-Since the package is not included in the default registry (`General`), we must first
-install the `NQCRegistry`.
-This gives access to the core `NQCDynamics` package along with some dependencies
-and add-ons.
+#### 2. OPTIONAL - Install the `NQCRegistry`
+The `NQCDynamics.jl` package is included in the default registry (`General`) and so can be installed according to step 3. 
+Most ussers can simply skip this step. For development purposes, it might be beneficial to add the NQCRegistry.
+
+The user may also install `NQCDynamics.jl` and its dependencies from the `NQCRegistry` which requires manually adding.
 First, enter the Julia REPL by executing `julia` from the command line.
 Then press `]` to enter `pkg` mode. The prompt should change from `julia>` to `pkg>`.
 Install the registry directly from Github with: 
@@ -85,7 +85,7 @@ pkg> registry add "https://github.com/NQCD/NQCRegistry"
     to the next step.
 
 #### 3. Install the package
-Now that the registry has been added, the package can be installed in the same way as any other registered Julia package:
+The package can be installed in the same way as any other registered Julia package:
 ```julia-repl
 pkg> add NQCDynamics
 ```
@@ -119,6 +119,20 @@ The first page to read is the [Getting started](@ref) section which walks throug
 needed to perform a conventional classical molecular dynamics simulation.
 After this, the reader is free to explore at their leisure since everything else builds directly
 upon sections from the [Getting started](@ref) page.
+
+### How to cite
+If you find this package to be useful, please cite the following paper:
+
+- J. Gardner et al., ["NQCDynamics.jl: A Julia package for nonadiabatic quantum classical molecular dynamics in the condensed phase", J. Chem. Phys. 156, 174801 (2022)](https://pubs.aip.org/aip/jcp/article-abstract/156/17/174801/2841279/NQCDynamics-jl-A-Julia-package-for-nonadiabatic?redirectedFrom=fulltext)
+
+When using the [independent-electron surface hopping (IESH)](@ref iesh-dynamics) implementation, please cite:
+
+- J. Gardner et al., ["Efficient implementation and performance analysis of the independent electron surface hopping method for dynamics at metal surfaces", J. Chem. Phys. 158, 064101 (2023)](https://pubs.aip.org/aip/jcp/article/158/6/064101/2874963/Efficient-implementation-and-performance-analysis)
+
+Benchmarking information of multiple mixed-quantum-classical (MQC) dynamics methods implemented within NQCD is given in the following paper:
+
+- J. Gardner et al., ["Assessing Mixed Quantum-Classical Molecular Dynamics Methods for Nonadiabatic Dynamics of Molecules on Metal Surfaces", J. Phys. Chem. C 127, 15257 (2023)](https://pubs.acs.org/doi/10.1021/acs.jpcc.3c03591)
+
 ```@setup logging
 runtime = round(time() - start_time; digits=2)
 @info "...done after $runtime s."

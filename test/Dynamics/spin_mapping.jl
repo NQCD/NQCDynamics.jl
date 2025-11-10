@@ -6,6 +6,11 @@ using NQCDynamics: DynamicsMethods, DynamicsUtils
 using NQCDynamics.DynamicsMethods.MappingVariableMethods
 using OrdinaryDiffEq
 using DiffEqDevTools
+import JSON
+
+benchmark_dir = get(ENV, "BENCHMARK_OUTPUT_DIR", "tmp/nqcd_benchmark")
+benchmark_results = Dict{String, Any}("title_for_plotting" => "SpinMapping Tests")
+
 Random.seed!(1)
 
 atoms = Atoms(1)
@@ -39,9 +44,16 @@ end
 end
 
 @testset "Algorithm comparison" begin
-    sol = run_dynamics(sim, (0, 3.0), u; output=OutputDynamicsVariables, dt=1e-2, algorithm=DynamicsMethods.IntegrationAlgorithms.MInt())
-    sol1 = run_dynamics(sim, (0, 3.0), u; output=OutputDynamicsVariables, algorithm=Tsit5(), reltol=1e-10, abstol=1e-10, saveat=sol[:Time])
+    dyn_test = @timed run_dynamics(sim, (0, 3.0), u; output=OutputDynamicsVariables, dt=1e-2, algorithm=DynamicsMethods.IntegrationAlgorithms.MInt())
+    sol = dyn_test.value
+    
+    dyn_test1 = @timed run_dynamics(sim, (0, 3.0), u; output=OutputDynamicsVariables, algorithm=Tsit5(), reltol=1e-10, abstol=1e-10, saveat=sol[:Time])
+    sol1 = dyn_test1.value
+    
     @test sol[:OutputDynamicsVariables] ≈ sol1[:OutputDynamicsVariables] rtol=1e-2
+    
+    benchmark_results["MInt"] = Dict("Time" => dyn_test.time, "Allocs" => dyn_test.bytes)
+    benchmark_results["Tsit5"] = Dict("Time" => dyn_test.time, "Allocs" => dyn_test.bytes)
 end
 
 @testset "MInt algorithm convergence" begin
@@ -55,3 +67,16 @@ end
     res = analyticless_test_convergence(dts, prob, alg, setup)
     @test res.𝒪est[:final] ≈ 2 atol=0.1
 end
+
+# Make benchmark directory if it doesn't already exist.
+if !isdir(benchmark_dir)
+    mkpath(benchmark_dir)
+    @info "Benchmark data ouput directory created at $(benchmark_dir)."
+else
+    @info "Benchmark data ouput directory exists at $(benchmark_dir)."
+end
+
+# Output benchmarking dict
+output_file = open("$(benchmark_dir)/SpinMapping.json", "w")
+JSON.print(output_file, benchmark_results)
+close(output_file)
