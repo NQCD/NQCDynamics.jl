@@ -164,7 +164,7 @@ We can plot the adiabatic populations to show how ``s(t)`` changes throughout th
 ```@example iesh
 using Plots
 
-energy_states = ustrip(auconvert.(u"eV",sim.cache.eigen.values))
+energy_states = ustrip(auconvert.(u"eV",sim.cache.eigen.w))
 
 plot(energy_states, result[:OutputAdiabaticPopulation][1], marker=:circle, linestyle=:solid, xlabel="bath states / eV", ylabel="Adiabatic Population", label="start")
 plot!(energy_states, result[:OutputAdiabaticPopulation][end], marker=:diamond, linestyle=:dash, label="end")

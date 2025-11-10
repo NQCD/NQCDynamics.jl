@@ -70,12 +70,12 @@ function minimum_distance_translation(config::Matrix, ind1::Int, ind2::Int, cell
     cells=1
     while !(distance_converged || cells==cutoff+1)
         translations=generate_translations(cells)
-        distances=map(x->norm(view(config, :,ind2)-view(config, :, ind1)+cell.vectors*x), translations)
+        distances=map(x->norm(view(config, :,ind2)-view(config, :, ind1)+cell.Z*x), translations)
         push!(min_distance, (min(distances...), argmin(distances)))
         @views distance_converged=length(min_distance)>1 ? min_distance[end][1]≈min_distance[end-1][1] : false
         cells+=1
     end
-    return cell.vectors*collect(generate_translations(cells-1))[min_distance[end][2]]
+    return cell.Z*collect(generate_translations(cells-1))[min_distance[end][2]]
 end
 
 

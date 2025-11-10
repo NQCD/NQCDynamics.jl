@@ -338,7 +338,7 @@ function Estimators.diabatic_population(sim::Simulation{<:AdiabaticIESH}, u)
     ψ = DynamicsUtils.get_quantum_subsystem(u).re
 
     eigen = NQCCalculators.get_eigen(sim.cache, DynamicsUtils.get_positions(u))
-    transformation = eigen.vectors
+    transformation = eigen.Z
 
     return iesh_diabatic_population(ψ, transformation, sim.method.state)
 end
@@ -382,7 +382,7 @@ function DynamicsUtils.classical_potential_energy(sim::Simulation{<:AbstractIESH
     eigen = NQCCalculators.get_eigen(sim.cache, DynamicsUtils.get_positions(u))
     potential = NQCModels.state_independent_potential(sim.cache.model, DynamicsUtils.get_positions(u))
     for i in sim.method.state
-        potential += eigen.values[i]
+        potential += eigen.w[i]
     end
     return potential
 end
@@ -436,7 +436,7 @@ function iesh_apply_decoherence_correction_edc!(integrator)
     Ekin = DynamicsUtils.classical_kinetic_energy(sim, integrator.u)
     ψ = DynamicsUtils.get_quantum_subsystem(integrator.u)
     @views for (i, state) in enumerate(sim.method.state)
-        apply_decoherence_correction!(ψ[:,i], sim.method.decoherence, state, dt, eigen.values, Ekin)
+        apply_decoherence_correction!(ψ[:,i], sim.method.decoherence, state, dt, eigen.w, Ekin)
     end
 end
 
