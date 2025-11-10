@@ -123,6 +123,7 @@ function positions_to_category(
 			end
 		end
 	end
+  @debug "Site distances:" sites = category_names distances = site_distances
 	if any(site_distances .≤ snap_to_site) # Check if any category is sufficiently close
 		return category_names[argmin(site_distances)] # Return the classified category
 	else
