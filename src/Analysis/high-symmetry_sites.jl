@@ -9,7 +9,8 @@ Base definitions for fcc metal surface facets are included, but there are option
 module HighSymmetrySites
 
 
-using NQCDynamics: AbstractSimulation, PeriodicCell, get_positions
+using NQCDynamics: AbstractSimulation, PeriodicCell, get_positions, NQCBase
+using LinearAlgebra: norm
 
 export SlabStructure, FCC100Sites, FCC110Sites, FCC111Sites, FCC211Sites, positions_to_category, classify_every_frame
 
@@ -108,7 +109,7 @@ function positions_to_category(
 )
 	position = first(position,2) # Ensure we only ever carry X and Y
 	category_names = collect(keys(categories))
-	if !check_atoms_in_cell(cell, hcat(position))
+	if !NQCBase.check_atoms_in_cell(cell, hcat(position))
 		return :other
 	else
 		position_copy = position
@@ -177,7 +178,7 @@ function classify_every_frame(
                 )[:, atom_index]
             )
             # Move into primitive unit cell
-            apply_cell_boundaries!(primitive_cell, position_H)
+            NQCBase.apply_cell_boundaries!(primitive_cell, position_H)
             position_H = vec(position_H)
             # Then categorise
             category = positions_to_category(
