@@ -1,7 +1,7 @@
 
 using NQCDynamics
 using Test
-using RecursiveArrayTools
+using RecursiveArrayTools: ArrayPartition
 using DiffEqBase: CallbackSet
 
 atoms = Atoms([:H])

@@ -2,7 +2,7 @@ using Test
 using NQCDynamics
 using Unitful
 using UnitfulAtomic
-using RecursiveArrayTools
+using RecursiveArrayTools: ArrayPartition
 using LinearAlgebra: diag
 using StatsBase
 using StochasticDiffEq
