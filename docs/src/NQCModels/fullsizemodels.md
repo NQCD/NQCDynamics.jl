@@ -80,7 +80,7 @@ More information on how to use MACE models is available in the [MACEModels.jl](@
 ### Example
 
 ```julia
-using NQCModels, PyCall, NQCDynamics.jl, MACEModels
+using NQCModels, NQCDynamics.jl, MACEModels
 
 ensemble_paths = [
     "model01.model",
