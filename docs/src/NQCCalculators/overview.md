@@ -77,8 +77,8 @@ println(DoubleWell_Cache)
 
 #Individual quantities can be extracted from the Cache by calling Cache.$quantity
 ad_derivative = DoubleWell_Cache.adiabatic_derivative
-eigvals = DoubleWell_Cache.eigen.values
-eigvecs = DoubleWell_Cache.eigen.vectors
+eigvals = DoubleWell_Cache.eigen.w
+eigvecs = DoubleWell_Cache.eigen.Z
 ```
 
 `update_cache!` is an easy and efficient way of calculating all of the relevant data associated with a model acting at a set of given coordinates. 
@@ -91,8 +91,8 @@ r_2 = [austrip(0.9u"Å") austrip(2.2u"Å") austrip(4.1u"Å")]
 update_eigen!(DoubleWell_Cache, r_2)
 
 #we can check that the new eigenvalues and eigenvectors are different to before
-eigvals = DoubleWell_Cache.eigen.values
-eigvecs = DoubleWell_Cache.eigen.vectors
+eigvals = DoubleWell_Cache.eigen.w
+eigvecs = DoubleWell_Cache.eigen.Z
 
 #we can also check that they are the only values that have been updated
 ad_derivative = DoubleWell_Cache.adiabatic_derivative
@@ -105,11 +105,11 @@ r_3 = [austrip(0.8u"Å") austrip(2.4u"Å") austrip(4.2u"Å")]
 DoubleWell_eigen = evaluate_eigen(DoubleWell_Cache, r_3)
 
 #we can check that the new evaluated eigenvalues and eigenvectors are different to those currently present in the cache
-eigvals_eval = DoubleWell_eigen.values
-eigvals_cache = DoubleWell_Cache.eigen.values
+eigvals_eval = DoubleWell_eigen.w
+eigvals_cache = DoubleWell_Cache.eigen.w
 
-eigvecs_cache = DoubleWell_eigen.vectors
-eigvecs_cache = DoubleWell_Cache.eigen.vectors
+eigvecs_cache = DoubleWell_eigen.Z
+eigvecs_cache = DoubleWell_Cache.eigen.Z
 ```
 
 !!! info "update!" vs evaluate" functions

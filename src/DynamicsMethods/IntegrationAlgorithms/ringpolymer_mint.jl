@@ -50,15 +50,15 @@ function OrdinaryDiffEqCore.initialize!(_, ::RingPolymerMIntCache) end
     propagate_mapping_variables!(cache, u, dt)
 
     for i=1:nbeads(p)
-        traceless_eigs = cache.eigen[i].values .- cache.V̄[i]
+        traceless_eigs = cache.eigen[i].w .- cache.V̄[i]
         for j=1:natoms(p)
             for k=1:ndofs(p)
 
                 Γ = get_gamma(cache.traceless_adiabatic_derivative[k,j,i], traceless_eigs, dt)
-                E = transform_matrix(cache.eigen[i].vectors, Γ)
+                E = transform_matrix(cache.eigen[i].Z, Γ)
 
                 Ξ = get_xi(cache.traceless_adiabatic_derivative[k,j,i], traceless_eigs, dt)
-                F = transform_matrix(cache.eigen[i].vectors, Ξ)
+                F = transform_matrix(cache.eigen[i].Z, Ξ)
 
                 qmap = MappingVariableMethods.get_mapping_positions(u, i)
                 pmap = MappingVariableMethods.get_mapping_momenta(u, i)
@@ -80,9 +80,9 @@ end
 function propagate_mapping_variables!(cache, u, dt)
     for i=1:length(cache.eigen)
         V̄ = tr(cache.potential[i]) / nstates(cache.model)
-        traceless_eigs = cache.eigen[i].values .- V̄
-        C = get_C_propagator(traceless_eigs, cache.eigen[i].vectors, dt)
-        D = get_D_propagator(traceless_eigs, cache.eigen[i].vectors, dt)
+        traceless_eigs = cache.eigen[i].w .- V̄
+        C = get_C_propagator(traceless_eigs, cache.eigen[i].Z, dt)
+        D = get_D_propagator(traceless_eigs, cache.eigen[i].Z, dt)
         qmap = MappingVariableMethods.get_mapping_positions(u, i)
         pmap = MappingVariableMethods.get_mapping_momenta(u, i)
         q = C * qmap - D * pmap

@@ -2,7 +2,6 @@ using Test
 using NQCDynamics
 using OrdinaryDiffEq
 using StaticArrays
-using LinearAlgebra: Eigen
 using Random: seed!
 using NQCDynamics: DynamicsMethods, DynamicsUtils
 using NQCCalculators
@@ -75,8 +74,8 @@ atoms = Atoms(2)
     end
 
     @testset "calculate_potential_energy_change" begin
-        integrator.p.cache.eigen.values .= [0.9, -0.3]
-        integrator.p.cache.eigen.vectors .= [1 0; 0.0 1]
+        integrator.p.cache.eigen.w .= [0.9, -0.3]
+        integrator.p.cache.eigen.Z .= [1 0; 0.0 1]
         eigs = DynamicsUtils.get_hopping_eigenvalues(
             integrator.p,
             DynamicsUtils.get_positions(integrator.u),
@@ -164,8 +163,8 @@ end
     end
 
     @testset "calculate_potential_energy_change" begin
-        integrator.p.cache.centroid_eigen.values .= [0.9, -0.3]
-        integrator.p.cache.centroid_eigen.vectors .= [1 0; 0.0 1]
+        integrator.p.cache.centroid_eigen.w .= [0.9, -0.3]
+        integrator.p.cache.centroid_eigen.Z .= [1 0; 0.0 1]
         eigs = DynamicsUtils.get_hopping_eigenvalues(
             integrator.p,
             DynamicsUtils.get_positions(integrator.u),

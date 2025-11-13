@@ -79,11 +79,11 @@ function DynamicsMethods.create_problem(u0, tspan, sim::AbstractSimulation{<:Sur
 end
 
 function DynamicsUtils.get_hopping_eigenvalues(sim::Simulation, r::AbstractMatrix)
-    return NQCCalculators.get_eigen(sim.cache, r).values
+    return NQCCalculators.get_eigen(sim.cache, r).w
 end
 
 function DynamicsUtils.get_hopping_eigenvalues(sim::RingPolymerSimulation, r::AbstractArray{T,3}) where {T}
-    return NQCCalculators.get_centroid_eigen(sim.cache, r).values
+    return NQCCalculators.get_centroid_eigen(sim.cache, r).w
 end
 
 function DynamicsUtils.get_hopping_nonadiabatic_coupling(sim::Simulation, r::AbstractMatrix)

@@ -44,7 +44,7 @@ function DynamicsUtils.classical_potential_energy(sim::RingPolymerSimulation{<:E
         potential += NQCModels.state_independent_potential(sim.cache.model, view(r,:,:,b))
         for electron in eachelectron(sim)
             for i in eachstate(sim)
-                potential += eigen[b].values[i] * abs2(ψ[i,electron])
+                potential += eigen[b].w[i] * abs2(ψ[i,electron])
             end
         end
     end
