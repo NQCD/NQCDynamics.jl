@@ -45,7 +45,7 @@ function DynamicsUtils.classical_potential_energy(sim::RingPolymerSimulation{<:A
     for b in axes(r,3) # eachbead
         potential += NQCModels.state_independent_potential(sim.cache.model, view(r,:,:,b))
         for i in convert(Vector{Int},u.state)
-            potential += eigs[b].values[i]
+            potential += eigs[b].w[i]
         end
     end
     return potential

@@ -135,7 +135,7 @@ end
     step_B!(vfinal, vtmp, dt/2, k)
 
     d = NQCCalculators.get_nonadiabatic_coupling(sim.cache, rfinal)
-    vals = NQCCalculators.get_eigen(sim.cache, rfinal).values
+    vals = NQCCalculators.get_eigen(sim.cache, rfinal).w
     DynamicsMethods.update_parameters!(electronic_integrator.p, vals, d, vfinal, t+dt)
 
     for i in axes(get_quantum_subsystem(u), 2)

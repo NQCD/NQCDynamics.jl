@@ -109,8 +109,8 @@ function acceleration!(dv, v, r, sim::Simulation{<:Union{DiabaticMDEF,Classical}
     fill!(dv, zero(eltype(dv)))
     NQCModels.state_independent_derivative!(sim.cache.model, dv, r)
     for I in eachindex(dv)
-        for i in eachindex(eigen.values)
-            ϵ = eigen.values[i]
+        for i in eachindex(eigen.w)
+            ϵ = eigen.w[i]
             f = NQCCalculators.fermi(ϵ, μ, β)
             ∂f∂ϵ = NQCCalculators.∂fermi(ϵ, μ, β)
             ∂ϵ = adiabatic_derivative[I][i,i]
@@ -168,7 +168,7 @@ function DynamicsUtils.classical_potential_energy(
     β = 1 / get_temperature(sim)
 
     potential = NQCModels.state_independent_potential(sim.cache.model, r)
-    for ϵ in eigen.values
+    for ϵ in eigen.w
         potential += ϵ * NQCCalculators.fermi(ϵ, μ, β)
     end
     return potential

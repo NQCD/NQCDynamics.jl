@@ -40,8 +40,8 @@ function acceleration!(dv, v, r, sim::RingPolymerSimulation{<:Union{DiabaticMDEF
         NQCModels.state_independent_derivative!(sim.cache.model, dv[:,:,i], r[:,:,i])
         for j in axes(dv, 2) # atom
             for k in axes(dv, 1) # dof
-                for n in eachindex(eigen[i].values) # state
-                    ϵ = eigen[i].values[n]
+                for n in eachindex(eigen[i].w) # state
+                    ϵ = eigen[i].w[n]
                     f = fermi(ϵ, μ, β)
                     ∂f∂ϵ = ∂fermi(ϵ, μ, β)
                     ∂ϵ = adiabatic_derivative[k,j,i][n,n]
@@ -84,7 +84,7 @@ function DynamicsUtils.classical_potential_energy(
     potential = zero(T)
     @views for i in axes(r,3)
         potential += NQCModels.state_independent_potential(sim.cache.model, r[:,:,i])
-        for ϵ in eigen[i].values
+        for ϵ in eigen[i].w
             potential += ϵ * fermi(ϵ, μ, β)
         end
     end

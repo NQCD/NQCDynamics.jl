@@ -108,7 +108,7 @@ function DynamicsUtils.classical_potential_energy(sim::Simulation{<:EhrenfestNA}
 
     for electron in eachelectron(sim)
         for i in eachstate(sim)
-            potential += eigen.values[i] * abs2(ψ[i,electron])
+            potential += eigen.w[i] * abs2(ψ[i,electron])
         end
     end
     return potential
