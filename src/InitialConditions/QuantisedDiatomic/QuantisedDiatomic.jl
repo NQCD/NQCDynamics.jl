@@ -405,10 +405,10 @@ function quantise_diatomic(sim::Simulation, v::Matrix, r::Matrix, binding_curve:
     if isa(sim.cell, PeriodicCell)
         # If the simulation used a `PeriodicCell`, translate `atom_indices` so they are at their minimum distance. (This is necessary if atoms were translated back into the original unit cell)
         translations = [[i, j, k] for i in -max_translation:max_translation for j in -max_translation:max_translation for k in -max_translation:max_translation]
-        which_translation = argmin([norm(abs.(r[:, atom_indices[2]] - r[:, atom_indices[1]] + sim.cell.Z * operation)) for operation in translations])
+        which_translation = argmin([norm(abs.(r[:, atom_indices[2]] - r[:, atom_indices[1]] + sim.cell.vectors * operation)) for operation in translations])
         # Translate one atom for minimal distance.
         if translations[which_translation] != [0, 0, 0]
-            r[:, atom_indices[2]] .= r[:, atom_indices[2]] + sim.cell.Z * translations[which_translation]
+            r[:, atom_indices[2]] .= r[:, atom_indices[2]] + sim.cell.vectors * translations[which_translation]
             @debug "Using a periodic copy of atom " * string(atom_indices[end]) * "  to bring it closer to atom " * string(atom_indices[begin])
         end
     end
