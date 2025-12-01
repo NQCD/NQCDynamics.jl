@@ -23,6 +23,8 @@ If different [`Subsystem`](@ref)s should experience different effective temperat
 
 ![An overview of the different components used to combine models in NQCModels.jl](../assets/compositemodels/struct-explainer.svg)
 
+
+
 ### Example: Combining an `AdiabaticModel` with `ElectronicFrictionProvider`s
 
 ```@example compositemodels
@@ -38,6 +40,18 @@ println("PES model: \n", pes_model, "\nFriction model:", "friction_model")
 complete_model = CompositeModel(pes_model, friction_model)
 ```
 
+!!! note "Shortcuts to combine models"
+
+    The functionality to combine models gives a lot of control over how each model part is applied to each atom in the system. 
+    However, this can be unnecessarily complicated to set up, e.g. for 1D systems. 
+    To make setting up a `CompositeModel` a bit easier, it will also accept any combination of `Subsystem` and models. 
+
+    For example, all of these are valid constructors for a `CompositeModel`: 
+    ```julia
+        complete_model = CompositeModel(Free(3), RandomFriction(3))
+        complete_model = CompositeModel(Free(3), Subsystem(RandomFriction(3), 1:2), Subsystem(RandomFriction(3), 3:4))
+    ```
+
 As shown above, we have combined the `RandomFriction` provider with a model potential to give a total model which can be used in a simulation. 
 
 ```@example compositemodels
@@ -45,3 +59,4 @@ println("Potential: ", NQCModels.potential(complete_model, positions))
 println("Derivative: ", NQCModels.derivative(complete_model, positions))
 println("Friction: ", NQCModels.friction(complete_model, positions))
 ```
+
