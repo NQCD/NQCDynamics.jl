@@ -30,7 +30,6 @@ jobs:
       - name: Add registries
         run: |
           using Pkg
-          Pkg.Registry.add(RegistrySpec(url="https://github.com/JuliaMolSim/MolSim"))
           Pkg.Registry.add(RegistrySpec(url="https://github.com/ACEsuit/ACEregistry"))
           Pkg.Registry.add(RegistrySpec(name="General"))
         shell: julia --color=yes {0}
@@ -41,7 +40,6 @@ jobs:
       - name: Dev dependencies
         run: |
           using Pkg
-          Pkg.develop(;path=".")
           Pkg.instantiate()
         shell: julia --color=yes --project=docs/ {0}
 
@@ -51,5 +49,5 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DOCUMENTER_KEY: ${{ secrets.DOCUMENTER_KEY }}
           GKSwstype: "100" # https://discourse.julialang.org/t/generation-of-documentation-fails-qt-qpa-xcb-could-not-connect-to-display/60988
-          # JULIA_PYTHONCALL_EXE: "@PyCall" # Avoid issues with loading PythonCall and PyCall
+          JULIA_PYTHONCALL_EXE: "@PyCall" # Avoid issues with loading PythonCall and PyCall
 
