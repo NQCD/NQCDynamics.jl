@@ -565,11 +565,13 @@ function (output::OutputSurfaceSiteClassification)(sol, i)
     return Analysis.HighSymmetrySites.classify_every_frame(
         sol.u,
         cell,
-        output.slab_info,
-        output.fractional,
-        output.snap_to_site,
+        output.slab_info;
+        fractional = output.fractional,
+        snap_to_site = output.snap_to_site,
     )
 end
+
+export OutputSurfaceSiteClassification
 
 """
     OutputEverything(sol,i)
