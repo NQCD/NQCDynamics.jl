@@ -52,14 +52,15 @@ const FCC110Sites = Dict(
 )
 const FCC111Sites = Dict(
     :top => vec([vcat(i...) for i in Iterators.product([0.0,1.0], [0.0,1.0])]),
-    :fcc => [[0.33,0.33]],
-    :hcp => [[0.66,0.66]],
+    :hollow => [
+      [0.33,0.33],
+      [0.66,0.66],
+    ],
     :bridge => [
-      [0.5,0.0],
-      [0.5,0.5],
-      [0.0,0.5],
-      [1.0,0.5],
-      [0.5,1.0],
+      [0.5, 0.0],
+      [0.5, 1.0],
+      [0.0, 0.5],
+      [1.0, 0.5],
     ],
 )
 const FCC211Sites = Dict( # Based on Cao2018 site definitions
