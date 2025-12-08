@@ -26,28 +26,31 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-docs-${{ env.cache-name }}-
             ${{ runner.os }}-docs-
-
-      - name: Add registries
+      - name: Add Julia registries
         run: |
           using Pkg
-          Pkg.Registry.add(RegistrySpec(url="https://github.com/ACEsuit/ACEregistry"))
           Pkg.Registry.add(RegistrySpec(name="General"))
+          Pkg.Registry.add(RegistrySpec(url="https://github.com/ACEsuit/ACEregistry"))
         shell: julia --color=yes {0}
         
-      - name: Install ase
-        run: python3 -m pip install ase git+"https://github.com/ACEsuit/mace.git"
+      - name: Set up Python dependencies
+        id: python-install
+        run: | 
+          python3 -m pip install ase mace-torch==0.3.3 torch==2.3.0
+          echo "python=$(which python3)" >> $GITHUB_OUTPUT
 
-      - name: Dev dependencies
+      - name: Instantiate Docs environment
         run: |
           using Pkg
           Pkg.instantiate()
         shell: julia --color=yes --project=docs/ {0}
 
-      - name: Build and deploy
+      - name: Build Documentation and deploy
         run: julia --color=yes --project=docs/ docs/make.jl
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DOCUMENTER_KEY: ${{ secrets.DOCUMENTER_KEY }}
           GKSwstype: "100" # https://discourse.julialang.org/t/generation-of-documentation-fails-qt-qpa-xcb-could-not-connect-to-display/60988
-          JULIA_PYTHONCALL_EXE: "@PyCall" # Avoid issues with loading PythonCall and PyCall
+          JULIA_PYTHONCALL_EXE: ${{ steps.python-install.outputs.python }} # Hardcode Python executable to the one previously installed. 
+          JULIA_CONDAPKG_BACKEND: "None"
 
