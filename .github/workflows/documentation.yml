@@ -44,6 +44,9 @@ jobs:
           using Pkg
           Pkg.instantiate()
         shell: julia --color=yes --project=docs/ {0}
+        env: 
+          JULIA_PYTHONCALL_EXE: ${{ steps.python-install.outputs.python }} # Hardcode Python executable to the one previously installed. 
+          JULIA_CONDAPKG_BACKEND: "None"
 
       - name: Build Documentation and deploy
         run: julia --color=yes --project=docs/ docs/make.jl
