@@ -64,6 +64,9 @@ jobs:
           pip3 install ase
           echo "python="$(which python) >> $GITHUB_OUTPUT
       - uses: julia-actions/julia-buildpkg@v1
+        env:
+          JULIA_PYTHONCALL_EXE: ${{ steps.install-python.outputs.python }}
+          JULIA_CONDAPKG_BACKEND: "Null"
       - uses: julia-actions/julia-runtest@v1
         env:
           GROUP: ${{ matrix.group }}
