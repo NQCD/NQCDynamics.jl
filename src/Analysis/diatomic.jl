@@ -12,6 +12,37 @@ using Statistics
 surface_normal_height(x::AbstractVector, surface_normal::AbstractVector = [0, 0, 1]) =
     norm(x .* normalize(surface_normal))
 
+
+# New conditions as of 2025-10-27
+# H-H distance of a simulation frame
+function H_H_distance(
+    frame::AbstractArray, # MD frame in a DynamicsVariables type
+    indices::Vector{Int},
+    simulation::AbstractSimulation, # Simulation object informing PBC
+)
+    return Structure.pbc_distance(get_positions(frame), indices..., simulation.cell)
+end
+
+function H2_surface_distance(
+    frame::AbstractArray, # MD frame of DynamicsVariables type
+    diatomic_indices::Vector{Int}, # H atom indices
+    toplayer_indices::Vector{Int}, # Top surface layer
+    simulation::AbstractSimulation; # Simulation informing PBC and atom types
+    surface_normal::AbstractVector = [0.0, 0.0, 1.0], # Surface normal vector used to define heights within the unit cell. 
+)
+    positions = get_positions(frame)
+    slab_height = mean([
+        surface_normal_height(x, surface_normal) for
+        x in eachcol(positions[:, toplayer_indices])
+    ])
+    h2_height = surface_normal_height(
+        Structure.pbc_center_of_mass(positions, diatomic_indices..., simulation),
+        surface_normal,
+    )
+    return h2_height - slab_height
+end
+
+
 """
     surface_distance_condition(x::AbstractArray, indices::Vector{Int}, simulation::AbstractSimulation; surface_distance_threshold=5.0*u"Å")
 
@@ -86,7 +117,14 @@ function close_approach_condition(
 end
 
 """
-    get_desorption_frame(trajectory::AbstractVector, diatomic_indices::Vector{Int}, simulation::AbstractSimulation; surface_normal::Vector=[0, 0, 1], surface_distance_threshold=5.0 * u"Å", fallback_distance_threshold = 1.5u"Å")
+    get_desorption_frame(
+    trajectory::AbstractVector,
+    diatomic_indices::Vector{Int},
+    simulation::AbstractSimulation;
+    surface_normal::Vector = [0, 0, 1],
+    surface_distance_threshold = austrip(4.0 * u"Å"),
+    fallback_distance_threshold = austrip(1.5u"Å"),
+)
 
 Determines the index in a trajectory where surface desorption begins.
 
@@ -94,65 +132,65 @@ This is evaluated using two conditions:
 
 1. In the trajectory, the diatomic must be `surface_distance_threshold` or further away from the highest other atom. (In `surface_normal` direction).
 
-2. Desorption begins at the turning point of the centre of mass velocity component along `surface_normal`, indicating overall movement away from the surface.
+2. The transition state to desorption is assumed to happen when the H-H-distance decreases below σ + μ for the last time in a trajectory. 
 
-If the second condition is never reached (can happen for particularly quick desorptions), the `fallback_distance_threshold` is used to find the last point where the
-diatomic bond length is above the given value and saves from that point onwards. 
+If the second condition is never reached, the whole trajectory is saved for troubleshooting. 
 """
 function get_desorption_frame(
     trajectory::AbstractVector,
     diatomic_indices::Vector{Int},
     simulation::AbstractSimulation;
     surface_normal::Vector = [0, 0, 1],
-    surface_distance_threshold = austrip(5.0 * u"Å"),
-    fallback_distance_threshold = austrip(1.5u"Å"),
+    surface_distance_threshold = austrip(4.0 * u"Å"),
 )
-    desorbed_frame = findfirst(
-        surface_distance_condition.(
-            trajectory,
-            Ref(diatomic_indices),
-            Ref(simulation);
-            surface_distance_threshold = surface_distance_threshold,
-        ),
-    )
-
-    if isa(desorbed_frame, Nothing)
-        @debug "No desorption event found."
-        return nothing
-    else
-        @debug "Desorption observed in snapshot $(desorbed_frame)"
-        leaving_surface_frame = findlast(
-            com_velocity_condition.(
-                view(trajectory, 1:desorbed_frame),
-                Ref(diatomic_indices),
-                Ref(simulation);
+    # Calculate H2 surface distances and check if there was a desorption
+    surface_distance = Float64[]
+    sizehint!(surface_distance, length(trajectory))
+    for idx in eachindex(trajectory)
+        pos = get_positions(trajectory[idx])
+        non_H_heights = [surface_normal_height(atom, surface_normal) for atom in eachcol(pos[:, symdiff(1:size(pos)[2], diatomic_indices)])]
+        _, highest_H_index = findmax(non_H_heights)
+        push!(
+            surface_distance,
+            H2_surface_distance(
+                trajectory[idx],
+                diatomic_indices,
+                [highest_H_index],
+                simulation;
                 surface_normal = surface_normal,
-            ),
-        ) #ToDo testing views for memory efficiency, need to test time penalty. Also need to test if running on everything and findfirst-ing the Bool array is quicker.
-        if isnothing(leaving_surface_frame)
-            @debug "Centre of mass velocity criterion was never met. Falling back to distance threshold."
-            leaving_surface_frame = findlast(
-                close_approach_condition.(
-                    view(trajectory, 1:desorbed_frame),
-                    Ref(diatomic_indices),
-                    Ref(simulation);
-                    threshold = fallback_distance_threshold,
-                ),
             )
-            if isnothing(leaving_surface_frame)
-                @warn begin
-                    println(
-                        "H-H distance threshold was never met. Something is wrong in desorption detection logic - Returning entire trajectory for debugging.",
-                    )
-                end
-                return 1
-            else
-                return leaving_surface_frame
-            end
-        else
-            return leaving_surface_frame
+        )
+    end
+    
+    desorption_frame = findfirst(surface_distance .≥ surface_distance_threshold)
+    if isnothing(desorption_frame)
+        @debug "No desorption found in trajectory (H-surface distance never above set threshold"
+        return nothing
+    end
+    
+    # Work backwards from desorption frame to determine H-H distance until it becomes larger than H2-surface distance
+    H_H_distances = Float64[]
+    desorption_frame = 0
+
+    @views for idx in Iterators.reverse(trajectory)
+        push!(
+            H_H_distances, 
+            H_H_distance(
+                trajectory,
+                diatomic_indices,
+                simulation,
+            ) |> austrip
+        )
+        h_h_distance_mean = mean(H_H_distances)
+        h_h_distance_std = std(H_H_distances)
+        desorption_frame += 1
+        if (h_h_distance_mean + h_h_distance_std) < last(H_H_distances)
+            @debug "Transition state observed with bond length $(last(h_h_distances)) > μ+σ $(h_h_distance_mean + h_h_distance_std) at index $(desorption_frame)"
+            return length(trajectory) - desorption_frame + 1
         end
     end
+    @warn "Check trajectory - Desorption observed, but H-surface distance never fell below H-H bond length. Returning index 1 to output full trajectory. "
+    return 1
 end
 
 function get_desorption_angle(
@@ -170,11 +208,10 @@ function get_desorption_angle(
         surface_distance_threshold = surface_distance_threshold,
         surface_normal = surface_normal,
     )
-    if isa(desorption_frame, Nothing)
+    if isnothing(desorption_frame)
         @debug "No desorption event detected in trajectory"
         return nothing
     end
-    @debug "Desorption frame: $(desorption_frame)"
     # Determine the average centre of mass velocity to decrease error due to vibration and rotation orthogonal to true translational component.
     com_velocities = zeros(
         eltype(trajectory[1]),
@@ -240,7 +277,7 @@ function transform_U(config::Matrix, index1::Int, index2::Int, sim::Simulation)
     unity = LinearAlgebra.I(3)
     U_i1 = vcat(
         mapslices(x -> (x[1] - x[2]) / r, config[:, [index1, index2]]; dims = 2),
-        mapslices(x -> (x[2] - x[1]) / r, config[:, [index1, index2]]; dims = 2),
+        mapslices(x -> (x[2] - x[1]) / r, config[:, [index2, index1]]; dims = 2),
     )
     U_i2 = vcat(
         mapslices(
@@ -251,24 +288,21 @@ function transform_U(config::Matrix, index1::Int, index2::Int, sim::Simulation)
         -r1 / r^2,
         mapslices(
             x -> (x[1] - x[2]) * (config[3, index2] - config[3, index1]) / (r^2 * r1),
-            config[1:2, [index1, index2]];
+            config[1:2, [index2, index1]];
             dims = 2,
         ),
         r1 / r^2,
     )
     U_i3 =
         [
-            (config[2, index1] - config[2, index2]),
+            -(config[2, index1] - config[2, index2]),
             (config[1, index2] - config[1, index1]),
             0.0,
-            (config[2, index2] - config[2, index1]),
+            -(config[2, index2] - config[2, index1]),
             (config[1, index1] - config[1, index2]),
             0.0,
         ] ./ (r1^2)
-    U_matrix = hcat(U_i1, U_i2, U_i3, vcat(unity .* masses[1], unity .* masses[2]))
-    # Normalisation secret sauce – The transformation needs to be unitary, so each column of U needs to be a unit vector. 
-    U_matrix_unitary = hcat([col ./ norm(col) for col in eachcol(U_matrix)]...)
-    return U_matrix_unitary
+    return hcat(U_i1, U_i2, U_i3, vcat(unity .* masses[1], unity .* masses[2]))
 end
 
 export get_desorption_frame,
