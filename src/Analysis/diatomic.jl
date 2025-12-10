@@ -132,10 +132,9 @@ This is evaluated using two conditions:
 
 1. In the trajectory, the diatomic must be `surface_distance_threshold` or further away from the highest other atom. (In `surface_normal` direction).
 
-2. Desorption begins at the turning point of the centre of mass velocity component along `surface_normal`, indicating overall movement away from the surface.
+2. The transition state to desorption is assumed to happen when the H-H-distance decreases below σ + μ for the last time in a trajectory. 
 
-If the second condition is never reached (can happen for particularly quick desorptions), the `fallback_distance_threshold` is used to find the last point where the
-diatomic bond length is above the given value and saves from that point onwards. 
+If the second condition is never reached, the whole trajectory is saved for troubleshooting. 
 """
 function get_desorption_frame(
     trajectory::AbstractVector,
@@ -143,7 +142,6 @@ function get_desorption_frame(
     simulation::AbstractSimulation;
     surface_normal::Vector = [0, 0, 1],
     surface_distance_threshold = austrip(4.0 * u"Å"),
-    fallback_distance_threshold = austrip(1.5u"Å"),
 )
     # Calculate H2 surface distances and check if there was a desorption
     surface_distance = Float64[]
@@ -171,16 +169,24 @@ function get_desorption_frame(
     end
     
     # Work backwards from desorption frame to determine H-H distance until it becomes larger than H2-surface distance
-    
-    @views for idx in Iterators.reverse(firstindex(trajectory):desorption_frame)
-        bond_length = H_H_distance(
-            trajectory[idx],
-            diatomic_indices,
-            simulation,
-        ) |> austrip
-        if surface_distance[idx] ≤ bond_length
-            @debug "Transition state observed with bond length $(bond_length) ≤ surface distance $(surface_distance) at index $(idx)"
-            return idx
+    H_H_distances = Float64[]
+    desorption_frame = 0
+
+    @views for idx in Iterators.reverse(trajectory)
+        push!(
+            H_H_distances, 
+            H_H_distance(
+                trajectory,
+                diatomic_indices,
+                simulation,
+            ) |> austrip
+        )
+        h_h_distance_mean = mean(H_H_distances)
+        h_h_distance_std = std(H_H_distances)
+        desorption_frame += 1
+        if (h_h_distance_mean + h_h_distance_std) < last(H_H_distances)
+            @debug "Transition state observed with bond length $(last(h_h_distances)) > μ+σ $(h_h_distance_mean + h_h_distance_std) at index $(desorption_frame)"
+            return length(trajectory) - desorption_frame + 1
         end
     end
     @warn "Check trajectory - Desorption observed, but H-surface distance never fell below H-H bond length. Returning index 1 to output full trajectory. "
