@@ -172,11 +172,11 @@ function get_desorption_frame(
     H_H_distances = Float64[]
     desorption_frame = 0
 
-    @views for idx in Iterators.reverse(trajectory)
+    @views for idx in Iterators.reverse(eachindex(trajectory))
         push!(
             H_H_distances, 
             H_H_distance(
-                trajectory,
+                trajectory[idx],
                 diatomic_indices,
                 simulation,
             ) |> austrip
