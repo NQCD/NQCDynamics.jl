@@ -1,7 +1,7 @@
 name = "NQCDynamics"
 uuid = "36248dfb-79eb-4f4d-ab9c-e29ea5f33e14"
-authors = ["James <james.gardner1421@gmail.com>"]
 version = "1.0.2"
+authors = ["James <james.gardner1421@gmail.com>"]
 
 [deps]
 AdvancedHMC = "0bf59076-c3b1-5ca4-86bd-e02cd72cde3d"
@@ -51,9 +51,13 @@ UnitfulAtomic = "a7773ee8-282e-5fa2-be4e-bd808c38a91a"
 [weakdeps]
 MACEModels = "29bafc4c-4f38-420f-a153-8a5a5e0bd5f6"
 
-[sources]
-NQCCalculators = {rev = "main", url = "https://github.com/NQCD/NQCCalculators.jl.git"}
-NQCModels = {rev = "main", url = "https://github.com/NQCD/NQCModels.jl.git"}
+[sources.NQCCalculators]
+rev = "main"
+url = "https://github.com/NQCD/NQCCalculators.jl.git"
+
+[sources.NQCModels]
+rev = "main"
+url = "https://github.com/NQCD/NQCModels.jl.git"
 
 [compat]
 AdvancedHMC = "0.5, 0.6"
@@ -81,7 +85,7 @@ NQCCalculators = ">=1.0.9"
 NQCDInterfASE = "1.0.2"
 NQCDistributions = "0.1, 1"
 NQCModels = "0.10, 1"
-Optim = "1"
+Optim = "1, 2"
 OrdinaryDiffEq = ">= 6.102.0"
 OrdinaryDiffEqCore = "1.32.0"
 Parameters = "0.12"
