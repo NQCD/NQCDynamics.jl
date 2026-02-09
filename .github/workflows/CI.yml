@@ -59,12 +59,20 @@ jobs:
         shell: bash
 
       - name: Install ase for IO tests
-        run: pip3 install ase
+        id: install-python
+        run: | 
+          pip3 install ase
+          echo "python="$(which python) >> $GITHUB_OUTPUT
       - uses: julia-actions/julia-buildpkg@v1
+        env:
+          JULIA_PYTHONCALL_EXE: ${{ steps.install-python.outputs.python }}
+          JULIA_CONDAPKG_BACKEND: "Null"
       - uses: julia-actions/julia-runtest@v1
         env:
           GROUP: ${{ matrix.group }}
           BENCHMARK_OUTPUT_DIR: /home/runner/NQCDynamics.jl/NQCDynamics.jl/benchmarks
+          JULIA_PYTHONCALL_EXE: ${{ steps.install-python.outputs.python }}
+          JULIA_CONDAPKG_BACKEND: "Null"
       - uses: julia-actions/julia-processcoverage@v1
       - uses: codecov/codecov-action@v3
         with:
