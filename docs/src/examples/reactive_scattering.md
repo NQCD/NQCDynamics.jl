@@ -65,7 +65,10 @@ dof = 3
 
 # Read surface structures (equilibrated at chosen temperature)
 surface_ase = ase_io.read(surface_structures_path)
-xatoms, xpositions, xcell = NQCDynamics.convert_from_ase_atoms(surface_ase[0])
+xstructure = NQCDynamics.convert_from_ase_atoms(surface_ase[0])
+xatoms = xstructure.atoms
+xpositions = xstructure.positions
+xcell = xstructure.cell
 set_periodicity!(xcell,[true,true,true])
 
 # load PES model
@@ -88,8 +91,8 @@ v = [zeros(dof,n_atoms) for i=1:length(r_h2)]
 r = [zeros(dof,n_atoms) for i=1:length(r_h2)]
 
 for i in 1:length(r_h2)
-    surf_atoms, surf_positions, surf_cell = convert_from_ase_atoms(surface_ase[i])
-    r[i][:,1:n_atoms-2] .= surf_positions
+    surf_structure = convert_from_ase_atoms(surface_ase[i])
+    r[i][:,1:n_atoms-2] .= surf_structure.positions
     r[i][:,n_atoms-1:n_atoms] .= r_h2[i]  
 
     v[i][:,1:n_atoms-2] .= austrip.(transpose(surface_ase[i].get_velocities().*ase_units.fs)*u"Å/fs")
