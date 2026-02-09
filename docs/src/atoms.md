@@ -70,11 +70,13 @@ be quickly converted to the correct format:
 using NQCDynamics
 using NQCDInterfASE # Import python interface functionality
 
-atoms_nqcd, positions_nqcd, cell_nqcd = convert_from_ase_atoms(atoms_ase)
+structure = convert_from_ase_atoms(atoms_ase)
 
-println(atoms_nqcd)
-println(positions_nqcd)
-println(cell_nqcd)
+println(structure.atoms)
+println(structure.positions)
+println(structure.cell)
+# If there was any additional information in the structure file, e.g. an ExtXYZ header. 
+println(structure.info)
 ```
 
 
