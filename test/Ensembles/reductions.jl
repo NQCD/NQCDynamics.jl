@@ -39,8 +39,8 @@ end
     output = (OutputPosition, OutputVelocity, OutputTotalEnergy)
     sim = Simulation(Atoms(1), Harmonic())
     
-    positions = [randn(1,1) for i=1:5]
-    velocities = [randn(1,1) for i=1:5]
+    positions = [randn(1,1) for _=1:5]
+    velocities = [randn(1,1) for _=1:5]
     distribution = DynamicalDistribution(positions, velocities, (1, 1))
     
     result = run_dynamics(sim, (0.0, 10.0), distribution; dt=1.0, reduction, output, trajectories=5)
