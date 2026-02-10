@@ -24,6 +24,7 @@ export SumReduction
 export MeanReduction
 export AppendReduction
 export FileReduction
+export OutputReduction
 
 include("run_dynamics.jl")
 export run_dynamics
