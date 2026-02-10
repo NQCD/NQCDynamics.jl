@@ -89,3 +89,55 @@ function (reduction::FileReduction)(u, batch, I)
     end
     return ("Output written to $(reduction.filename).", false)
 end
+
+"""
+Organize outputs by output type rather than by trajectory.
+
+Returns a `Dictionary` where keys are output names (e.g., `:OutputPosition`, `:OutputVelocity`)
+and values are `Vector`s containing the corresponding output from each trajectory.
+
+This makes it easier to compare a specific output across all trajectories without
+needing to manually extract and collect data from individual trajectory dictionaries.
+
+# Example
+```julia
+# With AppendReduction (default):
+# results = [traj1_dict, traj2_dict, traj3_dict]
+# traj1_dict = Dictionary(:Time => ..., :OutputPosition => ..., :OutputVelocity => ...)
+# traj2_dict = Dictionary(:Time => ..., :OutputPosition => ..., :OutputVelocity => ...)
+# traj3_dict = Dictionary(:Time => ..., :OutputPosition => ..., :OutputVelocity => ...)
+
+# With OutputReduction:
+# results = Dictionary(
+#     :OutputPosition => [traj1_pos, traj2_pos, traj3_pos],
+#     :OutputVelocity => [traj1_vel, traj2_vel, traj3_vel],
+#     :Time => [traj1_time, traj2_time, traj3_time]
+# )
+```
+"""
+mutable struct OutputReduction
+    initialised::Bool
+    OutputReduction() = new(false)
+end
+
+function (reduction::OutputReduction)(u, batch, I)
+    if !reduction.initialised
+        u = get_initial_output_dict(batch)
+        reduction.initialised = true
+    end
+    append_outputs!(u, batch)
+    return (u, false)
+end
+
+function get_initial_output_dict(batch)
+    template = first(batch)
+    return Dictionary(keys(template), [[] for _ in keys(template)])
+end
+
+function append_outputs!(u, batch)
+    for trajectory in batch
+        for k in keys(trajectory)
+            push!(u[k], trajectory[k])
+        end
+    end
+end

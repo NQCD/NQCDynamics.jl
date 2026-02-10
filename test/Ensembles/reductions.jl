@@ -32,3 +32,35 @@ end
     end
     rm("test.h5")
 end
+
+@testset "OutputReduction" begin
+    reduction = OutputReduction()
+    
+    output = (OutputPosition, OutputVelocity, OutputTotalEnergy)
+    sim = Simulation(Atoms(1), Harmonic())
+    
+    positions = [randn(1,1) for i=1:5]
+    velocities = [randn(1,1) for i=1:5]
+    distribution = DynamicalDistribution(positions, velocities, (1, 1))
+    
+    result = run_dynamics(sim, (0.0, 10.0), distribution; dt=1.0, reduction, output, trajectories=5)
+    
+    # Test that result is a Dictionary with output names as keys
+    @test result isa Dictionaries.Dictionary
+    @test haskey(result, :OutputPosition)
+    @test haskey(result, :OutputVelocity)
+    @test haskey(result, :OutputTotalEnergy)
+    @test haskey(result, :Time)
+    
+    # Test that each output has data from all trajectories
+    @test length(result[:OutputPosition]) == 5
+    @test length(result[:OutputVelocity]) == 5
+    @test length(result[:OutputTotalEnergy]) == 5
+    @test length(result[:Time]) == 5
+    
+    # Test that each trajectory's data has the expected structure
+    @test all(x -> x isa Vector{<:AbstractMatrix}, result[:OutputPosition])
+    @test all(x -> x isa Vector{<:AbstractMatrix}, result[:OutputVelocity])
+    @test all(x -> x isa Vector{<:Number}, result[:OutputTotalEnergy])
+    @test all(x -> x == 0.0:10.0, result[:Time])
+end
