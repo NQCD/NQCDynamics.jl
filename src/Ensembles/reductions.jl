@@ -131,7 +131,7 @@ end
 
 function get_initial_output_dict(batch)
     template = first(batch)
-    return Dictionary(keys(template), [[] for _ in keys(template)])
+    return Dictionary(keys(template), [typeof(v)[] for v in template])
 end
 
 function append_outputs!(u, batch)
