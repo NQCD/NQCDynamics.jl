@@ -55,7 +55,7 @@ function DynamicsMethods.DynamicsVariables(sim::AbstractSimulation{<:EhrenfestNA
         """
     ))
 
-    # NQCDynamics.NQCCalculators.update_cache!(sim.cache, tmp_r)
+    NQCDynamics.NQCCalculators.update_cache!(sim.cache, tmp_r)
     eigenvalues = DynamicsUtils.get_hopping_eigenvalues(sim, tmp_r)
 
     available_states = DynamicsUtils.get_available_states(electronic.available_states, NQCModels.nstates(sim))
