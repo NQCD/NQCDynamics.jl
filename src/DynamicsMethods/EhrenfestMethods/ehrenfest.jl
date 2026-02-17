@@ -88,8 +88,8 @@ function DynamicsUtils.classical_potential_energy(sim::Simulation{<:Ehrenfest}, 
 
     potential = NQCModels.state_independent_potential(sim.cache.model, DynamicsUtils.get_positions(u))
     σ = DynamicsUtils.get_quantum_subsystem(u)
-    for i in eachindex(eigs.values)
-        potential += real(σ[i,i]) * eigs.values[i]
+    for i in eachindex(eigs.w)
+        potential += real(σ[i,i]) * eigs.w[i]
     end
     return potential
 end

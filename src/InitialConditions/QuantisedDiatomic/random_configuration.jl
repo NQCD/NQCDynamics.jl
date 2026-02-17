@@ -92,7 +92,7 @@ end
 function position_above_surface!(r::AbstractMatrix, offset::AbstractVector, cell::PeriodicCell)
     r .+= offset
     a1 = cell.vectors[:,1]
-    a2 = cell.vectors[:,2]
+    a2 = cell.vectors[2]
     displacement = rand()*a1+rand()*a2
     r .+= displacement
     return nothing
