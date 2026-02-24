@@ -112,7 +112,13 @@ struct OutputSubsetKineticEnergy{T}
     indices::T
 end
 function (output::OutputSubsetKineticEnergy)(sol, i)
-    return map(x -> DynamicsUtils.classical_kinetic_energy(sol.prob.p.atoms.masses[output.indices], x[:, output.indices]), [DynamicsUtils.get_velocities(i) for i in sol.u])
+    return map(
+        x -> DynamicsUtils.classical_kinetic_energy(
+            sol.prob.p.atoms.masses[output.indices],
+            x[:, output.indices],
+        ),
+        [DynamicsUtils.get_velocities(i) for i in sol.u],
+    )
 end
 export OutputSubsetKineticEnergy
 
@@ -122,10 +128,13 @@ Evaluate the classical kinetic energy of a subset of the entire system at the en
 The subset is defined by `OutputSubsetKineticEnergy(indices)`.
 """
 struct OutputFinalSubsetKineticEnergy
-    indices
+    indices::Any
 end
 function (output::OutputFinalSubsetKineticEnergy)(sol, i)
-    return DynamicsUtils.classical_kinetic_energy(sol.prob.p.atoms.masses[output.indices], DynamicsUtils.get_velocities(last(sol.u))[:, output.indices])
+    return DynamicsUtils.classical_kinetic_energy(
+        sol.prob.p.atoms.masses[output.indices],
+        DynamicsUtils.get_velocities(last(sol.u))[:, output.indices],
+    )
 end
 export OutputFinalSubsetKineticEnergy
 
@@ -154,7 +163,8 @@ export OutputQuantumSubsystem
 
 Output the position mapping variables at each timestep during the trajectory.
 """
-OutputMappingPosition(sol, i) = [copy(DynamicsUtils.get_mapping_positions(u)) for u in sol.u]
+OutputMappingPosition(sol, i) =
+    [copy(DynamicsUtils.get_mapping_positions(u)) for u in sol.u]
 export OutputMappingPosition
 
 """
@@ -191,7 +201,8 @@ export OutputDiabaticPopulation
 
 Output the total diabatic population at each timestep during the trajectory.
 """
-OutputTotalDiabaticPopulation(sol, i) = sum.(Estimators.diabatic_population.(sol.prob.p, sol.u))
+OutputTotalDiabaticPopulation(sol, i) =
+    sum.(Estimators.diabatic_population(sol.prob.p, sol.u))
 export OutputTotalDiabaticPopulation
 
 """
@@ -207,7 +218,8 @@ export OutputAdiabaticPopulation
 
 Output the total adiabatic population at each timestep during the trajectory.
 """
-OutputTotalAdiabaticPopulation(sol, i) = sum.(Estimators.adiabatic_population.(sol.prob.p, sol.u))
+OutputTotalAdiabaticPopulation(sol, i) =
+    sum.(Estimators.adiabatic_population.(sol.prob.p, sol.u))
 export OutputTotalAdiabaticPopulation
 
 """
@@ -251,13 +263,15 @@ struct OutputDissociation{T}
     distance::T
     "The indices of the two atoms in the molecule of interest."
     atom_indices::Tuple{Int,Int}
-    OutputDissociation(distance, atom_indices) = new{typeof(distance)}(austrip(distance), atom_indices)
+    OutputDissociation(distance, atom_indices) =
+        new{typeof(distance)}(austrip(distance), atom_indices)
 end
 export OutputDissociation
 
 function (output::OutputDissociation)(sol, i)
     R = DynamicsUtils.get_positions(last(sol.u))
-    dissociated = norm(R[:, output.atom_indices[1]] .- R[:, output.atom_indices[2]]) > output.distance
+    dissociated =
+        norm(R[:, output.atom_indices[1]] .- R[:, output.atom_indices[2]]) > output.distance
     return dissociated ? 1 : 0
 end
 
@@ -270,18 +284,20 @@ struct OutputSurfaceDesorption
     distance::Number
     adsorbate_indices::Vector{Int}
     surface_normal::AbstractVector
-    OutputSurfaceDesorption(distance, adsorbate_indices; surface_normal=[0, 0, 1]) = new(distance, adsorbate_indices, surface_normal)
+    OutputSurfaceDesorption(distance, adsorbate_indices; surface_normal = [0, 0, 1]) =
+        new(distance, adsorbate_indices, surface_normal)
 end
 
 function (osd::OutputSurfaceDesorption)(sol, i)
-    desorption_frame = findfirst([Analysis.Diatomic.surface_distance_condition(
-        i,
-        osd.adsorbate_indices,
-        sol.prob.p;
-        surface_distance_threshold=osd.distance,
-        surface_normal=osd.surface_normal,
-    ) for i in sol.u]
-    )
+    desorption_frame = findfirst([
+        Analysis.Diatomic.surface_distance_condition(
+            i,
+            osd.adsorbate_indices,
+            sol.prob.p;
+            surface_distance_threshold = osd.distance,
+            surface_normal = osd.surface_normal,
+        ) for i in sol.u
+    ])
     return desorption_frame === nothing ? 0 : 1
 end
 
@@ -294,14 +310,19 @@ struct OutputQuantisedDiatomic{H,V}
     height::H
     normal_vector::V
 end
-OutputQuantisedDiatomic(; height=10, normal_vector=[0, 0, 1]) = OutputQuantisedDiatomic(height, normal_vector)
+OutputQuantisedDiatomic(; height = 10, normal_vector = [0, 0, 1]) =
+    OutputQuantisedDiatomic(height, normal_vector)
 export OutputQuantisedDiatomic
 
 function (output::OutputQuantisedDiatomic)(sol, i)
     final = last(sol.u)
-    ν, J = QuantisedDiatomic.quantise_diatomic(sol.prob.p,
-        DynamicsUtils.get_velocities(final), DynamicsUtils.get_positions(final);
-        height=output.height,surface_normal=output.normal_vector)
+    ν, J = QuantisedDiatomic.quantise_diatomic(
+        sol.prob.p,
+        DynamicsUtils.get_velocities(final),
+        DynamicsUtils.get_positions(final);
+        height = output.height,
+        normal_vector = output.normal_vector,
+    )
     return (ν, J)
 end
 
@@ -325,8 +346,8 @@ function (output::OutputStateResolvedScattering1D)(sol, i)
             Only `:diabatic` or `:adiabatic` accepted."))
     end
     output = ComponentVector(
-        reflection=zeros(NQCModels.nstates(output.sim)),
-        transmission=zeros(NQCModels.nstates(output.sim))
+        reflection = zeros(NQCModels.nstates(output.sim)),
+        transmission = zeros(NQCModels.nstates(output.sim)),
     )
     x = DynamicsUtils.get_positions(final)[1]
     if x > 0 # If final position past 0 then we count as transmission
@@ -412,7 +433,15 @@ Use `surface_normal` to define the direction "away" from the surface. Most commo
 A desorption is detected if the centre of mass of the molecule defined with `indices` is above `surface_distance_threshold` from the closest surface atom.
 This is calculated with respect to `surface_normal` and will take into account periodic boundary conditions.
 """
-OutputDesorptionAngle(indices; surface_normal=[0, 0, 1], surface_distance_threshold=austrip(5.0u"Å")) = OutputDesorptionAngle(indices, convert(Vector{Float64}, surface_normal), surface_distance_threshold)
+OutputDesorptionAngle(
+    indices;
+    surface_normal = [0, 0, 1],
+    surface_distance_threshold = austrip(5.0u"Å"),
+) = OutputDesorptionAngle(
+    indices,
+    convert(Vector{Float64}, surface_normal),
+    surface_distance_threshold,
+)
 export OutputDesorptionAngle
 
 """
@@ -421,7 +450,13 @@ export OutputDesorptionAngle
 Outputs the desorption angle in degrees (relative to the surface normal) if a desorption event was detected.
 """
 function (output::OutputDesorptionAngle)(sol, i)
-    return Analysis.Diatomic.get_desorption_angle(sol.u, output.indices, sol.prob.p; surface_normal=output.surface_normal, surface_distance_threshold=output.surface_distance_threshold)
+    return Analysis.Diatomic.get_desorption_angle(
+        sol.u,
+        output.indices,
+        sol.prob.p;
+        surface_normal = output.surface_normal,
+        surface_distance_threshold = output.surface_distance_threshold,
+    )
 end
 
 struct OutputDesorptionTrajectory{I<:Vector{Int},N<:Vector{Float64},D,F<:Int}
@@ -442,19 +477,35 @@ Use `extra_frames` to save additional steps before the desorption event begins.
 A desorption is detected if the centre of mass of the molecule defined with `indices` is above `surface_distance_threshold` from the closest surface atom.
 This is calculated with respect to `surface_normal` and will take into account periodic boundary conditions.
 """
-OutputDesorptionTrajectory(indices; surface_normal=[0, 0, 1], surface_distance_threshold=austrip(5.0u"Å"), extra_frames=0) = OutputDesorptionTrajectory(indices, convert(Vector{Float64}, surface_normal), surface_distance_threshold, extra_frames)
+OutputDesorptionTrajectory(
+    indices;
+    surface_normal = [0, 0, 1],
+    surface_distance_threshold = austrip(4.0u"Å"),
+    extra_frames = 0,
+) = OutputDesorptionTrajectory(
+    indices,
+    convert(Vector{Float64}, surface_normal),
+    surface_distance_threshold,
+    extra_frames,
+)
 """
     (output::OutputDesorptionTrajectory)(sol, i)
 
 Only output parts of the trajectory where desorption is occurring.
 """
 function (output::OutputDesorptionTrajectory)(sol, i)
-    desorption_frame = Analysis.Diatomic.get_desorption_frame(sol.u, output.indices, sol.prob.p; surface_distance_threshold=output.surface_distance_threshold, surface_normal=output.surface_normal)
+    desorption_frame = Analysis.Diatomic.get_desorption_frame(
+        sol.u,
+        output.indices,
+        sol.prob.p;
+        surface_distance_threshold = output.surface_distance_threshold,
+        surface_normal = output.surface_normal,
+    )
     if isnothing(desorption_frame)
         return nothing
     end
     start_save_frame = desorption_frame - output.extra_frames
-    if start_save_frame < 0
+    if start_save_frame < 1
         return sol.u
     else
         return sol.u[start_save_frame:desorption_frame]
@@ -479,7 +530,15 @@ Use `extra_frames` to save additional steps before the desorption event begins.
 A desorption is detected if the centre of mass of the molecule defined with `indices` is above `surface_distance_threshold` from the closest surface atom.
 This is calculated with respect to `surface_normal` and will take into account periodic boundary conditions.
 """
-OutputDesorptionSnapshot(indices; surface_normal=[0, 0, 1], surface_distance_threshold=austrip(5.0u"Å")) = OutputDesorptionSnapshot(indices, convert(Vector{Float64}, surface_normal), surface_distance_threshold)
+OutputDesorptionSnapshot(
+    indices;
+    surface_normal = [0, 0, 1],
+    surface_distance_threshold = austrip(5.0u"Å"),
+) = OutputDesorptionSnapshot(
+    indices,
+    convert(Vector{Float64}, surface_normal),
+    surface_distance_threshold,
+)
 """
     (output::OutputDesorptionTrajectory)(sol, i)
 
@@ -487,8 +546,14 @@ Only output trajectory snapshot where desorption begins. (Centre of mass velocit
 normal changes sign)
 """
 function (output::OutputDesorptionSnapshot)(sol, i)
-    desorption_frame = Analysis.Diatomic.get_desorption_frame(sol.u, output.indices, sol.prob.p; surface_distance_threshold=output.surface_distance_threshold, surface_normal=output.surface_normal)
-    return isa(desorption_frame, Int) ? sol.u[desorption_frame] : nothing
+    desorption_frame = Analysis.Diatomic.get_desorption_frame(
+        sol.u,
+        output.indices,
+        sol.prob.p;
+        surface_distance_threshold = output.surface_distance_threshold,
+        surface_normal = output.surface_normal,
+    )
+    return isnothing(desorption_frame) ? nothing : sol.u[desorption_frame]
 end
 export OutputDesorptionSnapshot
 
@@ -499,13 +564,16 @@ Invoke with `OutputKineticTemperature(:)` for the entire system, or with `Output
 
 """
 struct OutputKineticTemperature
-    indices
+    indices::Any
     OutputKineticTemperature(indices) = new(indices)
 end
 
 function (out::OutputKineticTemperature)(sol, i)
     # Allocate output vector
-    kinetic_energies = zeros(typeof(DynamicsUtils.classical_kinetic_energy(sol.prob.p, sol.u[1])), length(sol.u))
+    kinetic_energies = zeros(
+        typeof(DynamicsUtils.classical_kinetic_energy(sol.prob.p, sol.u[1])),
+        length(sol.u),
+    )
     # Determine number of atoms
     if isa(out.indices, Colon)
         n_atoms = length(sol.prob.p.atoms.masses)
@@ -516,8 +584,14 @@ function (out::OutputKineticTemperature)(sol, i)
     end
     # Calculate kinetic temperatures.
     for snapshot in eachindex(sol.u)
-        kinetic_energy = DynamicsUtils.classical_kinetic_energy(sol.prob.p.atoms.masses[out.indices], DynamicsUtils.get_velocities(sol.u[snapshot])[:, out.indices])
-        kinetic_energies[snapshot] = ustrip(uconvert(u"K", 2 * kinetic_energy * u"hartree/k_au") / ndofs(sol.prob.p) / n_atoms)
+        kinetic_energy = DynamicsUtils.classical_kinetic_energy(
+            sol.prob.p.atoms.masses[out.indices],
+            DynamicsUtils.get_velocities(sol.u[snapshot])[:, out.indices],
+        )
+        kinetic_energies[snapshot] = ustrip(
+            uconvert(u"K", 2 * kinetic_energy * u"hartree/k_au") / ndofs(sol.prob.p) /
+            n_atoms,
+        )
     end
     return kinetic_energies
 end
