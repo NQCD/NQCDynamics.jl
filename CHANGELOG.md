@@ -1,5 +1,9 @@
 # NQCDynamics.jl changelog
 
+## Version `v1.0.3`
+
+- ![Maintenance][badge-maintenance] Updated documentation to include JLD2.jl installation instructions [#457][github-457]
+
 ## Version `v0.13.0`
 
 - ![enhancement][badge-enhancement] Added BCME method [#290][github-290]
@@ -26,6 +30,7 @@
 - ![BREAKING][badge-breaking] `SingleState`, `ElectronicPopulation` renamed to `PureState`, `MixedState` [#275][github-275]
 - ![enhancement][badge-enhancement] Created changelog!
 
+[github-457]: https://github.com/NQCD/NQCDynamics.jl/pull/457
 [github-290]: https://github.com/NQCD/NQCDynamics.jl/pull/290
 [github-287]: https://github.com/NQCD/NQCDynamics.jl/pull/287
 [github-286]: https://github.com/NQCD/NQCDynamics.jl/pull/286
