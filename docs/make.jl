@@ -44,6 +44,7 @@ end
             "NQCModels/analyticmodels.md"
             "NQCModels/machinelearningmodels.md"
             "NQCModels/fullsizemodels.md"
+            "NQCModels/atomscalculators.md"
             "NQCModels/frictionmodels.md"
             "NQCModels/systembathmodels.md"
         ]
