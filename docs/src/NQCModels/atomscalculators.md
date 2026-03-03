@@ -17,7 +17,7 @@ The three functions provided are:
 
 - `AtomsCalculators.potential_energy(sys, model)` — returns the potential energy with Hartree units.
 - `AtomsCalculators.forces(sys, model)` — returns atomic forces as a `Vector` of `SVector{3}` with Hartree/Bohr units.
-- `AtomsCalculators.virial(sys, model)` — returns the virial stress tensor (zero for models that do not implement it).
+- `AtomsCalculators.virial(sys, model)` — returns zero since NQCModels Models don't implement it.
 
 ```julia
 using NQCModels
@@ -62,7 +62,7 @@ E = potential(model, R)
 D = derivative(model, R)
 ```
 
-An `NQCBase.Structure` (containing `Atoms` and a `Cell`) can also be passed directly:
+An `NQCBase.Structure` can also be passed directly:
 
 ```julia
 atoms = Atoms([:H, :H])
