@@ -68,6 +68,9 @@ function run_dynamics(
         end
         
         kwargs = NQCBase.austrip_kwargs(; kwargs...)
+        if isnothing(get(kwargs, :dt, nothing)) # Ensure a default time step is set in case one isn't provided. 
+            kwargs = (; dt = 1.0, kwargs...) #ToDo: This shouldn't break adaptive time stepping, but double-check. 
+        end
         trajectories = convert(Int, trajectories)
         tspan = austrip.(tspan)
         prob_func = Selection(distribution, selection, trajectories)
