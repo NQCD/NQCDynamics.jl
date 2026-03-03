@@ -51,8 +51,8 @@ function (reduction::MeanReduction)(u, batch, I)
     return (u, false)
 end
 
-struct AppendReduction end
-(::AppendReduction)(u,data,I) = (append!(u,data), false)
+struct SortByTrajectoryReduction end
+(::SortByTrajectoryReduction)(u,data,I) = (append!(u,data), false)
 
 struct FileReduction
     filename::String
@@ -101,13 +101,13 @@ needing to manually extract and collect data from individual trajectory dictiona
 
 # Example
 ```julia
-# With AppendReduction (default):
+# With SortByTrajectoryReduction (default):
 # results = [traj1_dict, traj2_dict, traj3_dict]
 # traj1_dict = Dictionary(:Time => ..., :OutputPosition => ..., :OutputVelocity => ...)
 # traj2_dict = Dictionary(:Time => ..., :OutputPosition => ..., :OutputVelocity => ...)
 # traj3_dict = Dictionary(:Time => ..., :OutputPosition => ..., :OutputVelocity => ...)
 
-# With OutputReduction:
+# With SortByOutputReduction:
 # results = Dictionary(
 #     :OutputPosition => [traj1_pos, traj2_pos, traj3_pos],
 #     :OutputVelocity => [traj1_vel, traj2_vel, traj3_vel],
@@ -115,12 +115,12 @@ needing to manually extract and collect data from individual trajectory dictiona
 # )
 ```
 """
-mutable struct OutputReduction
+mutable struct SortByOutputReduction
     initialised::Bool
-    OutputReduction() = new(false)
+    SortByOutputReduction() = new(false)
 end
 
-function (reduction::OutputReduction)(u, batch, I)
+function (reduction::SortByOutputReduction)(u, batch, I)
     if !reduction.initialised
         u = get_initial_output_dict(batch)
         reduction.initialised = true
