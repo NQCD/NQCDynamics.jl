@@ -71,7 +71,8 @@ nothing # hide
 This is equivalent to performing single trajectories in a loop and manually re-sampling the initial conditions each time.
 However, here we have been able to do this more concisely, using internal mechanisms for sampling from the `product_distribution`.
 
-The output of this function is a vector containing the output from each trajectory.
+With default settings, the output of this function is a vector containing the output from each trajectory. 
+If you prefer results to be sorted by output types rather than trajectories, you can use `reduction=SortByOutputReduction()` to change to this format. 
 Each entry is equivalent to the output from a call to [`run_dynamics`](@ref) and 
 can be plotted by iterating through `ensemble`.
 ```@example ensemble

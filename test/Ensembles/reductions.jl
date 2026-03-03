@@ -33,8 +33,8 @@ end
     rm("test.h5")
 end
 
-@testset "OutputReduction" begin
-    reduction = OutputReduction()
+@testset "SortByOutputReduction" begin
+    reduction = SortByOutputReduction()
     
     output = (OutputPosition, OutputVelocity, OutputTotalEnergy)
     sim = Simulation(Atoms(1), Harmonic())
