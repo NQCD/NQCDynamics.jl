@@ -159,7 +159,7 @@ The quantities output by the ensemble simulation are specified by the `output` a
 `reduction`.
 The `output` follows the `DifferentialEquations` format where we provide a function
 that determines the output of each trajectory.
-The `reduction` can be one of `:mean`, `:append`, or `:sum`, which will determine
+The `reduction` can be one of `SortByTrajectoryReduction`, `SortByOutputReduction`, `MeanReduction`, or `SumReduction`, which will determine
 how the data from each trajectory is combined.
 
 !!! note "Ensemble simulations"

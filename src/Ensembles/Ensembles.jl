@@ -22,8 +22,9 @@ include("selections.jl")
 include("reductions.jl")
 export SumReduction
 export MeanReduction
-export AppendReduction
+export SortByTrajectoryReduction
 export FileReduction
+export SortByOutputReduction
 
 include("run_dynamics.jl")
 export run_dynamics
