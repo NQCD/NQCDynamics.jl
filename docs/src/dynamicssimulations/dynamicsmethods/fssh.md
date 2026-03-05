@@ -104,7 +104,7 @@ Finally, the trajectory can be run by passing all the parameters we have set up 
 Here, we request both the `OutputDiscreteState` output which is equal to ``s(t)`` and 
 `OutputDiabaticPopulation`, which gives us the population of each diabatic state along the trajectory.
 ```@example fssh
-traj = run_dynamics(sim, (0.0, 2000.0), u, output=(OutputDiscreteState, OutputDiabaticPopulation))
+traj = run_dynamics(sim, (0.0, 2000.0), u, output=(OutputDiscreteState, OutputDiabaticPopulation), dt=1.0)
 ```
 
 Now we can plot ``s(t)`` throughout the trajectory. The FSSH algorithm attempts to minimise
