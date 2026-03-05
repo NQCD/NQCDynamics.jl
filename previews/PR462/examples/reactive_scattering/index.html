@@ -31,7 +31,10 @@ dof = 3
 
 # Read surface structures (equilibrated at chosen temperature)
 surface_ase = ase_io.read(surface_structures_path)
-xatoms, xpositions, xcell = NQCDynamics.convert_from_ase_atoms(surface_ase[0])
+xstructure = NQCDynamics.convert_from_ase_atoms(surface_ase[0])
+xatoms = xstructure.atoms
+xpositions = xstructure.positions
+xcell = xstructure.cell
 set_periodicity!(xcell,[true,true,true])
 
 # load PES model
@@ -54,8 +57,8 @@ v = [zeros(dof,n_atoms) for i=1:length(r_h2)]
 r = [zeros(dof,n_atoms) for i=1:length(r_h2)]
 
 for i in 1:length(r_h2)
-    surf_atoms, surf_positions, surf_cell = convert_from_ase_atoms(surface_ase[i])
-    r[i][:,1:n_atoms-2] .= surf_positions
+    surf_structure = convert_from_ase_atoms(surface_ase[i])
+    r[i][:,1:n_atoms-2] .= surf_structure.positions
     r[i][:,n_atoms-1:n_atoms] .= r_h2[i]  
 
     v[i][:,1:n_atoms-2] .= austrip.(transpose(surface_ase[i].get_velocities().*ase_units.fs)*u&quot;Å/fs&quot;)
@@ -127,4 +130,4 @@ mermaid.initialize({
     startOnLoad: true,
     theme: "neutral"
 });
-</script></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../../output_and_analysis/intro/">« Simulations outputs and analysis functions</a><a class="docs-footer-nextpage" href="../spinboson/">Ohmic spin-boson nonequilibrium population dynamics »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Tuesday 3 March 2026 15:23">Tuesday 3 March 2026</span>. Using Julia version 1.12.5.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+</script></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../../output_and_analysis/intro/">« Simulations outputs and analysis functions</a><a class="docs-footer-nextpage" href="../spinboson/">Ohmic spin-boson nonequilibrium population dynamics »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Thursday 5 March 2026 09:36">Thursday 5 March 2026</span>. Using Julia version 1.12.5.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
