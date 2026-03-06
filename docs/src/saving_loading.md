@@ -19,6 +19,17 @@ For this purpose, we recommend using [FileIO.jl](https://github.com/JuliaIO/File
     for many file types and allows you to save data to lots of formats with consistent
     syntax.
 
+## Installation
+
+Before using JLD2.jl for saving and loading, you need to install it manually:
+
+```julia
+using Pkg
+Pkg.add("JLD2")
+```
+
+## Usage
+
 As a simple example, suppose that we want the same system parameters across multiple scripts:
 
 ```@example saving
