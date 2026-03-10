@@ -303,7 +303,7 @@ function transform_U(config::Matrix, index1::Int, index2::Int, sim::Simulation)
         ] ./ (r1^2)
     U_matrix = hcat(U_i1, U_i2, U_i3, vcat(unity .* masses[1], unity .* masses[2]))
     # Normalisation secret sauce – The transformation needs to be unitary, so each column of U needs to be a unit vector. 
-    U_matrix_unitary = hcat([col ./ norm(col) for col in eachcol(U_matrix)])
+    U_matrix_unitary = hcat([col ./ norm(col) for col in eachcol(U_matrix)]...)
     return U_matrix_unitary
 end
 
