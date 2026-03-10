@@ -159,23 +159,26 @@ function transform_U(config::Matrix, index1::Int, index2::Int, sim::Simulation)
     unity = LinearAlgebra.I(3)
     U_i1 = vcat(
         mapslices(x -> (x[1] - x[2]) / r, config[:, [index1, index2]]; dims=2),
-        mapslices(x -> (x[2] - x[1]) / r, config[:, [index2, index1]]; dims=2),
+        mapslices(x -> (x[2] - x[1]) / r, config[:, [index1, index2]]; dims=2),
     )
     U_i2 = vcat(
         mapslices(x -> (x[2] - x[1]) * (config[3, index2] - config[3, index1]) / (r^2 * r1), config[1:2, [index1, index2]]; dims=2),
         -r1 / r^2,
-        mapslices(x -> (x[1] - x[2]) * (config[3, index2] - config[3, index1]) / (r^2 * r1), config[1:2, [index2, index1]]; dims=2),
+        mapslices(x -> (x[1] - x[2]) * (config[3, index2] - config[3, index1]) / (r^2 * r1), config[1:2, [index1, index2]]; dims=2),
         r1 / r^2,
     )
     U_i3 = [
-        -(config[2, index1] - config[2, index2]),
+        (config[2, index1] - config[2, index2]),
         (config[1, index2] - config[1, index1]),
         0.0,
-        -(config[2, index2] - config[2, index1]),
+        (config[2, index2] - config[2, index1]),
         (config[1, index1] - config[1, index2]),
         0.0,
     ] ./ (r1^2)
-    return hcat(U_i1, U_i2, U_i3, vcat(unity .* masses[1], unity .* masses[2]))
+    U_matrix = hcat(U_i1, U_i2, U_i3, vcat(unity .* masses[1], unity .* masses[2]))
+    # Normalisation secret sauce – The transformation needs to be unitary, so each column of U needs to be a unit vector. 
+    U_matrix_unitary = hcat([col ./ norm(col) for col in eachcol(U_matrix)])
+    return U_matrix_unitary
 end
 
 export get_desorption_frame, get_desorption_angle, transform_from_internal_coordinates, transform_to_internal_coordinates, transform_U
