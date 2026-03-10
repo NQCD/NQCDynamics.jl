@@ -148,7 +148,10 @@ function get_desorption_frame(
     sizehint!(surface_distance, length(trajectory))
     for idx in eachindex(trajectory)
         pos = get_positions(trajectory[idx])
-        non_H_heights = [surface_normal_height(atom, surface_normal) for atom in eachcol(pos[:, symdiff(1:size(pos)[2], diatomic_indices)])]
+        non_H_heights = [
+            surface_normal_height(atom, surface_normal) for
+            atom in eachcol(pos[:, symdiff(1:size(pos)[2], diatomic_indices)])
+        ]
         _, highest_H_index = findmax(non_H_heights)
         push!(
             surface_distance,
@@ -158,28 +161,24 @@ function get_desorption_frame(
                 [highest_H_index],
                 simulation;
                 surface_normal = surface_normal,
-            )
+            ),
         )
     end
-    
+
     desorption_frame = findfirst(surface_distance .≥ surface_distance_threshold)
     if isnothing(desorption_frame)
         @debug "No desorption found in trajectory (H-surface distance never above set threshold"
         return nothing
     end
-    
+
     # Work backwards from desorption frame to determine H-H distance until it becomes larger than H2-surface distance
     H_H_distances = Float64[]
     desorption_frame = 0
 
     @views for idx in Iterators.reverse(eachindex(trajectory))
         push!(
-            H_H_distances, 
-            H_H_distance(
-                trajectory[idx],
-                diatomic_indices,
-                simulation,
-            ) |> austrip
+            H_H_distances,
+            H_H_distance(trajectory[idx], diatomic_indices, simulation) |> austrip,
         )
         h_h_distance_mean = mean(H_H_distances)
         h_h_distance_std = std(H_H_distances)
@@ -276,8 +275,8 @@ function transform_U(config::Matrix, index1::Int, index2::Int, sim::Simulation)
     r1 = transform_r1(config, index1, index2)
     unity = LinearAlgebra.I(3)
     U_i1 = vcat(
-        mapslices(x -> (x[1] - x[2]) / r, config[:, [index1, index2]]; dims=2),
-        mapslices(x -> (x[2] - x[1]) / r, config[:, [index1, index2]]; dims=2),
+        mapslices(x -> (x[1] - x[2]) / r, config[:, [index1, index2]]; dims = 2),
+        mapslices(x -> (x[2] - x[1]) / r, config[:, [index1, index2]]; dims = 2),
     )
     U_i2 = vcat(
         mapslices(
@@ -286,17 +285,22 @@ function transform_U(config::Matrix, index1::Int, index2::Int, sim::Simulation)
             dims = 2,
         ),
         -r1 / r^2,
-        mapslices(x -> (x[1] - x[2]) * (config[3, index2] - config[3, index1]) / (r^2 * r1), config[1:2, [index1, index2]]; dims=2),
+        mapslices(
+            x -> (x[1] - x[2]) * (config[3, index2] - config[3, index1]) / (r^2 * r1),
+            config[1:2, [index1, index2]];
+            dims = 2,
+        ),
         r1 / r^2,
     )
-    U_i3 = [
-        (config[2, index1] - config[2, index2]),
-        (config[1, index2] - config[1, index1]),
-        0.0,
-        (config[2, index2] - config[2, index1]),
-        (config[1, index1] - config[1, index2]),
-        0.0,
-    ] ./ (r1^2)
+    U_i3 =
+        [
+            (config[2, index1] - config[2, index2]),
+            (config[1, index2] - config[1, index1]),
+            0.0,
+            (config[2, index2] - config[2, index1]),
+            (config[1, index1] - config[1, index2]),
+            0.0,
+        ] ./ (r1^2)
     U_matrix = hcat(U_i1, U_i2, U_i3, vcat(unity .* masses[1], unity .* masses[2]))
     # Normalisation secret sauce – The transformation needs to be unitary, so each column of U needs to be a unit vector. 
     U_matrix_unitary = hcat([col ./ norm(col) for col in eachcol(U_matrix)])
