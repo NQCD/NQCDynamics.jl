@@ -97,10 +97,10 @@ end
     ase_io = pyimport("ase.io")
     structure = ase_io.read("artifacts/desorption_test.xyz", index=1)
     structure.set_constraint(ase_constraints.FixAtoms(indices=collect(0:17)))
-    nqcd_atoms, nqcd_positions, nqcd_cell = convert_from_ase_atoms(structure)
+    nqcd_structure = convert_from_ase_atoms(structure)
     # Test the frozen model
     frozen_model = ClassicalASEModel(structure) # unsure if this is the correct one, Ash please check
-    frozen_sim = Simulation(nqcd_atoms, frozen_model; cell=cell, temperature=10.0)
+    frozen_sim = Simulation(nqcd_structure.atoms, frozen_model; cell=nqcd_structure.cell, temperature=10.0)
 
     # Pass: Atoms 1-18 are frozen, 19-56 are mobile
     @test NQCModels.mobileatoms(frozen_sim) == collect(19:56)
@@ -111,7 +111,7 @@ end
     findfirst(x -> isa(x, Distributions.Normal), test_dist.sampleable) == CartesianIndex(1, 19)
 
     # Test full distribution generation
-    test_dist = NQCDistributions.DynamicalDistribution(fill(3.0, size(nqcd_positions)), nqcd_positions, frozen_sim)
+    test_dist = NQCDistributions.DynamicalDistribution(fill(3.0, size(nqcd_structure.positions)), nqcd_structure.positions, frozen_sim)
     dist_random = rand(test_dist)
     @test all(dist_random.v[:, 1:18] .== 0.0) # Velocities should be zero for frozen atoms.
 end
