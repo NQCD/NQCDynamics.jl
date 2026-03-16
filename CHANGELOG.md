@@ -15,6 +15,13 @@ This lays the groundwork to multiple dispatch off of atomic structure informatio
 > [!IMPORTANT]
 >  `convert_from_ase_atoms` now outputs a `Structure`. Previously, it would output a `Tuple` of `(atoms, positions, cell)`
 
+### MACEModels v1.5.0
+- Added support for newest version of MACE.
+- Allow loading foundation models, multi-head models and mace-freeze models.
+- Fixed issue where having multiple models with different dtypes loaded would cause errors depending on which model was created first.
+
+### NQCCalculators v1.0.10
+- Switched to FastLapackInterface
 
 ## Version `v0.13.0`
 
