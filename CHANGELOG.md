@@ -1,5 +1,28 @@
 # NQCDynamics.jl changelog
 
+## Version `v1.0.3`
+- Fixed missing integrator allocation for FSSH, which lead to incorrect simulation results. 
+
+### NQCModels.jl v1.1.0
+- `LuHertlMaurerModel` renamed to `AndersonHaldane`
+
+### NQCBase v1.1.0
+Added `Structure` type which contains atoms, positions, cell and additional information, similar to other atomic structure manipulation frameworks. 
+
+This lays the groundwork to multiple dispatch off of atomic structure information, which could be used to provide plotting recipes to Makie.jl / Plots.jl in future. [Related PR](https://github.com/NQCD/NQCBase.jl/pull/30)
+
+### NQCDInterfASE v1.1.0
+> [!IMPORTANT]
+>  `convert_from_ase_atoms` now outputs a `Structure`. Previously, it would output a `Tuple` of `(atoms, positions, cell)`
+
+### MACEModels v1.5.0
+- Added support for newest version of MACE.
+- Allow loading foundation models, multi-head models and mace-freeze models.
+- Fixed issue where having multiple models with different dtypes loaded would cause errors depending on which model was created first.
+
+### NQCCalculators v1.0.10
+- Switched to FastLapackInterface
+
 ## Version `v0.13.0`
 
 - ![enhancement][badge-enhancement] Added BCME method [#290][github-290]

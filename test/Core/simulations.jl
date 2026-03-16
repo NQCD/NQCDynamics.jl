@@ -111,7 +111,7 @@ end
     findfirst(x -> isa(x, Distributions.Normal), test_dist.sampleable) == CartesianIndex(1, 19)
 
     # Test full distribution generation
-    test_dist = NQCDistributions.DynamicalDistribution(fill(3.0, size(nqcd_positions)), nqcd_positions, frozen_sim)
+    test_dist = NQCDistributions.DynamicalDistribution(fill(3.0, size(nqcd_structure.positions)), nqcd_structure.positions, frozen_sim)
     dist_random = rand(test_dist)
     @test all(dist_random.v[:, 1:18] .== 0.0) # Velocities should be zero for frozen atoms.
 end

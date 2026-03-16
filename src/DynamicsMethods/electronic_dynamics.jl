@@ -79,7 +79,8 @@ function interpolate_dynamical_coupling!(output::AbstractMatrix, buffer::DoubleB
 end
 
 function ElectronicODEProblem(c0, tspan, nstates::Integer)
-    p = ElectronicParameters(zeros(eltype(c0), nstates, nstates), zeros(eltype(c0), nstates), Ref(tspan[1]))
+    error("ElectronicODEProblem is legacy code. Updates under development, code should not be called")
+#=     p = ElectronicParameters(zeros(eltype(c0), nstates, nstates), zeros(eltype(c0), nstates), Ref(tspan[1]))
     buffer = DoubleBuffer(p, deepcopy(p))
 
     function update_func(A, u, p, t)
@@ -90,8 +91,9 @@ function ElectronicODEProblem(c0, tspan, nstates::Integer)
         rmul!(diagonal, im)
     end
 
-    A = MatrixOperator(zeros(ComplexF64, nstates, nstates); update_func)
-    return ODEProblem(A, c0, tspan, buffer)
+    A_operator = MatrixOperator(zeros(ComplexF64, nstates, nstates); update_func! = update_func)
+    return ODEProblem(A_operator, c0, tspan, buffer) =#
+    return nothing
 end
 
 struct DensityMatrixPropagationParameters{T}
