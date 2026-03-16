@@ -13,7 +13,7 @@ u0 = rand(distribution)
 tspan = (0.0, 10.0)
 
 @testset "run_dynamics" for reduction in (
-    AppendReduction(), MeanReduction(), SumReduction(), FileReduction("test.h5")
+    SortByTrajectoryReduction(), MeanReduction(), SumReduction(), FileReduction("test.h5")
 )
     out = run_dynamics(sim, tspan, distribution; reduction,
         output=(OutputPosition, OutputVelocity, OutputTotalEnergy), dt=1, trajectories=10)
@@ -23,7 +23,7 @@ tspan = (0.0, 10.0)
         @test out[:OutputPosition] isa Vector{<:AbstractMatrix}
         @test out[:OutputVelocity] isa Vector{<:AbstractMatrix}
         @test out[:OutputTotalEnergy] isa Vector{<:Number}
-    elseif (reduction isa AppendReduction)
+    elseif (reduction isa SortByTrajectoryReduction)
         @test all(x -> x == 0.0:10.0, (traj[:Time] for traj in out))
         @test all(x -> x isa Vector{<:AbstractMatrix}, (traj[:OutputPosition] for traj in out))
         @test all(x -> x isa Vector{<:AbstractMatrix}, (traj[:OutputVelocity] for traj in out))
@@ -33,7 +33,7 @@ end
 
 @testset "run_dynamics" begin
     out = run_dynamics(sim, tspan, distribution;
-        output=OutputFinal, dt=1, trajectories=10, reduction=AppendReduction())
+        output=OutputFinal, dt=1, trajectories=10, reduction=SortByTrajectoryReduction())
     final = [o[:OutputFinal] for o in out]
     @test final isa Vector{<:ArrayPartition}
 end
