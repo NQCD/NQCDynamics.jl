@@ -45,7 +45,7 @@ function run_dynamics(
     distribution;
     output,
     selection::Union{Nothing,AbstractVector} = nothing,
-    reduction = AppendReduction(),
+    reduction = SortByTrajectoryReduction(),
     ensemble_algorithm = SciMLBase.EnsembleSerial(),
     algorithm = DynamicsMethods.select_algorithm(sim),
     trajectories = 1,
