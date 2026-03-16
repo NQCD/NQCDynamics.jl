@@ -48,8 +48,8 @@ end
     @unpack t, dt, p = integrator
     (;cayley, halfdt) = integrator_cache
 
-    vprev, rprev, acceleration = OrdinaryDiffEq.load_symp_state(integrator)
-    v, r, vtmp = OrdinaryDiffEq.alloc_symp_state(integrator)
+    vprev, rprev, acceleration = OrdinaryDiffEq.OrdinaryDiffEqSymplecticRK.load_symp_state(integrator)
+    v, r, vtmp = OrdinaryDiffEq.OrdinaryDiffEqSymplecticRK.alloc_symp_state(integrator)
 
     copy!(r, rprev)
 
@@ -67,5 +67,5 @@ end
 
     step_B!(v, vtmp, halfdt, acceleration)
 
-    OrdinaryDiffEq.store_symp_state!(integrator, integrator_cache, acceleration, v)
+    OrdinaryDiffEq.OrdinaryDiffEqSymplecticRK.store_symp_state!(integrator, integrator_cache, acceleration, v)
 end
