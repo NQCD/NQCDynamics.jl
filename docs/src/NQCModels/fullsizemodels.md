@@ -102,6 +102,16 @@ model = MACEModel(
 )
 ```
 
+## AtomsCalculators interface
+
+[AtomsCalculators.jl](https://github.com/JuliaMolSim/AtomsCalculators.jl) provides a unified calculation interface for atomistic simulation engines within the [JuliaMolSim](https://github.com/JuliaMolSim) ecosystem.
+NQCModels.jl supports bidirectional interoperability with AtomsCalculators.jl:
+
+- **NQCModels → AtomsCalculators**: Any [`ClassicalModel`](@ref ClassicalModels.ClassicalModel) can be used directly as an AtomsCalculators calculator via `AtomsCalculators.potential_energy`, `AtomsCalculators.forces`, and `AtomsCalculators.virial`.
+- **AtomsCalculators → NQCModels**: Any calculator implementing the AtomsCalculators interface can be wrapped with [`AtomsCalculatorsModel`](@ref) to produce a [`ClassicalModel`](@ref ClassicalModels.ClassicalModel) compatible with NQCDynamics.jl.
+
+For detailed examples of both directions, see the [AtomsCalculators interoperability](@ref atomscalculators) page.
+
 ```@setup logging
 runtime = round(time() - start_time; digits=2)
 @info "...done after $runtime s."

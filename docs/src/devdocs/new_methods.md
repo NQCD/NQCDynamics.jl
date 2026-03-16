@@ -103,6 +103,15 @@ the time derivative of the velocities equal to the acceleration where the force
 involves the parameter `a`.
 Finally, the time derivative of the extra `x` variable is also set.
 
+### Decide how Dynamics should be propagated
+You will need to decide which integration algorithm should be used for your method. If your method already fits within one of the 
+broad categories implemented in the code, there might be a default setting already. 
+
+For example, any classical dynamics method will use `OrdinaryDiffEq.VelocityVerlet()` by default, since that would be a good choice. 
+
+If your method does something more complicated, like propagating electronic dynamics, you may need to implement your own integration algorithm. 
+Check `src/DynamicsMethods/IntegrationAlgorithms/IntegrationAlgorithms.jl` for examples on how to implement this. 
+
 ### Solve a trajectory
 
 To perform a simulation with our new method, we can write a script in the usual format
@@ -116,7 +125,13 @@ value of `x` has been set to 0.5.
 sim = Simulation(Atoms(1), Free(), MyMethod(2.0))
 u = DynamicsVariables(sim, rand(1,1), rand(1,1), [0.5])
 
-sol = run_dynamics(sim, (0.0, 5.0), u, output=(OutputPosition, OutputVelocity, OutputDynamicsVariables))
+sol = run_dynamics(
+    sim, 
+    (0.0, 5.0), 
+    u, 
+    output=(OutputPosition, OutputVelocity, OutputDynamicsVariables),
+    alg = NQCDynamics.IntegrationAlgorithms.OrdinaryDiffEq.VCABM5()
+)
 ```
 
 !!! note

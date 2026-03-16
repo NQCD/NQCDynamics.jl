@@ -16,20 +16,20 @@ function select_random_bond_lengths(bounds, momentum_function, samples)
     @info "Generating distribution of bond lengths and radial momenta..."
 
     insupport(θ) = bounds[1] < θ < bounds[2]
-    density(θ) = insupport(θ) ? log(1/momentum_function(θ)) : -Inf
+    density(θ) = insupport(θ) ? log(1 / momentum_function(θ)) : -Inf
     model = DensityModel(density)
     spl = MetropolisHastings(StaticProposal(Uniform(bounds...)))
-    chain = sample(model, spl, samples; chain_type=Vector{NamedTuple})
+    chain = sample(model, spl, samples; chain_type = Vector{NamedTuple})
 
     bonds = [c.param_1 for c in chain]
-    momenta = [1/exp(c.lp) * rand((-1, 1)) for c in chain]
+    momenta = [1 / exp(c.lp) * rand((-1, 1)) for c in chain]
 
     return bonds, momenta
 end
 
 function plot_distributions(bonds, velocities)
-    r_hist = histogram(bonds, title="Bond length distribution", border=:ascii)
-    v_hist = histogram(velocities, title="Radial velocity distribution", border=:ascii)
+    r_hist = histogram(bonds, title = "Bond length distribution", border = :ascii)
+    v_hist = histogram(velocities, title = "Radial velocity distribution", border = :ascii)
     show(r_hist)
     println()
     show(v_hist)
@@ -39,25 +39,38 @@ end
 """
 Randomly orient molecule in space for a given bond length and radial momentum
 """
-function configure_diatomic(sim, bond, velocity, J, environment::EvaluationEnvironment, generation::GenerationParameters, μ)
-    r = zeros(3,2)
-    v = zeros(3,2)
-    r[1,1] = bond
-    v[1,1] = velocity
+function configure_diatomic(
+    sim,
+    bond,
+    velocity,
+    J,
+    environment::EvaluationEnvironment,
+    generation::GenerationParameters,
+    μ,
+)
+    r = zeros(3, 2)
+    v = zeros(3, 2)
+    r[1, 1] = bond
+    v[1, 1] = velocity
     r = subtract_centre_of_mass(r, masses(sim)[environment.molecule_indices])
     v = subtract_centre_of_mass(v, masses(sim)[environment.molecule_indices])
 
     L = sqrt(J * (J + 1))
 
-    random = 2π*rand()
+    random = 2π * rand()
     ω = L .* [0, sin(random), cos(random)] ./ (μ * bond^2)
 
-    v[:,1] .+= cross(ω, r[:,1])
-    v[:,2] .+= cross(ω, r[:,2])
+    v[:, 1] .+= cross(ω, r[:, 1])
+    v[:, 2] .+= cross(ω, r[:, 2])
 
     apply_random_rotation!(v, r)
     position_above_surface!(r, environment.offset, sim.cell)
-    apply_translational_impulse!(v, masses(sim)[environment.molecule_indices], generation.translational_energy, generation.direction)
+    apply_translational_impulse!(
+        v,
+        masses(sim)[environment.molecule_indices],
+        generation.translational_energy,
+        generation.direction,
+    )
 
     v, r
 end
@@ -66,14 +79,24 @@ end
 """
 Randomly orient atom in space
 """
-function configure_atomic(sim,bond, environment::EvaluationEnvironment, generation::GenerationParameters)
-    r = zeros(3,1)
-    v = zeros(3,1)
+function configure_atomic(
+    sim,
+    bond,
+    environment::EvaluationEnvironment,
+    generation::GenerationParameters,
+)
+    r = zeros(3, 1)
+    v = zeros(3, 1)
 
-    r[1,1] = bond
- 
+    r[1, 1] = bond
+
     position_above_surface!(r, environment.offset, sim.cell)
-    apply_translational_impulse!(v, masses(sim)[environment.molecule_indices], generation.translational_energy, generation.direction)
+    apply_translational_impulse!(
+        v,
+        masses(sim)[environment.molecule_indices],
+        generation.translational_energy,
+        generation.direction,
+    )
 
     v, r
 end
@@ -89,11 +112,15 @@ function apply_random_rotation!(x, y)
     end
 end
 
-function position_above_surface!(r::AbstractMatrix, offset::AbstractVector, cell::PeriodicCell)
+function position_above_surface!(
+    r::AbstractMatrix,
+    offset::AbstractVector,
+    cell::PeriodicCell,
+)
     r .+= offset
-    a1 = cell.vectors[:,1]
-    a2 = cell.vectors[2]
-    displacement = rand()*a1+rand()*a2
+    a1 = cell.vectors[:, 1]
+    a2 = cell.vectors[:, 2]
+    displacement = rand() * a1 + rand() * a2
     r .+= displacement
     return nothing
 end
