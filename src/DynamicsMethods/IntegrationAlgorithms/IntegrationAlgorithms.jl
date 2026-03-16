@@ -68,6 +68,7 @@ DynamicsMethods.select_algorithm(::Simulation{<:DynamicsMethods.SurfaceHoppingMe
 DynamicsMethods.select_algorithm(::RingPolymerSimulation{<:DynamicsMethods.SurfaceHoppingMethods.AbstractIESH}) = BCBWavefunction()
 DynamicsMethods.select_algorithm(::Simulation{<:DynamicsMethods.SurfaceHoppingMethods.FSSH}) = BABwithTsit5(OrdinaryDiffEq.Tsit5())
 
+DynamicsMethods.select_algorithm(::Simulation{<:DynamicsMethods.SurfaceHoppingMethods.ClassicalMasterEquation}) = OrdinaryDiffEq.Tsit5()
 DynamicsMethods.select_algorithm(::RingPolymerSimulation{<:DynamicsMethods.SurfaceHoppingMethods.ClassicalMasterEquation}) = BCBFull()
 
 # Ehrenfest methods
