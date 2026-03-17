@@ -15,17 +15,17 @@ W = 6Γ / 2 # bandwidth  parameter
 
 basemodel = MiaoSubotnik(; Γ)
 bath = TrapezoidalRule(M, -W, W)
-model = AndersonHolstein(basemodel, bath)
 atoms = Atoms(2000)
 n_beads = 4
 r = randn(1, 1, n_beads)
 v = randn(1, 1, n_beads)
 n_electrons = M ÷ 2
 
+model = AndersonHolstein(basemodel, bath)
 sim = RingPolymerSimulation{AdiabaticIESH}(atoms, model, n_beads)
 u = DynamicsVariables(sim, v, r)
 sim.method.state .= u.state
-SurfaceHoppingMethods.set_unoccupied_states!(sim)
+SurfaceHoppingMethods.set_unoccupied_states!(sim) # I dont think this is needed
 
 @testset "DynamicsVariables" begin
     model = AndersonHolstein(basemodel, bath; fermi_level=0.0u"eV")
@@ -56,6 +56,7 @@ SurfaceHoppingMethods.set_unoccupied_states!(sim)
 end
 
 @testset "create_problem" begin
+    model = AndersonHolstein(basemodel, bath; fermi_level=0.0u"eV")
     sim = RingPolymerSimulation{AdiabaticIESH}(atoms, model, n_beads)
     DynamicsMethods.create_problem(u, (0.0, 1.0), sim)
     @test sim.method.state == 1:15
@@ -63,6 +64,7 @@ end
 end
 
 @testset "algorithm comparison" begin
+    model = AndersonHolstein(basemodel, bath; fermi_level=0.0u"eV")
     sim = RingPolymerSimulation{AdiabaticIESH}(atoms, model, n_beads; temperature=300u"K")
     u = DynamicsVariables(sim, 10randn(1, 1, n_beads) ./ atoms.masses[1], randn(1, 1, n_beads))
     tspan = (0.0, 1000.0)
