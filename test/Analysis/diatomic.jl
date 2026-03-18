@@ -28,7 +28,7 @@ end
     diatomic_indices = [55,56]
     simulation=Simulation(first_structure.atoms, Free(), cell=first_structure.cell)
     # Ensure internal coordinate transformation is trace-conserving
-    eft_intnernal = NQCDynamics.Analysis.Diatomic.transform_to_internal_coordinates(
+    eft_internal = NQCDynamics.Analysis.Diatomic.transform_to_internal_coordinates(
         eft,
         first_structure.positions,
         diatomic_indices...,
@@ -42,5 +42,8 @@ end
         diatomic_indices...,
         simulation
     )
-    @test isapprox.(eft, eft_cartesian_again)
+    matrix_comparison = isapprox.(eft, eft_cartesian_again)
+    for idx in eachindex(matrix_comparison)
+        @test matrix_comparison[idx]
+    end
 end
