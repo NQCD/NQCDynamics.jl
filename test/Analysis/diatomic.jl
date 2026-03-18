@@ -37,7 +37,7 @@ end
     @test isapprox(eft |> diag |> sum, eft_internal |> diag |> sum)
     # Ensure doing the back-transform on the forward transform gives back the same matrix. 
     eft_cartesian_again = NQCDynamics.Analysis.Diatomic.transform_from_internal_coordinates(
-        eft_intnernal,
+        eft_internal,
         first_structure.positions,
         diatomic_indices...,
         simulation
