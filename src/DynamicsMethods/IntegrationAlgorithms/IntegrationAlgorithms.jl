@@ -55,34 +55,50 @@ struct VerletwithElectronics <: OrdinaryDiffEqAlgorithm end
 struct MDEF_BAOAB <: StochasticDiffEq.StochasticDiffEqAlgorithm end
 struct BCOCB <: StochasticDiffEq.StochasticDiffEqAlgorithm end
 
-# Classical dynamics use VelocityVerlet
-# More complicated versions use BC(O)CB
+# Simulation Integrators
+
+    # Classical Integrators
+# AbstractSimulation{<:Classical} uses VelocityVerlet() - (see ClassicalMethods/classical.jl)
+# AbstractSimulation{<:Langevin} uses StochasticDiffEq.BAOAB(;gamma=sim.method.γ) - (see ClassicalMethods/langevin.jl)
+
+    # Surface Hopping Integrators
+DynamicsMethods.select_algorithm(::Simulation{<:DynamicsMethods.SurfaceHoppingMethods.SurfaceHopping}) = BABwithTsit5(OrdinaryDiffEq.Tsit5())
+DynamicsMethods.select_algorithm(::Simulation{<:DynamicsMethods.SurfaceHoppingMethods.FSSH}) = BABwithTsit5(OrdinaryDiffEq.Tsit5())
+DynamicsMethods.select_algorithm(::Simulation{<:DynamicsMethods.SurfaceHoppingMethods.AbstractIESH}) = VerletwithElectronics()
+DynamicsMethods.select_algorithm(::Simulation{<:DynamicsMethods.SurfaceHoppingMethods.ClassicalMasterEquation}) = OrdinaryDiffEq.Tsit5()
+
+    #Ehrenfest Integrators
+DynamicsMethods.select_algorithm(::Simulation{<:DynamicsMethods.EhrenfestMethods.Ehrenfest}) = BABwithTsit5(OrdinaryDiffEq.Tsit5())
+DynamicsMethods.select_algorithm(::Simulation{<:DynamicsMethods.EhrenfestMethods.EhrenfestNA}) = VerletwithElectronics()
+
+    #MDEF Integrators
+DynamicsMethods.select_algorithm(::Simulation{<:DynamicsMethods.ClassicalMethods.AbstractMDEF}) = MDEF_BAOAB()
+
+    #Mapping Varibale Integrators
+DynamicsMethods.select_algorithm(::Simulation{<:DynamicsMethods.eCMM}) = MInt()
+DynamicsMethods.select_algorithm(::Simulation{<:DynamicsMethods.MappingVariableMethods.SpinMappingW}) = MInt()
+
+
+
+#RingPolymerSimulation Integrators
+
+    # Classical Integrators
 DynamicsMethods.select_algorithm(::RingPolymerSimulation{DynamicsMethods.ClassicalMethods.Classical}) = BCB()
 DynamicsMethods.select_algorithm(::RingPolymerSimulation{<:DynamicsMethods.ClassicalMethods.ThermalLangevin}) = BCOCB()
 
-
-# Fallback integrators for any Surface Hopping method that isn't defined with its own integrator. 
-DynamicsMethods.select_algorithm(::Simulation{<:DynamicsMethods.SurfaceHoppingMethods.SurfaceHopping}) = BABwithTsit5(OrdinaryDiffEq.Tsit5())
+    # Surface Hopping Integrators 
 DynamicsMethods.select_algorithm(::RingPolymerSimulation{<:DynamicsMethods.SurfaceHoppingMethods.SurfaceHopping}) = BCBwithTsit5(OrdinaryDiffEq.Tsit5())
-DynamicsMethods.select_algorithm(::Simulation{<:DynamicsMethods.SurfaceHoppingMethods.AbstractIESH}) = VerletwithElectronics()
 DynamicsMethods.select_algorithm(::RingPolymerSimulation{<:DynamicsMethods.SurfaceHoppingMethods.AbstractIESH}) = BCBWavefunction()
-DynamicsMethods.select_algorithm(::Simulation{<:DynamicsMethods.SurfaceHoppingMethods.FSSH}) = BABwithTsit5(OrdinaryDiffEq.Tsit5())
-
-DynamicsMethods.select_algorithm(::Simulation{<:DynamicsMethods.SurfaceHoppingMethods.ClassicalMasterEquation}) = OrdinaryDiffEq.Tsit5()
 DynamicsMethods.select_algorithm(::RingPolymerSimulation{<:DynamicsMethods.SurfaceHoppingMethods.ClassicalMasterEquation}) = BCBFull()
 
-# Ehrenfest methods
+    # Ehrenfest methods
 DynamicsMethods.select_algorithm(::RingPolymerSimulation{<:DynamicsMethods.EhrenfestMethods.AbstractEhrenfest}) = BCBwithTsit5(OrdinaryDiffEq.Tsit5())
-DynamicsMethods.select_algorithm(::Simulation{<:DynamicsMethods.EhrenfestMethods.Ehrenfest}) = BABwithTsit5(OrdinaryDiffEq.Tsit5())
-DynamicsMethods.select_algorithm(::Simulation{<:DynamicsMethods.EhrenfestMethods.EhrenfestNA}) = VerletwithElectronics()
 DynamicsMethods.select_algorithm(::RingPolymerSimulation{<:DynamicsMethods.EhrenfestMethods.EhrenfestNA}) = BCBWavefunction()
 
-# MDEF methods
-DynamicsMethods.select_algorithm(::Simulation{<:DynamicsMethods.ClassicalMethods.AbstractMDEF}) = MDEF_BAOAB()
+    # MDEF methods
 DynamicsMethods.select_algorithm(::RingPolymerSimulation{<:DynamicsMethods.ClassicalMethods.AbstractMDEF}) = BCOCB()
 
-DynamicsMethods.select_algorithm(::Simulation{<:DynamicsMethods.MappingVariableMethods.SpinMappingW}) = MInt()
-DynamicsMethods.select_algorithm(::Simulation{<:DynamicsMethods.eCMM}) = MInt()
+    # Mapping Variable Integrators
 DynamicsMethods.select_algorithm(::RingPolymerSimulation{<:DynamicsMethods.MappingVariableMethods.eCMM}) = RingPolymerMInt()
 DynamicsMethods.select_algorithm(::RingPolymerSimulation{<:DynamicsMethods.MappingVariableMethods.NRPMD}) = RingPolymerMInt()
 
