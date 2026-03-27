@@ -22,7 +22,7 @@ end
 @testset "Internal coordinate transformation" begin
     structure_import = NQCDynamics.read_extxyz("artifacts/desorption_test.xyz")
     # Take only the first structure
-    first_structure = NQCDynamics.NQCBase.Structure(structure_import[1], structure_import[2][1], structure_import[3])
+    first_structure = first(structure.import)
     # Generate a random (symmetric) friction tensor
     eft = Symmetric(rand(6,6)) |> Matrix
     diatomic_indices = [55,56]
