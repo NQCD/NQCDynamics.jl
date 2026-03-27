@@ -65,7 +65,7 @@ dof = 3
 
 # Read surface structures (equilibrated at chosen temperature)
 surface_ase = ase_io.read(surface_structures_path)
-xstructure = NQCDynamics.convert_from_ase_atoms(surface_ase[0])
+xstructure = convert_from_ase_atoms(surface_ase[0])
 xatoms = xstructure.atoms
 xpositions = xstructure.positions
 xcell = xstructure.cell
