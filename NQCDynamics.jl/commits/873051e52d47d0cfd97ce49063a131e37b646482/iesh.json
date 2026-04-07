@@ -1,1 +1,1 @@
-{"title_for_plotting":"IESH Tests","VerletwithElectronics":{"Allocs":980749600,"Time":10.778020685},"Tsit5":{"Allocs":3812983920,"Time":36.494205811},"DecoherenceCorrectionEDC":{"Allocs":1674440328,"Time":11.588207463}}
+{"title_for_plotting":"IESH Tests","VerletwithElectronics":{"Allocs":980596832,"Time":10.648803226},"Tsit5":{"Allocs":164175485304,"Time":190.205330796},"DecoherenceCorrectionEDC":{"Allocs":1674481736,"Time":10.735418622}}
