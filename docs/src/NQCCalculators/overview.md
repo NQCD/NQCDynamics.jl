@@ -102,7 +102,7 @@ Alternatively, the `evaluate_\$(quantity)` functions can be used to calculate a 
 
 ```@example QuantumModel_Cache
 r_3 = [austrip(0.8u"Å") austrip(2.4u"Å") austrip(4.2u"Å")]
-DoubleWell_eigen = evaluate_eigen(DoubleWell_Cache, r_3)
+evaluated_eigen = evaluate_eigen(DoubleWell_Cache, r_3)
 
 #we can check that the new evaluated eigenvalues and eigenvectors are different to those currently present in the cache
 @show evaluated_eigen.w
