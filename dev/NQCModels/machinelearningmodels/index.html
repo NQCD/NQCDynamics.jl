@@ -4,7 +4,7 @@
 ase = pyimport(&quot;ase&quot;)
 mace_calc = pyimport(&quot;mace.calculators&quot;)
 
-h2 = ase.Atoms(&quot;H2&quot;, [(0, 0, 0), (0, 0, 0.74)])
+h2 = ase.Atoms(&quot;H2&quot;, [0 0 0; 0 0 0.74])
 
 calculator = mace_calc.MACECalculator(model_path=&quot;../assets/mace/h2cu.model&quot;, device=&quot;cpu&quot;, default_dtype=&quot;float32&quot;)
 h2.set_calculator(calculator)</code></pre><p>We can obtain the energies and forces from <code>ase</code> directly in the usual way, converting them to atomic units using <a href="https://github.com/sostock/UnitfulAtomic.jl">UnitfulAtomic</a>.</p><pre><code class="language-julia-repl hljs">using Unitful, UnitfulAtomic;
@@ -37,10 +37,10 @@ model = ClassicalASEModel(h2);
 
 r = [0 0; 0 0; 0 ustrip(auconvert(0.74u&quot;Å&quot;))]
 
-potential(model, r)
-derivative(model, r)</code></pre><script type="module">import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+NQCModels.potential(model, r)
+NQCModels.derivative(model, r)</code></pre><script type="module">import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
 mermaid.initialize({
     startOnLoad: true,
     theme: "neutral"
 });
-</script></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../analyticmodels/">« Analytic model library</a><a class="docs-footer-nextpage" href="../fullsizemodels/">Full dimensional model library »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Wednesday 8 April 2026 07:39">Wednesday 8 April 2026</span>. Using Julia version 1.12.5.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+</script></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../analyticmodels/">« Analytic model library</a><a class="docs-footer-nextpage" href="../fullsizemodels/">Full dimensional model library »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Wednesday 15 April 2026 13:11">Wednesday 15 April 2026</span>. Using Julia version 1.12.6.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

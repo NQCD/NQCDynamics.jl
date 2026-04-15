@@ -20,9 +20,9 @@ DoubleWell{Int64, Int64, Int64, Int64}
 <span class="sgr4">derivative:</span>
 LinearAlgebra.Hermitian{Float64, Matrix{Float64}}[[0.0 0.0; 0.0 0.0] [0.0 0.0; 0.0 0.0] [0.0 0.0; 0.0 0.0]]
 <span class="sgr4">eigen:</span>
-FastLapackInterface.HermitianEigenWs{Float64, Matrix{Float64}, Float64}([66.0, 8.4879831737e-314, 4.243991582e-313, 2.121995793e-314, 8.4879831737e-314, 4.243991582e-313, 2.121995793e-314, 4.456191162e-313, 1.782476464436e-312, 1.3e-322  …  6.90730944754074e-310, 6.90730944753046e-310, 6.90730944764034e-310, 6.9073094474953e-310, 6.9073094475356e-310, 6.9073094475597e-310, 6.90730944758026e-310, 6.907309447604e-310, 6.90730944761346e-310, 6.90730944763244e-310], Float64[], [20, 1, 1, 1, 2, 2, 2, 2, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9], [2.77e-322, 2.96e-322], [0.0 1.6e-322; 0.0 6.9073744199573e-310], [9007199254740992, 139806642301904, 139806642509088, 139806642302352])
+FastLapackInterface.HermitianEigenWs{Float64, Matrix{Float64}, Float64}([66.0, 6.9482092452365e-310, 6.94828169204737e-310, 6.94828169251297e-310, 6.94828169251297e-310, 6.94828169251297e-310, 6.94828169204737e-310, 6.94828169251297e-310, 6.94828169251297e-310, 6.94828169251297e-310  …  0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], Float64[], [20, 140633883529168, 140633883528688, 140633883528912, 140633883528752, 140633880330192, 140633883529040, 140633883529008, 140633883529264, 140633883529296, 140633883529328, 140633883529360, 140633883529392, 140633883529424, 140633883529232, 617, -1, 3, 140633883475968, 140634614661128], [6.9482376219791e-310, 6.9482376219791e-310], [4.0e-323 1.283139495e-315; 1.3407807929942597e154 6.9482731720185e-310], [1, 2, 140633910263824, 140633910263856])
 <span class="sgr4">phase_ref:</span>
-[0.1498284854128672, 0.6619910671233498]
+[0.9753344778304158, 0.6261830420815928]
 <span class="sgr4">adiabatic_derivative:</span>
 [[0.0 0.0; 0.0 0.0] [0.0 0.0; 0.0 0.0] [0.0 0.0; 0.0 0.0]]
 <span class="sgr4">nonadiabatic_coupling:</span>
@@ -35,33 +35,34 @@ r = [austrip(1.0u&quot;Å&quot;) austrip(2.0u&quot;Å&quot;) austrip(3.0u&quot
 update_cache!(DoubleWell_Cache, r)
 
 #checking that update_cache!() has altered the values stored in DoubleWell_Cache
-println(DoubleWell_Cache)
+@show DoubleWell_Cache
 
 #Individual quantities can be extracted from the Cache by calling Cache.$quantity
-ad_derivative = DoubleWell_Cache.adiabatic_derivative
-eigvals = DoubleWell_Cache.eigen.w
-eigvecs = DoubleWell_Cache.eigen.Z</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">2×2 Matrix{Float64}:
- -0.0923453  0.995727
-  0.995727   0.0923453</code></pre><p><code>update_cache!</code> is an easy and efficient way of calculating all of the relevant data associated with a model acting at a set of given coordinates.  If, however, we are only interested in calculating a specific datapoint at a given position, we can use the <code>update_\$(quantity)!</code> functions. Similarly to <code>update_cache!,</code> they only require a <code>cache</code> and a position matrix, but these functions will only update the specific <code>\$quantity</code> for which they are named.</p><pre><code class="language-julia hljs">r_2 = [austrip(0.9u&quot;Å&quot;) austrip(2.2u&quot;Å&quot;) austrip(4.1u&quot;Å&quot;)]
+@show DoubleWell_Cache.eigen.w
+@show DoubleWell_Cache.eigen.Z
+@show DoubleWell_Cache.adiabatic_derivative;</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">1×3 Matrix{Matrix{Float64}}:
+ [0.499632 -0.260076; -0.260076 3.27982]  …  [4.27908 -0.260076; -0.260076 7.05927]</code></pre><p><code>update_cache!</code> is an easy and efficient way of calculating all of the relevant data associated with a model acting at a set of given coordinates.  If, however, we are only interested in calculating a specific datapoint at a given position, we can use the <code>update_\$(quantity)!</code> functions. Similarly to <code>update_cache!,</code> they only require a <code>cache</code> and a position matrix, but these functions will only update the specific <code>\$quantity</code> for which they are named.</p><pre><code class="language-julia hljs">r_2 = [austrip(0.9u&quot;Å&quot;) austrip(2.2u&quot;Å&quot;) austrip(4.1u&quot;Å&quot;)]
 update_eigen!(DoubleWell_Cache, r_2)
 
 #we can check that the new eigenvalues and eigenvectors are different to before
-eigvals = DoubleWell_Cache.eigen.w
-eigvecs = DoubleWell_Cache.eigen.Z
+@show DoubleWell_Cache.eigen.w
+@show DoubleWell_Cache.eigen.Z
 
 #we can also check that they are the only values that have been updated
-ad_derivative = DoubleWell_Cache.adiabatic_derivative</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">1×3 Matrix{Matrix{Float64}}:
- [0.499632 -0.260076; -0.260076 3.27982]  …  [4.27908 -0.260076; -0.260076 7.05927]</code></pre><p>Alternatively, the <code>evaluate_\$(quantity)</code> functions can be used to calculate a specific datapoint at a given positon, without updating the cache. The &quot;evaluated&quot; <code>\$quantity</code> for which the function is named is output to an assigned variable, leaving the cache unchanged. Again, these functions only require a <code>cache</code> and a position matrix.</p><pre><code class="language- hljs">r_3 = [austrip(0.8u&quot;Å&quot;) austrip(2.4u&quot;Å&quot;) austrip(4.2u&quot;Å&quot;)]
-DoubleWell_eigen = evaluate_eigen(DoubleWell_Cache, r_3)
+@show DoubleWell_Cache.adiabatic_derivative;</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">1×3 Matrix{Matrix{Float64}}:
+ [0.499632 -0.260076; -0.260076 3.27982]  …  [4.27908 -0.260076; -0.260076 7.05927]</code></pre><p>Alternatively, the <code>evaluate_\$(quantity)</code> functions can be used to calculate a specific datapoint at a given positon, without updating the cache. The &quot;evaluated&quot; <code>\$quantity</code> for which the function is named is output to an assigned variable, leaving the cache unchanged. Again, these functions only require a <code>cache</code> and a position matrix.</p><pre><code class="language-julia hljs">r_3 = [austrip(0.8u&quot;Å&quot;) austrip(2.4u&quot;Å&quot;) austrip(4.2u&quot;Å&quot;)]
+evaluated_eigen = evaluate_eigen(DoubleWell_Cache, r_3)
 
 #we can check that the new evaluated eigenvalues and eigenvectors are different to those currently present in the cache
-eigvals_eval = DoubleWell_eigen.w
-eigvals_cache = DoubleWell_Cache.eigen.w
+@show evaluated_eigen.w
+@show DoubleWell_Cache.eigen.w
 
-eigvecs_cache = DoubleWell_eigen.Z
-eigvecs_cache = DoubleWell_Cache.eigen.Z</code></pre><p>!!! info &quot;update!&quot; vs evaluate&quot; functions     Notice how the <code>update_\$(quantity)!</code> functions have an exclimation point, <code>!</code>, whereas the <code>evaluate_\$(quantity)</code> functions do not.      This is common Julia notation for indicating an <strong>in-place function</strong>.      An in-place function does not return a variable but instead updates one of the provided arguments &quot;in-place&quot;.      As such, the <code>update_\$(quantity)!</code> functions are written as inplace functions as they &quot;update&quot; fields in the cache that they are provided with,      without returning a new variable. For the <code>evaluate_\$(quantity)</code> functions however, we want a new variable to be returned and for the cache in      its original state to be preserved, so regular (non-in-place) functions are used (indicated by no <code>!</code> in the name)      that return new variables containing the &quot;evaluated&quot; quantity. </p><script type="module">import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+@show evaluated_eigen.Z
+@show DoubleWell_Cache.eigen.Z;</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">2×2 Matrix{Float64}:
+ -0.0923453  0.995727
+  0.995727   0.0923453</code></pre><p>!!! info &quot;update!&quot; vs evaluate&quot; functions     Notice how the <code>update_\$(quantity)!</code> functions have an exclimation point, <code>!</code>, whereas the <code>evaluate_\$(quantity)</code> functions do not.      This is common Julia notation for indicating an <strong>in-place function</strong>.      An in-place function does not return a variable but instead updates one of the provided arguments &quot;in-place&quot;.      As such, the <code>update_\$(quantity)!</code> functions are written as inplace functions as they &quot;update&quot; fields in the cache that they are provided with,      without returning a new variable. For the <code>evaluate_\$(quantity)</code> functions however, we want a new variable to be returned and for the cache in      its original state to be preserved, so regular (non-in-place) functions are used (indicated by no <code>!</code> in the name)      that return new variables containing the &quot;evaluated&quot; quantity. </p><script type="module">import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
 mermaid.initialize({
     startOnLoad: true,
     theme: "neutral"
 });
-</script></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../../NQCModels/systembathmodels/">« System-bath models</a><a class="docs-footer-nextpage" href="../../NQCDistributions/overview/">NQCDistributions.jl »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Wednesday 8 April 2026 07:39">Wednesday 8 April 2026</span>. Using Julia version 1.12.5.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+</script></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../../NQCModels/systembathmodels/">« System-bath models</a><a class="docs-footer-nextpage" href="../../NQCDistributions/overview/">NQCDistributions.jl »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Wednesday 15 April 2026 13:11">Wednesday 15 April 2026</span>. Using Julia version 1.12.6.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
