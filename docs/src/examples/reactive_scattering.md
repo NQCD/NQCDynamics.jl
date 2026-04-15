@@ -109,8 +109,8 @@ nothing # hide
 
 Download the files used for this example here:
 
-- [`surface_structure.xyz`](src/assets/surface_structure.xyz)
-- [`MACE_model_swa.model`](src/assets/MACE_model_swa.model)
+- [`surface_structure.xyz`](../assets/surface_structure.xyz)
+- [`MACE_model_swa.model`](../assets/MACE_model_swa.model)
 
 !!! tip "Saving the distribution"
 
