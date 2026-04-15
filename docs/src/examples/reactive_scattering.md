@@ -36,6 +36,7 @@ ranging from 0.04 to 0.4 eV, locating the hydrogen molecule 7 Å away from the m
 using NQCDynamics
 using NQCDInterfASE
 using Unitful
+using UnitfulAtomic
 using NQCDynamics.InitialConditions: QuantisedDiatomic
 using JLD2
 using PythonCall
@@ -52,8 +53,8 @@ function mace_model(model_path, cur_atoms)
     return model
 end
 
-model_path = "h2cu.model"
-surface_structures_path = "surf_structures.xyz"
+model_path = "src/assets/MACE_model_swa.model"
+surface_structures_path = "src/assets/surface_structure.xyz"
 
 # settings
 ν, J = 2, 1     # selected ro-vibrational quantum states  
@@ -64,45 +65,52 @@ z = ang_to_au(z)
 dof = 3
 
 # Read surface structures (equilibrated at chosen temperature)
-surface_ase = ase_io.read(surface_structures_path)
-xstructure = NQCDynamics.convert_from_ase_atoms(surface_ase[0])
+surface_ase = io.read(surface_structures_path)
+xstructure = convert_from_ase_atoms(surface_ase)
 xatoms = xstructure.atoms
 xpositions = xstructure.positions
 xcell = xstructure.cell
 set_periodicity!(xcell,[true,true,true])
 
 # load PES model
-model_pes = mace_model(model_path, atoms_path)
+model_pes = mace_model(model_path, surface_ase)
 # set simulation
-sim = Simulation(NQCDynamics.Atoms([:H,:H]), model_pes; cell=xcell)
+sim = Simulation(xatoms, model_pes; cell=xcell)
 
 configurations = QuantisedDiatomic.generate_configurations(sim, ν, J;
+    r = xpositions,
     samples=nsamples, 
     translational_energy=Ek, 
-    height=z
+    height=z,
+    atom_indices = [55,56],
 )
 v_h2 = first.(configurations)
 r_h2 = last.(configurations)
 
 
 # Re build the position and velocities for the whole system Cu56H2
-n_atoms = length(atoms)
+n_atoms = length(xatoms)
 v = [zeros(dof,n_atoms) for i=1:length(r_h2)]
 r = [zeros(dof,n_atoms) for i=1:length(r_h2)]
 
 for i in 1:length(r_h2)
-    surf_structure = convert_from_ase_atoms(surface_ase[i])
-    r[i][:,1:n_atoms-2] .= surf_structure.positions
+    surf_structure = convert_from_ase_atoms(surface_ase)
+    r[i][:,1:n_atoms-2] .= surf_structure.positions[:, 1:n_atoms-2]
     r[i][:,n_atoms-1:n_atoms] .= r_h2[i]  
 
-    v[i][:,1:n_atoms-2] .= austrip.(transpose(surface_ase[i].get_velocities().*ase_units.fs)*u"Å/fs")
+    v[i][:,1:n_atoms-2] .= austrip.(transpose(pyconvert(Matrix{Float64}, surface_ase.get_velocities().*ase_units.fs)) .* u"Å/fs")[:, 1:n_atoms-2]
     v[i][:,n_atoms-1:n_atoms] .= v_h2[i]
 end
 
 
-distribution = DynamicalDistribution(v, r, (dof,length(surface_ase[0])+2))
+distribution = DynamicalDistribution(v, r, (dof,length(xatoms)))
 nothing # hide
 ```
+
+Download the files used for this example here:
+
+- [`surface_structure.xyz`](../assets/surface_structure.xyz)
+- [`MACE_model_swa.model`](../assets/MACE_model_swa.model)
 
 !!! tip "Saving the distribution"
 
@@ -138,10 +146,10 @@ mutable struct TrajectoryTerminator
     ads_dist_cutoff
     n_atoms_layer
 end
-function (t::TrajectoryTerminator)(u, t, integrator)::Bool
+function (term::TrajectoryTerminator)(u, t, integrator)::Bool
     R = get_positions(u)
-    com_h2_z = minimum(R[3,t.h2_indices[1]:t.h2_indices[2]])
-    top_surface_avg_z = mean(R[3,end-Int(t.n_atoms_layer)-1:end-2])
+    com_h2_z = minimum(R[3,term.h2_indices[1]:term.h2_indices[2]])
+    top_surface_avg_z = mean(R[3,end-Int(term.n_atoms_layer)-1:end-2])
     zcom = au_to_ang(com_h2_z-top_surface_avg_z) # Convert vertical centre of mass to angstrom
     if zcom > t.ads_height_cutoff                         # Scattering event
         return true
@@ -152,6 +160,7 @@ function (t::TrajectoryTerminator)(u, t, integrator)::Bool
     end
 end
 
+ids_adsorbate = [55,56]
 termination_condition = TrajectoryTerminator(ids_adsorbate, 7.2, 2.25, 9)
 terminate = DynamicsUtils.TerminatingCallback(termination_condition)
 tspan = (0.0, 420.0u"fs")
@@ -176,8 +185,8 @@ Here we initialize the MACE-based interatomic potential, together with the cube-
 
 # load cube EFT calculator
 using FrictionProviders
-density_model = CubeLDFA("path_to_cube.cube", cell)
-model_eft = LDFAFriction(density_model, atoms; friction_atoms=ids_adsorbate)
+density_model = CubeLDFA("path/to/cube.cube", xcell)
+model_eft = LDFAFriction(density_model, xatoms; friction_atoms=ids_adsorbate)
 ```
 
 Now we can pass all the variables defined so far to the `Simulation` and run multiple
@@ -201,7 +210,14 @@ Here, we run MDEF simulation employing two machine learning models, to predict a
 ```julia
 using ACEpotentials
 ace_model, ace_model_meta = ACEpotentials.load_model("ace_ldfa_model_path.json")
-density_model = AdiabaticModels.ACEpotentialsModel(atoms, cell, ace_model) 
+density_model = AtomsCalculatorsModel(
+    ace_model, 
+    NQCBase.Structure( # The density model needs a structure with just one H atom to "probe" the density at that point. 
+        xstructure.atoms.symbols[1:end-1],
+        xstructure.positions[:, 1:end-1],
+        xstructure.cell,
+    )
+) 
 ace_density_model = AceLDFA(density_model)
 model_eft = LDFAFriction(ace_density_model, atoms; friction_atoms=ids_adsorbate)
 
@@ -216,19 +232,11 @@ ensemble = run_dynamics(sim, tspan, distribution; selection=1:nsamples,
 
 Above, we used the LDFA interpretation of MDEF to perform the simulation. However, an alternative, TDPT (otherwise known as ODF) method can be used that provides full friction tensor. TDPT ML models can be incorporated in our simulation in a similar way as LDFA models, through [FrictionProviders.jl](https://github.com/NQCD/FrictionProviders.jl). Here, we show how this can be done for [ACEds](https://github.com/ACEsuit/ACEds.jl) ([ACEfriction](https://github.com/ACEsuit/ACEfriction.jl)) models. Such models require the usage of [JuLIP](https://github.com/JuliaMolSim/JuLIP.jl)-type atoms. We can easily convert our ASE-type atoms into such format:
 
-```julia
-using ASE, JuLIP
-atoms_ase_jl = ASE.ASEAtoms(atoms_ase)
-atoms_julip = JuLIP.Atoms(atoms_ase_jl)
-```
-
 Having our atoms, ACEds (ACEfriction) EFT models can be then initialized and combined with previously loaded potential model.
 
 ```julia
-using ACE
-using ACEds.FrictionModels
-using ACEds.FrictionModels: Gamma
-aceds_model = ACEdsODF(read_dict(load_dict("aceds_odf_model_path.model")), Gamma, atoms_julip)
+import ACEfriction
+aceds_model = ACEdsODF(ACEfriction.read_dict(ACEfriction.load_dict("aceds_odf_model_path.model")), ACEfriction.Gamma, ACEfriction.read_extxyz.(surface_structures_path))
 model_eft = ODFriction(ace_model; friction_atoms=ids_adsorbate)
 
 model = CompositeFrictionModel(model_pes, model_eft)

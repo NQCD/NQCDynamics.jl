@@ -73,12 +73,12 @@ r = [austrip(1.0u"Å") austrip(2.0u"Å") austrip(3.0u"Å")]
 update_cache!(DoubleWell_Cache, r)
 
 #checking that update_cache!() has altered the values stored in DoubleWell_Cache
-println(DoubleWell_Cache)
+@show DoubleWell_Cache
 
 #Individual quantities can be extracted from the Cache by calling Cache.$quantity
-ad_derivative = DoubleWell_Cache.adiabatic_derivative
-eigvals = DoubleWell_Cache.eigen.w
-eigvecs = DoubleWell_Cache.eigen.Z
+@show DoubleWell_Cache.eigen.w
+@show DoubleWell_Cache.eigen.Z
+@show DoubleWell_Cache.adiabatic_derivative;
 ```
 
 `update_cache!` is an easy and efficient way of calculating all of the relevant data associated with a model acting at a set of given coordinates. 
@@ -91,25 +91,25 @@ r_2 = [austrip(0.9u"Å") austrip(2.2u"Å") austrip(4.1u"Å")]
 update_eigen!(DoubleWell_Cache, r_2)
 
 #we can check that the new eigenvalues and eigenvectors are different to before
-eigvals = DoubleWell_Cache.eigen.w
-eigvecs = DoubleWell_Cache.eigen.Z
+@show DoubleWell_Cache.eigen.w
+@show DoubleWell_Cache.eigen.Z
 
 #we can also check that they are the only values that have been updated
-ad_derivative = DoubleWell_Cache.adiabatic_derivative
+@show DoubleWell_Cache.adiabatic_derivative;
 ```
 
 Alternatively, the `evaluate_\$(quantity)` functions can be used to calculate a specific datapoint at a given positon, without updating the cache. The "evaluated" `\$quantity` for which the function is named is output to an assigned variable, leaving the cache unchanged. Again, these functions only require a `cache` and a position matrix.
 
 ```@example QuantumModel_Cache
 r_3 = [austrip(0.8u"Å") austrip(2.4u"Å") austrip(4.2u"Å")]
-DoubleWell_eigen = evaluate_eigen(DoubleWell_Cache, r_3)
+evaluated_eigen = evaluate_eigen(DoubleWell_Cache, r_3)
 
 #we can check that the new evaluated eigenvalues and eigenvectors are different to those currently present in the cache
-eigvals_eval = DoubleWell_eigen.w
-eigvals_cache = DoubleWell_Cache.eigen.w
+@show evaluated_eigen.w
+@show DoubleWell_Cache.eigen.w
 
-eigvecs_cache = DoubleWell_eigen.Z
-eigvecs_cache = DoubleWell_Cache.eigen.Z
+@show evaluated_eigen.Z
+@show DoubleWell_Cache.eigen.Z;
 ```
 
 !!! info "update!" vs evaluate" functions
