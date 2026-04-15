@@ -20,13 +20,18 @@ using AtomsCalculators
 using AtomsBase
 using Unitful, UnitfulAtomic
 
-# Assume `my_calc` is any AtomsCalculators-compatible calculator
-# and `sys` is an AtomsBase.AbstractSystem describing the structure.
+sys = NQCBase.Structure(
+            Atoms([:H, :H]),
+            rand(3,2),
+            InfiniteCell()
+        ) #Test system
 
-model = AtomsCalculatorsModel(my_calc, sys)
+my_calc = Harmonic() # Any NQCModel works as a calculator
+
+model = AtomsCalculatorsModel(my_calc ,sys)
 
 # The model can now be used like any other ClassicalModel
-R = rand(3, length(sys))
+R = sys.positions
 E = potential(model, R)
 D = derivative(model, R)</code></pre><p>An <code>NQCBase.Structure</code> can also be passed directly:</p><pre><code class="language-julia hljs">atoms = Atoms([:H, :H])
 cell  = InfiniteCell()
@@ -57,4 +62,4 @@ mermaid.initialize({
     startOnLoad: true,
     theme: "neutral"
 });
-</script></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../fullsizemodels/">« Full dimensional model library</a><a class="docs-footer-nextpage" href="../frictionmodels/">Electronic friction models »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Wednesday 15 April 2026 08:34">Wednesday 15 April 2026</span>. Using Julia version 1.12.6.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+</script></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../fullsizemodels/">« Full dimensional model library</a><a class="docs-footer-nextpage" href="../frictionmodels/">Electronic friction models »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Wednesday 15 April 2026 13:16">Wednesday 15 April 2026</span>. Using Julia version 1.12.6.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
