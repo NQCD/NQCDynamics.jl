@@ -168,11 +168,11 @@ To build a Newns-Anderson model in NQCModels.jl, you can use the [`AndersonHolst
 using NQCModels
 quantum_model = ErpenbeckThoss(Γ=2.0)
 
-N = 10 # Number of discretised bath states
+M = 10 # Number of discretised bath states
 bandmin = -1 # Minimum of bath energy range
 bandmax = 1 # Maximum of bath energy range
 
-bath = TrapezoidalRule(N, bandmin, bandmax)
+bath = TrapezoidalRule(M, bandmin, bandmax)
 AndersonHolstein(quantum_model, bath; couplings_rescale=1.0)
 ```
 The `ErpenbeckThoss` model ([Erpenbeck2018](@cite), [Erpenbeck2019](@cite)) is used here to describe the adsorbate impurity (the system Hamiltonian ``H_S``) and a `TrapezoidalRule` discretisation scheme provides the set of discrete energy states (and their couplings to the impurity) that represent the bath of electrons in a metal surface. The [`couplings_rescale`](@ref AndersonHolstein) is a scalar parameter that rescales the coupling strengths to the bath states to adjust the model's parametrisation to the chosen discretisation. Let's now look at the various ways to discretise the electron bath.
@@ -201,7 +201,7 @@ The simplest choice for discretising the bath spectral density is to represent t
 
 This is implemented as `TrapezoidalRule()` which takes the following arguments:
 ```julia
-TrapezoidalRule(M, bandmin, bandmax)
+TrapezoidalRule(M::Integer, bandmin, bandmax)
 ```
 Where:
  - `M` = number of discretised bath states to be generated
@@ -238,7 +238,7 @@ Gauss-Legendre quadrature addresses the computational scaling issues with consta
 Implemented as `ShenviGaussLegendre()` is the method developed by Shenvi et al in 2009, where Gauss-Legendre quadrature was used to discretise the bath in two halves, one above and one below the Fermi level [Shenvi2009](@cite). 
 This function takes the following arguments:
 ```julia
-ShenviGaussLegendre(M, bandmin, bandmax)
+ShenviGaussLegendre(M::Integer, bandmin, bandmax)
 ```
 
 The rescaled knots, ``\epsilon_{n}``, and weights, ``w_{n}``, are given by the following scaling related to the value of the Fermi level, ``\epsilon_{F}``.
@@ -336,7 +336,7 @@ The windowed discretisation method generates a dense region of states within a u
 
 This discretisation is selected by the function `WindowedTrapezoidalRule()` which takes the following arguments:
 ```julia
-WindowedTrapezoidalRule(M, bandmin, bandmax, windmin, windmax, densityratio=0.50)
+WindowedTrapezoidalRule(M::Integer, bandmin, bandmax, windmin, windmax; densityratio=0.50)
 ``` 
 Where:
  - `M` = number discretised bath states
