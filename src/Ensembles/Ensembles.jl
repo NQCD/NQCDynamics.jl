@@ -24,6 +24,7 @@ export SumReduction
 export MeanReduction
 export SortByTrajectoryReduction
 export FileReduction
+export XYZFileReduction
 export SortByOutputReduction
 
 include("run_dynamics.jl")
