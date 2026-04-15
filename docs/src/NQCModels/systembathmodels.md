@@ -28,7 +28,6 @@ The set of coupling coefficients (``\mathbf{c} = \{c\}``) and frequencies (``\ma
 
 When defining the Spin-Boson model, 4 arguments are provided to the function:
 ```julia
-using NQCModels
 SpinBoson(density::SpectralDensity, N::Integer, ϵ, Δ)
 ```
 The first two arguments define the bath discretisation, the first being the type of bath, the second (`N`) indicates the number of discretised bath modes. From these arguments, the bath discretisation functions can return the set of frequencies, ``\Omega``, and coupling coefficients for each harmonic mode ``j``.
@@ -63,10 +62,20 @@ Where ``j=1,...,N_{b}``.
 
 **Example**
 
-```@repl spinboson-debyebath
+```@repl spinboson-ohmicbath
 using NQCModels
-DebyeDensity = DebyeSpectralDensity(0.25, 0.5)
-SpinBoson(DebyeDensity, 10, 1.0, 1.0)
+
+ωᶜ = 2.5 # Characteristic frequency of bath
+α = 0.1 # Kondo parameter
+
+OhmicDensity = OhmicSpectralDensity(ωᶜ, α)
+
+
+N = 10 # Number of discretised bath models
+ϵ = 1.0 # Energy bias between 2-level system states
+Δ = 1.0 # Coupling between 2-level system states
+
+SpinBoson(OhmicDensity, N, ϵ, Δ)
 ```
 
 ### Debye bath
@@ -74,7 +83,7 @@ The Debye bath spectral density function takes the form:
 ```math
 J(\omega) = 2 \lambda \frac{\omega_{c} \omega}{\omega_{c}^{2} + \omega^{2}} 
 ```
-Where ``\omega_{c}`` is the characteristic frequency of the bath and ``\lambda`` is the reorganisation. These are provided as inputs to the function `DebyeSpectralDensity(ωᶜ,λ)`.
+Where ``\omega_{c}`` is the characteristic frequency of the bath and ``\lambda`` is the reorganisation energy. These are provided as inputs to the function `DebyeSpectralDensity(ωᶜ,λ)`.
 
 The set of frequencies, ``\mathbf{\Omega}``, and coupling coefficients, ``\mathbf{c}``, are generated for the number of discretised bath modes, ``N_{b}`` provided.
 ```math
@@ -88,10 +97,20 @@ Where ``j=1,...,N_{b}``.
 
 **Example**
 
-```@repl spinboson-ohmicbath
+```@repl spinboson-debyebath
 using NQCModels
-OhmicDensity = OhmicSpectralDensity(2.5, 0.1)
-SpinBoson(OhmicDensity, 10, 1.0, 1.0)
+
+ωᶜ = 0.25 # Characteristic frequency of bath
+λ = 0.5 # Reorganisation energy
+
+DebyeDensity = DebyeSpectralDensity(ωᶜ, λ)
+
+
+N = 10 # Number of discretised bath models
+ϵ = 1.0 # Energy bias between 2-level system states
+Δ = 1.0 # Coupling between 2-level system states
+
+SpinBoson(DebyeDensity, N, ϵ, Δ)
 ```
 
 ## Newns-Anderson model
@@ -148,7 +167,12 @@ To build a Newns-Anderson model in NQCModels.jl, you can use the [`AndersonHolst
 ```@repl namodel
 using NQCModels
 quantum_model = ErpenbeckThoss(Γ=2.0)
-bath = TrapezoidalRule(10, -1, 1)
+
+N = 10 # Number of discretised bath states
+bandmin = -1 # Minimum of bath energy range
+bandmax = 1 # Maximum of bath energy range
+
+bath = TrapezoidalRule(N, bandmin, bandmax)
 AndersonHolstein(quantum_model, bath; couplings_rescale=1.0)
 ```
 The `ErpenbeckThoss` model ([Erpenbeck2018](@cite), [Erpenbeck2019](@cite)) is used here to describe the adsorbate impurity (the system Hamiltonian ``H_S``) and a `TrapezoidalRule` discretisation scheme provides the set of discrete energy states (and their couplings to the impurity) that represent the bath of electrons in a metal surface. The [`couplings_rescale`](@ref AndersonHolstein) is a scalar parameter that rescales the coupling strengths to the bath states to adjust the model's parametrisation to the chosen discretisation. Let's now look at the various ways to discretise the electron bath.
@@ -177,7 +201,6 @@ The simplest choice for discretising the bath spectral density is to represent t
 
 This is implemented as `TrapezoidalRule()` which takes the following arguments:
 ```julia
-using NQCModels
 TrapezoidalRule(M, bandmin, bandmax)
 ```
 Where:
@@ -215,7 +238,6 @@ Gauss-Legendre quadrature addresses the computational scaling issues with consta
 Implemented as `ShenviGaussLegendre()` is the method developed by Shenvi et al in 2009, where Gauss-Legendre quadrature was used to discretise the bath in two halves, one above and one below the Fermi level [Shenvi2009](@cite). 
 This function takes the following arguments:
 ```julia
-using NQCModels
 ShenviGaussLegendre(M, bandmin, bandmax)
 ```
 
@@ -249,7 +271,6 @@ By supplying a value for the Fermi level, the dense discretisation region is shi
 Two numerical discretisation methods which introduce a band gap in the middle of the discretised electronic states are introduced and named as [`GapTrapezoidalRule`](@ref) and [`GapGaussLegendre`](@ref).
 
 ```julia
-using NQCModels
 gapbath_T = GapTrapezoidalRule(nstates, bandmin_val, bandmax_val, bandgap)
 gapbath_G = GapGaussLegendre(nstates, bandmin_val, bandmax_val, bandgap)
 ```
@@ -315,7 +336,6 @@ The windowed discretisation method generates a dense region of states within a u
 
 This discretisation is selected by the function `WindowedTrapezoidalRule()` which takes the following arguments:
 ```julia
-using NQCModels
 WindowedTrapezoidalRule(M, bandmin, bandmax, windmin, windmax, densityratio=0.50)
 ``` 
 Where:
