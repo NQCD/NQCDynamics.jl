@@ -51,13 +51,18 @@ using AtomsCalculators
 using AtomsBase
 using Unitful, UnitfulAtomic
 
-# Assume `my_calc` is any AtomsCalculators-compatible calculator
-# and `sys` is an AtomsBase.AbstractSystem describing the structure.
+sys = NQCBase.Structure(
+            Atoms([:H, :H]),
+            rand(3,2),
+            InfiniteCell()
+        ) #Test system
 
-model = AtomsCalculatorsModel(my_calc, sys)
+my_calc = Harmonic() # Any NQCModel works as a calculator
+
+model = AtomsCalculatorsModel(my_calc ,sys)
 
 # The model can now be used like any other ClassicalModel
-R = rand(3, length(sys))
+R = sys.positions
 E = potential(model, R)
 D = derivative(model, R)
 ```
