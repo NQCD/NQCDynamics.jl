@@ -90,9 +90,11 @@ then use AtomsIO to write the file in your chosen format.
 using AtomsIO
 using NQCBase
 
+atoms_nqcd = Atoms([:Si, :Si, :Si, :Si, :Si, :Si, :Si, :Si])
+
 v = rand(3, 8); #velocities
 r = rand(3,8); #positions
-cell = PeriodicCell([ 1 0 0;
+cell = NQCBase.PeriodicCell([ 1 0 0;
          0 1 0;
          0 0 1;
             ]) # unit cell definition
