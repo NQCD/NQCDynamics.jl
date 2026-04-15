@@ -130,7 +130,7 @@ sol = run_dynamics(
     (0.0, 5.0), 
     u, 
     output=(OutputPosition, OutputVelocity, OutputDynamicsVariables),
-    alg = NQCDynamics.IntegrationAlgorithms.OrdinaryDiffEq.VCABM5()
+    algorithm = NQCDynamics.DynamicsMethods.IntegrationAlgorithms.OrdinaryDiffEq.VCABM5()
 )
 ```
 
