@@ -65,15 +65,15 @@ Where ``j=1,...,N_{b}``.
 ```@repl spinboson-ohmicbath
 using NQCModels
 
-ωᶜ = 2.5 # Characteristic frequency of bath
-α = 0.1 # Kondo parameter
+ωᶜ = 2.5; # Characteristic frequency of bath
+α = 0.1; # Kondo parameter
 
 OhmicDensity = OhmicSpectralDensity(ωᶜ, α)
 
 
-N = 10 # Number of discretised bath models
-ϵ = 1.0 # Energy bias between 2-level system states
-Δ = 1.0 # Coupling between 2-level system states
+N = 10; # Number of discretised bath models
+ϵ = 1.0; # Energy bias between 2-level system states
+Δ = 1.0; # Coupling between 2-level system states
 
 SpinBoson(OhmicDensity, N, ϵ, Δ)
 ```
@@ -100,15 +100,15 @@ Where ``j=1,...,N_{b}``.
 ```@repl spinboson-debyebath
 using NQCModels
 
-ωᶜ = 0.25 # Characteristic frequency of bath
-λ = 0.5 # Reorganisation energy
+ωᶜ = 0.25; # Characteristic frequency of bath
+λ = 0.5; # Reorganisation energy
 
 DebyeDensity = DebyeSpectralDensity(ωᶜ, λ)
 
 
-N = 10 # Number of discretised bath models
-ϵ = 1.0 # Energy bias between 2-level system states
-Δ = 1.0 # Coupling between 2-level system states
+N = 10; # Number of discretised bath models
+ϵ = 1.0; # Energy bias between 2-level system states
+Δ = 1.0; # Coupling between 2-level system states
 
 SpinBoson(DebyeDensity, N, ϵ, Δ)
 ```
@@ -168,9 +168,9 @@ To build a Newns-Anderson model in NQCModels.jl, you can use the [`AndersonHolst
 using NQCModels
 quantum_model = ErpenbeckThoss(Γ=2.0)
 
-M = 10 # Number of discretised bath states
-bandmin = -1 # Minimum of bath energy range
-bandmax = 1 # Maximum of bath energy range
+M = 10; # Number of discretised bath states
+bandmin = -1; # Minimum of bath energy range
+bandmax = 1; # Maximum of bath energy range
 
 bath = TrapezoidalRule(M, bandmin, bandmax)
 AndersonHolstein(quantum_model, bath; couplings_rescale=1.0)
