@@ -1,6 +1,6 @@
 name = "NQCModels"
 uuid = "c814dc9f-a51f-4eaf-877f-82eda4edad48"
-version = "1.0.4"
+version = "1.0.5"
 authors = ["James Gardner <james.gardner1421@gmail.com>"]
 
 [deps]

@@ -17,14 +17,14 @@ The Model specified will be supplied with the positions of the entire system for
 """
 struct Subsystem{M<:Union{Model, FrictionModels.ElectronicFrictionProvider}}
 	model::M
-	indices
+	indices::Union{Vector{Int}, Colon}
 end
 
 function Base.show(io::IO, subsystem::Subsystem)
     print(io, "Subsystem:\n\t🏎️ $(subsystem.model)\n\t🔢 $(subsystem.indices)\n")
 end
 
-function Subsystem(model, indices=:)
+function Subsystem(model, indices::Union{Int, UnitRange{Int}}=:)
 	# Convert indices to a Vector{Int} or : for consistency
 	if isa(indices, Int)
 		indices = [indices:indices]

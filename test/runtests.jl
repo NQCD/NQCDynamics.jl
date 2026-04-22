@@ -140,21 +140,30 @@ if GROUP == "All" || GROUP == "JuliaMolSim"
     @testset "AtomsCalculators" begin
         using AtomsCalculators
         # Get ready for some Rube Goldberg style unit testing
-        st = NQCBase.Structure(
-            Atoms([:H, :H]),
-            rand(3,2),
-            InfiniteCell()
-        )
-        # Test constructors:
-        #   Both constructors should make the same type of model
-        @test typeof(AtomsCalculatorsModel(Harmonic(), st)) == typeof(AtomsCalculatorsModel(Harmonic(), NQCBase.System(st)))
-        # Test conversion:
-        #   Test a model running via NQCModels --> AtomsCalculators --> NQCModels to ensure proper unit conversions took place.
-        model = AtomsCalculatorsModel(
-            Harmonic(),
-            st
-        )
-        # For this test to work, forward- and back-conversion between AtomsBase and NQCModels need to be functioning. 
-        @test test_model(model, length(st.atoms))
+        structures = [
+            NQCBase.Structure(
+                Atoms([:H, :H]),
+                rand(3,2),
+                InfiniteCell()
+            ),
+            NQCBase.Structure(
+                Atoms([:H, :H]),
+                rand(3,2),
+                PeriodicCell(Matrix(LinearAlgebra.I(3) .* 10)),
+            ),
+        ]
+        for st in structures
+            # Test constructors:
+            #   Both constructors should make the same type of model
+            @test typeof(AtomsCalculatorsModel(Harmonic(), st)) == typeof(AtomsCalculatorsModel(Harmonic(), NQCBase.System(st)))
+            # Test conversion:
+            #   Test a model running via NQCModels --> AtomsCalculators --> NQCModels to ensure proper unit conversions took place.
+            model = AtomsCalculatorsModel(
+                Harmonic(),
+                st
+            )
+            # For this test to work, forward- and back-conversion between AtomsBase and NQCModels need to be functioning. 
+            @test test_model(model, length(st.atoms))
+        end
     end
 end

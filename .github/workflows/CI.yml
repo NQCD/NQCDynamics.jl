@@ -49,3 +49,6 @@ jobs:
           LD_LIBRARY_PATH: $HOME/libxc-5.1.5/lib
           PYTHONPATH: $HOME/libxc-5.1.5/lib
           JULIA_PYTHONCALL_EXE: "@PyCall"
+      - uses: codecov/codecov-action@v3
+        with:
+          file: lcov.info
