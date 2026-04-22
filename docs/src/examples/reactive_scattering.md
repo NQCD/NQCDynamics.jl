@@ -66,7 +66,7 @@ dof = 3
 
 # Read surface structures (equilibrated at chosen temperature)
 surface_ase = io.read(surface_structures_path)
-xstructure = convert_from_ase_atoms(surface_ase)
+xstructure = first(read_extxyz(surface_structures_path))
 xatoms = xstructure.atoms
 xpositions = xstructure.positions
 xcell = xstructure.cell
@@ -236,7 +236,7 @@ Having our atoms, ACEds (ACEfriction) EFT models can be then initialized and com
 
 ```julia
 import ACEfriction
-aceds_model = ACEdsODF(ACEfriction.read_dict(ACEfriction.load_dict("aceds_odf_model_path.model")), ACEfriction.Gamma, ACEfriction.read_extxyz.(surface_structures_path))
+aceds_model = ACEdsODF(ACEfriction.read_dict(ACEfriction.load_dict("aceds_odf_model_path.model")), ACEfriction.Gamma, first(read_extxyz(surface_structures_path)))
 model_eft = ODFriction(ace_model; friction_atoms=ids_adsorbate)
 
 model = CompositeFrictionModel(model_pes, model_eft)
