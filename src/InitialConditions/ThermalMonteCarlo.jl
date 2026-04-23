@@ -118,11 +118,10 @@ function get_density_function(sim::RingPolymerSimulation)
   temperature = get_ring_polymer_temperature(sim)
 
   return function density(r)
-    #r_local = reshape(r, size(sim))
-    NQCCalculators.update_cache!(sim.cache, reshape(r, size(sim)))
-    RingPolymerArrays.transform_from_normal_modes!(reshape(r, size(sim)), sim.beads.transformation)
-    potential = DynamicsUtils.classical_potential_energy(sim, reshape(r, size(sim)))
-    spring = DynamicsUtils.classical_spring_energy(sim, reshape(r, size(sim)))
+    r_local = copy(reshape(r, size(sim)))
+    RingPolymerArrays.transform_from_normal_modes!(r_local, sim.beads.transformation)
+    potential = DynamicsUtils.classical_potential_energy(sim, r_local)
+    spring = DynamicsUtils.classical_spring_energy(sim, r_local)
     total = potential + spring
     return -total / temperature
   end
