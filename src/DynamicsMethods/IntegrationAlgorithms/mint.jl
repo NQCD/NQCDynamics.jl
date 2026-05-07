@@ -3,7 +3,6 @@ using UnPack: @unpack
 using MuladdMacro: @muladd
 using StaticArrays: SMatrix
 using LinearAlgebra: Hermitian, tr, dot
-using FastLapackInterface
 using NQCDynamics.DynamicsMethods: MappingVariableMethods
 using NQCModels: nstates, NQCModels
 
@@ -98,8 +97,8 @@ function propagate_mapping_variables!(integrator_cache, cache, X, P, rtmp, dt)
     NQCCalculators.update_cache!(cache, rtmp)
     eigen = NQCCalculators.get_eigen(cache, rtmp)
 
-    set_C_propagator!(C, integrator_cache, eigen, dt)
-    set_D_propagator!(D, integrator_cache, eigen, dt)
+    set_C_propagator!(C, integrator_cache, eigen.w, eigen.Z, dt)
+    set_D_propagator!(D, integrator_cache, eigen.w, eigen.Z, dt)
 
     # tmp_vec1 = C*X - D*P
     mul!(tmp_vec1, C, X)
@@ -114,21 +113,21 @@ function propagate_mapping_variables!(integrator_cache, cache, X, P, rtmp, dt)
 end
 
 "Get the `C` propagator for the mapping variables."
-function set_C_propagator!(C, integrator_cache, eigen::HermitianEigenWs, dt::Real)
+function set_C_propagator!(C, integrator_cache, eigenvalues::AbstractVector, eigenvectors::AbstractMatrix, dt::Real)
     fill!(C, zero(eltype(C)))
     for i in axes(C,1)
-        C[i,i] = cos(eigen.w[i] * dt)
+        C[i,i] = cos(eigenvalues[i] * dt)
     end
-    transform_matrix!(C, eigen.Z, integrator_cache.tmp_mat)
+    transform_matrix!(C, eigenvectors, integrator_cache.tmp_mat)
 end
 
 "Get the `D` propagator for the mapping variables."
-function set_D_propagator!(D, integrator_cache, eigen::HermitianEigenWs, dt::Real)
+function set_D_propagator!(D, integrator_cache, eigenvalues::AbstractVector, eigenvectors::AbstractMatrix, dt::Real)
     fill!(D, zero(eltype(D)))
     for i in axes(D,1)
-        D[i,i] = sin(-eigen.w[i] * dt)
+        D[i,i] = sin(-eigenvalues[i] * dt)
     end
-    transform_matrix!(D, eigen.Z, integrator_cache.tmp_mat)
+    transform_matrix!(D, eigenvectors, integrator_cache.tmp_mat)
 end
 
 function transform_matrix!(M, transform, tmp_mat)
