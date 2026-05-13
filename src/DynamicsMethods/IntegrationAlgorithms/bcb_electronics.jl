@@ -18,7 +18,7 @@ OrdinaryDiffEqCore.isfsal(::BCBwithTsit5) = false
 OrdinaryDiffEqCore.get_fsalfirstlast(cache::BCBwithTsit5Cache, u::Any) = (nothing, nothing)
 
 
-function OrdinaryDiffEqCore.alg_cache(alg::BCBwithTsit5,u,rate_prototype,::Type{uEltypeNoUnits},::Type{uBottomEltypeNoUnits},::Type{tTypeNoUnits},uprev,uprev2,f,t,dt,reltol,p,calck,inplace::Val{true}) where {uEltypeNoUnits,uBottomEltypeNoUnits,tTypeNoUnits}
+function OrdinaryDiffEqCore.alg_cache(alg::BCBwithTsit5,u,rate_prototype,::Type{uEltypeNoUnits},::Type{uBottomEltypeNoUnits},::Type{tTypeNoUnits},uprev,uprev2,f,t,dt,reltol,p,calck,inplace::Val{true},verbose) where {uEltypeNoUnits,uBottomEltypeNoUnits,tTypeNoUnits}
     electronic_problem = DynamicsMethods.DensityMatrixODEProblem(
         Array(DynamicsUtils.get_quantum_subsystem(u)),
         (0.0, dt),

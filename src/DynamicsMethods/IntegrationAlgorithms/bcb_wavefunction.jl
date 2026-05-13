@@ -14,7 +14,7 @@ OrdinaryDiffEqCore.isfsal(::BCBWavefunction) = false
 
 OrdinaryDiffEqCore.get_fsalfirstlast(cache::BCBWavefunctionCache, u::Any) = (nothing, nothing)
 
-function OrdinaryDiffEqCore.alg_cache(::BCBWavefunction,u,rate_prototype,::Type{uEltypeNoUnits},::Type{uBottomEltypeNoUnits},::Type{tTypeNoUnits},uprev,uprev2,f,t,dt,reltol,p,calck,inplace::Val{true}) where {uEltypeNoUnits,uBottomEltypeNoUnits,tTypeNoUnits}
+function OrdinaryDiffEqCore.alg_cache(::BCBWavefunction,u,rate_prototype,::Type{uEltypeNoUnits},::Type{uBottomEltypeNoUnits},::Type{tTypeNoUnits},uprev,uprev2,f,t,dt,reltol,p,calck,inplace::Val{true},verbose) where {uEltypeNoUnits,uBottomEltypeNoUnits,tTypeNoUnits}
     tmp = zero(u)
     vtmp = zero(DynamicsUtils.get_velocities(u))
     k = zero(DynamicsUtils.get_positions(rate_prototype))

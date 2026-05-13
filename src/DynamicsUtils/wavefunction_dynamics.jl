@@ -61,6 +61,7 @@ function get_quantum_propagator!(prop, u, p, t)
 
     sim, nuclei = p
     r, v = nuclei.r, nuclei.v
+    NQCCalculators.update_cache!(sim.cache, r)
     v = DynamicsUtils.get_hopping_velocity(sim, v)
     eigenvalues = DynamicsUtils.get_hopping_eigenvalues(sim, r)
     fill!(prop, zero(eltype(prop)))

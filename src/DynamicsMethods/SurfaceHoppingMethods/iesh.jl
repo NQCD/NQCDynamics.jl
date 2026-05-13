@@ -187,7 +187,6 @@ See Eq. 12 of Shenvi, Tully JCP 2009 paper.
 function DynamicsUtils.acceleration!(dv, v, r, parameters::Tuple{Simulation{<:AbstractIESH}, Any}, t)
     sim, electronic = parameters
 
-    NQCCalculators.NQCCalculators.update_cache!(sim.cache, r)
     state = sim.method.state
     dv .= zero(eltype(dv))
     NQCModels.state_independent_derivative!(sim.cache.model, dv, r)
@@ -342,6 +341,16 @@ function Estimators.diabatic_population(sim::Simulation{<:AdiabaticIESH}, u)
     ψ = DynamicsUtils.get_quantum_subsystem(u).re
 
     eigen = NQCCalculators.get_eigen(sim.cache, DynamicsUtils.get_positions(u))
+    transformation = eigen.Z
+
+    return iesh_diabatic_population(ψ, transformation, sim.method.state)
+end
+
+function Estimators.diabatic_population(p::Tuple{Simulation{<:AdiabaticIESH},Any}, u)
+
+    sim, nuclear = p
+    ψ = DynamicsUtils.get_quantum_subsystem(u).re
+    eigen = NQCCalculators.get_eigen(sim.cache, nuclear.r)
     transformation = eigen.Z
 
     return iesh_diabatic_population(ψ, transformation, sim.method.state)

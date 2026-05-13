@@ -11,6 +11,7 @@ using Unitful
 using UnitfulAtomic
 using LinearAlgebra: norm
 using ComponentArrays: ComponentVector
+using NQCDynamics.DynamicsMethods.IntegrationAlgorithms: CoupledODEProblem, CoupledODESolution
 
 using NQCDynamics:
     Estimators,
@@ -184,6 +185,7 @@ export OutputDiscreteState
 Output the diabatic population at each timestep during the trajectory.
 """
 OutputDiabaticPopulation(sol, i) = Estimators.diabatic_population.(sol.prob.p, sol.u)
+OutputDiabaticPopulation(sol::CoupledODESolution, i) = Estimators.diabatic_population.(Ref(sol.sol2.prob.p), sol.sol2.u)
 export OutputDiabaticPopulation
 
 """
@@ -200,6 +202,7 @@ export OutputTotalDiabaticPopulation
 Output the adiabatic population at each timestep during the trajectory.
 """
 OutputAdiabaticPopulation(sol, i) = Estimators.adiabatic_population.(sol.prob.p, sol.u)
+OutputAdiabaticPopulation(sol::CoupledODESolution, i) = Estimators.adiabatic_population.(sol.sol2.prob.p[1], sol.sol2.u)
 export OutputAdiabaticPopulation
 
 """
@@ -241,6 +244,8 @@ function OutputSurfaceHops(sol, i)::Int
     end
     return nhops
 end
+OutputSurfaceHops(sol::CoupledODESolution, i) = OutputSurfaceHops(sol.sol2, i)
+
 export OutputSurfaceHops
 
 """

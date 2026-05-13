@@ -7,7 +7,10 @@ using SciMLBase: AbstractDEProblem, AbstractODEProblem, DEIntegrator, __init,  s
 mutable struct CoupledODEProblem{P1<:SciMLBase.AbstractODEProblem, P2<:SciMLBase.AbstractODEProblem} <: SciMLBase.AbstractDEProblem
     prob1::P1
     prob2::P2
-    callback::CallbackSet
+    callbacks::CallbackSet
+    function CoupledODEProblem(prob1::P1, prob2::P2, callbacks::CallbackSet=CallbackSet()) where {P1<:SciMLBase.AbstractODEProblem, P2<:SciMLBase.AbstractODEProblem}
+        new{P1,P2}(prob1, prob2, callbacks)
+    end
 end
 
 mutable struct CoupledODEIntegrator{I1<:DiffEqBase.AbstractODEIntegrator, I2<:DiffEqBase.AbstractODEIntegrator, C}
@@ -21,25 +24,24 @@ struct CoupledODESolution{S1,S2}
     sol2::S2
 end
 
-
 # Make this as thin as possible - just init and dispatch
 @inline function SciMLBase.__solve(
         prob::CoupledODEProblem,
-        alg1::SciMLBase.AbstractDEAlgorithm, alg2::SciMLBase.AbstractDEAlgorithm, dt1::Real, dt2::Real, callback)
+        alg1::SciMLBase.AbstractDEAlgorithm, alg2::SciMLBase.AbstractDEAlgorithm, dt1::Real, dt2::Real, callback, kwargs...)
     
-    integrator::CoupledODEIntegrator = SciMLBase.__init(prob, alg1, alg2, dt1, dt2, callback)
+    integrator::CoupledODEIntegrator = SciMLBase.__init(prob, alg1, alg2, dt1, dt2, callback, kwargs...)
     
     return solve!(integrator)
 end
 
 function SciMLBase.__init(prob::CoupledODEProblem{P1,P2},
                           alg1::A1, alg2::A2,
-                          dt1::Real, dt2::Real, callback) where
+                          dt1::Real, dt2::Real, callback, kwargs...) where
                           {P1<:SciMLBase.AbstractODEProblem, P2<:SciMLBase.AbstractODEProblem,
                            A1<:SciMLBase.AbstractDEAlgorithm, A2<:SciMLBase.AbstractDEAlgorithm} 
     
-    int1 = SciMLBase.__init(prob.prob1, alg1; dt=dt1)
-    int2 = SciMLBase.__init(prob.prob2, alg2; dt=dt2)
+    int1 = SciMLBase.__init(prob.prob1, alg1; dt=dt1, kwargs...)
+    int2 = SciMLBase.__init(prob.prob2, alg2; dt=dt2, kwargs...)
  
     return _init_coupled(int1, int2, callback)
 end
@@ -147,9 +149,27 @@ end
 function DiffEqBase.solve(
         prob::CoupledODEProblem,
         alg;
+        callback::CallbackSet=CallbackSet(),
         kwargs...)
     alg1, alg2 = alg
-    dt1, dt2 = kwargs[:dt]
-    callback = prob.callback
-    return SciMLBase.__solve(prob, alg1, alg2, dt1, dt2, callback)
+    dts = get_dt(kwargs[:dt])
+    return SciMLBase.__solve(prob, alg1, alg2, dts[1], dts[2], callback, kwargs...)
 end
+
+function get_dt(dt::Number)
+    return (dt, dt)
+end
+
+function get_dt(dt::Tuple{<:Number, <:Number})
+    return dt
+end
+
+function Base.show(io::IO, ::MIME"text/plain", mytype::CoupledODESolution)
+    println("Simulation Complete. Status: $(mytype.sol1.retcode)")
+end
+
+function Base.show(io::IO, ::MIME"text/plain", mytype::CoupledODEProblem)
+    println(mytype.prob1)
+    println(mytype.prob2)
+end
+

@@ -1,4 +1,4 @@
-using StochasticDiffEq: BAOABCache, BAOABConstantCache
+#= using StochasticDiffEq: BAOABCache, BAOABConstantCache
 using SciMLBase
 using NQCDynamics.DynamicsMethods.ClassicalMethods
 
@@ -29,4 +29,4 @@ function matrix_friction_update!(utmp, integrator, cache::BAOABConstantCache)
     noise = σ.*W.dW[:] / sqdt # W.dW[:] noise rescaled by square root of time step to make it normal distributed
     du3 = c*c1*c'*du2[:] + c*c2*c'*noise # O step from Leimkuhler and Matthews (2013) 
     return reshape(du3, size(du2))
-end
+end =#

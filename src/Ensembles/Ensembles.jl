@@ -14,6 +14,7 @@ using UnitfulAtomic: austrip
 using NQCBase: NQCBase
 using NQCCalculators
 using NQCDynamics: AbstractSimulation, DynamicsMethods
+using NQCDynamics.DynamicsMethods.IntegrationAlgorithms: CoupledODEProblem, CoupledODESolution
 
 export run_dynamics
 
@@ -41,10 +42,19 @@ struct EnsembleSaver{F<:Tuple}
     savetime::Bool
 end
 
-function (output::EnsembleSaver)(sol, i)
+function (output::EnsembleSaver)(sol::CoupledODESolution, i)
     if output.savetime
         t = ifelse(length(sol.sol1.t) < length(sol.sol2.t), sol.sol1.t, sol.sol2.t)
         out = Dictionary{Symbol,Any}([:Time], [t])
+    else
+        out = Dictionary{Symbol,Any}()
+    end
+    return (evaluate_output_functions!(out, sol, i, output.functions...), false)
+end
+
+function (output::EnsembleSaver)(sol, i)
+    if output.savetime
+        out = Dictionary{Symbol,Any}([:Time], [sol.t])
     else
         out = Dictionary{Symbol,Any}()
     end
