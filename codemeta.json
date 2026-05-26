@@ -1,0 +1,86 @@
+{
+  "@context": "https://raw.githubusercontent.com/codemeta/codemeta/master/codemeta.jsonld",
+  "@type": "Code",
+  "author": [
+    {
+      "@id": "http://orcid.org/0000-0002-8171-9118",
+      "@type": "Person",
+      "email": "alexander.spears@univie.ac.at",
+      "name": "Alexander Spears",
+      "affiliation": "University of Vienna, University of Warwick"
+    },
+    {
+      "@id": "http://orcid.org/0009-0008-6931-0070",
+      "@type": "Person",
+      "email": "ash.baldwin@univie.ac.at",
+      "name": "Ash Baldwin",
+      "affiliation": "University of Vienna, University of Warwick"
+    },
+    {
+      "@id": "http://orcid.org/0009-0007-8700-7668",
+      "@type": "Person",
+      "email": "henry.snowden@uni-goettingen.de",
+      "name": "Henry Snowden",
+      "affiliation": "University of Göttingen, University of Warwick"
+    },
+    {
+      "@id": "http://orcid.org/0000-0001-7575-7161",
+      "@type": "Person",
+      "email": "box.connor@gmail.com",
+      "name": "Connor L. Box",
+      "affiliation": "University of Cambridge"
+    },
+    {
+      "@id": "http://orcid.org/0009-0007-7547-0516",
+      "@type": "Person",
+      "email": "Matthew.T.Larkin@warwick.ac.uk",
+      "name": "Matt Larkin",
+      "affiliation": "University of Warwick"
+    },
+    {
+      "@id": "http://orcid.org/0009-0004-4916-5970",
+      "@type": "Person",
+      "email": "xuexun.lu@warwick.ac.uk",
+      "name": "Xuexun Lu",
+      "affiliation": "University of Warwick"
+    },
+    {
+      "@id": "http://orcid.org/0000-0001-6279-2638",
+      "@type": "Person",
+      "email": "w.stark@imperial.ac.uk",
+      "name": "Wojciech G. Stark",
+      "affiliation": "Imperial College London"
+    },
+    {
+      "@id": "http://orcid.org/0000-0003-1840-804X",
+      "@type": "Person",
+      "email": "james.gardner1421@gmail.com",
+      "name": "James Gardner",
+      "affiliation": "University of Warwick"
+    },
+    {
+      "@id": "http://orcid.org/0000-0002-6298-3597",
+      "@type": "Person",
+      "email": "Nils.Hertl@warwick.ac.uk",
+      "name": "Nils Hertl",
+      "affiliation": "University of Warwick"
+    },
+    {
+      "@id": "http://orcid.org/0000-0002-3004-785X",
+      "@type": "Person",
+      "email": "reinhard.maurer@univie.ac.at",
+      "name": "Reinhard J. Maurer",
+      "affiliation": "University of Vienna, University of Warwick, University of Göttingen"
+    }
+  ],
+  "identifier": "https://doi.org/10.5281/zenodo.20050452",
+  "codeRepository": "https://github.com/NQCD/NQCDynamics.jl",
+  "datePublished": "2026-05-26",
+  "dateModified": "2026-05-26",
+  "dateCreated": "2026-05-26",
+  "description": "Fast and flexible nonadiabatic molecular dynamics in Julia!",
+  "keywords": "nonadiabatic dynamics, julia, molecular dynamics",
+  "license": "MIT",
+  "title": "NQCDynamics.jl",
+  "version": "v1.0.5"
+}
