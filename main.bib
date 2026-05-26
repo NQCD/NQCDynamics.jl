@@ -13,6 +13,46 @@
     url = {https://doi.org/10.1063/1.459170},
 }
 
+@Article{SHARC,
+Title = {Nonadiabatic Dynamics: The SHARC Approach},
+Author = {Sebastian Mai and Philipp Marquetand and Leticia Gonz\’alez},
+Journal = {WIREs Comput. Mol. Sci.},
+Year = {2018},
+Volume = {8},
+Pages = {e1370},
+Doi = {10.1002/wcms.1370},
+Keywords = {ab initio molecular dynamics, excited states, nonadiabatic dynamics, surface hopping, SHARC},
+Url = {http://dx.doi.org/10.1002/wcms.1370}
+}
+
+@article{NewtonX,
+author = {Barbatti, Mario and Bondanza, Mattia and Crespo-Otero, Rachel and Demoulin, Baptiste and Dral, Pavlo O. and Granucci, Giovanni and Kossoski, Fábris and Lischka, Hans and Mennucci, Benedetta and Mukherjee, Saikat and Pederzoli, Marek and Persico, Maurizio and Pinheiro Jr, Max and Pittner, Jiří and Plasser, Felix and Sangiogo Gil, Eduarda and Stojanovic, Ljiljana},
+title = {Newton-X Platform: New Software Developments for Surface Hopping and Nuclear Ensembles},
+journal = {Journal of Chemical Theory and Computation},
+volume = {18},
+number = {11},
+pages = {6851-6865},
+year = {2022},
+doi = {10.1021/acs.jctc.2c00804},
+    note ={PMID: 36194696},
+
+URL = {
+
+        https://doi.org/10.1021/acs.jctc.2c00804
+
+
+
+},
+eprint = {
+
+        https://doi.org/10.1021/acs.jctc.2c00804
+
+
+
+}
+
+}
+
 @article{ipi-article,
 title = {i-PI 2.0: A universal force engine for advanced molecular simulations},
 journal = {Comp. Phys. Commun.},
@@ -797,4 +837,60 @@ primaryClass = {physics.chem-ph},
 year = {2026},
 abstract = {Ultrafast light-driven chemical dynamics at surfaces are governed by energy transfer from excited electrons to vibrational degrees of freedom. When this nonadiabatic energy transfer is anisotropic, it can lead to dynamical steering effects that affect reaction probabilities or non-thermal final energy distributions in molecules. Here, we use a machine-learning-enabled simulation framework to compare isotropic and anisotropic models of electronic friction during laser-driven hydrogen evolution on the (111) facet of copper. While anisotropic friction strongly determines the rate of energy transfer into the adsorbate and the fluence dependence of reaction probabilities, it has little effect on final translational, vibrational and rotational energy distributions as these are mainly governed by the potential energy landscape at the barrier.},
 url = {https://arxiv.org/abs/2604.00709},
+}
+
+@Article{craig2004quant,
+author = {Craig, Ian R and Manolopoulos, David E},
+title = {Quantum statistics and classical mechanics: real time correlation functions from ring polymer molecular dynamics},
+journal = {J. Chem. Phys.},
+volume = {121},
+number = {8},
+pages = {3368--3373},
+year = {2004},
+abstract = {We propose an approximate method for calculating Kubo-transformed real-time correlation functions involving position-dependent operators, based on path integral (Parrinello-Rahman) molecular dynamics. The method gives the exact quantum mechanical correlation function at time zero, exactly satisfies the quantum mechanical detailed balance condition, and for correlation functions of the form C(Ax)(t) and C(xB)(t) it gives the exact result for a harmonic potential. It also works reasonably well at short times for more general potentials and correlation functions, as we illustrate with some example calculations. The method provides a consistent improvement over purely classical molecular dynamics that is most apparent in the low-temperature regime.},
+location = {Physical and Theoretical Chemistry Laboratory, Oxford University, South Parks Road, Oxford OX1 3QZ, United Kingdom.},
+doi = {10.1063/1.1777575},
+url = {https://pubmed.ncbi.nlm.nih.gov/15303899},
+}
+
+@Article{chowdhury2021non-a,
+author = {Chowdhury, Sutirtha N and Huo, Pengfei},
+title = {Non-adiabatic Matsubara dynamics and non-adiabatic ring-polymer molecular dynamics},
+journal = {J. Chem. Phys.},
+volume = {154},
+number = {12},
+pages = {124124},
+year = {2021},
+abstract = {We present the non-adiabatic Matsubara dynamics, a general framework for computing the time-correlation function (TCF) of electronically non-adiabatic systems. This new formalism is derived based on the generalized Kubo-transformed TCF using the Wigner representation for both the nuclear degrees of freedom and the electronic mapping variables. By dropping the non-Matsubara nuclear normal modes in the quantum Liouvillian and explicitly integrating these modes out from the expression of the TCF, we derived the non-adiabatic Matsubara dynamics approach. Further making the approximation to drop the imaginary part of the Matsubara Liouvillian and enforce the nuclear momentum integral to be real, we arrived at the non-adiabatic ring-polymer molecular dynamics (NRPMD) approach. We have further justified the capability of NRPMD for simulating the non-equilibrium TCF. This work provides the rigorous theoretical foundation for several recently proposed state-dependent RPMD approaches and offers a general framework for developing new non-adiabatic quantum dynamics methods in the future.},
+location = {Department of Chemistry, University of Rochester, 120 Trustee Road, Rochester, New York 14627, USA.},
+doi = {10.1063/5.0042136},
+url = {https://pubmed.ncbi.nlm.nih.gov/33810665},
+}
+
+@Article{shushkov2012ring,
+author = {Shushkov, Philip and Li, Richard and Tully, John C},
+title = {Ring polymer molecular dynamics with surface hopping},
+journal = {J. Chem. Phys.},
+volume = {137},
+number = {22},
+pages = {22A549},
+year = {2012},
+abstract = {We propose a ring polymer molecular dynamics method for the calculation of chemical rate constants that incorporates nonadiabatic effects by the surface-hopping approach. Two approximate ring polymer electronic Hamiltonians are formulated and the time-dependent Schrodinger equation for the electronic amplitudes is solved self-consistently with the ring polymer equations of motion. The beads of the ring polymer move on a single adiabatic potential energy surface at all times except for instantaneous surface hops. The probability for a hop is determined by the fewest-switches surface-hopping criterion. During a surface hop all beads switch simultaneously to the new potential energy surface with positions kept unchanged and momenta adjusted properly to conserve total energy. The approach allows the evaluation of total rate coefficients as well as electronic state-selected contributions. The method is tested against exact quantum mechanical calculations for a one-dimensional, two-state model system that mimics a prototypical nonadiabatic bimolecular chemical reaction. For this model system, the method reproduces quite accurately the tunneling contribution to the rate and the distribution of reactants between the electronic states.},
+location = {Department of Chemistry, Yale University, New Haven, Connecticut 06520, USA.},
+keywords = {ring-polymer methods, surface hopping},
+doi = {10.1063/1.4766449},
+url = {https://pubmed.ncbi.nlm.nih.gov/23249086},
+}
+@Article{he2021negat,
+author = {He, Xin and Gong, Zhihao and Wu, Baihua and Liu, Jian},
+title = {Negative Zero-Point-Energy Parameter in the Meyer-Miller Mapping Model for Nonadiabatic Dynamics},
+journal = {J. Phys. Chem. Lett.},
+volume = {12},
+number = {10},
+pages = {2496--2501},
+year = {2021},
+abstract = {The celebrated Meyer-Miller mapping model has been a useful approach for generating practical trajectory-based nonadiabatic dynamics methods. It is generally assumed that the zero-point-energy (ZPE) parameter is positive. The constraint implied in the conventional Meyer-Miller mapping Hamiltonian for an F-electronic-state system actually requires γ∈(-1/F, ∞) for the ZPE parameter for each electronic degree of freedom. Both negative and positive values are possible for such a parameter. We first establish a rigorous formulation to construct exact mapping models in the Cartesian phase space when the constraint is applied. When nuclear dynamics is approximated by the linearized semiclassical initial value representation, a negative ZPE parameter could lead to reasonably good performance in describing dynamic behaviors in typical spin-boson models for condensed-phase two-state systems, even at challenging zero temperature.},
+location = {Beijing National Laboratory for Molecular Sciences, Institute of Theoretical and Computational Chemistry, College of Chemistry and Molecular Engineering, Peking University, Beijing 100871, China.},
+doi = {10.1021/acs.jpclett.1c00232},
+url = {https://pubmed.ncbi.nlm.nih.gov/33667108},
 }

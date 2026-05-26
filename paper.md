@@ -70,7 +70,7 @@ The Julia package `NQCDynamics.jl` provides an open source framework for the dev
 Here, we report version release 1.0, which includes code advancements aimed at making the code more suited for large-scale simulations, more accessible to users and developers, as well as more interoperable with commonly used machine learning and *ab-initio* packages.
 
 # Statement of need
-For molecular dynamics at interfaces[@DouWenjieSubotnikDynamicsAtMetalSurfaces; @bunermannElectronholePairExcitation2015; @krugerVibrationalInelasticityHighly2016a; @luoElectronholePairEffects2016], in the excited state[@gonzalez2021quant; @cigrangRoadmapMolecularBenchmarks2025a; @crespo-oteroRecentAdvancesPerspectives2018], and for dynamical systems driven by light-matter interactions [@barbattiSimulationExcitationSunlight2020; @brandbygeElectronicallyDrivenAdsorbate1995; @luntzFemtosecondLaserInduced2006], including non-adiabatic effects that go beyond the Born-Oppenheimer approximation [@gonzalez2021quant] are essential to accurately describe the physical and chemical processes at play.
+For molecular dynamics at interfaces[@DouWenjieSubotnikDynamicsAtMetalSurfaces; @bunermannElectronholePairExcitation2015; @krugerVibrationalInelasticityHighly2016a; @luoElectronholePairEffects2016], in the excited state[@gonzalez2021quant; @cigrangRoadmapMolecularBenchmarks2025a; @crespo-oteroRecentAdvancesPerspectives2018], and for dynamical systems driven by light-matter interactions [@barbattiSimulationExcitationSunlight2020; @brandbygeElectronicallyDrivenAdsorbate1995; @luntzFemtosecondLaserInduced2006], non-adiabatic effects that go beyond the Born-Oppenheimer approximation [@gonzalez2021quant] are essential to accurately describe the physical and chemical processes at play.
 A full quantum description of coupled electron-nuclear dynamics is not always feasible, particularly for high-dimensional or strongly correlated condensed-phase systems, due to unfavourable computational scaling with the number of degrees of freedom.
 In practice, quantum dynamics can often be approximated by treating the nuclear degrees of freedom classically while retaining a quantum mechanical description of the electronic subsystem.
 These mixed quantum–classical dynamics (MQCD) methods preserve key electronic quantum effects while achieving computational scaling that enables simulations of realistic, many-atom systems.[@gonzalez2021quant]
@@ -78,14 +78,14 @@ These mixed quantum–classical dynamics (MQCD) methods preserve key electronic 
 A variety of mixed quantum-classical dynamics methods have been developed and continue to be improved both in terms of their accuracy and scale. Most commonly these methods are employed for molecular systems with few electronic states, but methods are also developed for the study of dynamics at metallic and semi-conducting surfaces.[@gardnerAssessingMixedQuantumClassical2023; @nelson_non-adiabatic_2020; @wang_recent_2016; @li_ab_2021]
 In these cases, the presence of electronic bands significantly expands the scale of the problem and, in many cases, requires significant adaptations of the established methods. 
 
-Probably, the most common approach for dynamics at metal surfaces is molecular dynamics with electronic friction (MDEF).[@head-gordon1995molec] In this framework, the electrons are treated implicitly as a bath, and the coupling between electrons and nuclear motion, represented by a friction force and a random force, is added to the conservative force present in standard molecular dynamics. MDEF in different flavours [@juaristi2008role; @maurer2016ab; @box2023ab] was successful in describing H atom scattering experiments from metal surfaces[@dorenkamp2018hydrogen; @hertl2022electronically; @box_room_2024], and single vibrational quantum dissipation.[@box2020determining] A popular alternative that treats electrons in an explicit fashion is  Tully's fewest switches surface hopping (FSSH) method[@TullyMolecular1990] has been adapted to create the independent electron surface hopping method (IESH),[@shenvi09] enabling the study of a large number of electronic excitations that feature population transfer between adsorbate and metal electronic states. Another surface hopping method adapted to metal-molecule systems is the broadened classical master equation (BCME).[@dou2016broad] Both methods have been assessed against the hierarchical equations of motion (HEOM)[@tanimura1989time] method, which is a numerically exact approach to model open quantum system dynamics.[@preston2025]
+Probably, the most common approach for dynamics at metal surfaces is molecular dynamics with electronic friction (MDEF).[@head-gordon1995molec] In this framework, the electrons are treated implicitly as a bath, and the coupling between electrons and nuclear motion, represented by a friction force and a random force, is added to the conservative force present in standard molecular dynamics. MDEF in different flavours [@juaristi2008role; @maurer2016ab; @box2023ab] was successful in describing H atom scattering experiments from metal surfaces[@dorenkamp2018hydrogen; @hertl2022electronically; @box_room_2024], and vibrational dissipation.[@box2020determining] A popular alternative that treats electrons in an explicit fashion is Tully's fewest switches surface hopping (FSSH) method[@TullyMolecular1990] has been adapted to create the independent electron surface hopping method (IESH)[@shenvi09], enabling the study of a large number of electronic excitations that feature population transfer between adsorbate and metal electronic states. Another surface hopping method adapted to metal-molecule systems is the broadened classical master equation (BCME).[@dou2016broad] Both methods have been assessed against the hierarchical equations of motion (HEOM)[@tanimura1989time] method, which is a numerically exact approach to model open quantum system dynamics.[@preston2025]
 
 # State of the field
 Many of the previously described methods are not available in open-source software or only exist in specific implementations, hampering their broader adoption and reproducibility of results.
 This is especially true for newly developed methods, which often have very limited documentation if a code implementation is publicly available. 
-In addition, the efficiency of different implementations can vary signifncantly. 
+In addition, the efficiency of different implementations can vary significantly. 
 As a result, benchmarking the performance of different MQCD methods for applications to a particular system poses many additional challenges.
-For more mature MQCD methods such as Fewest-switches Surface Hopping, Ehrenfest dynamics or path-integral MD, high quality implementations such as [Newton-X](https://newtonx.org), [SHARC](https://sharc-md.org) or i-Pi[@ipi-article] have been developed, highlighting the potential for greater adoption of these methods. 
+For more mature MQCD methods such as Fewest-switches Surface Hopping, Ehrenfest dynamics or path-integral MD, high quality implementations such as [Newton-X](https://newtonx.org)[@NewtonX], [SHARC](https://sharc-md.org)[@SHARC] or [i-Pi](https://ipi-code.org)[@ipi-article] have been developed, highlighting the potential for greater adoption of these methods. 
 
 `NQCDynamics.jl` was developed with the goal of providing a consistent foundation for the development of different methods, not unlike recent efforts in the electronic structure theory and scientific machine learning communities to establish reproducible benchmarks and open frameworks. [@althorpeEmergingOpportunitiesFuture2019a; @westermayrPerspectiveIntegratingMachine2021; @lejaeghere_error_2014; @lejaeghere_reproducibility_2016] 
 By providing a library of established and developing mixed quantum-classical dynamics methods alongside a framework for deploying these methods on analytical potentials, machine learning (ML) models or electronic structure calculations, `NQCDynamics.jl` attempts to provide a platform from method development to production-scale calculations in application. 
@@ -111,19 +111,21 @@ As a result, a large range of popular MLIPs such as MACE,[@batatia2022mace,Batat
 With the version 1.0 release, NQCDynamics implements the following MQCD methods:
 
 - classical molecular dynamics
-- molecular dynamics with electronic friction (supporting multiple thermostats)
-- fewest-switches surface hopping
-- independent electron surface hopping (IESH)
-- broadened chemical master equation dynamics
-- Ehrenfest dynamics
-- ring-polymer molecular dynamics (RPMD)
-- nonadiabatic RPMD
-- centroid ring-polymer surface hopping (RPSH)
+- molecular dynamics with electronic friction[@head-gordon1995molec] (supporting multiple thermostats)
+- fewest-switches surface hopping [@TullyMolecular1990]
+- independent electron surface hopping (IESH) [@shenvi09]
+- broadened chemical master equation dynamics [@Dou_BCME_2016]
+- Ehrenfest dynamics 
+- ring-polymer molecular dynamics (RPMD) [@craig2004quant]
+- nonadiabatic RPMD [@chowdhury2021non-a]
+- centroid ring-polymer surface hopping (RPSH) [@shushkov2012ring]
 - centroid ring-polymer Ehrenfest dynamics
 - generalised spin mapping approach
-- extended classical mapping model
+- extended classical mapping model [@he2021negat]
 
 # Research impact statement
+
+: []{label="tab:nqcresearch"} Examples for the use of NQCDynamics.jl in various applications, including the respective contributions by each work to development.
 
 | Reference | Dynamics method used | Development contribution to NQCDynamics v1.0 |
 | --- | ---- | ---- |
@@ -132,9 +134,9 @@ With the version 1.0 release, NQCDynamics implements the following MQCD methods:
 | [@spears2026rolea] | molecular dynamics with electronic friction | Support for multiple thermostats |
 | [@gardnerEfficiente2023] | IESH | Method implementation, performance improvements | 
 | [@lu_H/Ge_2025] | IESH, Ehrenfest | Discretisation schemes for Anderson-Haldane models | 
-| @gardnerAssessingMixedQuantumClassical2023 | multiple | | Benchmarking of different methods on analytical model systems | 
+| [@gardnerAssessingMixedQuantumClassical2023] | multiple methods | Benchmarking of different methods on analytical model systems |  
 
-Since its initial release, the package has been used extensively to model nonadiabatic systems, as shown in the table above. 
+Since its initial release, the package has been used extensively to model nonadiabatic systems, as shown in \autoref{tab:nqcresearch}. 
 A variety of MQCD methods in `NQCDynamics.jl` have been benchmarked on a range of analytical model systems.[@gardnerAssessingMixedQuantumClassical2023; @gardnerEfficiente2023]
 In particular, our implementation of IESH achieves a nominal scaling of $N^3$ where $N$ is the number of electronic states, as shown in \autoref{fig:ieshscaling}. 
 
