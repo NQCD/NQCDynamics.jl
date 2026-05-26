@@ -125,7 +125,7 @@ With the version 1.0 release, NQCDynamics implements the following MQCD methods:
 
 # Research impact statement
 
-: []{label="tab:nqcresearch"} Examples for the use of NQCDynamics.jl in various applications, including the respective contributions by each work to development.
+: Examples for the use of NQCDynamics.jl in various applications, including the respective contributions by each work to development. []{label="tab:nqcresearch"}
 
 | Reference | Dynamics method used | Development contribution to NQCDynamics v1.0 |
 | --- | ---- | ---- |
@@ -136,7 +136,7 @@ With the version 1.0 release, NQCDynamics implements the following MQCD methods:
 | [@lu_H/Ge_2025] | IESH, Ehrenfest | Discretisation schemes for Anderson-Haldane models | 
 | [@gardnerAssessingMixedQuantumClassical2023] | multiple methods | Benchmarking of different methods on analytical model systems |  
 
-Since its initial release, the package has been used extensively to model nonadiabatic systems, as shown in \autoref{tab:nqcresearch}. 
+Since its initial release, the package has been used extensively to model nonadiabatic systems, as shown in table \ref{tab:nqcresearch}. 
 A variety of MQCD methods in `NQCDynamics.jl` have been benchmarked on a range of analytical model systems.[@gardnerAssessingMixedQuantumClassical2023; @gardnerEfficiente2023]
 In particular, our implementation of IESH achieves a nominal scaling of $N^3$ where $N$ is the number of electronic states, as shown in \autoref{fig:ieshscaling}. 
 
