@@ -148,7 +148,7 @@ The included tutorial examples have been updated to include newer and more relev
 Furthermore, a description of complete dynamics workflows used in published works by our group as well as other in-depth applications of our code is now available in our GitHub repository [NQCRecipes](https://nqcd.github.io/NQCRecipes/).
 
 # AI Usage
-Large Language Models (LLMs) were used for code development (e.g. GitHub Copilot) and drafting documentation changes. All code changes and documentation changes were reviewed by the authors. 
+Large Language Models (LLMs) were used for code development (e.g. GitHub Copilot, Claude Code) and drafting documentation changes. All code changes and documentation changes were reviewed by the authors. 
 Similarly, LLMs were used to assist in the generation of parts of the manuscript, however all text was reviewed and edited by the authors.
 
 # Acknowledgements
