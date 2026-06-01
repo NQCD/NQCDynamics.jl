@@ -9,8 +9,11 @@ In this section you will find an overview of all available output types, as well
 In many examples within this documentation, you have seen calls to `run_dynamics`:
 
 ```julia
-ensemble = run_dynamics(sim, tspan, distribution;selection=1:20,
-    dt=0.1u"fs", output=OutputPosition, trajectories=20, callback=terminate)
+ensemble = run_dynamics(sim, tspan, distribution;
+    dt=0.1u"fs",
+    output=OutputPosition,
+    trajectories=20
+)
 ```
 
 Within `run_dynamics`, the `output` argument specifies the desired output values for each trajectory. `output` can either be given as a single function, or as a tuple of multiple output functions, for example:
@@ -18,7 +21,11 @@ Within `run_dynamics`, the `output` argument specifies the desired output values
 ```julia
 output=OutputPosition # or
 output=(OutputPosition, OutputVelocity, OutputKineticEnergy)
+```
 
+The "ensemble" variable that `run_dynamics` outputs to is a vector of dictionaries, where each dictionary in the vector relates to one of the trajectories. By indexing the `ensemble` vector all outputs for that trajectory will be returned.
+
+```
 ensemble[3][:OutputPosition] # will output the positions at all timesteps in trajectory 3
 ```
 

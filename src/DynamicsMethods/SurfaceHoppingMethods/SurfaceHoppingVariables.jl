@@ -26,7 +26,7 @@ end
 
 # Note: overloading `getproperty` means we cannot access `SurfaceHoppingVariables` 
 # fields except through `getfield` and accessor functions.
-ArrayPartition(x::SurfaceHoppingVariables) = getfield(x, :array_partition)
+RecursiveArrayTools.ArrayPartition(x::SurfaceHoppingVariables) = getfield(x, :array_partition)
 
 function Base.similar(A::SurfaceHoppingVariables)
     SurfaceHoppingVariables(

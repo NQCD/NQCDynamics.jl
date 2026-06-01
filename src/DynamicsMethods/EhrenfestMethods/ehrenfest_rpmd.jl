@@ -46,6 +46,6 @@ function DynamicsUtils.classical_potential_energy(sim::RingPolymerSimulation{<:E
     r = DynamicsUtils.get_positions(u)
     all_eigs = NQCCalculators.get_eigen(sim.cache, r)
     population = Estimators.adiabatic_population(sim, u)
-    potential = sum(dot(population, eigs.values) for eigs in all_eigs)
+    potential = sum(dot(population, eigs.w) for eigs in all_eigs)
     return potential
 end

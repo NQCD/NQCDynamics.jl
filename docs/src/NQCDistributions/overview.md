@@ -128,7 +128,7 @@ using NQCDistributions
 
 velocity = VelocityBoltzmann(300u"K", rand(10), (3, 10))
 n_beads=5
-velocity_ring_polymer = RingPolymerWrapper(velocity, n_beads, Int[])
+velocity_ring_polymer = NQCDistributions.RingPolymerWrapper(velocity, n_beads, Int[])
 NQCDistributions.RingPolymerWrapper(Distribution, number of ring-polymer beads, indices of atoms to treat classically)
 ```
 
@@ -148,6 +148,7 @@ In the case of explicit bath models (such as `AndersonHolstein`), the [`FermiDir
 ```@repl electronicdistribution
 using NQCDistributions 
 using Unitful
+using Distributions
 
 PureState(1, Diabatic())
 PureState(2, Adiabatic())
@@ -163,8 +164,8 @@ of the distribution is handled separately by each of the different methods.
 The initial nuclear and electronic states of a system can be combined in a product distribution, which can be used in place of a purely nuclear distribution for methods considering electronic dynamics.
 
 ```julia
-velocity = VelocityBoltzmann(300u"K", rand(10), (2, 2)
-positions = Normal()
+velocity = VelocityBoltzmann(300u"K", rand(10), (2, 2))
+positions = Distributions.Normal()
 nuclear_dist = DynamicalDistribution(velocity, positions, (2, 2))
 electronic_dist = PureState(2, Adiabatic())
 

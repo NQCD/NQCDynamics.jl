@@ -41,7 +41,7 @@ caches = (
     NQCCalculators.update_cache!(cache, r)
     density = [1.0 0; 0 0]
     DynamicsUtils.transform_density!(density, cache, r, :to_adiabatic)
-    @test density ≈ [0.5 0.5; 0.5 0.5]
+    @test abs.(density) ≈ [0.5 0.5; 0.5 0.5]
     DynamicsUtils.transform_density!(density, cache, r, :to_diabatic)
     @test density ≈ [1.0 0; 0 0]
     @test_throws ArgumentError DynamicsUtils.transform_density!(density, cache, r, :blah)
@@ -57,6 +57,6 @@ end
     @testset "Diabatic" begin
         electronics = PureState(1, Diabatic())
         density = DynamicsUtils.initialise_adiabatic_density_matrix(electronics, cache, r)
-        @test all(density .≈ 0.5)
+        @test all(abs.(density) .≈ 0.5)
     end
 end

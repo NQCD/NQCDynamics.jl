@@ -51,7 +51,7 @@ create_problem(u0, tspan, sim) =
     OrdinaryDiffEq.ODEProblem(motion!, u0, tspan, sim; callback=get_callbacks(sim))
 
 "Choose a default algorithm for solving the differential equation."
-select_algorithm(::AbstractSimulation) = OrdinaryDiffEq.VCABM5()
+select_algorithm(sim::AbstractSimulation) = error("No Integration Algorithm specified for the DynamicsMethod: $(sim.method)")
 
 "Select the default callbacks for this simulation type."
 get_callbacks(::AbstractSimulation) = nothing

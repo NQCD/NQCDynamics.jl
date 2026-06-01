@@ -18,7 +18,7 @@ using PythonCall
 ase = pyimport("ase")
 mace_calc = pyimport("mace.calculators")
 
-h2 = ase.Atoms("H2", [(0, 0, 0), (0, 0, 0.74)])
+h2 = ase.Atoms("H2", [0 0 0; 0 0 0.74])
 
 calculator = mace_calc.MACECalculator(model_path="../assets/mace/h2cu.model", device="cpu", default_dtype="float32")
 h2.set_calculator(calculator)
@@ -116,8 +116,8 @@ model = ClassicalASEModel(h2);
 
 r = [0 0; 0 0; 0 ustrip(auconvert(0.74u"Å"))]
 
-potential(model, r)
-derivative(model, r)
+NQCModels.potential(model, r)
+NQCModels.derivative(model, r)
 ```
 
 ```@setup logging

@@ -52,13 +52,13 @@ end
 function DynamicsUtils.classical_potential_energy(sim::RingPolymerSimulation{<:FSSH}, u)
     NQCCalculators.update_cache!(sim.cache, DynamicsUtils.get_positions(u)) # Ensure eigen is populated
     all_eigs = NQCCalculators.get_eigen(sim.cache, DynamicsUtils.get_positions(u))
-    potential = sum(eigs.values[convert(Int, u.state |> first)] for eigs in all_eigs)
+    potential = sum(eigs.w[convert(Int, u.state |> first)] for eigs in all_eigs)
     return potential
 end
 
 function DynamicsUtils.centroid_classical_potential_energy(sim::RingPolymerSimulation{<:FSSH}, u)
     NQCCalculators.update_cache!(sim.cache, DynamicsUtils.get_positions(u)) # Ensure eigen is populated
     centroid_eigs = NQCCalculators.get_centroid_eigen(sim.cache, DynamicsUtils.get_positions(u))
-    potential = centroid_eigs.values[convert(Int, u.state |> first)]
+    potential = centroid_eigs.w[convert(Int, u.state |> first)]
     return potential
 end

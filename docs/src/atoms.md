@@ -70,11 +70,13 @@ be quickly converted to the correct format:
 using NQCDynamics
 using NQCDInterfASE # Import python interface functionality
 
-atoms_nqcd, positions_nqcd, cell_nqcd = convert_from_ase_atoms(atoms_ase)
+structure = convert_from_ase_atoms(atoms_ase)
 
-println(atoms_nqcd)
-println(positions_nqcd)
-println(cell_nqcd)
+println(structure.atoms)
+println(structure.positions)
+println(structure.cell)
+# If there was any additional information in the structure file, e.g. an ExtXYZ header. 
+println(structure.info)
 ```
 
 
@@ -88,9 +90,11 @@ then use AtomsIO to write the file in your chosen format.
 using AtomsIO
 using NQCBase
 
+atoms_nqcd = Atoms([:Si, :Si, :Si, :Si, :Si, :Si, :Si, :Si])
+
 v = rand(3, 8); #velocities
 r = rand(3,8); #positions
-cell = PeriodicCell([ 1 0 0;
+cell = NQCBase.PeriodicCell([ 1 0 0;
          0 1 0;
          0 0 1;
             ]) # unit cell definition

@@ -65,7 +65,7 @@ for k in momenta # Iterate through each momentum value
     distribution = DynamicalDistribution(v, -5, size(sim)) * PureState(1, Adiabatic())
 
     out = run_dynamics(sim, tspan, distribution;
-        saveat=tspan[end], trajectories, output, reduction=MeanReduction()
+        saveat=tspan[end], trajectories, output, reduction=MeanReduction(), dt=1
     )
 
     push!(result, out[:OutputStateResolvedScattering1D])

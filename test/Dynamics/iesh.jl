@@ -58,7 +58,7 @@ SurfaceHoppingMethods.set_unoccupied_states!(sim)
     avg ./= samples
     NQCDynamics.NQCCalculators.update_cache!(sim.cache, r) # Calculate all fields. 
     eigs = NQCCalculators.get_eigen(sim.cache, r)
-    occupations = NQCDistributions.fermi.(eigs.values, distribution.fermi_level, distribution.β)
+    occupations = NQCDistributions.fermi.(eigs.w, distribution.fermi_level, distribution.β)
 
     @test isapprox(avg, occupations, rtol = 0.2)
 end

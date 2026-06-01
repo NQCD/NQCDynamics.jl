@@ -50,7 +50,7 @@ SurfaceHoppingMethods.set_unoccupied_states!(sim)
     end
     avg ./= samples
     eigs = NQCCalculators.get_centroid_eigen(sim.cache, r)
-    occupations = NQCDistributions.fermi.(eigs.values, distribution.fermi_level, distribution.β)
+    occupations = NQCDistributions.fermi.(eigs.w, distribution.fermi_level, distribution.β)
 
     @test avg ≈ occupations atol = 0.2
 end

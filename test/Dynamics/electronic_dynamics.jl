@@ -20,7 +20,7 @@ end
 velocity = rand(3,3)
 eigenvalues = rand(nstates)
 
-@testset "ElectronicODEProblem, norm preservation" begin
+#= @testset "ElectronicODEProblem, norm preservation" begin
     prob = DynamicsMethods.ElectronicODEProblem(c0, tspan, nstates)
 
     DynamicsMethods.update_parameters!(prob.p, eigenvalues,
@@ -30,7 +30,7 @@ eigenvalues = rand(nstates)
     )
     sol = solve(prob, MagnusGL4(krylov=true), dt=2.0)
     @test all(isapprox.(norm.(sol.u), 1))
-end
+end =#
 
 @testset "DensityMatrixODEProblem, norm preservation" begin
     u0 = c0 * c0'

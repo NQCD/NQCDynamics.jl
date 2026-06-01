@@ -53,7 +53,7 @@ function initialise_adiabatic_density_matrix(
     update_cache!(cache, r) # Ensure eigen is populated for transformation
     if electronics isa FermiDiracState
         eigen = NQCCalculators.get_eigen(cache, r)
-        adiabatic_density = density_matrix(electronics, eigen.values)
+        adiabatic_density = density_matrix(electronics, eigen.w)
     else
         adiabatic_density = density_matrix(electronics, nstates(cache))
     end
@@ -77,11 +77,11 @@ end
 function evaluate_transformation(cache::Abstract_QuantumModel_Cache, r::AbstractMatrix)
     NQCCalculators.update_cache!(cache, r)
     #NQCCalculators.evaluate_eigen!(cache, r)
-    return cache.eigen.vectors
+    return cache.eigen.Z
 end
 
 function evaluate_transformation(cache::Abstract_QuantumModel_Cache, r::AbstractArray{T,3}) where {T}
     NQCCalculators.update_cache!(cache, r)
     #centroid_eigs = NQCCalculators.get_centroid_eigen(cache, r)
-    return cache.centroid_eigen.vectors
+    return cache.centroid_eigen.Z
 end
