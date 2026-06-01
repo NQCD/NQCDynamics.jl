@@ -12,13 +12,21 @@ using UnitfulAtomic
 using LinearAlgebra: norm
 using ComponentArrays: ComponentVector
 
-using NQCDynamics: Estimators, DynamicsUtils, Analysis, ndofs
+using NQCDynamics:
+    Estimators,
+    DynamicsUtils,
+    Analysis,
+    ndofs
 
 using NQCModels: NQCModels
 
-using .DynamicsUtils: get_positions, get_velocities, get_quantum_subsystem
+using .DynamicsUtils:
+    get_positions,
+    get_velocities,
+    get_quantum_subsystem
 
 using ..InitialConditions: QuantisedDiatomic
+using ..InitialConditions: ConfigureAtomic
 
 using NQCBase
 using Statistics
@@ -90,8 +98,7 @@ Evaluate the classical kinetic energy at each timestep during the trajectory.
 OutputKineticEnergy(sol, i) = DynamicsUtils.classical_kinetic_energy.(sol.prob.p, sol.u)
 export OutputKineticEnergy
 
-OutputFinalKineticEnergy(sol, i) =
-    DynamicsUtils.classical_kinetic_energy(sol.prob.p, last(sol.u))
+OutputFinalKineticEnergy(sol, i) = DynamicsUtils.classical_kinetic_energy(sol.prob.p, last(sol.u))
 export OutputFinalKineticEnergy
 
 """
@@ -156,8 +163,7 @@ export OutputQuantumSubsystem
 
 Output the position mapping variables at each timestep during the trajectory.
 """
-OutputMappingPosition(sol, i) =
-    [copy(DynamicsUtils.get_mapping_positions(u)) for u in sol.u]
+OutputMappingPosition(sol, i) = [copy(DynamicsUtils.get_mapping_positions(u)) for u in sol.u]
 export OutputMappingPosition
 
 """
@@ -174,11 +180,11 @@ export OutputMappingMomentum
 Output the discrete state variable at each timestep during the trajectory.
 This is used for surface hopping simulations and returns the variable that determines the currently occupied adiabatic state.
 
-Requires that the dynamics variable has a field `state`.
+The DynamicsVariables need to contain a `state` field which is either an `AbstractVector` or `Integer` type. 
 
 Use [`OutputDiabaticPopulation`](@ref) or [`OutputAdiabaticPopulation`](@ref) to get the population estimators.
 """
-OutputDiscreteState(sol, i) = [copy(u.state) for u in sol.u]
+OutputDiscreteState(sol, i) = [length(u.state) > 1 ? round(Int, first(u.state)) : round.(Int, u.state) for u in sol.u]
 export OutputDiscreteState
 
 """
@@ -192,10 +198,9 @@ export OutputDiabaticPopulation
 """
     OutputTotalDiabaticPopulation(sol, i)
 
-Output the total diabatic population at eah timestep during the trajectory.
+Output the total diabatic population at each timestep during the trajectory.
 """
-OutputTotalDiabaticPopulation(sol, i) =
-    sum.(Estimators.diabatic_population(sol.prob.p, sol.u))
+OutputTotalDiabaticPopulation(sol, i) = sum.(Estimators.diabatic_population.(sol.prob.p, sol.u))
 export OutputTotalDiabaticPopulation
 
 """
@@ -211,8 +216,7 @@ export OutputAdiabaticPopulation
 
 Output the total adiabatic population at each timestep during the trajectory.
 """
-OutputTotalAdiabaticPopulation(sol, i) =
-    sum.(Estimators.adiabatic_population.(sol.prob.p, sol.u))
+OutputTotalAdiabaticPopulation(sol, i) = sum.(Estimators.adiabatic_population.(sol.prob.p, sol.u))
 export OutputTotalAdiabaticPopulation
 
 """
@@ -239,7 +243,7 @@ Output the total number of surface hops during the trajectory
 """
 function OutputSurfaceHops(sol, i)::Int
     nhops = 0
-    for i = 1:length(sol.u)-1
+    for i in 1:length(sol.u)-1
         if sol.u[i].state != sol.u[i+1].state
             nhops += 1
         end
@@ -256,15 +260,13 @@ struct OutputDissociation{T}
     distance::T
     "The indices of the two atoms in the molecule of interest."
     atom_indices::Tuple{Int,Int}
-    OutputDissociation(distance, atom_indices) =
-        new{typeof(distance)}(austrip(distance), atom_indices)
+    OutputDissociation(distance, atom_indices) = new{typeof(distance)}(austrip(distance), atom_indices)
 end
 export OutputDissociation
 
 function (output::OutputDissociation)(sol, i)
     R = DynamicsUtils.get_positions(last(sol.u))
-    dissociated =
-        norm(R[:, output.atom_indices[1]] .- R[:, output.atom_indices[2]]) > output.distance
+    dissociated = norm(R[:, output.atom_indices[1]] .- R[:, output.atom_indices[2]]) > output.distance
     return dissociated ? 1 : 0
 end
 
@@ -277,20 +279,18 @@ struct OutputSurfaceDesorption
     distance::Number
     adsorbate_indices::Vector{Int}
     surface_normal::AbstractVector
-    OutputSurfaceDesorption(distance, adsorbate_indices; surface_normal = [0, 0, 1]) =
-        new(distance, adsorbate_indices, surface_normal)
+    OutputSurfaceDesorption(distance, adsorbate_indices; surface_normal=[0, 0, 1]) = new(distance, adsorbate_indices, surface_normal)
 end
 
 function (osd::OutputSurfaceDesorption)(sol, i)
-    desorption_frame = findfirst([
-        Analysis.Diatomic.surface_distance_condition(
-            i,
-            osd.adsorbate_indices,
-            sol.prob.p;
-            surface_distance_threshold = osd.distance,
-            surface_normal = osd.surface_normal,
-        ) for i in sol.u
-    ])
+    desorption_frame = findfirst([Analysis.Diatomic.surface_distance_condition(
+        i,
+        osd.adsorbate_indices,
+        sol.prob.p;
+        surface_distance_threshold=osd.distance,
+        surface_normal=osd.surface_normal,
+    ) for i in sol.u]
+    )
     return desorption_frame === nothing ? 0 : 1
 end
 
@@ -339,8 +339,8 @@ function (output::OutputStateResolvedScattering1D)(sol, i)
             Only `:diabatic` or `:adiabatic` accepted."))
     end
     output = ComponentVector(
-        reflection = zeros(NQCModels.nstates(output.sim)),
-        transmission = zeros(NQCModels.nstates(output.sim)),
+        reflection=zeros(NQCModels.nstates(output.sim)),
+        transmission=zeros(NQCModels.nstates(output.sim))
     )
     x = DynamicsUtils.get_positions(final)[1]
     if x > 0 # If final position past 0 then we count as transmission
@@ -352,6 +352,63 @@ function (output::OutputStateResolvedScattering1D)(sol, i)
 end
 export OutputStateResolvedScattering1D
 
+"""
+Output the projectile angle from the surface normal and the azimuthal angle for the final image
+"""
+struct OutputScatteringAngle{S,V,T,X}
+    normal_vector::V
+    incidence_angle::T
+    initial_azimuthal_angle::X
+end
+OutputScatteringAngle(sim; normal_vector=[0, 0, 1], incidence_angle=0., initial_azimuthal_angle=0.) = OutputScatteringAngle(sim, normal_vector, incidence_angle, initial_azimuthal_angle)
+export OutputScatteringAngle
+
+function (output::OutputScatteringAngle)(sol, i)
+    final = last(sol.u) 
+
+    # Scattering angle
+    θₛ = ConfigureAtomic.angle_to_surface_normal(sol.prob.p,
+        DynamicsUtils.get_velocities(final), surface_normal=output.normal_vector)
+
+    # Azimuthal angle
+    θₐ = ConfigureAtomic.get_azimuthal_angle(sol.prob.p,
+    DynamicsUtils.get_velocities(final); incidence_angle=output.incidence_angle, 
+    initial_azimuthal_angle=output.initial_azimuthal_angle) 
+    
+    return [θₛ θₐ]
+end
+
+"""
+Output a 1 if the projectile is above a certain z in final image, or 0 otherwise.
+"""
+struct OutputScatteredAtom{T}
+    "The maximum z value that above which the projectile can be considered scattered"
+    z::T
+    "The index of the projectile"
+    atom_index::Int
+    OutputScatteredAtom(z, atom_index) = new{typeof(austrip(z))}(austrip(z), atom_index)
+end
+# OutputScatteredAtom(z=10.0 atom_index=1) =  OutputScatteredAtom(z, atom_index)
+export OutputScatteredAtom
+
+function (output::OutputScatteredAtom)(sol, i)
+    R = DynamicsUtils.get_positions(last(sol.u))
+    scattered = R[3,output.atom_index] > output.z
+    return scattered ? 1 : 0
+end
+
+
+OutputFirstPosition(sol, i) = DynamicsUtils.get_positions(first(sol.u))
+export OutputFirstPosition
+
+OutputFirstVelocity(sol, i) = DynamicsUtils.get_velocities(first(sol.u))
+export OutputFirstVelocity
+
+OutputFinalPosition(sol, i) = DynamicsUtils.get_positions(last(sol.u))
+export OutputFinalPosition
+
+OutputFinalVelocity(sol, i) = DynamicsUtils.get_velocities(last(sol.u))
+export OutputFinalVelocity
 """
 Outputs the desorption angle in degrees (relative to the surface normal) if a desorption event is detected.
 """
