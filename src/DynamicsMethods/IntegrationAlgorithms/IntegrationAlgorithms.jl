@@ -59,6 +59,7 @@ struct BCOCB <: StochasticDiffEq.StochasticDiffEqAlgorithm end
 
     # Classical Integrators
 # AbstractSimulation{<:Classical} uses VelocityVerlet() - (see ClassicalMethods/classical.jl)
+DynamicsMethods.select_algorithm(::Simulation{<:DynamicsMethods.ClassicalMethods.Classical}) = OrdinaryDiffEq.VelocityVerlet()
 # AbstractSimulation{<:Langevin} uses StochasticDiffEq.BAOAB(;gamma=sim.method.γ) - (see ClassicalMethods/langevin.jl)
 
     # Surface Hopping Integrators
@@ -86,7 +87,7 @@ DynamicsMethods.select_algorithm(::Simulation{<:DynamicsMethods.MappingVariableM
 DynamicsMethods.select_algorithm(::RingPolymerSimulation{DynamicsMethods.ClassicalMethods.Classical}) = BCB()
 DynamicsMethods.select_algorithm(::RingPolymerSimulation{<:DynamicsMethods.ClassicalMethods.ThermalLangevin}) = BCOCB()
 
-    # Surface Hopping Integrators 
+    # Surface Hopping Integrators
 DynamicsMethods.select_algorithm(::RingPolymerSimulation{<:DynamicsMethods.SurfaceHoppingMethods.SurfaceHopping}) = BCBwithTsit5(OrdinaryDiffEq.Tsit5())
 DynamicsMethods.select_algorithm(::RingPolymerSimulation{<:DynamicsMethods.SurfaceHoppingMethods.AbstractIESH}) = BCBWavefunction()
 DynamicsMethods.select_algorithm(::RingPolymerSimulation{<:DynamicsMethods.SurfaceHoppingMethods.ClassicalMasterEquation}) = BCBFull()

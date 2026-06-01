@@ -82,5 +82,3 @@ function DynamicsMethods.create_problem(u0, tspan::Tuple, sim::RingPolymerSimula
     OrdinaryDiffEq.DynamicalODEProblem(acceleration!, DynamicsUtils.velocity!,
         DynamicsUtils.get_velocities(u0), DynamicsUtils.get_positions(u0), tspan, sim)
 end
-
-DynamicsMethods.select_algorithm(::AbstractSimulation{<:Classical}) = OrdinaryDiffEq.VelocityVerlet()
