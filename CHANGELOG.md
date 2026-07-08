@@ -1,6 +1,7 @@
 # NQCDynamics.jl changelog
 
 ## Version `v1.0.3`
+- ![Maintenance][badge-maintenance] Updated documentation to include JLD2.jl installation instructions [#457][github-457]
 - Fixed missing integrator allocation for FSSH, which lead to incorrect simulation results. 
 
 ### NQCModels.jl v1.1.0
@@ -49,6 +50,7 @@ This lays the groundwork to multiple dispatch off of atomic structure informatio
 - ![BREAKING][badge-breaking] `SingleState`, `ElectronicPopulation` renamed to `PureState`, `MixedState` [#275][github-275]
 - ![enhancement][badge-enhancement] Created changelog!
 
+[github-457]: https://github.com/NQCD/NQCDynamics.jl/pull/457
 [github-290]: https://github.com/NQCD/NQCDynamics.jl/pull/290
 [github-287]: https://github.com/NQCD/NQCDynamics.jl/pull/287
 [github-286]: https://github.com/NQCD/NQCDynamics.jl/pull/286
