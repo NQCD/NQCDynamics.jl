@@ -9,7 +9,7 @@ using Unitful
 using UnitfulAtomic
 Random.seed!(1)
 
-ats = [3, 1, 40]
+ats = [3, 1, 4]
 Ds = [1, 3, 3]
 Ts = [0.5, 1, 10]
 beads = [1, 16, 2]
