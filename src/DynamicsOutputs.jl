@@ -537,6 +537,32 @@ end
 
 export OutputNoise
 
+struct OutputSurfaceSiteClassification
+    slab_info::Analysis.HighSymmetrySites.SlabStructure
+    fractional::Bool
+    snap_to_site::Float64
+end
+function OutputSurfaceSiteClassification(slab_info::Analysis.HighSymmetrySites.SlabStructure; fractional=false, snap_to_sites=0.03)
+    return OutputSurfaceSiteClassification(
+        slab_info,
+        fractional,
+        snap_to_sites
+    )
+end
+
+function (output::OutputSurfaceSiteClassification)(sol, i)
+    cell = sol.prob.p.cell # Simulation needs to have an associated PeriodicCell
+    return Analysis.HighSymmetrySites.classify_every_frame(
+        sol.u,
+        cell,
+        output.slab_info;
+        fractional = output.fractional,
+        snap_to_site = output.snap_to_site,
+    )
+end
+
+export OutputSurfaceSiteClassification
+
 """
     OutputEverything(sol,i)
 
