@@ -47,3 +47,56 @@ These functions take into account periodic copies of the atoms in question, retu
 
 ### Analysis of diatomic molecules
 [`NQCDynamics.Analysis.Diatomic`](@ref Analysis)
+
+### Surface site classification
+[`NQCDynamics.Analysis.HighSymmetrySites`](@ref Analysis.HighSymmetrySites) provides functionality for classifying adsorbate positions on periodic surface slabs according to high-symmetry surface sites.
+
+This module is particularly useful for analyzing trajectories of molecules on metal surfaces, where you want to track whether adsorbates are located at top, bridge, hollow, or other characteristic sites.
+
+**Important:** This code only works for 2D positions in X and Y, so the surface must lie in the XY plane.
+
+#### Predefined surface facets
+
+The module includes predefined site definitions for common FCC metal surface facets:
+- `FCC100Sites` - (100) surface with top, bridge, and hollow sites
+- `FCC110Sites` - (110) surface with top, long bridge, short bridge, center hollow, and step hollow sites
+- `FCC111Sites` - (111) surface with top, bridge, and hollow sites
+- `FCC211Sites` - (211) stepped surface with step edge, short step, fcc high, fcc low, and long step sites
+
+#### Basic usage
+
+To classify adsorbate positions, you need to:
+1. Define a `SlabStructure` containing:
+   - `adsorbate_indices`: indices of atoms to track
+   - `symmetry_sites`: dictionary mapping site names to their fractional coordinates
+   - `supercell_size`: size of the simulation cell relative to the primitive cell
+2. Use `positions_to_category` to classify a single position, or
+3. Use `classify_every_frame` to analyze an entire trajectory
+
+#### Example
+
+```julia
+using NQCDynamics
+
+# Define the slab structure for an FCC(100) surface
+cell = PeriodicCell(diagm([10.0, 10.0, 20.0]))  # 10×10 Å surface cell
+slab = Analysis.HighSymmetrySites.SlabStructure(
+    [1, 2],  # Track atoms 1 and 2
+    Analysis.HighSymmetrySites.FCC100Sites,  # Use FCC(100) site definitions
+    [2.0, 2.0, 1.0]  # 2×2 supercell in XY
+)
+
+# Classify positions from a trajectory
+# trajectory should be a vector of DynamicsVariables
+sites = Analysis.HighSymmetrySites.classify_every_frame(
+    trajectory,
+    cell,
+    slab,
+    snap_to_site=0.3  # Distance tolerance in Angstroms
+)
+
+# sites[i] contains the classified site for adsorbate i at each frame
+# Each site is a Symbol like :top, :bridge, :fcc, or :other
+```
+
+For more details, see the [API documentation](@ref Analysis.HighSymmetrySites).
