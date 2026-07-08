@@ -1,7 +1,7 @@
 name = "RingPolymerArrays"
 uuid = "81cd853e-d334-476c-b156-f95acc8a32dc"
 authors = ["James Gardner <james.gardner1421@gmail.com> and contributors"]
-version = "1.0.0"
+version = "1.0.1"
 
 [deps]
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
