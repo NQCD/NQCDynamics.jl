@@ -49,4 +49,84 @@ end
     end
 end
 
+@testset "Non-periodic structures" begin
+    @testset "Single non-periodic frame" begin
+        file_buffer = "non_periodic_single.xyz"
+        atoms = Atoms([:H, :C, :O, :N])
+        cell = InfiniteCell()
+        R = rand(3, 4) .* 10
+        structure_in = NQCBase.Structure(atoms, R, cell)
+
+        # Write and read back
+        write_extxyz(file_buffer, structure_in)
+        structure_out = read_extxyz(file_buffer) |> first
+
+        # Verify atoms and positions
+        @test structure_out.atoms == atoms
+        @test all(isapprox.(structure_out.positions, R, atol = 1e-8))
+
+        # Verify cell is InfiniteCell
+        @test structure_out.cell isa InfiniteCell
+
+        rm(file_buffer)
+    end
+
+    @testset "Multiple non-periodic frames" begin
+        file_buffer = "non_periodic_multiple.xyz"
+        atoms = Atoms([:H, :C, :O, :N])
+        cell = InfiniteCell()
+        R = [rand(3, 4) .* 10 for _=1:50]
+        structures_in = [NQCBase.Structure(atoms, R[i], cell) for i=1:50]
+
+        # Write and read back
+        write_extxyz(file_buffer, structures_in)
+        structures_out = read_extxyz(file_buffer)
+
+        # Verify each structure
+        for (i, structure) in enumerate(structures_out)
+            @test structure.atoms == atoms
+            @test all(isapprox.(structure.positions, R[i], atol = 1e-8))
+            @test structure.cell isa InfiniteCell
+        end
+
+        rm(file_buffer)
+    end
+
+    @testset "Write non-periodic with Atoms, R, Cell" begin
+        file_buffer = "non_periodic_arc.xyz"
+        atoms = Atoms([:H, :C, :O])
+        cell = InfiniteCell()
+        R = rand(3, 3) .* 5
+
+        # Write using the atoms, R, cell interface
+        write_extxyz(file_buffer, atoms, R, cell)
+        structure = read_extxyz(file_buffer) |> first
+
+        @test structure.atoms == atoms
+        @test all(isapprox.(structure.positions, R, atol = 1e-8))
+        @test structure.cell isa InfiniteCell
+
+        rm(file_buffer)
+    end
+
+    @testset "Multiple non-periodic with Atoms, R, Cell" begin
+        file_buffer = "non_periodic_arc_multi.xyz"
+        atoms = Atoms([:H, :C, :O])
+        cell = InfiniteCell()
+        R = [rand(3, 3) .* 5 for _=1:25]
+
+        # Write using the atoms, R, cell interface
+        write_extxyz(file_buffer, atoms, R, cell)
+        structures = read_extxyz(file_buffer)
+
+        for (i, structure) in enumerate(structures)
+            @test structure.atoms == atoms
+            @test all(isapprox.(structure.positions, R[i], atol = 1e-8))
+            @test structure.cell isa InfiniteCell
+        end
+
+        rm(file_buffer)
+    end
+end
+
 rm("output.xyz")
