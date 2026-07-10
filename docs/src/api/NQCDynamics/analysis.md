@@ -5,7 +5,7 @@ start_time = time()
 # Analysis
 
 ```@autodocs
-Modules=[NQCDynamics.Analysis, NQCDynamics.Analysis.Diatomic, NQCDynamics.Analysis.RigidRotator, NQCDynamics.Analysis.Postprocess]
+Modules=[NQCDynamics.Analysis, NQCDynamics.Analysis.Diatomic, NQCDynamics.Analysis.RigidRotator, NQCDynamics.Analysis.Postprocess, NQCDynamics.Analysis.HighSymmetrySites]
 ```
 
 ```@setup logging

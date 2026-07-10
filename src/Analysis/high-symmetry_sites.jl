@@ -9,7 +9,9 @@ Base definitions for fcc metal surface facets are included, but there are option
 module HighSymmetrySites
 
 
-using NQCDynamics: AbstractSimulation, PeriodicCell, get_positions, NQCBase
+
+using NQCDynamics: AbstractSimulation, PeriodicCell, get_positions
+using NQCBase: apply_cell_boundaries!, check_atoms_in_cell
 using LinearAlgebra: norm
 
 export SlabStructure, FCC100Sites, FCC110Sites, FCC111Sites, FCC211Sites, positions_to_category, classify_every_frame
