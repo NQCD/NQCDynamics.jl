@@ -1,0 +1,8 @@
+[deps]
+CUDA = "052768ef-5323-5732-b1bb-66c8b64840ba"
+CairoMakie = "13f3f980-e62b-5c42-98c6-ff1f3baf88f0"
+MACEModels = "29bafc4c-4f38-420f-a153-8a5a5e0bd5f6"
+NQCBase = "78c76ebc-5665-4934-b512-82d81b5cbfb7"
+NQCDynamics = "36248dfb-79eb-4f4d-ab9c-e29ea5f33e14"
+NQCModels = "c814dc9f-a51f-4eaf-877f-82eda4edad48"
+Pluto = "c3e4b0f8-55cb-11ea-2926-15256bba5781"
