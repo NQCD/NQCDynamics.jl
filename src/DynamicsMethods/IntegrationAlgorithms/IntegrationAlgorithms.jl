@@ -15,51 +15,24 @@ using NQCCalculators
 using OrdinaryDiffEqCore: OrdinaryDiffEqCore, get_fsalfirstlast, OrdinaryDiffEqAlgorithm
 using StochasticDiffEq: StochasticDiffEq
 
-struct BCB <: OrdinaryDiffEqAlgorithm end
-struct BCBFull <: OrdinaryDiffEqAlgorithm end
+include("UniversalIntegrator.jl")
+include("LegacyIntegrators/mdef_baoab.jl")
+include("RingPolymerIntegrators/bcocb.jl")
+include("mint.jl")
+include("RingPolymerIntegrators/ringpolymer_mint.jl")
+include("RingPolymerIntegrators/bcb.jl")
+include("steps.jl")
+include("LegacyIntegrators/verlet_with_electronics.jl")
 
-struct BCBwithTsit5{T<:OrdinaryDiffEqAlgorithm} <: OrdinaryDiffEqAlgorithm
-    electronic_algorithm::T
-end
+#= include("CoupledIntegrators/CoupledIntegrator.jl")
+include("CoupledIntegrators/create_problem.jl") =#
 
-struct BCBWavefunction <: OrdinaryDiffEqAlgorithm end
-
-struct BABwithTsit5{T<:OrdinaryDiffEqAlgorithm} <: OrdinaryDiffEqAlgorithm
-    electronic_algorithm::T
-end
-
-"""
-    RingPolymerMInt <: OrdinaryDiffEqAlgorithm
-
-Second order symplectic momentum integral algorithm applied to NRPMD.
-
-# Reference
-
-[J. Chem. Phys. 148, 102326 (2018)](https://doi.org/10.1063/1.5005557)
-"""
-struct RingPolymerMInt <: OrdinaryDiffEqAlgorithm end
-
-"""
-    MInt <: OrdinaryDiffEqAlgorithm
-
-Second order symplectic momentum integral algorithm.
-
-# Reference
-
-[J. Chem. Phys. 148, 102326 (2018)](https://doi.org/10.1063/1.5005557)
-"""
-struct MInt <: OrdinaryDiffEqAlgorithm end
-struct VerletwithElectronics <: OrdinaryDiffEqAlgorithm end
-
-struct MDEF_BAOAB <: StochasticDiffEq.StochasticDiffEqAlgorithm end
-struct BCOCB <: StochasticDiffEq.StochasticDiffEqAlgorithm end
-
-DynamicsMethods.select_algorithm(::RingPolymerSimulation{<:DynamicsMethods.SurfaceHoppingMethods.SurfaceHopping}) = BCBwithTsit5(OrdinaryDiffEq.Tsit5())
-DynamicsMethods.select_algorithm(::Simulation{<:DynamicsMethods.ClassicalMethods.AbstractMDEF}) = MDEF_BAOAB()#StochasticDiffEq.BAOAB(noise_mtx=true)#
+DynamicsMethods.select_algorithm(::Simulation{<:DynamicsMethods.ClassicalMethods.Classical}) = BAXAB(NoiseFree(), DynamicsMethods.ClassicalMethods.step_X_classical!)
+DynamicsMethods.select_algorithm(sim::Simulation{<:DynamicsMethods.ClassicalMethods.LangevinMethods}) = BAXAB(NoiseCoupled(), DynamicsMethods.ClassicalMethods.step_X_constantfriction!, ConstantFriction(sim.method.γ))
+DynamicsMethods.select_algorithm(::Simulation{<:DynamicsMethods.ClassicalMethods.AbstractMDEF}, X::Function=noisedriven_step_X!) = BAXAB(NoiseCoupled(), X)#StochasticDiffEq.BAOAB(noise_mtx=true)#
 DynamicsMethods.select_algorithm(::Simulation{<:DynamicsMethods.MappingVariableMethods.SpinMappingW}) = MInt()
-DynamicsMethods.select_algorithm(::Simulation{<:DynamicsMethods.SurfaceHoppingMethods.AbstractIESH}) = (VelocityVerlet(), LinearExponential())
-
-
+DynamicsMethods.select_algorithm(::Simulation{<:DynamicsMethods.SurfaceHoppingMethods.SurfaceHopping}, X::Function=electrondriven_step_X!) = BAXAB(NoiseFree(), X)
+DynamicsMethods.select_algorithm(::Simulation{<:DynamicsMethods.EhrenfestMethods.AbstractEhrenfest}, X::Function=electrondriven_step_X!) = BAXAB(NoiseFree(), X)
 
 #RingPolymerSimulation Integrators
 
@@ -80,28 +53,9 @@ DynamicsMethods.select_algorithm(::RingPolymerSimulation{<:DynamicsMethods.Class
 DynamicsMethods.select_algorithm(::RingPolymerSimulation{<:DynamicsMethods.MappingVariableMethods.eCMM}) = RingPolymerMInt()
 DynamicsMethods.select_algorithm(::RingPolymerSimulation{<:DynamicsMethods.MappingVariableMethods.NRPMD}) = RingPolymerMInt()
 
-export BCB
-export BCBwithTsit5
-export BABwithTsit5
-export RingPolymerMInt
-export MInt
-export MDEF_BAOAB
-export BCOCB
-export BCBWavefunction
-export BCBFull
+    # Surface Hopping Methods
+DynamicsMethods.select_algorithm(::RingPolymerSimulation{<:DynamicsMethods.SurfaceHoppingMethods.SurfaceHopping}) = BCBwithTsit5(OrdinaryDiffEq.Tsit5())
 
-include("mdef_baoab.jl")
-include("bcocb.jl")
-include("mint.jl")
-include("ringpolymer_mint.jl")
-include("bcb_electronics.jl")
-include("bab_electronics.jl")
-include("bcb.jl")
-include("steps.jl")
-include("verlet_with_electronics.jl")
-include("bcb_wavefunction.jl")
-include("bcb_full.jl")
-include("coupledintegrators.jl")
-include("create_problem.jl")
+export BAXAB
 
 end # module

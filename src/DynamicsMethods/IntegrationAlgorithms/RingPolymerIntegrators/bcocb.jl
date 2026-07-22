@@ -4,6 +4,11 @@ using DiffEqBase: @..
 using LinearAlgebra: Diagonal
 using NQCDynamics: RingPolymers, ndofs
 using RingPolymerArrays: RingPolymerArray
+using OrdinaryDiffEqCore: OrdinaryDiffEqCore, get_fsalfirstlast, OrdinaryDiffEqAlgorithm
+using StochasticDiffEq: StochasticDiffEq
+
+
+struct BCOCB <: StochasticDiffEq.StochasticDiffEqAlgorithm end
 
 StochasticDiffEq.alg_compatible(prob::DiffEqBase.AbstractSDEProblem, alg::BCOCB) = true
 

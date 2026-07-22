@@ -41,6 +41,10 @@ function (select::OrderedSelection)(prob, i, repeat)
     DynamicsMethods.create_problem(u0, prob.tspan, prob.p)
 end
 
+function (select::OrderedSelection)(prob, ctx::SciMLBase.EnsembleContext)
+    return select(prob, ctx.sim_id, ctx.repeat)
+end
+
 """
     sample_distribution(sim::AbstractSimulation, distribution::DynamicalDistribution, i)
 
@@ -72,10 +76,14 @@ function (select::RandomSelection)(prob, i, repeat)
     DynamicsMethods.create_problem(u0, prob.tspan, prob.p)
 end
 
-function (select::RandomSelection)(prob::DynamicsMethods.IntegrationAlgorithms.CoupledODEProblem, i, repeat)
+function (select::RandomSelection)(prob, ctx::SciMLBase.EnsembleContext)
+    return select(prob, ctx.sim_id, ctx.repeat)
+end
+
+#= function (select::RandomSelection)(prob::DynamicsMethods.IntegrationAlgorithms.CoupledODEProblem, i, repeat)
     u0 = sample_distribution(prob.prob1.p[1], select.distribution)
     DynamicsMethods.create_problem(u0, prob.prob1.tspan, prob.prob1.p[1])
-end
+end =#
 
 """
     sample_distribution(sim::AbstractSimulation, distribution::DynamicalDistribution)

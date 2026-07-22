@@ -3,7 +3,7 @@ using Test
 using NQCDynamics
 using Unitful, UnitfulAtomic
 using Distributions: Normal
-using OrdinaryDiffEq: DynamicalODEProblem, DynamicalODEFunction
+using OrdinaryDiffEq: OrdinaryDiffEqCore, DynamicalODEProblem
 using DiffEqDevTools: DiffEqDevTools
 using RecursiveArrayTools: ArrayPartition
 
@@ -34,7 +34,7 @@ function analytic(u0,p,t)
 end
 
 tspan = (0.0, 10.0)
-func = DynamicalODEFunction(DynamicsMethods.ClassicalMethods.acceleration!, DynamicsUtils.velocity!; analytic)
+func = OrdinaryDiffEqCore.DynamicalODEFunction(DynamicsMethods.ClassicalMethods.acceleration!, DynamicsUtils.velocity!; analytic)
 prob = DynamicalODEProblem(
     func, Array(DynamicsUtils.get_velocities(u0)), Array(DynamicsUtils.get_positions(u0)), tspan, sim,
 )

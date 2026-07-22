@@ -1,3 +1,10 @@
+using OrdinaryDiffEqCore: OrdinaryDiffEqCore, get_fsalfirstlast, OrdinaryDiffEqAlgorithm
+using StochasticDiffEq: StochasticDiffEq
+
+
+struct BABwithTsit5{T<:OrdinaryDiffEqAlgorithm} <: OrdinaryDiffEqAlgorithm
+    electronic_algorithm::T
+end
 
 mutable struct BABwithTsit5Cache{uType,vType,rateType,E} <: OrdinaryDiffEqCore.OrdinaryDiffEqMutableCache
     u::uType

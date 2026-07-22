@@ -18,7 +18,10 @@ Simulation{Langevin{Float64}}:
   Free(1)
 ```
 """
-struct Langevin{T<:AbstractFloat} <: DynamicsMethods.Method
+
+abstract type LangevinMethods <: DynamicsMethods.Method end
+
+struct Langevin{T<:AbstractFloat} <: LangevinMethods
     γ::T
     σ::Matrix{T}
 end
@@ -34,10 +37,8 @@ function NQCDynamics.Simulation{Langevin}(atoms::Atoms{T}, model::Model; γ=1, t
 end
 
 function DynamicsMethods.create_problem(u0, tspan::Tuple, sim::Simulation{<:Langevin})
-    StochasticDiffEq.DynamicalSDEProblem(acceleration!, DynamicsUtils.velocity!, friction!,
-        DynamicsUtils.get_velocities(u0), DynamicsUtils.get_positions(u0), tspan, sim)
+    StochasticDiffEq.SDEProblem(acceleration!, friction!, u0, tspan, sim; noise_rate_prototype = zero(DynamicsUtils.get_velocities(u0)))
 end
-DynamicsMethods.select_algorithm(sim::AbstractSimulation{<:Langevin}) = StochasticDiffEq.BAOAB(;gamma=sim.method.γ)
 
 function friction!(du, r, sim::AbstractSimulation{<:Langevin}, t)
     du .= sim.method.σ
@@ -64,7 +65,7 @@ RingPolymerSimulation{ThermalLangevin{Float64}}:
   with 10 beads.
 ```
 """
-struct ThermalLangevin{T<:Real} <: DynamicsMethods.Method
+struct ThermalLangevin{T<:Real} <: LangevinMethods
     γ::T
 end
 

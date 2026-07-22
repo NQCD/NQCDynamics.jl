@@ -119,17 +119,11 @@ function DynamicsMethods.DynamicsVariables(sim::AbstractSimulation{<:AdiabaticIE
 end
 
 function DynamicsMethods.create_problem(u0, tspan, sim::AbstractSimulation{<:AbstractIESH})
+    
     set_state!(sim.method, convert(Vector{Int},u0.state), sim) # state 
     set_unoccupied_states!(sim)
-
-    electronic = SurfaceHoppingVariables(σreal = u0.σreal, σimag = u0.σimag, state = u0.state)
-    nuclear = NamedArrayPartition(v = u0.v, r=u0.r)
-
-    prob1 = OrdinaryDiffEq.DynamicalODEProblem(DynamicsUtils.acceleration!, DynamicsUtils.velocity!, u0.v, u0.r, tspan, (sim, deepcopy(electronic)))
-    A = SciMLOperators.MatrixOperator(complex(ones(size(sim.cache.potential))), update_func! = DynamicsUtils.get_quantum_propagator!)
-    prob2 = OrdinaryDiffEq.ODEProblem(A, electronic, tspan, (sim, deepcopy(nuclear)))
-
-    return DynamicsMethods.IntegrationAlgorithms.CoupledODEProblem(prob1, prob2, DynamicsMethods.get_callbacks(sim))
+    OrdinaryDiffEq.ODEProblem(DynamicsMethods.acceleration!, u0, tspan, sim;
+        callback=DynamicsMethods.get_callbacks(sim))
 end
 
 function DynamicsMethods.DynamicsVariables(sim::Simulation{<:AdiabaticIESH}, v, r, electronic::FermiDiracState{Diabatic})

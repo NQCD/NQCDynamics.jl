@@ -6,6 +6,11 @@ using NQCDynamics.DynamicsMethods.SurfaceHoppingMethods
 using NQCDynamics.DynamicsMethods.EhrenfestMethods
 using .DynamicsUtils: acceleration!, get_positions, get_velocities, get_quantum_subsystem
 using NQCCalculators
+using OrdinaryDiffEqCore: OrdinaryDiffEqCore, get_fsalfirstlast, OrdinaryDiffEqAlgorithm
+using StochasticDiffEq: StochasticDiffEq
+
+
+struct VerletwithElectronics <: OrdinaryDiffEqAlgorithm end
 
 @cache mutable struct VerletwithElectronicsCache{uType,vType,rateType} <: OrdinaryDiffEqCore.OrdinaryDiffEqMutableCache
     u::uType

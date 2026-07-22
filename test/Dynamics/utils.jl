@@ -41,11 +41,12 @@ function test_acceleration!(sim)
 
     r = get_blank(sim)
     v = get_blank(sim)
+    u = ComponentVector(v=v, r=r)
     dv = zero(v)
 
     grad = FiniteDiff.finite_difference_gradient(f, r)
     NQCCalculators.update_cache!(sim.cache, r)
-    DynamicsMethods.ClassicalMethods.acceleration!(dv, v, r, sim, 0.0)
+    DynamicsMethods.ClassicalMethods.acceleration!(dv, u, sim, 0.0)
 
     @test isapprox(dv, -grad ./ sim.atoms.masses', atol=1e-2)
 end

@@ -7,6 +7,17 @@ using FastLapackInterface
 using NQCDynamics.DynamicsMethods: MappingVariableMethods
 using NQCModels: nstates, NQCModels
 
+"""
+    MInt <: OrdinaryDiffEqAlgorithm
+
+Second order symplectic momentum integral algorithm.
+
+# Reference
+
+[J. Chem. Phys. 148, 102326 (2018)](https://doi.org/10.1063/1.5005557)
+"""
+struct MInt <: OrdinaryDiffEqAlgorithm end
+
 OrdinaryDiffEqCore.isfsal(::MInt) = false
 
 mutable struct MIntCache{uType,T} <: OrdinaryDiffEqCore.OrdinaryDiffEqMutableCache

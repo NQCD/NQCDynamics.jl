@@ -5,6 +5,11 @@ using FastBroadcast: @..
 using LinearAlgebra: LAPACK, diagm, diag, mul!, diagind
 using RecursiveArrayTools: ArrayPartition
 using NQCDynamics: get_temperature
+using OrdinaryDiffEqCore: OrdinaryDiffEqCore, get_fsalfirstlast, OrdinaryDiffEqAlgorithm
+using StochasticDiffEq: StochasticDiffEq
+
+
+struct MDEF_BAOAB <: StochasticDiffEq.StochasticDiffEqAlgorithm end
 
 StochasticDiffEq.alg_compatible(::DiffEqBase.AbstractSDEProblem,::MDEF_BAOAB) = true
 
@@ -47,12 +52,18 @@ OrdinaryDiffEqCore.get_fsalfirstlast(cache::MDEF_BAOABCache, u::Any) = (nothing,
 """
     Insecting the inputs into a Cache structure.
 """
-function StochasticDiffEq.alg_cache(::MDEF_BAOAB,prob,u,ΔW,ΔZ,p,rate_prototype,noise_rate_prototype,jump_rate_prototype,uEltypeNoUnits,uBottomEltypeNoUnits,tTypeNoUnits,uprev,f,t,dt,::Type{Val{false}})
+function StochasticDiffEqCore.alg_cache(alg::MDEF_BAOAB, prob, u, ΔW, ΔZ, p,
+        rate_prototype, noise_rate_prototype, jump_rate_prototype,
+        ::Type{uEltypeNoUnits}, ::Type{uBottomEltypeNoUnits}, ::Type{tTypeNoUnits},
+        uprev, f, t, dt, ::Type{Val{false}}, verbose) where {uEltypeNoUnits,uBottomEltypeNoUnits,tTypeNoUnits}
     k = zero(rate_prototype.x[1])
     MDEF_BAOABConstantCache(k, uEltypeNoUnits(1//2))
 end
 
-function StochasticDiffEq.alg_cache(::MDEF_BAOAB,prob,u,ΔW,ΔZ,p,rate_prototype,noise_rate_prototype,jump_rate_prototype,uEltypeNoUnits,uBottomEltypeNoUnits,tTypeNoUnits,uprev,f,t,dt,::Type{Val{true}})
+function StochasticDiffEqCore.alg_cache(alg::MDEF_BAOAB, prob, u, ΔW, ΔZ, p,
+        rate_prototype, noise_rate_prototype, jump_rate_prototype,
+        ::Type{uEltypeNoUnits}, ::Type{uBottomEltypeNoUnits}, ::Type{tTypeNoUnits},
+        uprev, f, t, dt, ::Type{Val{true}}, verbose) where {uEltypeNoUnits,uBottomEltypeNoUnits,tTypeNoUnits}
     tmp = zero(u)
     dutmp = zero(u.x[1])
     utmp = zero(u.x[2])
@@ -132,7 +143,7 @@ end
     u2 = u1 + half*dt*du2 # update half the position (velocity verlet style)
 
     # O
-    Λ = integrator.g(u2,p,t+dt*half) # friction tensor
+    Λ = integrator.f.g(u2,p,t+dt*half) # friction tensor
     # noise strength: σ = square root of (temperature / mass) for each atom 
     σ = repeat(@. sqrt(get_temperature(p, t+dt*half) / p.atoms.masses);inner=ndofs(p))
     # eigen decomposition of Λ
@@ -169,8 +180,56 @@ end
 
     step_A!(utmp, u1, half*dt, dutmp)
 
-    integrator.g(gtmp,utmp,p,t+dt*half)
+    integrator.f.g(gtmp,utmp,p,t+dt*half)
     step_O!(integrator_cache, integrator)
+
+    step_A!(u.x[2], utmp, half*dt, dutmp)
+
+    integrator.f.f1(k,dutmp,u.x[2],p,t+dt)
+    step_B!(u.x[1], dutmp, half*dt, k)
+end
+
+struct MD_MDEF_Cache{uType,rType,vType,uTypeFlat,uEltypeNoUnits,rateNoiseType,compoundType} <: StochasticDiffEq.StochasticDiffEqMutableCache
+    tmp::uType
+    utmp::rType
+    dutmp::vType
+    k::vType
+    flatdutmp::uTypeFlat
+    tmp1::uTypeFlat
+    tmp2::uTypeFlat
+    gtmp::compoundType
+    noise::rateNoiseType
+    half::uEltypeNoUnits
+    c1::Matrix{uEltypeNoUnits}
+    c2::Matrix{uEltypeNoUnits}
+end
+
+OrdinaryDiffEqCore.get_fsalfirstlast(cache::MD_MDEF_Cache, u::Any) = (nothing, nothing)
+
+
+function StochasticDiffEq.initialize!(integrator, integrator_cache::MD_MDEF_Cache)
+    @unpack t,uprev,p = integrator
+    du1 = integrator.uprev.x[1]
+    u1 = integrator.uprev.x[2]
+
+    integrator.f.f1(integrator_cache.k,du1,u1,p,t)
+end
+"""
+    The details of the following perform_step! using mutableChahe can be found in steps.jl in intergrationAlgorithm.
+
+    Before the checking, you are recommonded to read the function with ConstantCache input first.
+"""
+@muladd function StochasticDiffEq.perform_step!(integrator, integrator_cache::MD_MDEF_Cache, f=integrator.f)
+    @unpack t,dt,sqdt,uprev,u,p,W = integrator
+    @unpack utmp, dutmp, k, half, gtmp = integrator_cache
+    du1 = uprev.x[1]
+    u1 = uprev.x[2]
+    step_B!(dutmp, du1, half*dt, k)
+
+    step_A!(utmp, u1, half*dt, dutmp)
+
+    #integrator.f.g(gtmp,utmp,p,t+dt*half) #This calculates friction
+    DynamicsMethods.ClassicalMethods.step_O!(integrator_cache, integrator) #This propagates the friction and noise
 
     step_A!(u.x[2], utmp, half*dt, dutmp)
 

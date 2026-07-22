@@ -8,15 +8,10 @@ using LinearAlgebra
 
 abstract type AbstractMDEF <: DynamicsMethods.Method end
 
-#= function DynamicsMethods.create_problem(u0, tspan::Tuple, sim::AbstractSimulation{<:AbstractMDEF})
-    StochasticDiffEq.DynamicalSDEProblem(acceleration!, DynamicsUtils.velocity!, friction!,
-        DynamicsUtils.get_velocities(u0), DynamicsUtils.get_positions(u0), tspan, sim)
-end =#
+function DynamicsMethods.create_problem(u0, tspan::Tuple, sim::AbstractSimulation{<:AbstractMDEF})
+    StochasticDiffEq.SDEProblem(acceleration!, friction!, u0, tspan, sim; noise_rate_prototype = zero(DynamicsUtils.get_velocities(u0)))
+end
 
-#= function DynamicsMethods.create_problem(u0, tspan::Tuple, sim::AbstractSimulation{<:AbstractMDEF})
-    StochasticDiffEq.DynamicalSDEProblem(acceleration!, DynamicsUtils.velocity!, SciMlBase.DynamicalNoiseFunction(matrix_friction_update!),
-        DynamicsUtils.get_velocities(u0), DynamicsUtils.get_positions(u0), tspan, sim)
-end =#
 
 """
 ```math
@@ -102,6 +97,12 @@ function NQCDynamics.Simulation{DiabaticMDEF}(atoms::Atoms{T}, model::AndersonHo
     end
 
     Simulation(temperature, cell, atoms, cache, DiabaticMDEF(atoms.masses, ndofs(model)), solver)
+end
+
+function acceleration!(dv, u, sim::Simulation{<:Union{DiabaticMDEF,Classical},<:NQCCalculators.Abstract_QuantumModel_Cache}, t)
+    r = DynamicsUtils.get_positions(u)
+    v = DynamicsUtils.get_velocities(u)
+    acceleration!(dv, v, r, sim, t)
 end
 
 function acceleration!(dv, v, r, sim::Simulation{<:Union{DiabaticMDEF,Classical},<:NQCCalculators.Abstract_QuantumModel_Cache}, t)

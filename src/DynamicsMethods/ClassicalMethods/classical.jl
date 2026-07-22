@@ -44,7 +44,7 @@ function DynamicsMethods.motion!(du, u, sim::AbstractSimulation{<:Classical}, t)
     v = DynamicsUtils.get_velocities(u)
     NQCCalculators.update_cache!(sim.cache, r)
     DynamicsUtils.velocity!(dr, v, r, sim, t)
-    acceleration!(dv, v, r, sim, t)
+    acceleration!(dv, u, sim, t)
 end
 
 function DynamicsMethods.motion!(du, u, sim::RingPolymerSimulation{<:Classical}, t)
@@ -60,6 +60,13 @@ end
 """
 `f1` in `DifferentialEquations.jl` docs.
 """
+function acceleration!(dv, u, sim::AbstractSimulation, t)
+    r = DynamicsUtils.get_positions(u)
+    NQCCalculators.update_cache!(sim.cache, r)
+    dv .= -sim.cache.derivative
+    DynamicsUtils.divide_by_mass!(dv, sim.atoms.masses)
+end
+
 function acceleration!(dv, v, r, sim::AbstractSimulation, t)
     NQCCalculators.update_cache!(sim.cache, r)
     dv .= -sim.cache.derivative
@@ -74,13 +81,10 @@ function ring_polymer_acceleration!(dv, v, r, sim::RingPolymerSimulation, t)
 end
 
 function DynamicsMethods.create_problem(u0, tspan::Tuple, sim::Simulation{<:Classical})
-    OrdinaryDiffEq.DynamicalODEProblem(acceleration!, DynamicsUtils.velocity!,
-        DynamicsUtils.get_velocities(u0), DynamicsUtils.get_positions(u0), tspan, sim)
+    OrdinaryDiffEq.ODEProblem(acceleration!, u0, tspan, sim)
 end
 
 function DynamicsMethods.create_problem(u0, tspan::Tuple, sim::RingPolymerSimulation{Classical})
     OrdinaryDiffEq.DynamicalODEProblem(acceleration!, DynamicsUtils.velocity!,
         DynamicsUtils.get_velocities(u0), DynamicsUtils.get_positions(u0), tspan, sim)
 end
-
-DynamicsMethods.select_algorithm(::AbstractSimulation{<:Classical}) = OrdinaryDiffEq.VelocityVerlet()

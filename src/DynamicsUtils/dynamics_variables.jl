@@ -21,3 +21,11 @@ get_mapping_positions(u::ComponentVector) = u.qmap
 get_mapping_momenta(u::ComponentVector) = u.pmap
 get_mapping_positions(u::ComponentVector, i) = @view get_mapping_positions(u)[:,i]
 get_mapping_momenta(u::ComponentVector, i) = @view get_mapping_momenta(u)[:,i]
+
+function dynamicsvariable_to_vector!(x_vec, x)
+    x_vec .= vec(x)
+end
+
+function vector_to_dynamicsvariable!(x, x_vec)
+    x .= reshape(x_vec, size(x))
+end

@@ -5,6 +5,20 @@ using StaticArrays: SMatrix
 using LinearAlgebra: Hermitian, tr
 using NQCDynamics.DynamicsMethods: MappingVariableMethods
 using NQCModels: nstates
+using OrdinaryDiffEqCore: OrdinaryDiffEqCore, get_fsalfirstlast, OrdinaryDiffEqAlgorithm
+using StochasticDiffEq: StochasticDiffEq
+
+
+"""
+    RingPolymerMInt <: OrdinaryDiffEqAlgorithm
+
+Second order symplectic momentum integral algorithm applied to NRPMD.
+
+# Reference
+
+[J. Chem. Phys. 148, 102326 (2018)](https://doi.org/10.1063/1.5005557)
+"""
+struct RingPolymerMInt <: OrdinaryDiffEqAlgorithm end
 
 OrdinaryDiffEqCore.isfsal(::RingPolymerMInt) = false
 
