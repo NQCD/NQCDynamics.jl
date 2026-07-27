@@ -33,6 +33,7 @@ function commutator!(C, A, B)
 end
 
 get_quantum_subsystem(u::ComponentArrays.ComponentVector{T}) where {T} = StructArray{Complex{T}}((u.σreal, u.σimag))
+get_quantum_subsystem(x::Number) = x
 
 function initialise_adiabatic_density_matrix(
     electronics::ElectronicDistribution{Diabatic},

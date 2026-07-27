@@ -25,7 +25,6 @@ end
     sim = RingPolymerSimulation{FSSH}(Atoms(2000), TullyModelOne(), 10; temperature=1e-3)
     u = DynamicsVariables(sim, fill(20/2000, size(sim)), fill(-5, size(sim)) .+ randn(size(sim)), PureState(1))
     dt = 0.1
-
     seed!(1)
     dyn_test = @timed run_dynamics(sim, (0, 2000.0), u; output=OutputDynamicsVariables, algorithm=DynamicsMethods.IntegrationAlgorithms.BCBwithTsit5(Tsit5()), saveat=0:10:2000, dt=dt)
     sol = dyn_test.value

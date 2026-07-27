@@ -42,8 +42,9 @@ function velocity!(dr, v, r, sim, t)
     return nothing
 end
 
-function acceleration! end
-
+function acceleration!(dv, u, sim::AbstractSimulation, t)
+    return acceleration!(dv, get_velocities(u), get_positions(u), sim, t)
+end
 """
     apply_interbead_coupling!(du::DynamicalVariables, u::DynamicalVariables,
                               sim::RingPolymerSimulation)

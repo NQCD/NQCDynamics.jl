@@ -65,7 +65,7 @@ function DynamicsUtils.set_quantum_derivative!(dσ, u, sim::AbstractSimulation{<
     σ = DynamicsUtils.get_quantum_subsystem(u)
     r = DynamicsUtils.get_positions(u)
     eigenvalues = DynamicsUtils.get_hopping_eigenvalues(sim, r)
-    propagator = sim.method.density_propagator
+    propagator = sim.method.quantum_propagator
     d = DynamicsUtils.get_hopping_nonadiabatic_coupling(sim, r)
     V = DynamicsUtils.calculate_density_matrix_propagator!(propagator, v, d, eigenvalues)
     DynamicsUtils.commutator!(dσ, V, σ)
@@ -74,7 +74,7 @@ end
 
 function DynamicsMethods.create_problem(u0, tspan, sim::AbstractSimulation{<:SurfaceHopping})
     set_state!(sim.method, u0.state, sim)
-    OrdinaryDiffEq.ODEProblem(DynamicsMethods.motion!, u0, tspan, sim;
+    OrdinaryDiffEq.ODEProblem(DynamicsUtils.acceleration!, u0, tspan, sim;
         callback=DynamicsMethods.get_callbacks(sim))
 end
 

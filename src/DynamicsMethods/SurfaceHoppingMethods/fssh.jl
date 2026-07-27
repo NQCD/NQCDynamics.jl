@@ -21,17 +21,27 @@ Simulation{FSSH{Float64}}:
 ```
 """
 mutable struct FSSH{T} <: SurfaceHopping
-    density_propagator::Matrix{Complex{T}}
+    quantum_propagator::Matrix{Complex{T}}
     hopping_probability::Vector{T}
     state::Int
     new_state::Int
     rescaling::Symbol
     tmp_complex_matrix::Matrix{Complex{T}}
+    tmp_matrix_complex_square1::Matrix{Complex{T}}
+    tmp_matrix_complex_square2::Matrix{Complex{T}}
+    tmp_matrix_complex_rect1::Matrix{Complex{T}}
+    tmp_matrix_complex_rect2::Matrix{Complex{T}}
     function FSSH{T}(states::Integer, rescaling::Symbol) where {T}
-        density_propagator = zeros(states, states)
+        quantum_propagator = zeros(states, states)
         hopping_probability = zeros(states)
         tmp_complex_matrix = zeros(Complex{T}, states, states)
-        new{T}(density_propagator, hopping_probability, 0, 0, rescaling, tmp_complex_matrix)
+        tmp_matrix_complex_square1 = zeros(Complex{T}, states, states)
+        tmp_matrix_complex_square2 = zeros(Complex{T}, states, states)
+        tmp_matrix_complex_rect1 = zeros(Complex{T}, states, 1)
+        tmp_matrix_complex_rect2 = zeros(Complex{T}, states, 1)
+        new{T}(quantum_propagator, hopping_probability, 0, 0, rescaling, tmp_complex_matrix, 
+            tmp_matrix_complex_square1, tmp_matrix_complex_square2, tmp_matrix_complex_rect1, tmp_matrix_complex_rect2
+        )
     end
 end
 
@@ -62,6 +72,10 @@ function DynamicsMethods.DynamicsVariables(
         σimag = zero(σ) .|> Float64,
         state = electronic_state,
     ))
+end
+
+function DynamicsUtils.acceleration!(dv, u, sim::AbstractSimulation{<:FSSH}, t)
+    DynamicsUtils.acceleration!(dv, DynamicsUtils.get_velocities(u), DynamicsUtils.get_positions(u), sim, t, sim.method.state)
 end
 
 function DynamicsUtils.acceleration!(dv, v, r, sim::AbstractSimulation{<:FSSH}, t, state)

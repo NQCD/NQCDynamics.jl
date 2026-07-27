@@ -163,6 +163,7 @@ end
 
 function _baxab_initialize!(integrator, cache)
     @unpack t, uprev, p = integrator
+    NQCCalculators.update_cache!(p.cache, DynamicsUtils.get_positions(uprev))
     integrator.f(cache.k, uprev, p, t)
 end
 

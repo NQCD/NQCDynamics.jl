@@ -132,6 +132,10 @@ function Simulation{BCME}(atoms::Atoms{T}, model; bandwidth, kwargs...) where {T
     Simulation(atoms, model, BCME{T}(NQCModels.nstates(model), bandwidth); kwargs...)
 end
 
+function DynamicsUtils.acceleration!(dv, u, sim::Simulation{<:BCME}, t)
+    return DynamicsUtils.acceleration!(dv, DynamicsUtils.get_velocities(u), DynamicsUtils.get_positions(u), sim, t)
+end
+
 function DynamicsUtils.acceleration!(dv, v, r, sim::Simulation{<:BCME}, t)
     state = sim.method.state
     NQCDynamics.NQCCalculators.update_cache!(sim.cache, r)

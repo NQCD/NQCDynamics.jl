@@ -1,7 +1,7 @@
 
 function check_hop!(u, t, integrator)::Bool
     sim = integrator.p
-    evaluate_hopping_probability!(sim, u, OrdinaryDiffEq.get_proposed_dt(integrator))
+    evaluate_hopping_probability!(sim, u, SciMLBase.get_proposed_dt(integrator))
     set_new_state!(sim.method, select_new_state(sim, u))
     return sim.method.new_state != sim.method.state
 end
@@ -61,17 +61,17 @@ Rescale the velocity in the direction of the nonadiabatic coupling.
 
 [HammesSchiffer1994](@cite)
 """
-function rescale_velocity!(sim::AbstractSimulation{<:SurfaceHopping}, electrons, nuclei)::Bool #23 allocations total
-    sim.method.rescaling === :off && return true #no rescaling so always accept hop
+function rescale_velocity!(sim::AbstractSimulation{<:SurfaceHopping}, u)::Bool 
+    sim.method.rescaling === :off && return true 
 
-    new_state, old_state = unpack_states(sim) #symdiff is awful 21 allocations, could replace this by creating a mask, needs adding to simulation or method
-    velocity = DynamicsUtils.get_velocities(nuclei)
-    r = DynamicsUtils.get_positions(nuclei)
+    new_state, old_state = unpack_states(sim)
+    v = DynamicsUtils.get_hopping_velocity(sim, DynamicsUtils.get_velocities(u))
+    r = DynamicsUtils.get_positions(u)
     eigs = DynamicsUtils.get_hopping_eigenvalues(sim, r)
     
     d = extract_nonadiabatic_coupling(DynamicsUtils.get_hopping_nonadiabatic_coupling(sim, r), new_state, old_state) #2 allocations
     a = calculate_a(sim, d)
-    b = calculate_b(d, velocity)
+    b = calculate_b(d, v)
     c = calculate_potential_energy_change(eigs, new_state, old_state)
 
     discriminant = b^2 - 4a * c
@@ -93,7 +93,7 @@ function rescale_velocity!(sim::AbstractSimulation{<:SurfaceHopping}, electrons,
     #sufficient energy for hopping
     root = sqrt(discriminant)
     γ = (b < 0) ? (b + root) / (2a) : (b - root) / (2a)
-    perform_rescaling!(sim, velocity, γ, d)
+    perform_rescaling!(sim, v, γ, d)
 
     return true
 end

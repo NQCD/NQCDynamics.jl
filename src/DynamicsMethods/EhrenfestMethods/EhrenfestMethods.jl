@@ -40,7 +40,7 @@ function DynamicsUtils.set_quantum_derivative!(dσ, u, sim::AbstractSimulation{<
     σ = DynamicsUtils.get_quantum_subsystem(u)
     r = DynamicsUtils.get_positions(u)
     eigenvalues = DynamicsUtils.get_hopping_eigenvalues(sim, r)
-    propagator = sim.method.density_propagator
+    propagator = sim.method.quantum_propagator
     d = DynamicsUtils.get_hopping_nonadiabatic_coupling(sim, r)
     V = DynamicsUtils.calculate_density_matrix_propagator!(propagator, v, d, eigenvalues)
 

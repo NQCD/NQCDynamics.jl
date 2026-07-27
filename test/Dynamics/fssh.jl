@@ -37,7 +37,7 @@ atoms = Atoms(2)
     DynamicsMethods.SurfaceHoppingMethods.evaluate_hopping_probability!(
         sim,
         u,
-        get_proposed_dt(integrator),
+        SciMLBase.get_proposed_dt(integrator),
     )
 
     σ = DynamicsUtils.get_quantum_subsystem(u)
@@ -126,7 +126,7 @@ atoms = Atoms(2)
         v = hcat(100 / 2000)
         r = hcat(-10.0)
         u = DynamicsVariables(sim, v, r, PureState(1, Adiabatic()))
-        dyn_test = @timed run_dynamics(sim, (0.0, 500.0), u, output=OutputTotalEnergy, dt=0.1, reltol=1e-6)
+        dyn_test = @timed run_dynamics(sim, (0.0, 500.0), u, output=(OutputTotalEnergy,OutputDynamicsVariables), dt=0.1, reltol=1e-6)
         solution =  dyn_test.value
         @test solution[:OutputTotalEnergy][1] ≈ solution[:OutputTotalEnergy][end] rtol=1e-2
         benchmark_results["FSSH"] = Dict("Time" => dyn_test.time, "Allocs" => dyn_test.bytes)
@@ -149,7 +149,7 @@ end
     NQCDynamics.NQCCalculators.update_cache!(sim.cache, r)
     problem = ODEProblem(DynamicsMethods.motion!, u, (0.0, 1.0), sim)
     integrator = init(problem, Tsit5(), callback = SurfaceHoppingMethods.HoppingCallback)
-    SurfaceHoppingMethods.evaluate_hopping_probability!(sim, u, get_proposed_dt(integrator))
+    SurfaceHoppingMethods.evaluate_hopping_probability!(sim, u, SciMLBase.get_proposed_dt(integrator))
 
     @testset "rescale_velocity!" begin
         get_velocities(integrator.u) .= 0.0 # Set momentum to zero to force frustrated hop

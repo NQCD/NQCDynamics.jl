@@ -25,14 +25,14 @@ Simulation{Ehrenfest{Float64}}:
 ```
 """
 struct Ehrenfest{T} <: AbstractEhrenfest
-    density_propagator::Matrix{Complex{T}}
+    quantum_propagator::Matrix{Complex{T}}
     tmp_complex_matrix::Matrix{Complex{T}}
     tmp_complex_matrix2::Matrix{Complex{T}}
     function Ehrenfest{T}(n_states::Integer) where {T}
-        density_propagator = zeros(T, n_states, n_states)
+        quantum_propagator = zeros(T, n_states, n_states)
         tmp_complex_matrix = zeros(Complex{T}, n_states, n_states)
         tmp_complex_matrix2 = zeros(Complex{T}, n_states, n_states)
-        new{T}(density_propagator, tmp_complex_matrix, tmp_complex_matrix2)
+        new{T}(quantum_propagator, tmp_complex_matrix, tmp_complex_matrix2)
     end
 end
 
@@ -45,6 +45,10 @@ function DynamicsMethods.DynamicsVariables(
 )
     σ = DynamicsUtils.initialise_adiabatic_density_matrix(electronic, sim.cache, r)
     return ComponentVector(v=v, r=r, σreal=σ, σimag=zero(σ))
+end
+
+function DynamicsUtils.acceleration!(dv, u, sim::Simulation{<:Ehrenfest}, t)
+    return DynamicsUtils.acceleration!(dv, DynamicsUtils.get_velocities(u), DynamicsUtils.get_positions(u), sim, t, DynamicsUtils.get_quantum_subsystem(u))
 end
 
 function DynamicsUtils.acceleration!(dv, v, r, sim::Simulation{<:Ehrenfest}, t, σ)

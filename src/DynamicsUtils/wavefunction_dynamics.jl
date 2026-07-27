@@ -12,11 +12,11 @@ function set_single_electron_derivative!(dc, c, V, v, d, tmp)
     return nothing
 end
 
-function propagate_wavefunction!(σfinal, σ, v, r, sim, dt)
+function propagate_electrons!(σfinal, σ, v, r, sim::Simulation, dt)
     propagator = get_quantum_propagator(sim, v, r, dt)
 
-    tmp1 = sim.method.tmp_matrix_complex_rect1
-    tmp2 = sim.method.tmp_matrix_complex_rect2
+    tmp1 = sim.method.tmp_matrix_complex_square1
+    tmp2 = sim.method.tmp_matrix_complex_square2
     copy!(tmp1, σ)
     mul!(tmp2, propagator, tmp1)
     copy!(σfinal, tmp2)

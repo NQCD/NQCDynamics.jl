@@ -33,6 +33,10 @@ struct AdiabaticIESH{T,D} <: AbstractIESH
     tmp::Vector{Complex{T}}
     rescaling::Symbol
     quantum_propagator::Matrix{Complex{T}}
+    tmp_matrix_complex_square1::Matrix{Complex{T}}
+    tmp_matrix_complex_square2::Matrix{Complex{T}}
+    tmp_matrix_complex_rect1::Matrix{Complex{T}}
+    tmp_matrix_complex_rect2::Matrix{Complex{T}}
     LUws::FastLapackInterface.LUWs
     v_dot_d::Matrix{T}
     unoccupied::Vector{Int}
@@ -48,15 +52,22 @@ struct AdiabaticIESH{T,D} <: AbstractIESH
         tmp = zeros(Complex{T}, states)
         overlap = zeros(Complex{T}, n_electrons, n_electrons)
         quantum_propagator = zeros(Complex{T}, states, states)
+        tmp_matrix_complex_square1 = zeros(Complex{T}, states, states)
+        tmp_matrix_complex_square2 = zeros(Complex{T}, states, states)
+        tmp_matrix_complex_rect1 = zeros(Complex{T}, states, n_electrons)
+        tmp_matrix_complex_rect2 = zeros(Complex{T}, states, n_electrons)
         LUws = FastLapackInterface.LUWs(n_electrons)
         v_dot_d = zeros(T, states, n_electrons)
         unoccupied = zeros(Int, states - n_electrons)
 
         new{T,typeof(decoherence)}(hopping_probability, state, new_state, proposed_state, overlap, tmp, rescaling, quantum_propagator,
+            tmp_matrix_complex_square1, tmp_matrix_complex_square2,
+            tmp_matrix_complex_rect1, tmp_matrix_complex_rect2,
             LUws, v_dot_d, unoccupied, estimate_probability, disable_hopping
         )
     end
 end
+
 
 unoccupied_states(sim::AbstractSimulation{<:AbstractIESH}) = sim.method.unoccupied
 
@@ -198,6 +209,16 @@ function DynamicsUtils.acceleration!(dv, v, r, parameters::Tuple{Simulation{<:Ab
     end
     DynamicsUtils.divide_by_mass!(dv, sim.atoms.masses)
     return nothing
+end
+
+function DynamicsUtils.propagate_electrons!(σfinal, σ, v, r, sim::Simulation{<:AbstractIESH}, dt)
+    propagator = get_quantum_propagator(sim, v, r, dt)
+
+    tmp1 = sim.method.tmp_matrix_complex_rect1
+    tmp2 = sim.method.tmp_matrix_complex_rect2
+    copy!(tmp1, σ)
+    mul!(tmp2, propagator, tmp1)
+    copy!(σfinal, tmp2)
 end
 
 """
