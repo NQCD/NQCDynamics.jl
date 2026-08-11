@@ -8,20 +8,6 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        group:
-          - Core
-          - Analysis
-          - InitialConditions
-          - dynamics_classical
-          - dynamics_mdef
-          - dynamics_surface_hopping
-          - dynamics_cme
-          - dynamics_mapping
-          - dynamics_ehrenfest
-          - dynamics_ensembles
-      fail-fast: false
 
     steps:
       - id: workspace
@@ -47,9 +33,6 @@ jobs:
             ${{ runner.os }}-test-${{ env.cache-name }}-
             ${{ runner.os }}-test-
 
-      - name: Add JuliaMolSim registry
-        run: julia -e 'using Pkg; Pkg.Registry.add(RegistrySpec(url="https://github.com/JuliaMolSim/MolSim"))'
-        shell: bash
       - name: Add ACEregistry
         run: julia -e 'using Pkg; Pkg.Registry.add(RegistrySpec(url="https://github.com/ACEsuit/ACEregistry"))'
         shell: bash
@@ -60,7 +43,7 @@ jobs:
 
       - name: Install ase for IO tests
         id: install-python
-        run: | 
+        run: |
           pip3 install ase
           echo "python="$(which python) >> $GITHUB_OUTPUT
       - uses: julia-actions/julia-buildpkg@v1
@@ -69,7 +52,6 @@ jobs:
           JULIA_CONDAPKG_BACKEND: "Null"
       - uses: julia-actions/julia-runtest@v1
         env:
-          GROUP: ${{ matrix.group }}
           BENCHMARK_OUTPUT_DIR: /home/runner/NQCDynamics.jl/NQCDynamics.jl/benchmarks
           JULIA_PYTHONCALL_EXE: ${{ steps.install-python.outputs.python }}
           JULIA_CONDAPKG_BACKEND: "Null"
@@ -80,7 +62,7 @@ jobs:
       - name: 'Upload Artifact'
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.group }}-timings
+          name: test-timings
           path: /home/runner/NQCDynamics.jl/NQCDynamics.jl/benchmarks/*.json
           retention-days: 21
   upload_benchmarks:
@@ -90,7 +72,7 @@ jobs:
     outputs:
       newest_release_version: ${{ steps.save_tag.current_version }}
       previous_release_version: ${{ steps.save_tag.last_version }}
-    steps: 
+    steps:
       # Now we're in /home/runner/NQCDynamics.jl/NQCDynamics.jl
       - uses: actions/checkout@v4
         with:
@@ -165,4 +147,3 @@ jobs:
           echo "### Unit test benchmark :rocket:" >> "$GITHUB_STEP_SUMMARY"
           echo "Compared dynamics test timings between ${{ steps.save_tag.outputs.newest_release_version }} and ${{ github.sha }}." >> "$GITHUB_STEP_SUMMARY"
           echo "Download the results [here](${{ steps.upload-artifact.outputs.artifact-url }})" >> "$GITHUB_STEP_SUMMARY"
-
