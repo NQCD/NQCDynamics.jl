@@ -14,6 +14,7 @@ dev/
 !NQCDynamics.jl/test/artifacts/desorption_dynamics.jld2
 !NQCDynamics.jl/test/artifacts/desorption_test.xyz
 !/docs/src/assets/surface_structure.xyz
+!.gitlab-ci.yml
 
 NQCDynamics.jl/test/tmp/
 NQCDynamics.jl/test/tmp/*

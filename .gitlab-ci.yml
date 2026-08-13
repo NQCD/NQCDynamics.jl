@@ -1,0 +1,162 @@
+stages:
+  - test
+  - upload_benchmarks
+
+variables:
+  JULIA_PYTHONCALL_EXE: /usr/bin/python3
+  JULIA_CONDAPKG_BACKEND: "Null"
+
+# Template for running tests on each package
+.test_template:
+  stage: test
+  image: julia:latest
+  before_script:
+    - echo $CI_PROJECT_DIR
+    # Get tag information
+    - export CURRENT_VERSION=$(git describe --tags --abbrev=0 2>/dev/null || echo "none")
+    - export LAST_VERSION=$(git for-each-ref --sort=-taggerdate --format '%(tag)' refs/tags | sed -n 2p)
+    - echo "Current version:// $CURRENT_VERSION"
+    - echo "Last version:// $LAST_VERSION"
+    # Install Python and ase
+    - apt-get update && apt-get install -y python3 python3-pip
+    - pip3 install ase
+    - export JULIA_PYTHONCALL_EXE=$(which python3)
+    # Add ACEregistry
+    - julia -e 'using Pkg; Pkg.Registry.add(RegistrySpec(url="https://github.com/ACEsuit/ACEregistry"))'
+    # Create benchmark directory
+    - mkdir -p $CI_PROJECT_DIR/$PACKAGE/benchmarks
+  script:
+    # Build package
+    - cd $CI_PROJECT_DIR/$PACKAGE
+    - julia --project=. -e 'using Pkg; Pkg.build()'
+    # Run tests
+    - export BENCHMARK_OUTPUT_DIR=$CI_PROJECT_DIR/$PACKAGE/benchmarks
+    - julia --project=. -e 'using Pkg; Pkg.test(coverage=true)'
+    # Process coverage
+    - julia -e 'using Pkg; Pkg.add("Coverage"); using Coverage; coverage = process_folder("src"); LCOV.writefile("lcov.info", coverage)'
+  after_script:
+    # Upload coverage to codecov (requires CODECOV_TOKEN variable set in GitLab)
+    - |
+      if [ -f lcov.info ]; then
+        curl -s https://codecov.io/bash | bash -s -- -f lcov.info
+      fi
+  artifacts:
+    name: "test-timings-$PACKAGE"
+    paths:
+      - $PACKAGE/benchmarks/*.json
+    expire_in: 21 days
+    when: always
+  cache:
+    key: julia-artifacts-$CI_COMMIT_REF_SLUG
+    paths:
+      - .julia/artifacts
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+# Test jobs for each package
+test:NQCBase:
+  extends: .test_template
+  variables:
+    PACKAGE: NQCBase.jl
+
+test:NQCModels:
+  extends: .test_template
+  variables:
+    PACKAGE: NQCModels.jl
+
+test:NQCCalculators:
+  extends: .test_template
+  variables:
+    PACKAGE: NQCCalculators.jl
+
+test:RingPolymerArrays:
+  extends: .test_template
+  variables:
+    PACKAGE: RingPolymerArrays.jl
+
+test:NQCDistributions:
+  extends: .test_template
+  variables:
+    PACKAGE: NQCDistributions.jl
+
+test:NQCDynamics:
+  extends: .test_template
+  variables:
+    PACKAGE: NQCDynamics.jl
+
+# Upload benchmarks job
+upload_benchmarks:
+  stage: upload_benchmarks
+  image: julia:latest
+  needs:
+    - test:NQCBase
+    - test:NQCModels
+    - test:NQCCalculators
+    - test:RingPolymerArrays
+    - test:NQCDistributions
+    - test:NQCDynamics
+  before_script:
+    - apt-get update && apt-get install -y git
+    # Checkout performance-tracking branch
+    - git fetch origin performance-tracking
+    - git checkout performance-tracking
+    # Get tag information
+    - export CURRENT_VERSION=$(git tag --list --sort=-taggerdate | sed -n 1p)
+    - export LAST_VERSION=$(git tag --list --sort=-taggerdate | sed -n 2p)
+    - echo "Current version:// $CURRENT_VERSION"
+    - echo "Last version:// $LAST_VERSION"
+  script:
+    # Create benchmark-graphics directory
+    - mkdir -p $CI_PROJECT_DIR/benchmark-graphics
+    # Initialize Julia environment
+    - julia -e 'using Pkg; Pkg.activate("."); Pkg.instantiate()'
+    # List downloaded artifacts
+    - ls -l $CI_PROJECT_DIR/*/benchmarks/ || true
+    # Process benchmarks based on event type
+    - |
+      if [ "$CI_COMMIT_TAG" == "" ]; then
+        # This is a commit, not a release
+        export NEW_VERSION=$CI_COMMIT_SHA
+        export BENCHMARK_REPO=$(pwd)
+        mkdir -p NQCDynamics.jl/commits/$NEW_VERSION
+        # Move benchmark files
+        find $CI_PROJECT_DIR -path "*/benchmarks/*.json" -exec cp {} NQCDynamics.jl/commits/$NEW_VERSION/ \;
+        # Generate benchmark comparison graphics
+        export GRAPHICS_PATH=benchmark-graphics
+        julia --project=. benchmark_plots.jl || echo "Benchmark plotting skipped or failed"
+        # Commit and push
+        git config user.name "GitLab CI"
+        git config user.email "gitlab-ci@gitlab.com"
+        git add NQCDynamics.jl/commits/$NEW_VERSION/*.json
+        git commit -m "Stored test performance for commit $NEW_VERSION" || echo "Nothing to commit"
+        git push https://oauth2:${CI_PUSH_TOKEN}@${CI_SERVER_HOST}/${CI_PROJECT_PATH}.git HEAD:performance-tracking || echo "Push failed or no changes"
+      else
+        # This is a release
+        export NEW_VERSION=$CURRENT_VERSION
+        export CURRENT_VERSION=$LAST_VERSION
+        export BENCHMARK_REPO=$(pwd)
+        mkdir -p NQCDynamics.jl/tags/$NEW_VERSION
+        # Move benchmark files
+        find $CI_PROJECT_DIR -path "*/benchmarks/*.json" -exec cp {} NQCDynamics.jl/tags/$NEW_VERSION/ \;
+        # Generate benchmark comparison graphics
+        export GRAPHICS_PATH=benchmark-graphics
+        julia --project=. benchmark_plots.jl || echo "Benchmark plotting skipped or failed"
+        # Commit and push
+        git config user.name "GitLab CI"
+        git config user.email "gitlab-ci@gitlab.com"
+        git add NQCDynamics.jl/tags/$NEW_VERSION/*.json
+        git commit -m "Stored test performance for release $NEW_VERSION" || echo "Nothing to commit"
+        git push https://oauth2:${CI_PUSH_TOKEN}@${CI_SERVER_HOST}/${CI_PROJECT_PATH}.git HEAD:performance-tracking || echo "Push failed or no changes"
+      fi
+  artifacts:
+    name: "benchmark-version-comparison"
+    paths:
+      - benchmark-graphics/*.png
+    expire_in: 21 days
+    when: always
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_COMMIT_TAG
+  allow_failure: true
