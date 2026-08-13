@@ -7,12 +7,13 @@ dev/
 .*
 *.jld2
 *.dat
+*.h5
 !/.gitignore
 !/.github
-!/.codecov.yml
-!/test/artifacts/desorption_dynamics.jld2
-!/test/artifacts/desorption_test.xyz
+!NQCDynamics.jl/.codecov.yml
+!NQCDynamics.jl/test/artifacts/desorption_dynamics.jld2
+!NQCDynamics.jl/test/artifacts/desorption_test.xyz
 !/docs/src/assets/surface_structure.xyz
 
-/test/tmp/
-/test/tmp/*
+NQCDynamics.jl/test/tmp/
+NQCDynamics.jl/test/tmp/*

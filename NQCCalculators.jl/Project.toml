@@ -1,0 +1,37 @@
+name = "NQCCalculators"
+uuid = "ddd1f41d-9621-41e2-91a4-6b87cc8989f3"
+authors = ["Ash Baldwin <Ash.Baldwin@warwick.ac.uk> and contributors"]
+version = "1.1.0"
+
+[deps]
+FastLapackInterface = "29a986be-02c6-4525-aec4-84b980013641"
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+NQCBase = "78c76ebc-5665-4934-b512-82d81b5cbfb7"
+NQCModels = "c814dc9f-a51f-4eaf-877f-82eda4edad48"
+QuadGK = "1fd47b50-473d-5c70-9696-f719f8f3bcdc"
+Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
+RingPolymerArrays = "81cd853e-d334-476c-b156-f95acc8a32dc"
+StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
+StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
+
+[sources]
+NQCBase = {path="../NQCBase.jl"}
+NQCModels = {path="../NQCModels.jl"}
+RingPolymerArrays = {path="../RingPolymerArrays.jl"}
+
+[compat]
+FastLapackInterface = "2.1.0"
+NQCBase = "0.5, 1"
+NQCModels = "0.10, 1"
+QuadGK = "2.11.2"
+Random = "1"
+RingPolymerArrays = "1"
+StaticArrays = "1.9.13"
+StatsBase = "0.34"
+julia = "1"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
