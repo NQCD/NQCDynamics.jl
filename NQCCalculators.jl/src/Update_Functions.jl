@@ -1,7 +1,7 @@
 #Definitions of update functions
 
 function update_potential!(cache::Abstract_ClassicalModel_Cache, r::AbstractMatrix)
-    cache.potential .= hcat(NQCModels.potential(cache.model, r))
+    cache.potential .= NQCModels.potential(cache.model, r)
 end
 
 function update_potential!(cache::Abstract_ClassicalModel_Cache, r::AbstractArray{T,3}) where {T}
@@ -180,7 +180,7 @@ function update_inverse_difference_matrix!(out, eigenvalues)
     @inbounds for i in eachindex(eigenvalues)
         for j in eachindex(eigenvalues)
             # Checking if the eigenvalues are different, otherwise set them to 0. Blame Henry for this!
-            out[j,i] = 1 / (eigenvalues[i] - eigenvalues[j]) .* (eigenvalues[i] .!= eigenvalues[j]) 
+            out[j,i] = 1 / (eigenvalues[i] - eigenvalues[j]) .* (eigenvalues[i] .!= eigenvalues[j])
         end
     end
     return nothing
@@ -199,7 +199,7 @@ function update_nonadiabatic_coupling!(cache::Abstract_QuantumModel_Cache, r::Ab
     update_inverse_difference_matrix!(cache.tmp_mat, eigen.w)
 
     nonadiabatic_coupling_loop!(cache, adiabatic_derivative, cache.model)
-    
+
     return nothing
 end
 
@@ -383,7 +383,7 @@ updates all model properties stored in the cache for the current position `r`.
 - Nonadiabatic coupling
 - Friction tensor
 
-- Centroid equivalents of the above 
+- Centroid equivalents of the above
 """
 function update_cache!(cache::Abstract_ClassicalModel_Cache, r::AbstractMatrix)
     update_potential!(cache, r)
@@ -483,7 +483,7 @@ updates all model properties stored in the cache for the current centroid positi
 - Eigenvalues and eigenvectors
 - Adiabatic derivative
 - Nonadiabatic coupling
-- Friction tensor 
+- Friction tensor
 """
 function update_centroid!(cache::RingPolymer_ClassicalModel_Cache, r::AbstractArray{T,3}) where {T}
     cache.centroid .= RingPolymerArrays.get_centroid(r)

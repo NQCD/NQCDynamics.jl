@@ -149,7 +149,7 @@ end
 Function which constructs and returns the struct of the same name. Takes as input an adiabatic friction model `M` of the users choice and
 the number of atoms in the simulation.
 """
-function ClassicalFrictionModel_Cache(model::M, atoms::Integer, matrix_prototype::AbstractMatrix) where {M<:Model}
+function ClassicalFrictionModel_Cache(model::M, atoms::Integer, matrix_prototype::AbstractArray) where {M<:Model}
     potential = similar(matrix_prototype, 1,1)
     derivative = similar(matrix_prototype, ndofs(model), atoms)
     friction = similar(matrix_prototype, ndofs(model)*atoms, ndofs(model)*atoms)
@@ -162,6 +162,7 @@ function ClassicalFrictionModel_Cache(model::M, atoms::Integer, matrix_prototype
     )
 end
 
+Adapt.@adapt_structure ClassicalFrictionModel_Cache
 
 """
     struct: RingPolymer_ClassicalFrictionModel_Cache{T,M} <: Abstract_ClassicalModel_Cache{T,M}
