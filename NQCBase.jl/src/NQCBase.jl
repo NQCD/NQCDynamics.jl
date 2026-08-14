@@ -4,6 +4,15 @@ using PeriodicTable
 using Unitful, UnitfulAtomic
 using Requires
 
+## Marker types for accelerator backends, a.k.a. GPU support
+# Used to multiple dispatch various functions that need to build arrays differently depending on the choice of CPU/GPU.
+
+abstract type Device end
+struct CPUDevice <: Device end # Default choice
+struct CUDADevice <: Device end # Build methods with these in extensions for CUDA
+struct ROCmDevice <: Device end # Build methods with these in extensions for AMDGPU
+struct MetalDevice <: Device end # Build methods with these in extensions for Metal / AppleAccelerate
+
 # Basic types for atomic structures
 include("unit_conversions.jl")
 include("atoms.jl")
