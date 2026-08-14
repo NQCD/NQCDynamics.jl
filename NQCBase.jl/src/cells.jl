@@ -37,6 +37,9 @@ struct PeriodicCell{M<:AbstractMatrix, V<:AbstractVector, VB<:AbstractVector{Boo
     end
 end
 
+Adapt.@adapt_structure PeriodicCell
+Adapt.@adapt_structure InfiniteCell
+
 Base.eltype(::PeriodicCell) = eltype(PeriodicCell.vectors)
 
 function _default_periodicity(vectors::AbstractMatrix)
@@ -121,7 +124,7 @@ end
 """
     Supercell{T}(cell::PeriodicCell, replicas::AbstractVector)
 
-This type carries information about how to replicate periodic copies of a structure based on the unit cell provided. 
+This type carries information about how to replicate periodic copies of a structure based on the unit cell provided.
 """
 struct Supercell{R<:AbstractVector{<:PeriodicReplica}}
     cell::PeriodicCell
@@ -137,16 +140,16 @@ sc = Supercell(cell, -1:1, [1,2], 1)
 sc(positions) # Gives a total matrix containing the initial positions and all possible translations in the respective directions
 ```
 
-Three iterators must be supplied, for which all possible translations will be generated. These can be integers (e.g. leave `z_range = 0` to generate no replicas in z-direction), 
-or any other iterable that produces an Integer. 
+Three iterators must be supplied, for which all possible translations will be generated. These can be integers (e.g. leave `z_range = 0` to generate no replicas in z-direction),
+or any other iterable that produces an Integer.
 
-All translations have to be (signed) integers, so [1,0,0] is one unit cell translation along the positive x direction. 
+All translations have to be (signed) integers, so [1,0,0] is one unit cell translation along the positive x direction.
 ## Arguments
 
 - `cell`: Specification for a unit cell
-- `x_range`: Iterator yielding `Int`s to specify all x translations. 
-- `y_range`: Iterator yielding `Int`s to specify all y translations. 
-- `z_range`: Iterator yielding `Int`s to specify all z translations. 
+- `x_range`: Iterator yielding `Int`s to specify all x translations.
+- `y_range`: Iterator yielding `Int`s to specify all y translations.
+- `z_range`: Iterator yielding `Int`s to specify all z translations.
 """
 function Supercell(cell::PeriodicCell, x_range, y_range, z_range)
     # Build all possible combinations for replication

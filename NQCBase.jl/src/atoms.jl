@@ -25,6 +25,7 @@ struct Atoms{Vt<:AbstractVector{Symbol}, Vn<:AbstractVector{Int}, Vm<:AbstractVe
     numbers::Vn
     masses::Vm
 end
+Adapt.@adapt_structure Atoms
 
 # Default to CPU-based Atoms
 function Atoms(atom_types::AbstractVector{Symbol})
@@ -32,7 +33,7 @@ function Atoms(atom_types::AbstractVector{Symbol})
 end
 
 # CPU-based Atoms constructor. Use Float64, Int64 by default.
-function Atoms(atom_types::AbstractVector{Symbol}, CPUDevice)
+function Atoms(atom_types::AbstractVector{Symbol}, ::Type{CPUDevice})
     types = Vector{Symbol}(atom_types)
     numbers = Vector{Int}([element.number for element in elements[atom_types]])
     masses = Vector{Float64}([austrip(element.atomic_mass) for element in elements[atom_types]])
@@ -42,7 +43,7 @@ end
 # Default use of CPUs
 Atoms(masses::AbstractVector) = Atoms(masses, CPUDevice)
 
-function Atoms(masses::AbstractVector, CPUDevice)
+function Atoms(masses::AbstractVector, ::Type{CPUDevice})
     natoms = length(masses)
     types = Vector{Symbol}(fill(:X, natoms))
     numbers = Vector{Int}(zeros(natoms))
