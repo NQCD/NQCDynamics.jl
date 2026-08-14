@@ -1,8 +1,7 @@
 
 using StochasticDiffEq: StochasticDiffEq
 using RecursiveArrayTools: ArrayPartition
-using Unitful: @u_str
-using UnitfulAtomic: austrip
+import NQCModels.FrictionModels
 
 """
 Type for performing Langevin molecular dynamics.
@@ -18,7 +17,7 @@ Simulation{Langevin{Float64}}:
   Free(1)
 ```
 """
-struct Langevin{gt<:AbstractFloat, st<:AbstractMatrix{<:AbstractFloat}} <: DynamicsMethods.Method
+struct Langevin{gt<:AbstractFloat, st<:AbstractMatrix{<:AbstractFloat}} <: AbstractMDEF
     γ::gt
     σ::st
 end
@@ -28,8 +27,19 @@ function Langevin(γ::AbstractFloat, temperature::Number, masses::AbstractVector
     Langevin(γ, σ)
 end
 
+# StochasticDiffEq.BAOAB is currently broken, so let's do our one instead and call it MDEF.
 function NQCDynamics.Simulation{Langevin}(atoms::Atoms, model::Model; γ=1, temperature=0u"K", kwargs...)
-    NQCDynamics.Simulation(atoms, model, Langevin(γ, austrip(temperature), atoms.masses, ndofs(model));
+    gamma_matrix = zeros(eltype(atoms.masses), length(atoms.masses), length(atoms.masses))
+    for i in 1:length(atoms.masses)
+        gamma_matrix[i, i] = γ
+    end
+    gamma_ondevice = similar(atoms.masses, size(gamma_matrix)...)
+    gamma_ondevice .= gamma_matrix
+
+    friction_matrix = NQCModels.FrictionModels.ConstantFriction(ndofs(model), gamma_ondevice)
+    combined_model = CompositeFrictionModel(model, friction_matrix)
+
+    NQCDynamics.Simulation(atoms, combined, MDEF(atoms.masses, ndofs(model));
                temperature=temperature, kwargs...)
 end
 
@@ -37,11 +47,11 @@ function DynamicsMethods.create_problem(u0, tspan::Tuple, sim::Simulation{<:Lang
     StochasticDiffEq.DynamicalSDEProblem(acceleration!, DynamicsUtils.velocity!, friction!,
         DynamicsUtils.get_velocities(u0), DynamicsUtils.get_positions(u0), tspan, sim)
 end
-DynamicsMethods.select_algorithm(sim::AbstractSimulation{<:Langevin}) = StochasticDiffEq.BAOAB(;gamma=sim.method.γ)
+# DynamicsMethods.select_algorithm(sim::AbstractSimulation{<:Langevin}) = StochasticDiffEq.BAOAB(;gamma=sim.method.γ)
 
-function friction!(du, r, sim::AbstractSimulation{<:Langevin}, t)
-    du .= sim.method.σ
-end
+# function friction!(du, r, sim::AbstractSimulation{<:Langevin}, t)
+#     du .= sim.method.σ
+# end
 
 """
 Type for performing Langevin ring polymer molecular dynamics.

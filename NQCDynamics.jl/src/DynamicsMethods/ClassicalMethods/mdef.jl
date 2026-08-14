@@ -2,10 +2,12 @@ using UnitfulAtomic
 using NQCBase
 using NQCModels
 using NQCCalculators
-using NQCDynamics: get_temperature, masses, TemperatureSetting
+using NQCDynamics: get_temperature, masses
 using Optim: Optim
 using LinearAlgebra
 using KernelAbstractions
+using Unitful: @u_str
+using UnitfulAtomic: austrip
 
 abstract type AbstractMDEF <: DynamicsMethods.Method end
 
@@ -68,21 +70,6 @@ function NQCDynamics.Simulation{DiabaticMDEF}(atoms::Atoms{T}, model::AndersonHo
     ) where {T}
 
     cache = Create_Cache(model, length(atoms), T, friction_method) # Create_Cache has for variable arguments, `friction_method`, is no-longer a keyword argument
-
-    # If a thermostat is provided, check it covers the whole system.
-    isa(temperature, TemperatureSetting{Vector{Int}}) ? throw(DomainError(temperature, "TemperatureSetting must apply to all atoms.")) : nothing
-
-    # If multiple TemperatureSettings are provided, check that each atom only has one thermostat applied to it.
-    if isa(temperature, Vector{<:TemperatureSetting})
-        indices = vcat([thermostat.indices for thermostat in temperature]...)
-        if length(unique(indices)) != length(atoms.masses)
-            throw(DomainError(temperature, "Every atom must have a TemperatureSetting applied to it."))
-        end
-        if length(indices) != length(unique(indices))
-            throw(DomainError(temperature, "Atoms can only have one thermostat applied to them."))
-        end
-    end
-
     Simulation(temperature, cell, atoms, cache, DiabaticMDEF(atoms.masses, ndofs(model)), solver)
 end
 
@@ -91,7 +78,7 @@ function acceleration!(dv, v, r, sim::Simulation{<:Union{DiabaticMDEF,Classical}
     adiabatic_derivative = NQCCalculators.get_adiabatic_derivative(sim.cache, r)
     eigen = NQCCalculators.get_eigen(sim.cache, r)
     μ = NQCModels.fermilevel(sim.cache.model)
-    β = 1 / get_temperature(sim, t)
+    β = 1 ./ get_temperature(sim, t)
 
     fill!(dv, zero(eltype(dv)))
     NQCModels.state_independent_derivative!(sim.cache.model, dv, r)

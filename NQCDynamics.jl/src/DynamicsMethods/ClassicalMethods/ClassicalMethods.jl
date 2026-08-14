@@ -16,11 +16,11 @@ using NQCModels: Model, ndofs
 
 include("classical.jl")
 export Classical
-include("langevin.jl")
-export Langevin, ThermalLangevin
 include("mdef.jl")
 export MDEF
 export DiabaticMDEF
+include("langevin.jl")
+export Langevin, ThermalLangevin
 
 include("rpmdef.jl")
 
