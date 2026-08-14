@@ -20,36 +20,44 @@ julia> Atoms([100, 200])
 Atoms{Float64}([:X, :X], [0, 0], [100.0, 200.0])
 ```
 """
-struct Atoms{T<:AbstractFloat}
-    types::Vector{Symbol}
-    numbers::Vector{Int}
-    masses::Vector{T}
+struct Atoms{Vt<:AbstractVector{Symbol}, Vn<:AbstractVector{Int}, Vm<:AbstractVector}
+    types::Vt
+    numbers::Vn
+    masses::Vm
 end
 
-function Atoms{T}(atom_types::AbstractVector{Symbol}) where {T}
+# Default to CPU-based Atoms
+function Atoms(atom_types::AbstractVector{Symbol})
+    Atoms(atom_types, CPUDevice)
+end
+
+# CPU-based Atoms constructor. Use Float64, Int64 by default.
+function Atoms(atom_types::AbstractVector{Symbol}, CPUDevice)
     types = Vector{Symbol}(atom_types)
     numbers = Vector{Int}([element.number for element in elements[atom_types]])
-    masses = Vector{T}([austrip(element.atomic_mass) for element in elements[atom_types]])
-    Atoms{T}(types, numbers, masses)
+    masses = Vector{Float64}([austrip(element.atomic_mass) for element in elements[atom_types]])
+    return Atoms(types, numbers, masses)
 end
 
-function Atoms{T}(masses::AbstractVector) where {T}
+# Default use of CPUs
+Atoms(masses::AbstractVector) = Atoms(masses, CPUDevice)
+
+function Atoms(masses::AbstractVector, CPUDevice)
     natoms = length(masses)
     types = Vector{Symbol}(fill(:X, natoms))
     numbers = Vector{Int}(zeros(natoms))
-    masses = Vector{T}(austrip.(masses))
-    Atoms{T}(types, numbers, masses)
+    masses = Vector{Float64}(austrip.(masses))
+    Atoms(types, numbers, masses)
 end
 
-Atoms{T}(atom_type) where {T} = Atoms{T}([atom_type])
-Atoms(atom_types) = Atoms{Float64}(atom_types)
+Atoms(atom_type) = Atoms([atom_type])
 
 Base.length(atoms::Atoms) = length(atoms.types)
 Base.range(atoms::Atoms) = range(1; length=length(atoms))
 
 Base.IndexStyle(::Atoms) = IndexLinear()
-Base.getindex(A::Atoms{T}, i::Int) where {T} = Atoms{T}(A.types[i])
-Base.getindex(A::Atoms{T}, i::AbstractRange) where {T} = Atoms{T}(A.types[i])
+Base.getindex(A::Atoms, i::Int) = Atoms(A.types[i])
+Base.getindex(A::Atoms, i::AbstractRange) = Atoms(A.types[i])
 
 function Base.:(==)(a::Atoms, b::Atoms)
     (a.types == b.types) && (a.numbers == b.numbers) && (a.masses ≈ b.masses)
