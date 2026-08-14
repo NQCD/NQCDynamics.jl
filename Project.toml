@@ -1,5 +1,6 @@
 [deps]
 CUDA = "052768ef-5323-5732-b1bb-66c8b64840ba"
+KernelAbstractions = "63c18a36-062a-441e-b654-da1e3ab1ce7c"
 NQCBase = "78c76ebc-5665-4934-b512-82d81b5cbfb7"
 NQCCalculators = "ddd1f41d-9621-41e2-91a4-6b87cc8989f3"
 NQCDistributions = "657014a1-bd25-4aa2-92cb-cbcede0310ad"

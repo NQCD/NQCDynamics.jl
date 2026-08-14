@@ -1,5 +1,6 @@
 using LinearAlgebra: norm, mul!
 using Distances: evaluate, PeriodicEuclidean
+using Adapt
 
 export AbstractCell
 export PeriodicCell
@@ -93,25 +94,71 @@ end
 True if all atoms are inside the cell, false otherwise.
 """
 function check_atoms_in_cell(cell::PeriodicCell, R::AbstractMatrix)::Bool
-    @views for i in axes(R, 2) # atoms
-        mul!(cell.tmp_vector1, cell.inverse, R[:,i])
-        @. cell.tmp_bools = (cell.tmp_vector1 > 1) | (cell.tmp_vector1 < 0)
-        any(cell.tmp_bools) && return false
+    backend = get_backend(R)
+    n_atoms = size(R, 2)
+    
+    # Create an array to store results for each atom
+    atom_outside = KernelAbstractions.zeros(backend, Bool, n_atoms)
+    
+    check_atoms_in_cell_kernel(backend)(cell.tmp_vector1, cell.inverse, R, atom_outside; ndrange=n_atoms)
+    KernelAbstractions.synchronize(backend)
+    return !any(atom_outside)
+end
+
+@kernel function check_atoms_in_cell_kernel(tmp_vector1, inverse, R, atom_outside)
+    J = @index(Global)
+    
+    # Manual matrix-vector multiplication (3x3)
+    @inbounds for i in 1:3
+        tmp_vector1[i] = inverse[i, 1] * R[1, J] + inverse[i, 2] * R[2, J] + inverse[i, 3] * R[3, J]
     end
-    true
+    
+    # Check if any coordinate is outside [0, 1]
+    outside = false
+    for i in 1:3
+        if tmp_vector1[i] > 1 || tmp_vector1[i] < 0
+            outside = true
+            break
+        end
+    end
+    
+    atom_outside[J] = outside
 end
 
 function evaluate_periodic_distance(cell::PeriodicCell, r1::AbstractVector, r2::AbstractVector)
+    # Transform to fractional coordinates
     mul!(cell.tmp_vector1, cell.inverse, r1)
     mul!(cell.tmp_vector2, cell.inverse, r2)
-    evaluate(periodic_distance, cell.tmp_vector1, cell.tmp_vector2)
+
+    # Calculate difference in fractional coordinates with periodic boundary conditions
+    backend = get_backend(cell.tmp_vector1)
+    evaluate_periodic_distance_kernel(backend)(cell.tmp_vector2, cell.tmp_vector1; ndrange=3)
+    KernelAbstractions.synchronize(backend)
+    # Transform back to Cartesian coordinates
+    mul!(cell.tmp_vector2, cell.vectors, cell.tmp_vector1)
+    # Calculate Euclidean distance
+    return norm(cell.tmp_vector2)
 end
 
+@kernel function evaluate_periodic_distance_kernel(frac2, diff)
+    i = @index(Global)
+    diff[i] -= frac2[i]
+    # Apply periodic boundary: wrap to [-0.5, 0.5]
+    diff[i] -= round(diff[i])
+end
 # Handler for periodic replicas of structures
 struct PeriodicReplica{A<:AbstractVector{Int}}
     cell::PeriodicCell
     translation::A
+    function PeriodicReplica(cell::PeriodicCell, translation::AbstractVector{Int})
+        # Convert translation to match the backend of the cell
+        backend = get_backend(cell.tmp_vector1)
+        translation_new = adapt(backend, translation)
+        new{typeof(translation_new)}(cell, translation_new)
+    end
 end
+
+
 
 function (operation::PeriodicReplica)(positions::AbstractMatrix)
     pos_translated = copy(positions)
