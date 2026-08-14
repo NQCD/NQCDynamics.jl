@@ -5,6 +5,7 @@ using NQCCalculators
 using NQCDynamics: get_temperature, masses, TemperatureSetting
 using Optim: Optim
 using LinearAlgebra
+using KernelAbstractions
 
 abstract type AbstractMDEF <: DynamicsMethods.Method end
 
@@ -52,31 +53,17 @@ function NQCDynamics.RingPolymerSimulation{MDEF}(atoms::Atoms, model::Model, n_b
     NQCDynamics.RingPolymerSimulation(atoms, model, MDEF(atoms.masses, ndofs(model)), n_beads; kwargs...)
 end
 
-function NQCDynamics.Simulation{DiabaticMDEF}(atoms::Atoms{T}, model::Model; friction_method::FrictionEvaluationMethod, 
+function NQCDynamics.Simulation{DiabaticMDEF}(atoms::Atoms{T}, model::Model; friction_method::FrictionEvaluationMethod,
     temperature=0u"K", cell::AbstractCell=InfiniteCell(), solver::Symbol=:exact, kwargs...
     ) where {T}
 
-    cache = Create_Cache(model, length(atoms), T; friction_method=friction_method)
-
-    # If a thermostat is provided, check it covers the whole system.
-    isa(temperature, TemperatureSetting{Vector{Int}}) ? throw(DomainError(temperature, "TemperatureSetting must apply to all atoms.")) : nothing
-
-    # If multiple TemperatureSettings are provided, check that each atom only has one thermostat applied to it.
-    if isa(temperature, Vector{<:TemperatureSetting})
-        indices = vcat([thermostat.indices for thermostat in temperature]...)
-        if length(unique(indices)) != length(atoms.masses)
-            throw(DomainError(temperature, "Every atom must have a TemperatureSetting applied to it."))
-        end
-        if length(indices) != length(unique(indices))
-            throw(DomainError(temperature, "Atoms can only have one thermostat applied to them."))
-        end
-    end
+    cache = Create_Cache(model, length(atoms), atoms.masses; friction_method=friction_method)
 
     Simulation(temperature, cell, atoms, cache, DiabaticMDEF(atoms.masses, ndofs(model)), solver)
 end
 
 # Specific DiabaticMDEF Simulation multiple dispatch for the AndersonHolstein model
-function NQCDynamics.Simulation{DiabaticMDEF}(atoms::Atoms{T}, model::AndersonHolstein; friction_method::FrictionEvaluationMethod, 
+function NQCDynamics.Simulation{DiabaticMDEF}(atoms::Atoms{T}, model::AndersonHolstein; friction_method::FrictionEvaluationMethod,
     temperature=0u"K", cell::AbstractCell=InfiniteCell(), solver::Symbol=:exact, kwargs...
     ) where {T}
 
@@ -130,13 +117,22 @@ Evaluates friction tensor
 """
 function friction!(g, r, sim::AbstractSimulation{<:AbstractMDEF}, t)
     friction = NQCCalculators.get_friction(sim.cache, r)
-    g .= friction ./ sim.method.mass_scaling
-    g
+    backend = get_backend(g)
+    kernel = friction!_kernel(backend)
+    kernel(g, friction, sim.atoms.masses, ndrange = size(friction))
+    KernelAbstractions.synchronize(backend)
 end
 
 function friction!(g, r, sim::AbstractSimulation{<:DiabaticMDEF}, t)
     friction = NQCCalculators.get_friction(sim.cache, r)
-    g .= friction ./ sim.method.mass_scaling
+    kernel = friction!_kernel(get_backend(sim.atoms.masses))
+    kernel(g, friction, sim.atoms.masses, size(friction)...)
+    KernelAbstractions.synchronize()
+end
+
+@kernel function friction!_kernel(g, @Const(friction), @Const(masses))
+    i,j = @index(Global, NTuple)
+    g[i,j] = friction[i,j] / sqrt(masses[i] * masses[j])
 end
 
 

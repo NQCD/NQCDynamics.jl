@@ -18,18 +18,18 @@ Simulation{Langevin{Float64}}:
   Free(1)
 ```
 """
-struct Langevin{T<:AbstractFloat} <: DynamicsMethods.Method
-    γ::T
-    σ::Matrix{T}
+struct Langevin{gt<:AbstractFloat, st<:AbstractMatrix{<:AbstractFloat}} <: DynamicsMethods.Method
+    γ::gt
+    σ::st
 end
 
-function Langevin{T}(γ, temperature, masses, DoFs) where {T}
-    σ = sqrt.(temperature ./ repeat(Array(masses'), Int(DoFs), 1))
-    Langevin(T(γ), T.(σ))
+function Langevin(γ::AbstractFloat, temperature::Number, masses::AbstractVector, DoFs::Integer)
+    σ = sqrt.(temperature ./ repeat(Array(masses'), DoFs, 1))
+    Langevin(γ, σ)
 end
 
-function NQCDynamics.Simulation{Langevin}(atoms::Atoms{T}, model::Model; γ=1, temperature=0u"K", kwargs...) where {T}
-    NQCDynamics.Simulation(atoms, model, Langevin{T}(γ, austrip(temperature), atoms.masses, ndofs(model));
+function NQCDynamics.Simulation{Langevin}(atoms::Atoms, model::Model; γ=1, temperature=0u"K", kwargs...)
+    NQCDynamics.Simulation(atoms, model, Langevin(γ, austrip(temperature), atoms.masses, ndofs(model));
                temperature=temperature, kwargs...)
 end
 
@@ -57,9 +57,9 @@ RingPolymerSimulation{ThermalLangevin}(Atoms(:H), Free(), 10; γ=0.1, temperatur
 # output
 
 RingPolymerSimulation{ThermalLangevin{Float64}}:
- 
+
   Atoms{Float64}([:H], [1], [1837.4715941070515])
- 
+
   Free(1)
   with 10 beads.
 ```

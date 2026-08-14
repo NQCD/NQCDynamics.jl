@@ -17,8 +17,8 @@ OrdinaryDiffEqCore.isfsal(::MDEF_BAOAB) = false
 
     - `MDEF_BAOABCache` is used for variables that are changed during the integration.
 
-    Generally, the mutableChahe is faster than the constant cache. 
-    
+    Generally, the mutableChahe is faster than the constant cache.
+
     Mathmatically speaking, they are doing the same things. MutableCache is more well-optimize for the Julia compiler.
 """
 
@@ -37,8 +37,8 @@ struct MDEF_BAOABCache{uType,rType,vType,uTypeFlat,uEltypeNoUnits,rateNoiseType,
     gtmp::compoundType
     noise::rateNoiseType
     half::uEltypeNoUnits
-    c1::Matrix{uEltypeNoUnits}
-    c2::Matrix{uEltypeNoUnits}
+    c1::vType
+    c2::vType
 end
 
 
@@ -56,16 +56,18 @@ function StochasticDiffEq.alg_cache(::MDEF_BAOAB,prob,u,ΔW,ΔZ,p,rate_prototype
     tmp = zero(u)
     dutmp = zero(u.x[1])
     utmp = zero(u.x[2])
-    k = zero(rate_prototype.x[1])
+    k = zero(u.x[1])
     flatdutmp = zero(dutmp[:])
     tmp1 = zero(flatdutmp)
     tmp2 = zero(flatdutmp)
 
-    gtmp = zeros(length(utmp), length(utmp))
-    noise = zero(rate_prototype.x[1][:])
+    gtmp = similar(utmp, length(utmp), length(utmp))
+    gtmp .= 0
+    noise = similar(rate_prototype.x[1], length(rate_prototype.x[1]))
 
     half = uEltypeNoUnits(1//2)
-    c1 = zeros(length(utmp), length(utmp))
+    c1 = similar(u.x[1], length(utmp), length(utmp)) # Needs to follow the chosen array backend without being told which one.
+    c1 .= 0
     c2 = zero(c1)
 
     MDEF_BAOABCache(tmp, utmp, dutmp, k, flatdutmp, tmp1, tmp2, gtmp, noise, half, c1, c2)
@@ -111,12 +113,12 @@ end
 
     O step : general part https://academic.oup.com/amrx/article/2013/1/34/166771
 
-             friction part https://journals.aps.org/pre/abstract/10.1103/PhysRevE.75.056707 
+             friction part https://journals.aps.org/pre/abstract/10.1103/PhysRevE.75.056707
                            and https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.118.256001 (supplementary material)
 
     friction tensor Λ: https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.118.256001 (supplementary material)
 
-             
+
 """
 
 @muladd function StochasticDiffEq.perform_step!(integrator, integrator_cache::MDEF_BAOABConstantCache, f=integrator.f)
@@ -133,7 +135,7 @@ end
 
     # O
     Λ = integrator.g(u2,p,t+dt*half) # friction tensor
-    # noise strength: σ = square root of (temperature / mass) for each atom 
+    # noise strength: σ = square root of (temperature / mass) for each atom
     σ = repeat(@. sqrt(get_temperature(p, t+dt*half) / p.atoms.masses);inner=ndofs(p))
     # eigen decomposition of Λ
     γ, c = LAPACK.syev!('V', 'U', Λ) # symmetric eigen
@@ -141,7 +143,7 @@ end
     c1 = diagm(exp.(-γ.*dt))
     c2 = diagm(sqrt.(1 .- diag(c1).^2))
     noise = σ.*W.dW[:] / sqdt # W.dW[:] noise rescaled by square root of time step to make it normal distributed
-    du3 = c*c1*c'*du2[:] + c*c2*c'*noise # O step from Leimkuhler and Matthews (2013) 
+    du3 = c*c1*c'*du2[:] + c*c2*c'*noise # O step from Leimkuhler and Matthews (2013)
     du3 = reshape(du3, size(du2))
 
     # A

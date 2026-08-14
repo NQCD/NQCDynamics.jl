@@ -17,6 +17,7 @@ using NQCDynamics:
     RingPolymerSimulation,
     masses
 using NQCCalculators
+using KernelAbstractions
 
 """
     divide_by_mass!(dv, masses)
@@ -36,10 +37,15 @@ Write the velocity `v` into `dr`.
 Has extra arguments to work with `Dynamical(O/S)DEProblem`s.
 """
 function velocity!(dr, v, r, sim, t)
-    @inbounds for i in eachindex(dr)
-        dr[i] = v[i]
-    end
+    b = get_backend(dr)
+    backend_kernel = velocity_kernel(b)
+    backend_kernel(dr, v, r, sim, t, ndrange = length(dr))
+    KernelAbstractions.synchronize(b)
     return nothing
+end
+@kernel function velocity_kernel(dr, @Const(v), @Const(r), @Const(sim), @Const(t))
+    index = @index(Global, Linear)
+    dr[index] = v[index]
 end
 
 function acceleration! end
@@ -47,7 +53,7 @@ function acceleration! end
 """
     apply_interbead_coupling!(du::DynamicalVariables, u::DynamicalVariables,
                               sim::RingPolymerSimulation)
-    
+
 Applies the force that arises from the harmonic springs between adjacent beads.
 
 Only applies the force for atoms labelled as quantum within the `RingPolymerParameters`.
@@ -160,7 +166,7 @@ include("wavefunction_dynamics.jl")
 include("plot.jl")
 
 function set_unoccupied_states!(unoccupied::AbstractVector, occupied::AbstractVector)
-    nstates = length(unoccupied) + length(occupied) 
+    nstates = length(unoccupied) + length(occupied)
     index = 1
     for i in 1:nstates
         if !(i in occupied)

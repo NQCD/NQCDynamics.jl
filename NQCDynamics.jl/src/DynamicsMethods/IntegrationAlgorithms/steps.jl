@@ -1,4 +1,6 @@
 using NQCDynamics: get_ring_polymer_temperature
+using KernelAbstractions
+import LinearAlgebra
 
 function step_B!(v2, v1, dt, k)
     @.. broadcast=false v2 = muladd(dt, k, v1)
@@ -38,6 +40,13 @@ function step_C!(v::RingPolymerArray, r::RingPolymerArray, cayley::Vector{<:Matr
     end
 end
 
+@kernel function eigentransform_kernel(c1, c2, @Const(γ), @Const(dt))
+    j = @index(Global, Linear)
+    # We include clamping between [0,Inf] by hard-coding zero results if less than zero.
+    c1[j,j] = γ[j] <= 0.0 ? 1.0 : exp(-sqrt(γ[j] * γ[j]) * dt)
+    c2[j,j] = γ[j] <= 0.0 ? 0.0 : sqrt(1 - c1[j,j]^2)
+end
+
 function step_O!(integrator_cache, integrator)
     @unpack t, dt, W, p, sqdt = integrator
     @unpack dutmp, flatdutmp, tmp1, tmp2, gtmp, noise, half, c1, c2 = integrator_cache
@@ -47,19 +56,19 @@ function step_O!(integrator_cache, integrator)
 
     @.. noise = σ*W.dW[:] / sqdt
 
-    γ, c = LAPACK.syev!('V', 'U', Λ) # symmetric eigen
-    clamp!(γ, 0, Inf)
-    for (j,i) in enumerate(diagind(c1))
-        c1[i] = exp(-γ[j]*dt)
-        c2[i] = sqrt(1 - c1[i]^2)
-    end
+    γ, c = LinearAlgebra.eigen(Λ) # symmetric eigen
+
+    backend = get_backend(dutmp)
+    kernel_eigen = eigentransform_kernel(backend)
+    kernel_eigen(c1, c2, γ, dt, ndrange = 1:size(c1, 1))
+    KernelAbstractions.synchronize(backend)
 
     # equivalent to: flatdutmp .= c*c1*c'dutmp[:] + c*c2*c'noise
     copyto!(flatdutmp, dutmp)
     mul!(tmp1, transpose(c), flatdutmp)
     mul!(tmp2, c1, tmp1)
     mul!(flatdutmp, c, tmp2)
-    
+
     mul!(tmp1, transpose(c), noise)
     mul!(tmp2, c2, tmp1)
     mul!(tmp1, c, tmp2)
@@ -93,7 +102,7 @@ function step_O!(friction::MDEFCache, integrator, v, r, t)
         mul!(tmp1, transpose(c), flatvtmp)
         mul!(tmp2, c1, tmp1)
         mul!(flatvtmp, c, tmp2)
-        
+
         mul!(tmp1, transpose(c), noise)
         mul!(tmp2, c2, tmp1)
         mul!(tmp1, c, tmp2)
@@ -122,5 +131,3 @@ function step_O!(friction::LangevinCache, integrator, v::RingPolymerArray, r::Ri
         @. v[:,j,1] = c1[1] * v[:,j,1] + c2[1] * σ[:,j] * W.dW[:,j,1] / sqdt
     end
 end
-
-
