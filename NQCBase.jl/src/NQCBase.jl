@@ -4,7 +4,7 @@ using PeriodicTable
 using Unitful, UnitfulAtomic
 using Requires
 using KernelAbstractions
-import Adapt
+using Adapt
 
 ## Marker types for accelerator backends, a.k.a. GPU support
 # Used to multiple dispatch various functions that need to build arrays differently depending on the choice of CPU/GPU.
