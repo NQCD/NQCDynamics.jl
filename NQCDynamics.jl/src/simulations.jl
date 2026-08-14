@@ -31,18 +31,6 @@ dynamics method, temperature and simulation cell.
 function Simulation(atoms::Atoms, model::Model, method::M;
         temperature=0u"K", cell::AbstractCell=InfiniteCell(), solver::Symbol=:exact, device = NQCBase.CPUDevice) where {M}
     cache = Create_Cache(model, length(atoms), atoms.masses)
-    # If a thermostat is provided, check it covers the whole system.
-    isa(temperature, TemperatureSetting{Vector{Int}}) ? throw(DomainError(temperature, "TemperatureSetting must apply to all atoms.")) : nothing
-    # If multiple TemperatureSettings are provided, check that each atom only has one thermostat applied to it.
-    if isa(temperature, Vector{<:TemperatureSetting})
-        indices = vcat([thermostat.indices for thermostat in temperature]...)
-        if length(unique(indices)) != length(atoms.masses)
-            throw(DomainError(temperature, "Every atom must have a TemperatureSetting applied to it."))
-        end
-        if length(indices) != length(unique(indices))
-            throw(DomainError(temperature, "Atoms can only have one thermostat applied to them."))
-        end
-    end
     Simulation(temperature, cell, atoms, cache, method, solver)
 end
 
