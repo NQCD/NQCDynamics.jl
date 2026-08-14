@@ -30,9 +30,10 @@ struct PeriodicCell{M<:AbstractMatrix, V<:AbstractVector, VB<:AbstractVector{Boo
     tmp_vector2::V
     tmp_bools::VB
     function PeriodicCell(vectors::AbstractMatrix, periodicity::AbstractVector{Bool})
-        new{typeof(vectors), typeof(zeros(size(vectors)[1])), typeof(periodicity)}(
+        tmp = similar(vectors[:,1])
+        new{typeof(vectors), typeof(tmp), typeof(periodicity)}(
             vectors, inv(vectors), periodicity,
-            zeros(size(vectors)[1]), zeros(size(vectors)[1]), zeros(Bool, size(vectors)[1]))
+            similar(tmp), similar(tmp), similar(tmp, Bool))
     end
 end
 
@@ -72,12 +73,15 @@ apply_cell_boundaries!(::InfiniteCell, ::AbstractArray) = nothing
 
 function apply_cell_boundaries!(cell::PeriodicCell, R::AbstractVector)
     mul!(cell.tmp_vector1, cell.inverse, R)
-    for j in axes(R, 1) # DoFs
-        if cell.periodicity[j]
-            cell.tmp_vector1[j] = mod(cell.tmp_vector1[j], 1)
-        end
-    end
+    backend=get_backend(cell.tmp_vector1)
+    apply_cell_boundaries!_kernel(backend)(cell.periodicity, cell.tmp_vector1; ndrange=size(R,1))
+    KernelAbstractions.synchronize(backend)
     mul!(R, cell.vectors, cell.tmp_vector1)
+end
+
+@kernel function apply_cell_boundaries!_kernel(periodicity, tmp_vector1)
+    J = @index(Global)
+    periodicity[J] ? tmp_vector1[J] = mod(tmp_vector1[J], 1) : nothing
 end
 
 """
