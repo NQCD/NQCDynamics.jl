@@ -2,6 +2,7 @@ module NQCBaseCUDAext
 using NQCBase
 using CUDA
 using Unitful, UnitfulAtomic
+using PeriodicTable
 
 # NQCBase.Atoms methods with CUDADevice
 
