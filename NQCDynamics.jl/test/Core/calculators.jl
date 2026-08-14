@@ -5,30 +5,30 @@ using NQCCalculators
 using NQCDynamics
 using LinearAlgebra: tr, Diagonal, eigvecs, eigvals
 
-# Allocation-based tests aren't great - change these values if there's a good reason to. 
+# Allocation-based tests aren't great - change these values if there's a good reason to.
 # Eigenvalue allocations limit: Regardless of maths backend and Julia version, eigenvalues should take fewer allocations than this or something might be wrong
 const MAX_EIGEN_ALLOCATIONS = 60000
 
 @testset "General constructors" begin #reasonable basic tests to ensure that multiple dispatch is correctly working to construct the correct types of Calculators
     model = NQCModels.DoubleWell()
-    @test NQCCalculators.Create_Cache(model, 1, Float64) isa NQCCalculators.Abstract_QuantumModel_Cache
-    @test NQCCalculators.Create_Cache(model, 1, 2, Float64) isa NQCCalculators.RingPolymer_QuantumModel_Cache
+    @test NQCCalculators.Create_Cache(model, 1, hcat(1.0)) isa NQCCalculators.Abstract_QuantumModel_Cache
+    @test NQCCalculators.Create_Cache(model, 1, 2, hcat(1.0)) isa NQCCalculators.RingPolymer_QuantumModel_Cache
 
     model = NQCModels.Free()
-    @test NQCCalculators.Create_Cache(model, 1, Float64) isa NQCCalculators.ClassicalModel_Cache
-    @test NQCCalculators.Create_Cache(model, 1, 2, Float64) isa NQCCalculators.RingPolymer_ClassicalModel_Cache
+    @test NQCCalculators.Create_Cache(model, 1, hcat(1.0)) isa NQCCalculators.ClassicalModel_Cache
+    @test NQCCalculators.Create_Cache(model, 1, 2, hcat(1.0)) isa NQCCalculators.RingPolymer_ClassicalModel_Cache
 
     model = NQCModels.AndersonHolstein(MiaoSubotnik(;Γ=1.0), TrapezoidalRule(10, -1.0, 1.0))
-    @test NQCCalculators.Create_Cache(model, 1, Float64) isa NQCCalculators.Abstract_QuantumModel_Cache
+    @test NQCCalculators.Create_Cache(model, 1, hcat(1.0)) isa NQCCalculators.Abstract_QuantumModel_Cache
 
     model = NQCModels.CompositeFrictionModel(Free(), RandomFriction(1))
-    @test NQCCalculators.Create_Cache(model, 1, Float64) isa NQCCalculators.Friction_Cache
-    @test NQCCalculators.Create_Cache(model, 1, 2, Float64) isa NQCCalculators.RingPolymer_Friction_Cache
+    @test NQCCalculators.Create_Cache(model, 1, hcat(1.0)) isa NQCCalculators.Friction_Cache
+    @test NQCCalculators.Create_Cache(model, 1, 2, hcat(1.0)) isa NQCCalculators.RingPolymer_Friction_Cache
 end
 
 @testset "ClassicalModel_Cache" begin
     model = NQCModels.Free(3)
-    cache = NQCCalculators.ClassicalModel_Cache{Float64}(model, 5) 
+    cache = NQCCalculators.ClassicalModel_Cache{Float64}(model, 5)
     r = rand(3, 5)
 
     @test @allocated(NQCCalculators.update_potential!(cache, r)) == 0
@@ -43,7 +43,7 @@ end
 
 @testset "RingPolymer_ClassicalModel_Cache" begin
     model = NQCModels.Free(3)
-    cache = NQCCalculators.RingPolymer_ClassicalModel_Cache{Float64}(model, 5, 10) 
+    cache = NQCCalculators.RingPolymer_ClassicalModel_Cache{Float64}(model, 5, 10)
     r = rand(3, 5, 10)
 
     @test @allocated(NQCCalculators.update_potential!(cache, r)) == 0
@@ -55,7 +55,7 @@ end
 
 @testset "Abstract_QuantumModel_Cache" begin
     model = NQCModels.DoubleWell()
-    cache = NQCCalculators.Abstract_QuantumModel_Cache{Float64}(model, 1) 
+    cache = NQCCalculators.Abstract_QuantumModel_Cache{Float64}(model, 1)
     r = rand(1,1)
     quantities = (:potential, :derivative, :eigen, :adiabatic_derivative, :nonadiabatic_coupling)
 
@@ -71,7 +71,7 @@ end
 
         @test cache.potential == true_potential
 
-        # Check that the position for potential is the only one that has been updated. 
+        # Check that the position for potential is the only one that has been updated.
         for name in quantities
             if name !== :potential
                 @test getfield(cache, name).position != r
@@ -138,7 +138,7 @@ end
 
         @test cache.potential == true_potential
 
-        # Check that the position for potential is the only one that has been updated. 
+        # Check that the position for potential is the only one that has been updated.
         for name in standard_quantities
             if name !== :potential
                 @test getfield(cache, name).position != r
@@ -266,7 +266,7 @@ end
 
 @testset "Abstract_QuantumModel_Cache" begin
     model = NQCModels.AndersonHolstein(MiaoSubotnik(;Γ=1.0), TrapezoidalRule(40, -1.0, 1.0))
-    cache = NQCCalculators.Abstract_QuantumModel_Cache{Float64}(model, 1) 
+    cache = NQCCalculators.Abstract_QuantumModel_Cache{Float64}(model, 1)
     r = rand(1,1)
 
     NQCCalculators.get_nonadiabatic_coupling(cache, r)
@@ -290,7 +290,7 @@ end
 
 @testset "RingPolymer_QuantumModel_Cache" begin
     model = NQCModels.AndersonHolstein(MiaoSubotnik(;Γ=1.0), TrapezoidalRule(40, -1.0, 1.0))
-    cache = NQCCalculators.RingPolymer_QuantumModel_Cache{Float64}(model, 1, 10) 
+    cache = NQCCalculators.RingPolymer_QuantumModel_Cache{Float64}(model, 1, 10)
     r = rand(1, 1, 10)
 
     NQCCalculators.get_nonadiabatic_coupling(cache, r)
@@ -312,7 +312,7 @@ end
 
 @testset "Friction_Cache" begin
     model = CompositeFrictionModel(Free(), RandomFriction(1))
-    cache = NQCCalculators.Friction_Cache{Float64}(model, 1) 
+    cache = NQCCalculators.Friction_Cache{Float64}(model, 1)
     r = rand(1,1)
 
     NQCCalculators.get_potential(cache, r)
@@ -325,7 +325,7 @@ end
     NQCCalculators.update_friction!(cache, r)
     @test @allocated(NQCCalculators.update_potential!(cache, r)) == 0
     @test @allocated(NQCCalculators.update_derivative!(cache, r)) == 0
-    global allocs_Friction = @allocated(NQCCalculators.update_friction!(cache, r)) 
+    global allocs_Friction = @allocated(NQCCalculators.update_friction!(cache, r))
     @debug "Friction_Cache.update_friction made $(allocs_Friction) allocations. This should be around 250."
     @test allocs_Friction ≤ 250
 end

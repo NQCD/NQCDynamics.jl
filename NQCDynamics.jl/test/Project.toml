@@ -3,6 +3,7 @@ AdvancedHMC = "0bf59076-c3b1-5ca4-86bd-e02cd72cde3d"
 AdvancedMH = "5b7e9947-ddc0-4b3f-9b55-0d8042f74170"
 CSV = "336ed68f-0bac-5ca0-87d4-7b16caf5d00b"
 ComponentArrays = "b0b7db55-cfe3-40fc-9ded-d10e2dbeff66"
+CUDA = "052768ef-5323-5732-b1bb-66c8b64840ba"
 DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
 Dictionaries = "85a47980-9c8c-11e8-2b9f-f7ca1fa99fb4"
 DiffEqBase = "2b5f629d-d688-5b77-993f-72d75c75574e"
@@ -60,13 +61,13 @@ Unitful = "1986cc42-f94f-5a68-af5c-568840ba703d"
 UnitfulAtomic = "a7773ee8-282e-5fa2-be4e-bd808c38a91a"
 
 [sources]
-NQCBase = {rev = "main", url = "https://github.com/NQCD/NQCBase.jl.git"}
-NQCCalculators = {rev = "main", url = "https://github.com/NQCD/NQCCalculators.jl.git"}
 NQCDInterfASE = {rev = "main", url = "https://github.com/NQCD/NQCDInterfASE.jl.git"}
-NQCDistributions = {rev = "main", url = "https://github.com/NQCD/NQCDistributions.jl.git"}
 NQCDynamics = {path = ".."}
-NQCModels = {rev = "main", url = "https://github.com/NQCD/NQCModels.jl.git"}
-RingPolymerArrays = {rev = "main", url = "https://github.com/NQCD/RingPolymerArrays.jl.git"}
+NQCBase = {path = "../../NQCBase.jl"}
+NQCCalculators = {path = "../../NQCCalculators.jl"}
+NQCDistributions = {path = "../../NQCDistributions.jl"}
+NQCModels = {path = "../../NQCModels.jl"}
+RingPolymerArrays = {path = "../../RingPolymerArrays.jl"}
 
 [compat]
 AdvancedHMC = "0.5, 0.6"
