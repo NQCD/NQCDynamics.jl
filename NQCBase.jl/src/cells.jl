@@ -22,28 +22,36 @@ struct InfiniteCell <: AbstractCell end
 
 Optionally periodic cell
 """
-struct PeriodicCell{T<:AbstractFloat} <: AbstractCell
-    vectors::Matrix{T}
-    inverse::Matrix{T}
-    periodicity::Vector{Bool}
-    tmp_vector1::Vector{T}
-    tmp_vector2::Vector{T}
-    tmp_bools::Vector{Bool}
-    function PeriodicCell{T}(vectors::AbstractMatrix, periodicity::Vector{Bool}) where {T}
-        new{T}(vectors, inv(vectors), periodicity,
+struct PeriodicCell{M<:AbstractMatrix, V<:AbstractVector, VB<:AbstractVector{Bool}} <: AbstractCell
+    vectors::M
+    inverse::M
+    periodicity::VB
+    tmp_vector1::V
+    tmp_vector2::V
+    tmp_bools::VB
+    function PeriodicCell(vectors::AbstractMatrix, periodicity::AbstractVector{Bool})
+        new{typeof(vectors), typeof(zeros(size(vectors)[1])), typeof(periodicity)}(
+            vectors, inv(vectors), periodicity,
             zeros(size(vectors)[1]), zeros(size(vectors)[1]), zeros(Bool, size(vectors)[1]))
     end
 end
 
-Base.eltype(::PeriodicCell{T}) where {T} = T
+Base.eltype(::PeriodicCell) = eltype(PeriodicCell.vectors)
+
+function _default_periodicity(vectors::AbstractMatrix)
+    periodicity = similar(vectors, Bool, 3)
+    fill!(periodicity, true)
+    return periodicity
+end
 
 function PeriodicCell(vectors::AbstractMatrix)
     vectors = austrip.(vectors)
-    PeriodicCell{eltype(vectors)}(vectors, [true, true, true]) 
+    PeriodicCell(vectors, _default_periodicity(vectors))
 end
 
 function PeriodicCell(vectors::AbstractMatrix{<:Integer})
-    PeriodicCell{Float64}(vectors, [true, true, true]) 
+    vectors_f64 = Float64.(vectors)
+    PeriodicCell(vectors_f64, _default_periodicity(vectors_f64))
 end
 
 function set_periodicity!(cell::PeriodicCell, periodicity::AbstractVector{Bool})
@@ -93,9 +101,9 @@ function evaluate_periodic_distance(cell::PeriodicCell, r1::AbstractVector, r2::
 end
 
 # Handler for periodic replicas of structures
-struct PeriodicReplica{T}
-    cell::PeriodicCell{T}
-    translation::AbstractVector{Int}
+struct PeriodicReplica{A<:AbstractVector{Int}}
+    cell::PeriodicCell
+    translation::A
 end
 
 function (operation::PeriodicReplica)(positions::AbstractMatrix)
@@ -111,9 +119,9 @@ end
 
 This type carries information about how to replicate periodic copies of a structure based on the unit cell provided. 
 """
-struct Supercell{T}
-    cell::PeriodicCell{T}
-    replicas::AbstractVector{PeriodicReplica{T}}
+struct Supercell{R<:AbstractVector{<:PeriodicReplica}}
+    cell::PeriodicCell
+    replicas::R
 end
 
 """
@@ -129,7 +137,6 @@ Three iterators must be supplied, for which all possible translations will be ge
 or any other iterable that produces an Integer. 
 
 All translations have to be (signed) integers, so [1,0,0] is one unit cell translation along the positive x direction. 
-
 ## Arguments
 
 - `cell`: Specification for a unit cell
