@@ -29,6 +29,7 @@ NQCModels.ndofs(::GatesHollowayElbow) = 2
 finds the 2x2 potential matrix for a particle with an internal degree of freedom, x, and a distance from the surface, z, modelled as the sum of a repulsive and Morse potential.
 As it's currently implemented, the model is only defined for a single particle as the potential is only caclulated based on a single pair of x and z values. 
 """
+# GPU extensions: ext/NQCModelsCUDAExt.jl:276, ext/NQCModelsMetalExt.jl:276
 function NQCModels.potential(model::GatesHollowayElbow, R::AbstractMatrix)
     Parameters.@unpack λ₁, λ₂, z₀, x₀, α, d, z12, c, γ = model
 
@@ -61,6 +62,7 @@ function NQCModels.potential!(model::GatesHollowayElbow, V::Hermitian, R::Abstra
     V.data .= Hermitian([V11 V12; V12 V22])
 end
 
+# GPU extensions: ext/NQCModelsCUDAExt.jl:290, ext/NQCModelsMetalExt.jl:290
 function NQCModels.derivative(model::GatesHollowayElbow, R::AbstractMatrix)
     D = [Hermitian(zero(matrix_template(model, eltype(R)))) for _=1:size(R, 1), _=1:size(R, 2)]
     NQCModels.derivative!(model, D, R)

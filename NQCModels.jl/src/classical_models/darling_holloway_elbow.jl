@@ -39,6 +39,7 @@ end
 
 NQCModels.ndofs(::DarlingHollowayElbow) = 1
 
+# GPU extensions: ext/NQCModelsCUDAExt.jl:69, ext/NQCModelsMetalExt.jl:69
 function NQCModels.potential(model::DarlingHollowayElbow, R::AbstractMatrix)
 
     Parameters.@unpack d, α, p, zoff, V₀, βx, xb, βz, zb, V₁, βr, zr, Cvw, zvw, kc, m₁, m₂, m₃, w₁, w₂, w₃ = model

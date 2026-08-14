@@ -51,7 +51,132 @@ that need to be implemented along with an example implementation are provided.
 For further examples, you can also take a look into the source code of the `NQCModels.jl`
 package to see how the analytic models have been implemented. 
 If you have any issues or questions about implementing a new model, open up an issue on
-Github and we can work together to resolve the problem. 
+Github and we can work together to resolve the problem.
+
+## GPU Support Implementation
+
+GPU support for models is provided through package extensions for CUDA.jl and Metal.jl. When implementing a new model, GPU support can be added following these guidelines:
+
+### Extension Structure
+
+GPU implementations are located in:
+- `ext/NQCModelsCUDAExt.jl` - CUDA.jl (NVIDIA GPUs) support
+- `ext/NQCModelsMetalExt.jl` - Metal.jl (Apple Silicon) support
+
+### Type-Based Dispatch
+
+GPU methods use Julia's multiple dispatch to activate when GPU arrays are passed:
+
+```julia
+# CPU version (in main package)
+function NQCModels.potential(model::YourModel, R::AbstractMatrix)
+    # ... CPU implementation
+end
+
+# GPU version (in extension)
+function NQCModels.potential(model::YourModel, R::CUDA.CuArray)
+    # ... GPU implementation using CUDA operations
+end
+```
+
+### Implementation Guidelines
+
+1. **Implement allocating methods only**: Only `potential` and `derivative` need GPU versions. The in-place versions (`potential!`, `derivative!`) remain CPU-only.
+
+2. **Match return types to input**: Return GPU arrays when given GPU input:
+   ```julia
+   function NQCModels.potential(model::YourModel, R::CUDA.CuArray)
+       # Compute on GPU
+       V_gpu = ...  # CUDA.CuArray
+       return V_gpu
+   end
+   ```
+
+3. **No Hermitian wrappers on GPU**: For quantum models, return plain GPU matrices rather than `Hermitian{T, CuArray}` to avoid complexity:
+   ```julia
+   # Return CuMatrix{Float64}, not Hermitian{Float64, CuMatrix{Float64}}
+   return CUDA.CuArray([v11 v12; v21 v22])
+   ```
+
+4. **Add reference comments to CPU version**: Include line number references in the CPU implementation:
+   ```julia
+   # GPU extensions: ext/NQCModelsCUDAExt.jl:123, ext/NQCModelsMetalExt.jl:456
+   function NQCModels.potential(model::YourModel, R::AbstractMatrix)
+       # ... CPU implementation
+   end
+   ```
+
+5. **Implement for both CUDA and Metal**: Add methods to both extension files to support all GPU platforms.
+
+### Example GPU Implementation
+
+Here's a complete example for a simple harmonic model:
+
+```julia
+# In ext/NQCModelsCUDAExt.jl
+function NQCModels.potential(model::Harmonic, r::CUDA.CuArray)
+    m = model.m
+    ω = model.ω
+    r₀ = model.r₀
+    
+    # Use CUDA operations
+    return sum((m / 2) .* ω^2 .* (r .- r₀).^2)
+end
+
+function NQCModels.derivative(model::Harmonic, r::CUDA.CuArray)
+    m = model.m
+    ω = model.ω
+    r₀ = model.r₀
+    
+    # Return CuArray
+    return m .* ω^2 .* (r .- r₀)
+end
+
+# Repeat similar implementation in ext/NQCModelsMetalExt.jl
+# using Metal.MtlArray instead of CUDA.CuArray
+```
+
+### Limitations
+
+Not all models can support GPU arrays. Models that depend on:
+- External libraries without GPU support (e.g., BSplineKit for `CSVModel_1D`)
+- Python interop (e.g., JuLIP models)
+- External calculators (e.g., AtomsCalculators models)
+
+cannot provide GPU implementations.
+
+### Testing GPU Support
+
+Basic test pattern for GPU implementations:
+
+```julia
+using NQCModels
+using CUDA
+using Test
+
+model = YourModel()
+R_cpu = [1.0 2.0]
+R_gpu = CUDA.CuArray(R_cpu)
+
+V_cpu = potential(model, R_cpu)
+V_gpu = potential(model, R_gpu)
+
+@test V_cpu ≈ Array(V_gpu)  # Transfer GPU result back for comparison
+
+D_cpu = derivative(model, R_cpu)
+D_gpu = derivative(model, R_gpu)
+
+@test D_cpu ≈ Array(D_gpu)
+```
+
+### Updating Documentation
+
+When adding GPU support to a model:
+1. Update the supported models list in `docs/src/NQCModels/gpu_support.md`
+2. Add line number reference comments to the CPU implementation
+3. Ensure both CUDA and Metal extensions are updated consistently
+
+For more information on using GPU-accelerated models, see [GPU Acceleration](@ref). 
 ```@setup logging
 runtime = round(time() - start_time; digits=2)
 @info "...done after $runtime s."

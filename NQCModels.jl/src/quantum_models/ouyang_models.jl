@@ -22,6 +22,7 @@ end
 NQCModels.nstates(model::OuyangModelOne) = model.n_states
 NQCModels.ndofs(::OuyangModelOne) = 1
 
+# GPU extensions: ext/NQCModelsCUDAExt.jl:409, ext/NQCModelsMetalExt.jl:409
 function NQCModels.potential(model::OuyangModelOne, R::AbstractMatrix)
     r = R[1]
     Parameters.@unpack A, B, C, D, ΔE, N = model
@@ -43,9 +44,9 @@ function NQCModels.potential!(model::OuyangModelOne, V::Hermitian, R::AbstractMa
     V[1,1] = A*tanh(B*r)
     Δs = range(-ΔE/2, ΔE/2, length=N)
     V.data[1,2:N+1] .= C*exp(-D*r^2)
-    V.data[diagind(N+1,N+1)[2:end]] .= -(A*tanh(B*r)).+Δs
 end
 
+# GPU extensions: ext/NQCModelsCUDAExt.jl:424, ext/NQCModelsMetalExt.jl:424
 function NQCModels.derivative(model::OuyangModelOne, R::AbstractMatrix)
     r = R[1]
     Parameters.@unpack A, B, C, D, N = model

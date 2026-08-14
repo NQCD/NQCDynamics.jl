@@ -1,5 +1,13 @@
 # NQCDynamics.jl changelog
 
+## Yet to be named GPU version of NQCD
+
+### NQCDynamics.jl
+- Removed `TemperatureSetting` and replaced with the ability to have a single temperature function return a length(Atoms) Vector for the temperature. 
+
+### NQCModels.jl
+- Added experimental Metal.jl and CUDA.jl support for a number of models. 
+
 ## Version `v1.0.3`
 - ![Maintenance][badge-maintenance] Updated documentation to include JLD2.jl installation instructions [#457][github-457]
 - Fixed missing integrator allocation for FSSH, which lead to incorrect simulation results. 

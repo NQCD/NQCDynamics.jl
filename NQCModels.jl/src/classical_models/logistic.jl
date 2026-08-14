@@ -22,6 +22,7 @@ end
 
 NQCModels.ndofs(harmonic::Logistic) = 1
 
+# GPU extensions: ext/NQCModelsCUDAExt.jl:43, ext/NQCModelsMetalExt.jl:43
 function NQCModels.potential(model::Logistic, R::AbstractMatrix)
     r = R[1]
     (;L, k, x₀, c, a) = model
@@ -34,6 +35,7 @@ function NQCModels.potential!(model::Logistic, V::Matrix{<:Number}, R::AbstractM
     V .= L / (1 + exp(-k * (a * r - x₀))) + c
 end
 
+# GPU extensions: ext/NQCModelsCUDAExt.jl:48, ext/NQCModelsMetalExt.jl:48
 function NQCModels.derivative(model::Logistic, R::AbstractMatrix)
     r = R[1]  
     (;L, k, x₀, a) = model

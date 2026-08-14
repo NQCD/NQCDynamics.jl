@@ -11,6 +11,7 @@ end
 
 NQCModels.ndofs(::DiatomicHarmonic) = 3
 
+# GPU extensions: ext/NQCModelsCUDAExt.jl:54, ext/NQCModelsMetalExt.jl:54
 function NQCModels.potential(model::DiatomicHarmonic, R::AbstractMatrix)
     return (norm(R[:,1] .- R[:,2]) - model.r₀)^2 / 2
 end

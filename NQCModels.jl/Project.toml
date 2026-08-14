@@ -27,16 +27,26 @@ UnitfulAtomic = "a7773ee8-282e-5fa2-be4e-bd808c38a91a"
 JuLIP = {url = "https://github.com/JuliaMolSim/JuLIP.jl.git"}
 NQCBase = {path = "../NQCBase.jl"}
 
+[weakdeps]
+CUDA = "052768ef-5323-5732-b1bb-66c8b64840ba"
+Metal = "dde4c033-4e86-420c-a63e-0dd931031962"
+
+[extensions]
+NQCModelsCUDAExt = "CUDA"
+NQCModelsMetalExt = "Metal"
+
 [compat]
 AtomsBase = "0.5"
 AtomsCalculators = "0.2"
 BSplineKit = "0.19.0"
+CUDA = "5,6"
 DataInterpolations = "8.0"
 DelimitedFiles = "1.9.1"
 FastGaussQuadrature = "0.4, 0.5, 1"
 FiniteDiff = "2.27.0"
 ForwardDiff = "0.10"
 JuLIP = "0.13, 0.14, 0.15, 0.16"
+Metal = "1"
 NQCBase = "1.0"
 Parameters = "0.12"
 PythonCall = "0.9.24"

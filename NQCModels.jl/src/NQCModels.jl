@@ -29,6 +29,13 @@ Base.broadcastable(model::Model) = Ref(model)
     potential(model::Model, R::AbstractMatrix)
 
 Evaluate the potential at position `R` for the given `model`.
+
+# GPU Support
+GPU array support is provided via package extensions:
+- `NQCModelsCUDAExt`: CUDA.jl support (activated by `using CUDA`)
+- `NQCModelsMetalExt`: Metal.jl support (activated by `using Metal`)
+
+When GPU arrays are passed, the return type matches the input array type.
 """
 function potential(model::Model, R::AbstractMatrix)
     if ndofs(model) == 1
@@ -76,6 +83,13 @@ Allocating version of `derivative!`, this definition should be suitable for almo
 
 Implement `zero_derivative` to allocate an appropriate array then implement `derivative!`
 to fill the array.
+
+# GPU Support
+GPU array support is provided via package extensions:
+- `NQCModelsCUDAExt`: CUDA.jl support (activated by `using CUDA`)
+- `NQCModelsMetalExt`: Metal.jl support (activated by `using Metal`)
+
+When GPU arrays are passed, the return type matches the input array type.
 """
 function derivative(model::Model, R)
     D = zero_derivative(model, R)

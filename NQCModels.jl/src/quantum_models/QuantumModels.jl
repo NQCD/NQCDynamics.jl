@@ -117,12 +117,16 @@ function NQCModels.zero_derivative(model::QuantumModel, R::AbstractMatrix)
     return [Hermitian(matrix_template(model, eltype(R))) for _ in CartesianIndices(R)]
 end
 
+# GPU extensions: NQCModelsCUDAExt, NQCModelsMetalExt
+# For GPU arrays, these return plain matrices rather than Hermitian-wrapped types
 function NQCModels.potential(model::QuantumModel, R::AbstractMatrix)
     V = Hermitian(matrix_template(model, eltype(R)))
     NQCModels.potential!(model, V, R)
     return V
 end
 
+# GPU extensions: NQCModelsCUDAExt, NQCModelsMetalExt
+# For GPU arrays, these return plain matrices rather than Hermitian-wrapped types
 function NQCModels.derivative(model::QuantumModel, R::AbstractMatrix)
     D = NQCModels.zero_derivative(model, R)
     NQCModels.derivative!(model, D, R)

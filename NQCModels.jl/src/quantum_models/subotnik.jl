@@ -31,6 +31,7 @@ end
 NQCModels.ndofs(::MiaoSubotnik) = 1
 NQCModels.nstates(::MiaoSubotnik) = 2
 
+# GPU extensions: ext/NQCModelsCUDAExt.jl:254, ext/NQCModelsMetalExt.jl:254
 function NQCModels.potential(model::MiaoSubotnik, R::AbstractMatrix)
     (;m, ω, g, ΔG, coupling) = model
     x = R[1]
@@ -53,6 +54,7 @@ function NQCModels.potential!(model::MiaoSubotnik, V::Hermitian, R::AbstractMatr
     V.data .= Hermitian([V11 V12; V12 V22])
 end
 
+# GPU extensions: ext/NQCModelsCUDAExt.jl:265, ext/NQCModelsMetalExt.jl:265
 function NQCModels.derivative(model::MiaoSubotnik, R::AbstractMatrix)
     (;m, ω, g) = model
     x = R[1]

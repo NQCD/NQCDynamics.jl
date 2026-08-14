@@ -25,12 +25,14 @@ Free() = Free(1)
 
 NQCModels.ndofs(free::Free) = free.dofs
 
+# GPU extensions: ext/NQCModelsCUDAExt.jl:13, ext/NQCModelsMetalExt.jl:13
 NQCModels.potential(::Free, ::AbstractMatrix{T}) where {T} = zero(T)
 
 function NQCModels.potential!(::Free, V::Matrix{<:Number}, ::AbstractMatrix{T}) where {T} 
     V .= zero(T)
 end
 
+# GPU extensions: ext/NQCModelsCUDAExt.jl:15, ext/NQCModelsMetalExt.jl:15
 function NQCModels.derivative!(::Free, out::AbstractMatrix, ::AbstractMatrix{T}) where {T}
     out .= 0
     fill!(out, zero(T))

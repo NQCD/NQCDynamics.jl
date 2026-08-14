@@ -56,9 +56,10 @@ function ErpenbeckThoss(;
         c = -NQCModels.ClassicalModels.eigenenergy(morse, 0) # Set c to offset zero-point energy
     end
 
-    return ErpenbeckThoss(austrip(Γ), morse, D₁, D₂, x₀′, a′, c, V∞, q, ã, x̃, V̄ₖ)
+    return ErpenbeckThoss(austrip(Γ), morse, D₁, D₂, x₀′, a′, c, V∞, q, ã, x̃, V̄ₖ)
 end
 
+# GPU extensions: ext/NQCModelsCUDAExt.jl:352, ext/NQCModelsMetalExt.jl:352
 function NQCModels.potential(model::ErpenbeckThoss, R::AbstractMatrix)
     (;morse, c, D₁, D₂, x₀′, a′, V∞) = model
 
@@ -85,6 +86,7 @@ function NQCModels.potential!(model::ErpenbeckThoss, V::Hermitian, R::AbstractMa
 
 end
 
+# GPU extensions: ext/NQCModelsCUDAExt.jl:363, ext/NQCModelsMetalExt.jl:363
 function NQCModels.derivative(model::ErpenbeckThoss, R::AbstractMatrix)
     (;morse, D₁, D₂, x₀′, a′) = model
 

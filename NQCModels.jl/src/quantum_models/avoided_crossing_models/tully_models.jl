@@ -16,6 +16,7 @@ Parameters.@with_kw struct TullyModelOne{A,B,C,D} <: TullyModel
     d::D = 1.0
 end
 
+# GPU extensions: ext/NQCModelsCUDAExt.jl:105, ext/NQCModelsMetalExt.jl:105
 function NQCModels.potential(model::TullyModelOne, R::AbstractMatrix)
     Parameters.@unpack a, b, c, d = model
     q = R[1]
@@ -42,6 +43,7 @@ function NQCModels.potential!(model::TullyModelOne, V::Hermitian, R::AbstractMat
     V.data .= [V11 V12; V12 V22]
 end
 
+# GPU extensions: ext/NQCModelsCUDAExt.jl:119, ext/NQCModelsMetalExt.jl:119
 function NQCModels.derivative(model::TullyModelOne, R::AbstractMatrix)
     Parameters.@unpack a, b, c, d = model
     q = R[1]
@@ -73,6 +75,7 @@ Parameters.@with_kw struct TullyModelTwo{A,B,C,D,E} <: TullyModel
     e::E = 0.05
 end
 
+# GPU extensions: ext/NQCModelsCUDAExt.jl:130, ext/NQCModelsMetalExt.jl:130
 function NQCModels.potential(model::TullyModelTwo, R::AbstractMatrix)
     Parameters.@unpack a, b, c, d, e = model
     q = R[1]
@@ -91,6 +94,7 @@ function NQCModels.potential!(model::TullyModelTwo, V::Hermitian, R::AbstractMat
     V.data .= [V11 V12; V12 V22]
 end
 
+# GPU extensions: ext/NQCModelsCUDAExt.jl:140, ext/NQCModelsMetalExt.jl:140
 function NQCModels.derivative(model::TullyModelTwo, R::AbstractMatrix)
     Parameters.@unpack a, b, c, d  = model
     q = R[1]
@@ -122,6 +126,7 @@ Parameters.@with_kw struct TullyModelThree{A,B,C} <: TullyModel
     c::C = 0.9
 end
 
+# GPU extensions: ext/NQCModelsCUDAExt.jl:151, ext/NQCModelsMetalExt.jl:151
 function NQCModels.potential(model::TullyModelThree, R::AbstractMatrix)
     Parameters.@unpack a, b, c = model
     q = R[1]
@@ -148,6 +153,7 @@ function NQCModels.potential!(model::TullyModelThree, V::Hermitian, R::AbstractM
     V.data .= [V11 V12; V12 V22]
 end
 
+# GPU extensions: ext/NQCModelsCUDAExt.jl:165, ext/NQCModelsMetalExt.jl:165
 function NQCModels.derivative(model::TullyModelThree, R::AbstractMatrix)
     Parameters.@unpack a, b, c = model
     q = R[1]

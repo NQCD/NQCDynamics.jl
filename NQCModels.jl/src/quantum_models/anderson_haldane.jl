@@ -56,9 +56,10 @@ function AndersonHaldane(;
     logistic = ClassicalModels.Logistic(D₁, a′, x₀′, c′, b)
     #c = -NQCModels.AdiabaticModels.eigenenergy(morse, 0) # Set c to offset zero-point energy
 
-    return AndersonHaldane(morse, c, logistic, q, L, x̃₀, Ã, scaledown)
+    return AndersonHaldane(morse, c, logistic, q, L, x̃₀, Ã, scaledown)
 end
 
+# GPU extensions: ext/NQCModelsCUDAExt.jl:375, ext/NQCModelsMetalExt.jl:375
 function NQCModels.potential(model::AndersonHaldane, r::AbstractMatrix)
 
     r = r[1] # r is a 1x1 matrix, we only need the first element
@@ -94,6 +95,7 @@ function NQCModels.potential!(model::AndersonHaldane, V::Hermitian, r::AbstractM
     V.data .= [V11 V12; V12 V22]
 end
 
+# GPU extensions: ext/NQCModelsCUDAExt.jl:392, ext/NQCModelsMetalExt.jl:392
 function NQCModels.derivative(model::AndersonHaldane, r::AbstractMatrix)
 
     r = r[1] # r is a 1x1 matrix, we only need the first element

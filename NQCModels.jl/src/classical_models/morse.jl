@@ -15,6 +15,7 @@ end
 
 NQCModels.ndofs(harmonic::Morse) = 1
 
+# GPU extensions: ext/NQCModelsCUDAExt.jl:29, ext/NQCModelsMetalExt.jl:29
 function NQCModels.potential(model::Morse, R::AbstractMatrix)
     r = R[1]
     (;Dₑ, x₀, a) = model
@@ -27,6 +28,7 @@ function NQCModels.potential!(model::Morse, V::Matrix{<:Number}, R::AbstractMatr
     V .= Dₑ * (exp(-a*(r-x₀)) - 1)^2
 end
 
+# GPU extensions: ext/NQCModelsCUDAExt.jl:35, ext/NQCModelsMetalExt.jl:35
 function NQCModels.derivative(model::Morse, R::AbstractMatrix)
     r = R[1] 
     (;Dₑ, x₀, a) = model

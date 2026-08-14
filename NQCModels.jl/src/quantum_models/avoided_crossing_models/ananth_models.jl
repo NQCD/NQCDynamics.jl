@@ -16,6 +16,7 @@ Parameters.@with_kw struct AnanthModelOne{A,B,C,D} <: AnanthModel
     d::D = 1.0
 end
 
+# GPU extensions: ext/NQCModelsCUDAExt.jl:204, ext/NQCModelsMetalExt.jl:204
 function NQCModels.potential(model::AnanthModelOne, Q::AbstractMatrix)
     q = Q[1]
     Parameters.@unpack a, b, c, d = model
@@ -34,6 +35,7 @@ function NQCModels.potential!(model::AnanthModelOne, V::Hermitian, Q::AbstractMa
     V.data .= [V11 V12; V12 V22]
 end
 
+# GPU extensions: ext/NQCModelsCUDAExt.jl:216, ext/NQCModelsMetalExt.jl:216
 function NQCModels.derivative(model::AnanthModelOne, Q::AbstractMatrix)
     q = Q[1]
     Parameters.@unpack a, b, c, d = model
@@ -66,6 +68,7 @@ Parameters.@with_kw struct AnanthModelTwo{A,B,C,D,E,F} <: AnanthModel
     f::F = 1.6
 end
 
+# GPU extensions: ext/NQCModelsCUDAExt.jl:229, ext/NQCModelsMetalExt.jl:229
 function NQCModels.potential(model::AnanthModelTwo, Q::AbstractMatrix)
     q = Q[1]
     Parameters.@unpack a, b, c, d, e, f = model
@@ -84,6 +87,7 @@ function NQCModels.potential!(model::AnanthModelTwo, V::Hermitian, Q::AbstractMa
     V.data .= [V11 V12; V12 V22]
 end
 
+# GPU extensions: ext/NQCModelsCUDAExt.jl:241, ext/NQCModelsMetalExt.jl:241
 function NQCModels.derivative(model::AnanthModelTwo, Q::AbstractMatrix)
     q = Q[1]
     Parameters.@unpack a, b, c, d, e, f = model

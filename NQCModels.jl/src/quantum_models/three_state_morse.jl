@@ -48,6 +48,7 @@ function TSM_D_ii(x, d, α, r)
 end
 TSM_D_ij(x, a, α, r) = -2 * a * α * (x-r) * exp(-α*(x-r)^2)
 
+# GPU extensions: ext/NQCModelsCUDAExt.jl:314, ext/NQCModelsMetalExt.jl:314
 function NQCModels.potential(model::ThreeStateMorse, R::AbstractMatrix)
     r = R[1]
 
@@ -76,6 +77,7 @@ function NQCModels.potential!(model::ThreeStateMorse, V::Hermitian, R::AbstractM
     V.data .= Hermitian([V11 V12 V13; V12 V22 V23; V13 V23 V33])
 end
 
+# GPU extensions: ext/NQCModelsCUDAExt.jl:331, ext/NQCModelsMetalExt.jl:331
 function NQCModels.derivative(model::ThreeStateMorse, R::AbstractMatrix)
     r = R[1]
     

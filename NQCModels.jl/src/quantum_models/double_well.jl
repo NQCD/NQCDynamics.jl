@@ -15,6 +15,7 @@ end
 NQCModels.ndofs(::DoubleWell) = 1
 NQCModels.nstates(::DoubleWell) = 2
 
+# GPU extensions: ext/NQCModelsCUDAExt.jl:180, ext/NQCModelsMetalExt.jl:180
 function NQCModels.potential(model::DoubleWell, R::AbstractMatrix)
     r = R[1]
 
@@ -41,6 +42,7 @@ end
 
 # In-place derivative already defined in QuantumModels.jl
 
+# GPU extensions: ext/NQCModelsCUDAExt.jl:192, ext/NQCModelsMetalExt.jl:192
 function NQCModels.derivative!(model::DoubleWell, D::Hermitian, R::AbstractMatrix)
     r = R[1]
 

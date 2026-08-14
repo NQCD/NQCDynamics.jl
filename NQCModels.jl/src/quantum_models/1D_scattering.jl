@@ -17,6 +17,7 @@ function Scattering1D(;N=10, a=1, D=1, α=0, β=1, B=1, σ=0.6u"eV")
     Scattering1D(N+1, N, a, D, α, β, B, austrip(σ))
 end
 
+# GPU extensions: ext/NQCModelsCUDAExt.jl:439, ext/NQCModelsMetalExt.jl:439
 function NQCModels.potential(model::Scattering1D, R::AbstractMatrix)
     r = R[1]
 
@@ -53,6 +54,7 @@ function NQCModels.potential!(model::Scattering1D, V::Hermitian, R::AbstractMatr
     V.data[1,2] = γᵣ # molecule metal coupling
 end
 
+# GPU extensions: ext/NQCModelsCUDAExt.jl:459, ext/NQCModelsMetalExt.jl:459
 function NQCModels.derivative!(model::Scattering1D, D::Hermitian, R::AbstractMatrix)
     r = R[1]
     
