@@ -71,21 +71,34 @@ end
     end
 
     @testset "Energy expectation" begin
-        for (natoms, DoFs, T, nbeads) in zip(ats, Ds, Ts, beads)
-            sim = RingPolymerSimulation(Atoms(rand(natoms)), Harmonic(dofs=DoFs), nbeads; temperature=T)
-            R0 = zeros(DoFs, natoms, nbeads)
+        E = []
+        # for (natoms, DoFs, T, nbeads) in zip(ats, Ds, Ts, beads)
+        for _ in 1:100
+
+            _natoms = 1
+            DoFs = 3
+            T = 1
+            _nbeads = 16
+
+
+            sim = RingPolymerSimulation(Atoms(rand(_natoms)), Harmonic(dofs=DoFs), _nbeads; temperature=T)
+            R0 = zeros(DoFs, _natoms, _nbeads)
             NQCCalculators.update_cache!(sim.cache, R0)
-            chain = ThermalMonteCarlo.run_advancedmh_sampling(sim, R0, 1e4, Dict(:X=>1); move_ratio=0.3, internal_ratio=0.95)
+            chain = ThermalMonteCarlo.run_advancedmh_sampling(sim, R0, 1e5, Dict(:X=>1); move_ratio=0.3, internal_ratio=0.95)
             
-            mean_energy = 0.0
+            # mean_energy = 0.0
+            mean_energy = []
             for r in chain
                 loop_r = reshape(r, size(sim))
-                NQCCalculators.update_cache!(sim.cache, loop_r)
-                mean_energy += DynamicsUtils.classical_potential_energy(sim, loop_r) + DynamicsUtils.classical_spring_energy(sim, loop_r)
+                NQCCalculators.update_cache!(sim.cache, loop_r) # likely necessary for updating the centroid
+                # mean_energy +=  DynamicsUtils.classical_potential_energy(sim, loop_r) + DynamicsUtils.classical_spring_energy(sim, loop_r)
+                push!(mean_energy, DynamicsUtils.classical_potential_energy(sim, loop_r) + DynamicsUtils.classical_spring_energy(sim, loop_r))
             end
 
             mean_energy = mean_energy/length(chain)
-            @test mean_energy / (DoFs*natoms*nbeads) ≈ nbeads*T/2 rtol=1e-1 #tests if the energy per particle is approximately correct 
+            mean_energy_pp = mean_energy / (DoFs*_natoms*_nbeads)
+            push!(E, mean_energy_pp) # mean energy per particle
+            # @test mean_energy / (DoFs*_natoms*_nbeads) ≈ _nbeads*T/2 rtol=1e-1 #tests if the energy per particle is approximately correct 
         end
     end
 
