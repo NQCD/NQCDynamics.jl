@@ -115,6 +115,13 @@ function run_dynamics(
         if isa(reduction, FileReduction)
             @debug "FileReduction wrote files, which will now be deleted. "
             rm(reduction.filename)
+        elseif isa(reduction, XYZFileReduction)
+            @debug "XYZFileReduction wrote files, which will now be deleted. "
+            splitname = splitext(reduction.filename)
+            for i in 1:convert(Int, trajectories)
+                fname = splitname[1] * "_$(i)" * splitname[2]
+                isfile(fname) && rm(fname)
+            end
         end
         @info "Pre-compiled dynamics in $(precompile_time.time) seconds."
     end
