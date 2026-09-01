@@ -1,3 +1,4 @@
+using LinearAlgebra
 
 struct DecoherenceCorrectionNone end
 apply_decoherence_correction!(args...) = nothing
