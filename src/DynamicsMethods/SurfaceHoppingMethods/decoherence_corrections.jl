@@ -37,3 +37,15 @@ function apply_decoherence_correction!(
     ψ[occupied_state] = Cₘ * sqrt((1 - unoccupied_state_norm) / abs2(Cₘ))
     return nothing
 end
+
+"""
+Löwdin symmetric orthonormalization via SVD.
+ψ: M×N matrix of N electron orbitals in an M-dimensional basis.
+Replaces ψ with the closest orthonormal matrix (Frobenius norm),
+i.e. Ψ_orth = U * Vᴴ from the thin SVD Ψ = U Σ Vᴴ.
+"""
+function lowdin_orthonormalize!(ψ::AbstractMatrix{<:Complex})
+    F = svd(ψ)
+    ψ .= F.U * F.Vt
+    return ψ
+end
