@@ -439,9 +439,7 @@ function iesh_apply_decoherence_correction_edc!(integrator)
         apply_decoherence_correction!(ψ[:,i], sim.method.decoherence, state, dt, eigen.w, Ekin)
     end
     C = Matrix(ψ)  
-    if norm(C'C - I) > 1e-10   # tol = 1e-10
-        lowdin_orthonormalize!(C)
-    end
+    lowdin_orthonormalize!(C)
     ψ .= C 
 
 end
