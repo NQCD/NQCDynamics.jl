@@ -20,6 +20,13 @@ using NQCBase
 using QuadGK
 using FastLapackInterface
 import Adapt
+import Random
+
+function similar_but_random(matrix_prototype::AbstractArray, dims...)
+    out_array = similar(matrix_prototype, dims...)
+    Random.rand!(out_array)
+    return out_array
+end
 
 using NQCModels: NQCModels, Model, nstates, mobileatoms, dofs, ndofs, Subsystem, CompositeModel
 using NQCModels.ClassicalModels: ClassicalModel
@@ -46,7 +53,7 @@ include("Calculators.jl")
 export evaluate_friction, evaluate_derivative
 export evaluate_eigen, correct_phase!
 export evaluate_adiabatic_derivative, evaluate_centroid_adiabatic_derivative
-export evaluate_nonadiabatic_coupling, evaluate_inverse_difference_matrix, evaluate_nonadiabatic_coupling
+export evaluate_nonadiabatic_coupling, evaluate_inverse_difference_matrix!, evaluate_nonadiabatic_coupling
 export evaluate_centroid_potential, evaluate_centroid, evaluate_centroid_nonadiabatic_coupling
 export evaluate_traceless_adiabatic_derivative, evaluate_traceless_potential, evaluate_traceless_derivative,  evaluate_D̄, evaluate_V̄
 export evaluate_centroid_potential, evaluate_centroid_eigen, evaluate_centroid_derivative
