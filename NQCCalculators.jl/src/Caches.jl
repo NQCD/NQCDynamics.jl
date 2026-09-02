@@ -59,6 +59,8 @@ struct ClassicalModel_Cache{M,Mtx} <: Abstract_ClassicalModel_Cache{M}
     derivative::Mtx #Matrix
 end
 
+Adapt.@adapt_structure ClassicalModel_Cache
+
 """
     function: ClassicalModel_Cache{T}(model::M, atoms::Integer) where {T,M<:Model}
 
@@ -66,8 +68,8 @@ Function which constructs and returns the Struct of the same name. Takes as inpu
 and the number of atoms in the simulation
 """
 function ClassicalModel_Cache(model::M, atoms::Integer, matrix_prototype::AbstractArray{T,N}) where {M<:Model, T, N}
-    potential = similar(matrix_prototype, 1, 1)
-    derivative = similar(matrix_prototype, ndofs(model), atoms)
+    potential = similar_zero(matrix_prototype, 1, 1)
+    derivative = similar_zero(matrix_prototype, ndofs(model), atoms)
 
     return ClassicalModel_Cache(
         model,
@@ -99,6 +101,8 @@ struct RingPolymer_ClassicalModel_Cache{M, Mtx, VMtx, Arr} <: Abstract_Classical
 
 end
 
+Adapt.@adapt_structure RingPolymer_ClassicalModel_Cache
+
 """
     function: RingPolymer_ClassicalModel_Cache{T}(model::M, atoms::Integer, beads::Integer) where {T,M<:Model}
 
@@ -106,12 +110,12 @@ Function which constructs and returns the Struct of the same name. Takes as inpu
 the number of atoms in the simulation and the number of beads used in the ring polymer simulation.
 """
 function RingPolymer_ClassicalModel_Cache(model::M, atoms::Integer, beads::Integer, matrix_prototype::AbstractArray{T,N}) where {M<:Model, T, N}
-    potential = [similar(matrix_prototype, 1, 1) for i in 1:beads]
-    derivative = similar(matrix_prototype, ndofs(model), atoms, beads)
+    potential = [similar_zero(matrix_prototype, 1, 1) for i in 1:beads]
+    derivative = similar_zero(matrix_prototype, ndofs(model), atoms, beads)
 
-    centroid = similar(matrix_prototype, ndofs(model), atoms)
-    centroid_potential = similar(matrix_prototype, 1, 1)
-    centroid_derivative = similar(matrix_prototype, ndofs(model), atoms)
+    centroid = similar_zero(matrix_prototype, ndofs(model), atoms)
+    centroid_potential = similar_zero(matrix_prototype, 1, 1)
+    centroid_derivative = similar_zero(matrix_prototype, ndofs(model), atoms)
 
     return RingPolymer_ClassicalModel_Cache(
         model,
@@ -141,6 +145,8 @@ struct ClassicalFrictionModel_Cache{M, Mtx} <: Abstract_ClassicalModel_Cache{M} 
     friction::Mtx #Matrix
 end
 
+Adapt.@adapt_structure ClassicalFrictionModel_Cache
+
 """
     function: ClassicalFrictionModel_Cache{T}(model::M, atoms::Integer) where {T,M<:Model}
 
@@ -148,9 +154,9 @@ Function which constructs and returns the struct of the same name. Takes as inpu
 the number of atoms in the simulation.
 """
 function ClassicalFrictionModel_Cache(model::M, atoms::Integer, matrix_prototype::AbstractArray) where {M<:Model}
-    potential = similar(matrix_prototype, 1,1)
-    derivative = similar(matrix_prototype, ndofs(model), atoms)
-    friction = similar(matrix_prototype, ndofs(model)*atoms, ndofs(model)*atoms)
+    potential = similar_zero(matrix_prototype, 1,1)
+    derivative = similar_zero(matrix_prototype, ndofs(model), atoms)
+    friction = similar_zero(matrix_prototype, ndofs(model)*atoms, ndofs(model)*atoms)
 
     return ClassicalFrictionModel_Cache(
         model,
@@ -190,6 +196,8 @@ struct RingPolymer_ClassicalFrictionModel_Cache{M, Arr, Mtx} <: Abstract_Classic
     centroid_friction::Mtx #Matrix
 end
 
+Adapt.@adapt_structure RingPolymer_ClassicalFrictionModel_Cache
+
 """
     function: RingPolymer_ClassicalFrictionModel_Cache{T}(model::M, atoms::Integer, beads::Integer) where {T,M<:Model}
 
@@ -198,14 +206,14 @@ the number of atoms in the simulation and the number of beads used in the ring p
 """
 function RingPolymer_ClassicalFrictionModel_Cache(model::M, atoms::Integer, beads::Integer, matrix_prototype::AbstractArray) where {M<:Model}
 
-    potential = similar(matrix_prototype, 1, 1, beads)
-    derivative = similar(matrix_prototype, ndofs(model), atoms, beads)
-    friction = similar(matrix_prototype, ndofs(model)*atoms, ndofs(model)*atoms, beads)
+    potential = similar_zero(matrix_prototype, 1, 1, beads)
+    derivative = similar_zero(matrix_prototype, ndofs(model), atoms, beads)
+    friction = similar_zero(matrix_prototype, ndofs(model)*atoms, ndofs(model)*atoms, beads)
 
-    centroid = similar(matrix_prototype, ndofs(model), atoms)
-    centroid_potential = similar(matrix_prototype, 1,1)
-    centroid_derivative = similar(matrix_prototype, ndofs(model), atoms)
-    centroid_friction = similar(matrix_prototype, ndofs(model)*atoms, ndofs(model)*atoms)
+    centroid = similar_zero(matrix_prototype, ndofs(model), atoms)
+    centroid_potential = similar_zero(matrix_prototype, 1,1)
+    centroid_derivative = similar_zero(matrix_prototype, ndofs(model), atoms)
+    centroid_friction = similar_zero(matrix_prototype, ndofs(model)*atoms, ndofs(model)*atoms)
 
     return RingPolymer_ClassicalFrictionModel_Cache(
         model,
@@ -225,7 +233,7 @@ end
         model::M
         potential::Hermitian{T,Matrix{T}}
         derivative::Matrix{Hermitian{T,Matrix{T}}}
-        eigen::HermitianEigenWs{T, Matrix{T}, T}
+        eigen::LinearAlgebra.Eigen{T, T, Matrix{T}, Vector{T}}
         adiabatic_derivative::Matrix{Matrix{T}}
         nonadiabatic_coupling::Matrix{Matrix{T}}
 
@@ -244,6 +252,8 @@ struct QuantumModel_Cache{M, HMtx, Mtx, DMtx, Eigs, Vec, } <: Abstract_QuantumMo
 
 end
 
+Adapt.@adapt_structure QuantumModel_Cache
+
 """
     function: QuantumModel_Cache{T}(model::M, atoms::Integer) where {T,M<:Model}
 
@@ -251,18 +261,17 @@ Function which constructs and returns the Struct of the same name. Takes as inpu
 and the number of atoms in the simulation.
 """
 function QuantumModel_Cache(model::M, atoms::Integer, matrix_prototype::AbstractArray{T,N}) where {M<:Model, T, N}
-    backend = get_backend(matrix_prototype)
     n = nstates(model)
     mat = NQCModels.QuantumModels.matrix_template(model, T)
     vec = NQCModels.QuantumModels.vector_template(model, T)
 
-    potential = similar(matrix_prototype, size(mat))
-    derivative = [similar(matrix_prototype, size(mat)) for _=1:ndofs(model), _=1:atoms]
-    eigen = (similar(matrix_prototype, size(vec)), similar(matrix_prototype, size(mat)))
+    potential = similar_zero(matrix_prototype, size(mat))
+    derivative = [similar_zero(matrix_prototype, size(mat)) for _=1:ndofs(model), _=1:atoms]
+    eigen = (similar_zero(matrix_prototype, size(vec)), similar_zero(matrix_prototype, size(mat)))
     phase_ref = similar_but_random(matrix_prototype, n) .+ eps(T)
-    adiabatic_derivative = [similar(matrix_prototype, size(mat)) for _ in CartesianIndices(derivative)]
-    nonadiabatic_coupling = [similar(matrix_prototype, size(mat)) for _ in CartesianIndices(derivative)]
-    tmp_mat = similar(matrix_prototype, size(mat))
+    adiabatic_derivative = [similar_zero(matrix_prototype, size(mat)) for _ in CartesianIndices(derivative)]
+    nonadiabatic_coupling = [similar_zero(matrix_prototype, size(mat)) for _ in CartesianIndices(derivative)]
+    tmp_mat = similar_zero(matrix_prototype, size(mat))
 
     return QuantumModel_Cache(
         model,
@@ -282,7 +291,7 @@ end
         model::M
         potential::Hermitian{T,Matrix{T}}
         derivative::Matrix{Hermitian{T,Matrix{T}}}
-        eigen::HermitianEigenWs{T, Matrix{T}, T}
+        eigen::Vector{LinearAlgebra.Eigen{T, T, Matrix{T}, Vector{T}}}
         adiabatic_derivative::Matrix{Matrix{T}}
         nonadiabatic_coupling::Matrix{Matrix{T}}
 
@@ -295,7 +304,7 @@ end
         centroid::Matrix{T}
         centroid_potential::Hermitian{T,Matrix{T}}
         centroid_derivative::Matrix{Hermitian{T,Matrix{T}}}
-        centroid_eigen::HermitianEigenWs{T, Matrix{T}, T}
+        centroid_eigen::LinearAlgebra.Eigen{T, T, Matrix{T}, Vector{T}}
         centroid_adiabatic_derivative::Matrix{Matrix{T}}
         centroid_nonadiabatic_coupling::Matrix{Matrix{T}}
 
@@ -321,12 +330,14 @@ struct RingPolymer_QuantumModel_Cache{M, VHMtx, ArrHMtx, VEig, Vec, ArrMtx, Mtx,
 
     centroid::Mtx #Matrix
     centroid_potential::HMtx #Hermitian(CPU) Matrix
-    centroid_derivative::ArrHMtx #3D Array of Hermitian(CPU) Matrices
-    centroid_eigen::VEig #Vector of eigen structure
+    centroid_derivative::MHMtx #3D Array of Hermitian(CPU) Matrices
+    centroid_eigen::Eig #Vector of eigen structure
     centroid_phase_ref::Vec
     centroid_adiabatic_derivative::MtxMtx
     centroid_nonadiabatic_coupling::MtxMtx
 end
+
+Adapt.@adapt_structure RingPolymer_QuantumModel_Cache
 
 """
     function: RingPolymer_QuantumModel_Cache{T}(model::M, atoms::Integer, beads::Integer) where {T,M<:Model}
@@ -339,27 +350,27 @@ function RingPolymer_QuantumModel_Cache(model::M, atoms::Integer, beads::Integer
     mat = NQCModels.QuantumModels.matrix_template(model, T)
     vec = NQCModels.QuantumModels.vector_template(model, T)
 
-    potential = [similar(matrix_prototype, size(mat)) for _=1:beads]
-    derivative = [similar(matrix_prototype, size(mat)) for _=1:ndofs(model), _=1:atoms, _=1:beads]
-    adiabatic_derivative = [similar(matrix_prototype, size(mat)) for _=1:ndofs(model), _=1:atoms, _=1:beads]
-    eigen = [(similar(matrix_prototype, size(vec)), similar(matrix_prototype, size(mat))) for _=1:beads]
+    potential = [similar_zero(matrix_prototype, size(mat)) for _=1:beads]
+    derivative = [similar_zero(matrix_prototype, size(mat)) for _=1:ndofs(model), _=1:atoms, _=1:beads]
+    adiabatic_derivative = [similar_zero(matrix_prototype, size(mat)) for _=1:ndofs(model), _=1:atoms, _=1:beads]
+    eigen = [(similar_zero(matrix_prototype, size(vec)), similar_zero(matrix_prototype, size(mat))) for _=1:beads]
     phase_ref = [similar_but_random(matrix_prototype, n) .+ eps(T) for _=1:beads]
-    nonadiabatic_coupling = [similar(matrix_prototype, size(mat)) for _=1:ndofs(model), _=1:atoms, _=1:beads]
-    tmp_mat = similar(matrix_prototype, size(mat))
+    nonadiabatic_coupling = [similar_zero(matrix_prototype, size(mat)) for _=1:ndofs(model), _=1:atoms, _=1:beads]
+    tmp_mat = similar_zero(matrix_prototype, size(mat))
 
-    traceless_potential = [similar(matrix_prototype, size(mat)) for _=1:beads]
-    V̄ =similar(vec, beads)
-    traceless_derivative = [similar(matrix_prototype, size(mat)) for _=1:ndofs(model), _=1:atoms, _=1:beads]
-    D̄ = similar(matrix_prototype, ndofs(model), atoms, beads)
-    traceless_adiabatic_derivative = [similar(matrix_prototype, size(mat)) for _=1:ndofs(model), _=1:atoms, _=1:beads]
+    traceless_potential = [similar_zero(matrix_prototype, size(mat)) for _=1:beads]
+    V̄ =similar_zero(vec, beads)
+    traceless_derivative = [similar_zero(matrix_prototype, size(mat)) for _=1:ndofs(model), _=1:atoms, _=1:beads]
+    D̄ = similar_zero(matrix_prototype, ndofs(model), atoms, beads)
+    traceless_adiabatic_derivative = [similar_zero(matrix_prototype, size(mat)) for _=1:ndofs(model), _=1:atoms, _=1:beads]
 
-    centroid = similar(matrix_prototype, ndofs(model), atoms)
-    centroid_potential = similar(matrix_prototype, size(mat))
-    centroid_derivative = [similar(matrix_prototype, size(mat)) for _=1:ndofs(model), _=1:atoms]
-    centroid_eigen = (similar(matrix_prototype, size(vec)), similar(matrix_prototype, size(mat)))
+    centroid = similar_zero(matrix_prototype, ndofs(model), atoms)
+    centroid_potential = similar_zero(matrix_prototype, size(mat))
+    centroid_derivative = [similar_zero(matrix_prototype, size(mat)) for _=1:ndofs(model), _=1:atoms]
+    centroid_eigen = (similar_zero(matrix_prototype, size(vec)), similar_zero(matrix_prototype, size(mat)))
     centroid_phase_ref = similar_but_random(matrix_prototype, n) .+ eps(T)
-    centroid_adiabatic_derivative = [similar(matrix_prototype, size(mat)) for _ in CartesianIndices(centroid_derivative)]
-    centroid_nonadiabatic_coupling = [similar(matrix_prototype, size(mat)) for _ in CartesianIndices(centroid_derivative)]
+    centroid_adiabatic_derivative = [similar_zero(matrix_prototype, size(mat)) for _ in CartesianIndices(centroid_derivative)]
+    centroid_nonadiabatic_coupling = [similar_zero(matrix_prototype, size(mat)) for _ in CartesianIndices(centroid_derivative)]
 
     return RingPolymer_QuantumModel_Cache(
         model,
@@ -394,7 +405,7 @@ end
         model::M
         potential::Hermitian{T,Matrix{T}}
         derivative::Matrix{Hermitian{T,Matrix{T}}}
-        eigen::HermitianEigenWs{T, Matrix{T}, T}
+        eigen::LinearAlgebra.Eigen{T, T, Matrix{T}, Vector{T}}
         adiabatic_derivative::Matrix{Matrix{T}}
         nonadiabatic_coupling::Matrix{Matrix{T}}
 
@@ -414,6 +425,8 @@ struct QuantumFrictionModel_Cache{M, HMtx, MtxHMtx, Eig, Vec, MtxMtx, Mtx} <: Ab
     tmp_mat::Mtx
 end
 
+Adapt.@adapt_structure QuantumFrictionModel_Cache
+
 """
     function: QuantumFrictionModel_Cache{T}(model::M, atoms::Integer) where {T,M<:Model}
 
@@ -425,14 +438,14 @@ function QuantumFrictionModel_Cache(model::M, atoms::Integer, matrix_prototype::
     mat = NQCModels.QuantumModels.matrix_template(model, eltype(matrix_prototype))
     vec = NQCModels.QuantumModels.vector_template(model, eltype(matrix_prototype))
 
-    potential = similar(matrix_prototype, size(mat))
-    derivative = [similar(matrix_prototype, size(mat)) for _=1:ndofs(model), _=1:atoms]
-    eigen = (similar(matrix_prototype, size(vec)), similar(matrix_prototype, size(mat)))
+    potential = similar_zero(matrix_prototype, size(mat))
+    derivative = [similar_zero(matrix_prototype, size(mat)) for _=1:ndofs(model), _=1:atoms]
+    eigen = (similar_zero(matrix_prototype, size(vec)), similar_zero(matrix_prototype, size(mat)))
     phase_ref = similar_but_random(matrix_prototype, n) .+ eps(eltype(matrix_prototype))
-    adiabatic_derivative = [similar(matrix_prototype, size(mat)) for _ in CartesianIndices(derivative)]
-    nonadiabatic_coupling = [similar(matrix_prototype, size(mat)) for _ in CartesianIndices(derivative)]
-    friction = similar(matrix_prototype, ndofs(model)*atoms, ndofs(model)*atoms)
-    tmp_mat = similar(matrix_prototype, size(mat))
+    adiabatic_derivative = [similar_zero(matrix_prototype, size(mat)) for _ in CartesianIndices(derivative)]
+    nonadiabatic_coupling = [similar_zero(matrix_prototype, size(mat)) for _ in CartesianIndices(derivative)]
+    friction = similar_zero(matrix_prototype, ndofs(model)*atoms, ndofs(model)*atoms)
+    tmp_mat = similar_zero(matrix_prototype, size(mat))
 
     return QuantumFrictionModel_Cache(
         model,
@@ -455,7 +468,7 @@ end
         model::M
         potential::Hermitian{T,Matrix{T}}
         derivative::Matrix{Hermitian{T,Matrix{T}}}
-        eigen::HermitianEigenWs{T, Matrix{T}, T}
+        eigen::Vector{LinearAlgebra.Eigen{T, T, Matrix{T}, Vector{T}}}
         adiabatic_derivative::Matrix{Matrix{T}}
         nonadiabatic_coupling::Matrix{Matrix{T}}
 
@@ -468,7 +481,7 @@ end
         centroid::Matrix{T}
         centroid_potential::Hermitian{T,Matrix{T}}
         centroid_derivative::Matrix{Hermitian{T,Matrix{T}}}
-        centroid_eigen::HermitianEigenWs{T, Matrix{T}, T}
+        centroid_eigen::LinearAlgebra.Eigen{T, T, Matrix{T}, Vector{T}}
         centroid_adiabatic_derivative::Matrix{Matrix{T}}
         centroid_nonadiabatic_coupling::Matrix{Matrix{T}}
 
@@ -504,40 +517,42 @@ struct RingPolymer_QuantumFrictionModel_Cache{M, VHMtx, ArrHMtx, VEig, Vec, ArrM
     centroid_friction::Mtx
 end
 
+Adapt.@adapt_structure RingPolymer_QuantumFrictionModel_Cache
+
 """
     function: RingPolymer_QuantumModel_Cache{T}(model::M, atoms::Integer, beads::Integer) where {T,M<:Model}
 
 Function which constructs and returns the Struct of the same name. Takes as input an adiabatic model `M` of the users choice,
 the number of atoms in the simulation and the number of beads used in the ring polymer simulation.
 """
-function RingPolymer_QuantumFrictionModel_Cache(model::M, atoms::Integer, beads::Integer, matrix_prototype::AbstractArray; friction_method::FrictionEvaluationMethod) where {M<:Model}
+function RingPolymer_QuantumFrictionModel_Cache(model::M, atoms::Integer, beads::Integer, matrix_prototype::AbstractArray{T,N}; friction_method::FrictionEvaluationMethod) where {M<:Model, T, N}
     n = nstates(model)
     mat = NQCModels.QuantumModels.matrix_template(model, eltype(matrix_prototype))
     vec = NQCModels.QuantumModels.vector_template(model, eltype(matrix_prototype))
 
-    potential = [similar(matrix_prototype, size(mat)) for _=1:beads]
-    derivative = [similar(matrix_prototype, size(mat)) for _=1:ndofs(model), _=1:atoms, _=1:beads]
-    adiabatic_derivative = [similar(matrix_prototype, size(mat)) for _=1:ndofs(model), _=1:atoms, _=1:beads]
-    eigen = [(similar(matrix_prototype, size(vec)), similar(matrix_prototype, size(mat))) for _=1:beads]
+    potential = [similar_zero(matrix_prototype, size(mat)) for _=1:beads]
+    derivative = [similar_zero(matrix_prototype, size(mat)) for _=1:ndofs(model), _=1:atoms, _=1:beads]
+    adiabatic_derivative = [similar_zero(matrix_prototype, size(mat)) for _=1:ndofs(model), _=1:atoms, _=1:beads]
+    eigen = [(similar_zero(matrix_prototype, size(vec)), similar_zero(matrix_prototype, size(mat))) for _=1:beads]
     phase_ref = [similar_but_random(matrix_prototype, n) .+ eps(T) for _=1:beads]
-    nonadiabatic_coupling = [similar(matrix_prototype, size(mat)) for _=1:ndofs(model), _=1:atoms, _=1:beads]
-    friction = [similar(matrix_prototype, size(mat)) for _=1:ndofs(model), _=1:atoms, _=1:beads]
-    tmp_mat = similar(matrix_prototype, size(mat))
+    nonadiabatic_coupling = [similar_zero(matrix_prototype, size(mat)) for _=1:ndofs(model), _=1:atoms, _=1:beads]
+    friction = [similar_zero(matrix_prototype, size(mat)) for _=1:ndofs(model), _=1:atoms, _=1:beads]
+    tmp_mat = similar_zero(matrix_prototype, size(mat))
 
-    traceless_potential = [similar(matrix_prototype, size(mat)) for _=1:beads]
-    V̄ = similar(vec, beads)
-    traceless_derivative = [similar(matrix_prototype, size(mat)) for _=1:ndofs(model), _=1:atoms, _=1:beads]
-    D̄ = similar(matrix_prototype, atoms, beads)
-    traceless_adiabatic_derivative = [similar(matrix_prototype, size(mat)) for _=1:ndofs(model), _=1:atoms, _=1:beads]
+    traceless_potential = [similar_zero(matrix_prototype, size(mat)) for _=1:beads]
+    V̄ = similar_zero(vec, beads)
+    traceless_derivative = [similar_zero(matrix_prototype, size(mat)) for _=1:ndofs(model), _=1:atoms, _=1:beads]
+    D̄ = similar_zero(matrix_prototype, atoms, beads)
+    traceless_adiabatic_derivative = [similar_zero(matrix_prototype, size(mat)) for _=1:ndofs(model), _=1:atoms, _=1:beads]
 
-    centroid = similar(matrix_prototype, ndofs(model), atoms)
-    centroid_potential = similar(matrix_prototype, size(mat))
-    centroid_derivative = [similar(matrix_prototype, size(mat)) for _=1:ndofs(model), _=1:atoms]
-    centroid_eigen = (similar(matrix_prototype, size(vec)), similar(matrix_prototype, size(mat)))
+    centroid = similar_zero(matrix_prototype, ndofs(model), atoms)
+    centroid_potential = similar_zero(matrix_prototype, size(mat))
+    centroid_derivative = [similar_zero(matrix_prototype, size(mat)) for _=1:ndofs(model), _=1:atoms]
+    centroid_eigen = (similar_zero(matrix_prototype, size(vec)), similar_zero(matrix_prototype, size(mat)))
     centroid_phase_ref = similar_but_random(matrix_prototype, n) .+ eps(T)
-    centroid_adiabatic_derivative = [similar(matrix_prototype, size(mat)) for _ in CartesianIndices(centroid_derivative)]
-    centroid_nonadiabatic_coupling = [similar(matrix_prototype, size(mat)) for _ in CartesianIndices(centroid_derivative)]
-    centroid_friction = similar(matrix_prototype, ndofs(model)*atoms, ndofs(model)*atoms)
+    centroid_adiabatic_derivative = [similar_zero(matrix_prototype, size(mat)) for _ in CartesianIndices(centroid_derivative)]
+    centroid_nonadiabatic_coupling = [similar_zero(matrix_prototype, size(mat)) for _ in CartesianIndices(centroid_derivative)]
+    centroid_friction = similar_zero(matrix_prototype, ndofs(model)*atoms, ndofs(model)*atoms)
 
     return RingPolymer_QuantumFrictionModel_Cache(
         model,
@@ -619,18 +634,4 @@ end
 
 function Create_Cache(model::QuantumFrictionModel, atoms::Integer, beads::Integer, matrix_prototype::AbstractArray{T,N}; friction_method::Union{FrictionEvaluationMethod, Nothing}=nothing) where {T,N}
     RingPolymer_QuantumFrictionModel_Cache(model, atoms, beads, matrix_prototype; friction_method=friction_method)
-end
-
-caches = [
-    ClassicalModel_Cache,
-    RingPolymer_ClassicalModel_Cache,
-    ClassicalFrictionModel_Cache,
-    RingPolymer_ClassicalFrictionModel_Cache,
-    QuantumModel_Cache,
-    RingPolymer_QuantumModel_Cache,
-    QuantumFrictionModel_Cache,
-    RingPolymer_QuantumFrictionModel_Cache
-]
-for cache in caches
-    Adapt.@adapt_structure cache
 end

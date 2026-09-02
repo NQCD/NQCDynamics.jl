@@ -18,13 +18,17 @@ using LinearAlgebra.LAPACK
 using RingPolymerArrays
 using NQCBase
 using QuadGK
-using FastLapackInterface
 import Adapt
 import Random
 
-function similar_but_random(matrix_prototype::AbstractArray, dims...)
+function similar_but_random(matrix_prototype::AbstractArray, dims...)::AbstractArray
     out_array = similar(matrix_prototype, dims...)
     Random.rand!(out_array)
+    return out_array
+end
+function similar_zero(matrix_prototype::AbstractArray, dims...)::AbstractArray
+    out_array = similar(matrix_prototype, dims...)
+    out_array .= zero(eltype(matrix_prototype))
     return out_array
 end
 
