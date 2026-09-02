@@ -145,49 +145,46 @@ function evaluate_centroid_friction!(cache::Abstract_QuantumModel_Cache, R::Abst
     end
 end
 
-function correct_phase!(cache, eig::FastLapackInterface.HermitianEigenWs)
-    @views for i in 1:length(eig.w)
-        eig.Z[:,i] .*= 2*(0.5 - signbit(cache.phase_ref' * eig.Z[:,i]))
+function correct_phase!(cache, eig::Eigen)
+    @views for i in 1:length(eig.values)
+        eig.vectors[:,i] .*= 2*(0.5 - signbit(cache.phase_ref' * eig.vectors[:,i]))
     end
     return nothing
 end
 
 function correct_phase!(cache, eig::AbstractMatrix)
-    @views for i in 1:size(eig, 2)
+    @inbounds @views for i in axes(eig, 2)
         eig[:,i] .*= 2*(0.5 - signbit(cache.phase_ref' * eig[:,i]))
     end
     return nothing
 end
 
 function correct_phase!(phase_ref::AbstractVector, eig::AbstractMatrix)
-    @views for i in 1:size(eig, 2)
+    @inbounds @views for i in axes(eig, 2)
         eig[:,i] .*= 2*(0.5 - signbit(phase_ref' * eig[:,i]))
     end
     return nothing
 end
 
-function correct_phase!(phase_ref::AbstractVector, eig::FastLapackInterface.HermitianEigenWs)
-    @views for i in 1:length(eig.w)
-        eig.Z[:,i] .*= 2*(0.5 - signbit(phase_ref' * eig.Z[:,i]))
+function correct_phase!(phase_ref::AbstractVector, eig::Eigen)
+    @views for i in 1:length(eig.values)
+        eig.vectors[:,i] .*= 2*(0.5 - signbit(phase_ref' * eig.vectors[:,i]))
     end
     return nothing
 end
 
 function evaluate_eigen(cache::Abstract_QuantumModel_Cache, r::AbstractMatrix)
     potential = evaluate_potential(cache, r)
-    eig = HermitianEigenWs(zero(cache.eigen.Z) + I)
-    FastLapackInterface.syevr!(eig, 'V', 'A', 'U', Matrix(potential) , 0.0, 0.0, 0, 0, 1e-12)
+    eig = eigen(Hermitian(Matrix(potential)))
     correct_phase!(cache, eig)
     return eig
 end
 
 function evaluate_eigen(cache::Abstract_QuantumModel_Cache, r::AbstractArray{T,3}) where {T}
-    RP_eigen = [HermitianEigenWs(zero(cache.eigen[1].Z) + I, vecs=true) for _=1:length(beads(cache))]
     potential = evaluate_potential(cache, r)
-    tmp = zeros(size(potential[1]))
+    RP_eigen = Vector{Eigen}(undef, length(beads(cache)))
     @inbounds for i in beads(cache)
-        tmp .= potential[i]
-        FastLapackInterface.syevr!(RP_eigen[i], 'V', 'A', 'U', tmp , 0.0, 0.0, 0, 0, 1e-12)
+        RP_eigen[i] = eigen(Hermitian(Matrix(potential[i])))
         correct_phase!(cache.phase_ref[i], RP_eigen[i])
     end
     return RP_eigen
@@ -199,7 +196,7 @@ function evaluate_adiabatic_derivative(cache::Abstract_QuantumModel_Cache, r::Ab
     adiabatic_derivative = zero(cache.adiabatic_derivative)
 
     for I in eachindex(diabatic_derivative)
-        adiabatic_derivative[I] .= U.Z' * diabatic_derivative[I] * U.Z
+        adiabatic_derivative[I] .= U.vectors' * diabatic_derivative[I] * U.vectors
     end
     return adiabatic_derivative
 end
@@ -212,7 +209,7 @@ function evaluate_adiabatic_derivative(cache::Abstract_QuantumModel_Cache, r::Ab
     for i in axes(derivative, 3) # Beads
         for j in axes(derivative, 2) # Atoms
             for k in axes(derivative, 1) # DoFs
-                adiabatic_derivative[k,j,i] .= eigen[i].Z' * derivative[k,j,i] * eigen[i].Z
+                adiabatic_derivative[k,j,i] .= eigen[i].vectors' * derivative[k,j,i] * eigen[i].vectors
             end
         end
     end
@@ -225,7 +222,7 @@ function evaluate_centroid_adiabatic_derivative(cache::Abstract_QuantumModel_Cac
     centroid_adiabatic_derivative = zero(cache.centroid_adiabatic_derivative)
 
     for I in eachindex(centroid_derivative)
-        centroid_adiabatic_derivative[I] .= centroid_eigen.Z' * centroid_derivative[I] * centroid_eigen.Z
+        centroid_adiabatic_derivative[I] .= centroid_eigen.vectors' * centroid_derivative[I] * centroid_eigen.vectors
     end
     return centroid_adiabatic_derivative
 end
@@ -251,7 +248,7 @@ function evaluate_nonadiabatic_coupling(cache::Abstract_QuantumModel_Cache, r::A
     adiabatic_derivative = evaluate_adiabatic_derivative(cache, r)
     nonadiabatic_coupling = zero(cache.nonadiabatic_coupling)
 
-    evaluate_inverse_difference_matrix!(cache.tmp_mat, eigen.w)
+    evaluate_inverse_difference_matrix!(cache.tmp_mat, eigen.values)
 
     @inbounds for I in NQCModels.dofs(cache)
         @. cache.nonadiabatic_coupling[I] = adiabatic_derivative[I] * cache.tmp_mat
@@ -265,7 +262,7 @@ function evaluate_nonadiabatic_coupling(cache::Abstract_QuantumModel_Cache, r::A
     nonadiabatic_coupling = zero(cache.nonadiabatic_coupling)
 
     @inbounds for i in beads(cache)
-        evaluate_inverse_difference_matrix!(cache.tmp_mat, eigen[i].w)
+        evaluate_inverse_difference_matrix!(cache.tmp_mat, eigen[i].values)
         for j in mobileatoms(cache)
             for k in dofs(cache)
                 @. nonadiabatic_coupling[k,j,i] = adiabatic_derivative[k,j,i] * cache.tmp_mat
@@ -280,7 +277,7 @@ function evaluate_centroid_nonadiabatic_coupling(cache::Abstract_QuantumModel_Ca
     centroid_adiabatic_derivative = evaluate_centroid_adiabatic_derivative(cache, r)
     centroid_nonadiabatic_coupling = zero(cache.centroid_nonadiabatic_coupling)
 
-    evaluate_inverse_difference_matrix!(cache.tmp_mat, eigen.w)
+    evaluate_inverse_difference_matrix!(cache.tmp_mat, eigen.values)
 
     @inbounds for j in mobileatoms(cache)
         for k in dofs(cache)
@@ -322,10 +319,7 @@ end
 
 function evaluate_centroid_eigen(cache::Abstract_QuantumModel_Cache, r::AbstractArray{T,3}) where {T}
     potential = evaluate_centroid_potential(cache, r)
-    tmp = zeros(size(potential))
-    tmp .= potential
-    eig = HermitianEigenWs(zero(cache.centroid_eigen.Z) + I)
-    FastLapackInterface.syevr!(eig, 'V', 'A', 'U', tmp, 0.0, 0.0, 0, 0, 1e-12)
+    eig = eigen(Hermitian(Matrix(potential)))
     correct_phase!(cache.centroid_phase_ref, eig)
     return eig
 end

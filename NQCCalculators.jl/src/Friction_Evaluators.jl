@@ -31,7 +31,7 @@ end
 function fill_friction_tensor!(Λ, friction_method::FrictionEvaluationMethod, eigen, ∂H, r, μ)
     for I in eachindex(r)
         for J in eachindex(r)
-            Λ[J,I] = friction_method(∂H[J], ∂H[I], eigen.w, μ, friction_method.β)
+            Λ[J,I] = friction_method(∂H[J], ∂H[I], eigen.values, μ, friction_method.β)
         end
     end
 end
