@@ -70,7 +70,7 @@ but we also generate a random between 0 and `k`, where `k` was given as input.
 ### Implement `motion!(du, u, sim, t)`
 
 This function should fill `du` with the time-derivative of the dynamics variables `u` in the
-usual way expected by [`DifferentialEquations.jl`](https://diffeq.sciml.ai/stable/tutorials/ode_example/#Example-2:-Solving-Systems-of-Equations).
+usual way expected by [`DifferentialEquations.jl`](https://docs.sciml.ai/DiffEqDocs/stable/tutorials/ode_example/#Example-2:-Solving-Systems-of-Equations).
 We use the in-place version, where each element of `du` is filled with the time derivative of
 the correponding element in `u`.
 
