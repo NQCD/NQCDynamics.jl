@@ -30,7 +30,7 @@
 
 **Fast and flexible nonadiabatic molecular dynamics in Julia!**
 
--  🚗 **Fast:** uses [DifferentialEquations.jl](https://diffeq.sciml.ai/stable/) for efficient dynamics.
+-  🚗 **Fast:** uses [DifferentialEquations.jl](https://docs.sciml.ai/DiffEqDocs/stable/) for efficient dynamics.
 -  🪚 **Extensible:** plenty of room for more methods.
 - ⚛️ **Transferable:** handles both simple models and atomistic systems.
 - 👩‍🏫 **Helpful:** extended documentation with plenty of examples.
@@ -42,7 +42,7 @@
 ---
 
 With this package you can generate the initial conditions and perform the dynamics for your nonadiabatic dynamics simulations.
-Tight integration with [DifferentialEquations.jl](https://diffeq.sciml.ai/stable/)
+Tight integration with [DifferentialEquations.jl](https://docs.sciml.ai/DiffEqDocs/stable/)
 makes the implementation of new methods relatively simple since we
 build upon an already successful package providing a vast array of features.
 We hope that the package will be of use to new students and experienced researchers alike, acting as a tool for learning and for developing new methods.

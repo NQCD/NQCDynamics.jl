@@ -22,9 +22,9 @@ and changing the number of trajectories it is possible to run an ensemble of tra
 The distributions are defined such that they can be sampled to provide initial conditions for each trajectory.
 The [Storing and sampling distributions](@ref nqcdistributions) page details the format the distributions must take.
 
-Internally, the [DifferentialEquations.jl](https://diffeq.sciml.ai/stable/features/ensemble/#Performing-an-Ensemble-Simulation)
+Internally, the [DifferentialEquations.jl](https://docs.sciml.ai/DiffEqDocs/stable/features/ensemble/#Performing-an-Ensemble-Simulation)
 ensemble infrastructure is used to handle per trajectory parallelism.
-The `ensemble_algorithm` keyword takes one of the [EnsembleAlgorithms](https://diffeq.sciml.ai/stable/features/ensemble/#EnsembleAlgorithms).
+The `ensemble_algorithm` keyword takes one of the [EnsembleAlgorithms](https://docs.sciml.ai/DiffEqDocs/stable/features/ensemble/#EnsembleAlgorithms).
 To use these, you must first add `using DiffEqBase` to your script.
 
 ## Example
@@ -104,7 +104,7 @@ plot(ensemble, :OutputDiabaticPopulation)
 This workflow can be applied for any of the quantities defined in the [`DynamicsOutputs`](@ref NQCDynamics.DynamicsOutputs) submodule.
 If we want a more complex output, such as a scattering probability or a time-correlation function,
 we can provide a function to the output argument as described in the
-[DifferentialEquations.jl documentation](https://diffeq.sciml.ai/stable/features/ensemble/#Building-a-Problem).
+[DifferentialEquations.jl documentation](https://docs.sciml.ai/DiffEqDocs/stable/features/ensemble/#Building-a-Problem).
 The advantage of this approach is that memory can be saved by reducing the data as the trajectories accumulate,
 it also allows greater flexibility when modifying the output.
 
