@@ -6,7 +6,7 @@ start_time = time()
 # DifferentialEquations.jl integration
 
 NQCDynamics.jl is built directly on top of the established
-[DifferentialEquations.jl](https://diffeq.sciml.ai/dev/index.html)
+[DifferentialEquations.jl](https://docs.sciml.ai/DiffEqDocs/dev/index.html)
 that provides a vast array of features.
 By using DifferentialEquations.jl to perform the dynamics,
 we can immediately exploit many of these features to save us a lot of work.
@@ -14,7 +14,7 @@ This page details some of the features from DifferentialEquations.jl that we hav
 
 ## [Callbacks](@id devdocs-callbacks)
 
-[Callbacks](https://diffeq.sciml.ai/dev/features/callback_functions/#callbacks) allow
+[Callbacks](https://docs.sciml.ai/DiffEqDocs/dev/features/callback_functions/#callbacks) allow
 us to introduce extra code during the dynamics without needing to meddle with the
 integration code directly.
 On the developer side, [Callbacks] is the mechanism used for the saving in the
@@ -59,7 +59,7 @@ See how the callbacks have altered the dynamics? The atom no longer leaves
 the simulation cell, and the termination caused the simulation to exit early. 
 
 The callback setup we're using is exactly that provided by DifferentialEquations.jl,
-if you want more details on callbacks, please refer to their [documentation](https://diffeq.sciml.ai/dev/features/callback_functions/#callbacks).
+if you want more details on callbacks, please refer to their [documentation](https://docs.sciml.ai/DiffEqDocs/dev/features/callback_functions/#callbacks).
 ```@setup logging
 runtime = round(time() - start_time; digits=2)
 @info "...done after $runtime s."
