@@ -438,6 +438,10 @@ function iesh_apply_decoherence_correction_edc!(integrator)
     @views for (i, state) in enumerate(sim.method.state)
         apply_decoherence_correction!(ψ[:,i], sim.method.decoherence, state, dt, eigen.w, Ekin)
     end
+    C = Matrix(ψ)  
+    lowdin_orthonormalize!(C)
+    ψ .= C 
+
 end
 
 function set_state!(container, new_state::AbstractVector, sim::AbstractSimulation{<:AbstractIESH})
