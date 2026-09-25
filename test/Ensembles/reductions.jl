@@ -33,6 +33,41 @@ end
     rm("test.h5")
 end
 
+@testset "XYZFileReduction" begin
+    sim = Simulation(Atoms([:H]), Harmonic())
+    u0 = DynamicsVariables(sim, randn(1,1), randn(1,1))
+
+    # Test single trajectory with plain XYZ output (InfiniteCell)
+    rm("test_1.xyz", force=true)
+    reduction = XYZFileReduction("test.xyz", sim)
+    run_dynamics(sim, (0.0, 10.0), u0; dt=1.0, reduction, output=OutputPosition)
+    @test isfile("test_1.xyz")
+    lines = readlines("test_1.xyz")
+    # Each frame: 1 atom-count line + 1 comment line + natoms data lines = 3 lines per frame
+    @test length(lines) > 0
+    @test length(lines) % 3 == 0
+    @test strip(lines[1]) == "1"           # 1 atom per frame
+    @test startswith(strip(lines[3]), "H ") # H atom symbol
+    rm("test_1.xyz")
+
+    # Test multiple trajectories produce separate files
+    positions = [randn(1,1) for _=1:3]
+    velocities = [randn(1,1) for _=1:3]
+    distribution = DynamicalDistribution(positions, velocities, (1, 1))
+    reduction = XYZFileReduction("multi.xyz", sim)
+    run_dynamics(sim, (0.0, 5.0), distribution; dt=1.0, reduction, output=OutputPosition, trajectories=3)
+    @test isfile("multi_1.xyz")
+    @test isfile("multi_2.xyz")
+    @test isfile("multi_3.xyz")
+    rm("multi_1.xyz")
+    rm("multi_2.xyz")
+    rm("multi_3.xyz")
+
+    # Test that non-.xyz extension is converted to .xyz
+    reduction = XYZFileReduction("test.txt", sim)
+    @test endswith(reduction.filename, ".xyz")
+end
+
 @testset "SortByOutputReduction" begin
     reduction = SortByOutputReduction()
     

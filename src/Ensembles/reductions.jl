@@ -1,6 +1,7 @@
 using StatsBase: mean
 using HDF5: HDF5
 using Dictionaries: Dictionary
+using NQCBase: NQCBase
 
 """
 Sum the outputs from each trajectory.
@@ -88,6 +89,75 @@ function (reduction::FileReduction)(u, batch, I)
         end
     end
     return ("Output written to $(reduction.filename).", false)
+end
+
+"""
+    XYZFileReduction(filename, sim)
+
+Write trajectory positions to (ext)XYZ files, one file per trajectory.
+
+Each trajectory is written to a separate file with the trajectory ID appended
+to the base filename (e.g., `output_1.xyz`, `output_2.xyz`).
+
+The `OutputPosition` output must be included in the `output` tuple passed to
+[`run_dynamics`](@ref). If `OutputPosition` is not present, no file will be written
+for that trajectory.
+
+For simulations with a `PeriodicCell`, the extended XYZ format is used, including
+cell and periodic boundary information. For other cell types (e.g., `InfiniteCell`),
+a plain XYZ file is written with positions converted to Ångströms.
+
+# Example
+```julia
+sim = Simulation(Atoms([:H]), Harmonic())
+run_dynamics(sim, (0.0, 1.0), u0; output=OutputPosition, reduction=XYZFileReduction("output.xyz", sim))
+# Writes output_1.xyz
+```
+"""
+struct XYZFileReduction
+    filename::String
+    atoms
+    cell
+
+    function XYZFileReduction(filename::String, sim::AbstractSimulation)
+        splitname = splitext(filename)
+        ext = splitname[2]
+        if ext in (".xyz", ".extxyz")
+            return new(filename, sim.atoms, sim.cell)
+        else
+            return new(splitname[1] * ".xyz", sim.atoms, sim.cell)
+        end
+    end
+end
+
+function (reduction::XYZFileReduction)(u, batch, I)
+    base, ext = splitext(reduction.filename)
+    for (i, trajectory_id) in enumerate(I)
+        trajectory = batch[i]
+        if haskey(trajectory, :OutputPosition)
+            positions = trajectory[:OutputPosition]
+            filename = base * "_$(trajectory_id)" * ext
+            _write_xyz_trajectory(filename, reduction.atoms, positions, reduction.cell)
+        end
+    end
+    return ("Output written to $(base)_*$(ext).", false)
+end
+
+function _write_xyz_trajectory(filename, atoms, positions, cell::NQCBase.PeriodicCell)
+    NQCBase.write_extxyz(filename, atoms, positions, cell)
+end
+
+function _write_xyz_trajectory(filename, atoms, positions, cell)
+    open(filename, "w") do io
+        for R in positions
+            println(io, length(atoms))
+            println(io, "")
+            for (j, symbol) in enumerate(atoms.types)
+                coords = NQCBase.au_to_ang.(R[:, j])
+                println(io, "$(symbol) $(join(coords, " "))")
+            end
+        end
+    end
 end
 
 """
