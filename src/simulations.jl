@@ -1,9 +1,124 @@
 
-using Unitful: @u_str
+using Unitful: @u_str, Quantity
 using UnitfulAtomic: austrip, auconvert
+using Interpolations: AbstractInterpolation, linear_interpolation
 
 using NQCCalculators
 using NQCModels: Model, Subsystem, CompositeModel
+
+"""
+    Temperature
+
+A unified type for specifying temperature in NQCDynamics simulations. Internally all
+temperatures are stored and returned in atomic units (dimensionless).
+
+Supports four forms of temperature specification:
+
+- **Constant scalar**: a single number (with or without Unitful units).
+- **Per-atom vector**: a `Vector` giving a temperature for each atom (with or without units).
+- **Time-dependent function**: a callable `f(t)` where `t` is time in atomic units.
+  The function may return a dimensionless number, a Unitful quantity, a `Vector`, or a
+  `Vector` of Unitful quantities.
+- **Spline (time interpolation)**: an `Interpolations.AbstractInterpolation` whose knot
+  coordinates are in atomic units of time and whose values are temperatures in atomic
+  units (dimensionless). Build one with `Temperature(times, values)`.
+
+## Constructors
+
+```julia
+Temperature(300u"K")                     # constant scalar with units
+Temperature(300.0)                       # constant scalar (atomic units, dimensionless)
+Temperature([100u"K", 200u"K"])          # per-atom vector
+Temperature(t -> 300u"K" + t*u"K/fs")   # time-dependent function (t in atomic units)
+Temperature(times, values)               # build a linear spline from knot arrays
+```
+
+## Notes
+
+When a Unitful `Quantity` (or `Vector` thereof) is provided, it is automatically
+stripped to atomic units. Plain numbers are taken as-is (assumed to be in atomic units).
+
+In the `Temperature(times, values)` spline constructor, `times` may be a `Vector` of
+Unitful time quantities or plain numbers (atomic units), and `values` may be a `Vector`
+of Unitful temperature quantities or plain numbers (atomic units).
+"""
+struct Temperature{F}
+    f::F  # callable: f(t::Real) -> Real or Vector{<:Real}  (always in atomic units)
+end
+
+# ---- internal helper: strip a value to a dimensionless atomic-unit number ----
+_to_au(x::Real) = Float64(x)
+_to_au(x::Quantity) = austrip(x)
+_to_au(x::AbstractVector) = _to_au.(x)
+
+# ---- constructors ----
+
+"""
+    Temperature(value::Union{Number, AbstractVector})
+
+Constant temperature (scalar or per-atom vector).  Unitful quantities are converted to
+atomic units; plain numbers are taken as-is.
+"""
+function Temperature(value::Union{Number, AbstractVector})
+    T_au = _to_au(value)
+    return Temperature{typeof(T_au)}(T_au)
+end
+
+"""
+    Temperature(f::Function)
+
+Time-dependent temperature given by `f(t)` where `t` is time in atomic units.
+The function may return a dimensionless number, a Unitful quantity, a `Vector`, or a
+`Vector` of Unitful quantities; the result is always stripped to atomic units.
+"""
+Temperature(f::Function) = Temperature{typeof(f)}(f)
+
+"""
+    Temperature(itp::AbstractInterpolation)
+
+Temperature from a pre-built `Interpolations.jl` spline. Knot coordinates must be
+in atomic units of time; values must be dimensionless.
+"""
+Temperature(itp::AbstractInterpolation) = Temperature{typeof(itp)}(itp)
+
+"""
+    Temperature(times::AbstractVector, values::AbstractVector)
+
+Build a linear spline temperature from knot arrays.
+
+`times` may contain Unitful time quantities or plain numbers (atomic units of time).
+`values` may contain Unitful temperature quantities or plain numbers (atomic units).
+"""
+function Temperature(times::AbstractVector, values::AbstractVector)
+    t_au = austrip.(times)
+    v_au = _to_au(values)
+    itp = linear_interpolation(t_au, v_au)
+    return Temperature(itp)
+end
+
+# ---- callable interface ----
+
+"""
+    (T::Temperature)(t::Real) -> Real or Vector{<:Real}
+
+Evaluate the temperature at time `t` (in atomic units).  Always returns a dimensionless
+value (or vector of values) in atomic units.
+"""
+(temp::Temperature{<:Function})(t::Real) = _to_au(temp.f(t))
+(temp::Temperature{<:AbstractInterpolation})(t::Real) = temp.f(t)
+
+# Constant Temperature: the stored value is already stripped, just return it.
+(temp::Temperature{<:Real})(t::Real) = temp.f
+(temp::Temperature{<:AbstractVector})(t::Real) = temp.f
+
+function Base.show(io::IO, temp::Temperature)
+    T0 = temp(0.0)
+    if T0 isa AbstractVector
+        print(io, "Temperature (per-atom at t=0): ", T0)
+    else
+        print(io, "Temperature (at t=0): ", T0, " (atomic units)")
+    end
+end
 
 abstract type AbstractSimulation{M} end
 
@@ -94,12 +209,18 @@ Base.size(sim::Simulation) = (ndofs(sim), natoms(sim))
 Base.size(sim::RingPolymerSimulation) = (ndofs(sim), natoms(sim), RingPolymers.nbeads(sim))
 
 function get_temperature(sim::AbstractSimulation, t::Real=0)
-    t = auconvert(u"fs", t)
     get_temperature(sim.temperature, t)
 end
 
+"""
+    get_temperature(temperature::Temperature, t=0)
+
+Evaluate a `Temperature` object at time `t` (in atomic units).
+"""
+get_temperature(temperature::Temperature, t::Real=0) = temperature(t)
+
 get_temperature(temperature::Number, t=0) = austrip(temperature)
-get_temperature(temperature::Function, t=0) = austrip(temperature(t))
+get_temperature(temperature::Function, t=0) = austrip(temperature(auconvert(u"fs", t)))
 
 function get_ring_polymer_temperature(sim::RingPolymerSimulation, t::Real=0)
     return @. get_temperature(sim, t) * nbeads(sim)
