@@ -11,7 +11,7 @@ function DynamicsMethods.motion!(du, u, sim::Simulation{<:ClassicalMasterEquatio
     r = DynamicsUtils.get_positions(u)
     v = DynamicsUtils.get_velocities(u)
 
-    set_state!(u, sim.method.state, sim) # Make sure the state variables match, 
+    set_state!(u, sim.method.state, sim) # Make sure the state variables match,
 
     DynamicsUtils.velocity!(dr, v, r, sim, t) # Set the velocity
     DynamicsUtils.acceleration!(dv, v, r, sim, t) # Set the acceleration
@@ -37,7 +37,7 @@ function evaluate_hopping_probability!(sim::Simulation{<:ClassicalMasterEquation
         sim.method.hopping_probability = Γ * (1 - f) * dt
     end
 end
-    
+
 function select_new_state(sim::AbstractSimulation{<:ClassicalMasterEquation}, u)::Int
     random_number = rand()
     if random_number < sim.method.hopping_probability
@@ -80,6 +80,7 @@ function CME{T}(nstates::Integer) where {T}
 end
 
 function Simulation{CME}(atoms::Atoms{T}, model; kwargs...) where {T}
+    @info "CME uses an adaptive time stepping integrator by default. Use `abstol` or `reltol` arguments in `run_dynamics` to increase the stability criterion, or set `adaptive=false`."
     Simulation(atoms, model, CME{T}(NQCModels.nstates(model)); kwargs...)
 end
 
@@ -129,6 +130,7 @@ function BCME{T}(nstates::Integer, bandwidth) where {T}
 end
 
 function Simulation{BCME}(atoms::Atoms{T}, model; bandwidth, kwargs...) where {T}
+    @info "BCME uses an adaptive time stepping integrator by default. Use `abstol` or `reltol` arguments in `run_dynamics` to increase the stability criterion, or set `adaptive=false`."
     Simulation(atoms, model, BCME{T}(NQCModels.nstates(model), bandwidth); kwargs...)
 end
 
