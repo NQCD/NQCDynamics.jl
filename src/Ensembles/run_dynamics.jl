@@ -18,7 +18,7 @@ end
     run_dynamics(sim::AbstractSimulation, tspan, distribution;
         output,
         selection::Union{Nothing,AbstractVector}=nothing,
-        reduction=AppendReduction(),
+        reduction=SortByTrajectoryReduction(),
         ensemble_algorithm=SciMLBase.EnsembleSerial(),
         algorithm=DynamicsMethods.select_algorithm(sim),
         trajectories=1,
@@ -51,7 +51,6 @@ function run_dynamics(
     trajectories = 1,
     savetime = true,
     precompile_dynamics = true,
-    rjm = false,
     kwargs...,
 )
 
