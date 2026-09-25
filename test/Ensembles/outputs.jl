@@ -22,8 +22,8 @@ end
 end
 
 @testset "OutputQuantisedDiatomic" begin
-    # Maybe tack this onto a dynamics unit test. 
-    output = OutputQuantisedDiatomic(; height=1, normal_vector = [1, 1, 1])
+    # Maybe tack this onto a dynamics unit test.
+    output = OutputQuantisedDiatomic(; height=1, normal_vector=[1, 1, 1])
     output = OutputQuantisedDiatomic()
 end
 
@@ -32,31 +32,31 @@ end
     @testset "Ehrenfest" begin
         sim = Simulation{Ehrenfest}(Atoms(2000), TullyModelTwo())
         output = TimeCorrelationFunctions.PopulationCorrelationFunction(sim, Adiabatic())
-        u = DynamicsVariables(sim, hcat(20/2000), hcat(-5), PureState(1, Adiabatic()))
+        u = DynamicsVariables(sim, hcat(20 / 2000), hcat(-5), PureState(1, Adiabatic()))
         sol = run_dynamics(sim, (0, 1000.0), u; output, dt=0.01)
         out = sol[:PopulationCorrelationFunction]
-        @test out[1][1,1] ≈ 1
-        @test out[1][2,2] ≈ 0
-        @test [o[1,2] for o in out] ≈ [1 - o[1,1] for o in out]
+        @test out[1][1, 1] ≈ 1
+        @test out[1][2, 2] ≈ 0
+        @test [o[1, 2] for o in out] ≈ [1 - o[1, 1] for o in out]
     end
 
     @testset "FSSH" begin
         sim = Simulation{FSSH}(Atoms(2000), TullyModelTwo())
         output = TimeCorrelationFunctions.PopulationCorrelationFunction(sim, Adiabatic())
-        u = DynamicsVariables(sim, hcat(20/2000), hcat(-5), PureState(1, Adiabatic()))
+        u = DynamicsVariables(sim, hcat(20 / 2000), hcat(-5), PureState(1, Adiabatic()))
         sol = run_dynamics(sim, (0, 1000.0), u; output, dt=0.01)
         out = sol[:PopulationCorrelationFunction]
-        @test out[1][1,1] ≈ 1
-        @test out[1][2,2] ≈ 0
-        @test [o[1,2] for o in out] ≈ [1 - o[1,1] for o in out]
+        @test out[1][1, 1] ≈ 1
+        @test out[1][2, 2] ≈ 0
+        @test [o[1, 2] for o in out] ≈ [1 - o[1, 1] for o in out]
     end
 
     @testset "eCMM" begin
         sim = Simulation{eCMM}(Atoms(2000), TullyModelTwo())
         output = TimeCorrelationFunctions.PopulationCorrelationFunction(sim, Diabatic())
-        u = DynamicsVariables(sim, hcat(20/2000), hcat(-5), PureState(1, Diabatic()))
+        u = DynamicsVariables(sim, hcat(20 / 2000), hcat(-5), PureState(1, Diabatic()))
         sol = run_dynamics(sim, (0, 1000.0), u; output, dt=0.01)
         out = sol[:PopulationCorrelationFunction]
     end
-    
+
 end
