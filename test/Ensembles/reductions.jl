@@ -33,6 +33,31 @@ end
     rm("test.h5")
 end
 
+struct _HDF5TestStruct
+    a::Vector{Float64}
+    b::Int
+end
+
+@testset "FileReduction nested outputs" begin
+    filename = tempname() * ".h5"
+    value = Dict(
+        :stacked => [rand(2, 2) for _ = 1:3],
+        :nested => Dict(:x => 1.0, :s => _HDF5TestStruct([1.0, 2.0], 3)),
+        :ragged => [rand(2), rand(3)],
+    )
+    h5open(filename, "w") do fid
+        Ensembles.write_hdf5!(fid, "out", value)
+    end
+    h5open(filename) do fid
+        @test size(fid["out"]["stacked"]) == (2, 2, 3)
+        @test read(fid["out"]["nested"]["x"]) == 1.0
+        @test read(fid["out"]["nested"]["s"]["a"]) == [1.0, 2.0]
+        @test read(fid["out"]["nested"]["s"]["b"]) == 3
+        @test length(read(fid["out"]["ragged"]["2"])) == 3
+    end
+    rm(filename)
+end
+
 @testset "SortByOutputReduction" begin
     reduction = SortByOutputReduction()
     
