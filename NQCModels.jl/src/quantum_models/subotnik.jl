@@ -32,45 +32,27 @@ NQCModels.ndofs(::MiaoSubotnik) = 1
 NQCModels.nstates(::MiaoSubotnik) = 2
 
 # GPU extensions: ext/NQCModelsCUDAExt.jl:254, ext/NQCModelsMetalExt.jl:254
-function NQCModels.potential(model::MiaoSubotnik, R::AbstractMatrix)
-    (;m, ω, g, ΔG, coupling) = model
-    x = R[1]
-
-    V11 = (m*ω^2*x^2)/2
-    V22 = (m*ω^2*(x-g)^2)/2 + ΔG
-    V12 = coupling
-
-    return Hermitian([V11 V12; V12 V22])
-end
-
 function NQCModels.potential!(model::MiaoSubotnik, V::Hermitian, R::AbstractMatrix)
     (;m, ω, g, ΔG, coupling) = model
-    x = R[1]
 
-    V11 = (m*ω^2*x^2)/2
-    V22 = (m*ω^2*(x-g)^2)/2 + ΔG
-    V12 = coupling
+    V11 = sum(x -> (m*ω^2*x^2)/2, R)
+    V22 = sum(x -> (m*ω^2*(x-g)^2)/2 + ΔG, R)
+    V12 = coupling * length(R)
 
-    V.data .= Hermitian([V11 V12; V12 V22])
+    V.data .= [V11 V12; V12 V22]
 end
 
 # GPU extensions: ext/NQCModelsCUDAExt.jl:265, ext/NQCModelsMetalExt.jl:265
-function NQCModels.derivative(model::MiaoSubotnik, R::AbstractMatrix)
+function NQCModels.derivative!(model::MiaoSubotnik, D::AbstractMatrix{<:Hermitian}, R::AbstractMatrix)
     (;m, ω, g) = model
-    x = R[1]
 
-    D11 = m*ω^2*x
-    D22 = m*ω^2*(x-g)
-    
-    return Hermitian([D11 0; 0 D22])
-end
+    for dof in axes(R, 1)
+        for atom in axes(R, 2)
+            x = R[dof,atom]
+            D11 = m*ω^2*x
+            D22 = m*ω^2*(x-g)
 
-function NQCModels.derivative!(model::MiaoSubotnik, D::Hermitian, R::AbstractMatrix)
-    (;m, ω, g) = model
-    x = R[1]
-    
-    D11 = m*ω^2*x
-    D22 = m*ω^2*(x-g)
-    
-    D.data .= [D11 0; 0 D22]
+            D[dof,atom].data .= [D11 0; 0 D22]
+        end
+    end
 end

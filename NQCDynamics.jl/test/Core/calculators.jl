@@ -22,14 +22,14 @@ const MAX_EIGEN_ALLOCATIONS = 60000
     @test NQCCalculators.Create_Cache(model, 1, hcat(1.0)) isa NQCCalculators.Abstract_QuantumModel_Cache
 
     model = NQCModels.CompositeFrictionModel(Free(), RandomFriction(1))
-    @test NQCCalculators.Create_Cache(model, 1, hcat(1.0)) isa NQCCalculators.Friction_Cache
-    @test NQCCalculators.Create_Cache(model, 1, 2, hcat(1.0)) isa NQCCalculators.RingPolymer_Friction_Cache
+    @test NQCCalculators.Create_Cache(model, 1, hcat(1.0)) isa NQCCalculators.ClassicalFrictionModel_Cache
+    @test NQCCalculators.Create_Cache(model, 1, 2, hcat(1.0)) isa NQCCalculators.RingPolymer_ClassicalFrictionModel_Cache
 end
 
 @testset "ClassicalModel_Cache" begin
     model = NQCModels.Free(3)
-    cache = NQCCalculators.ClassicalModel_Cache{Float64}(model, 5)
     r = rand(3, 5)
+    cache = NQCCalculators.ClassicalModel_Cache(model, 5, r)
 
     @test @allocated(NQCCalculators.update_potential!(cache, r)) == 0
     @test @allocated(NQCCalculators.update_derivative!(cache, r)) == 0
@@ -43,8 +43,8 @@ end
 
 @testset "RingPolymer_ClassicalModel_Cache" begin
     model = NQCModels.Free(3)
-    cache = NQCCalculators.RingPolymer_ClassicalModel_Cache{Float64}(model, 5, 10)
     r = rand(3, 5, 10)
+    cache = NQCCalculators.RingPolymer_ClassicalModel_Cache(model, 5, 10, r)
 
     @test @allocated(NQCCalculators.update_potential!(cache, r)) == 0
     @test @allocated(NQCCalculators.update_derivative!(cache, r)) == 0
@@ -55,8 +55,8 @@ end
 
 @testset "Abstract_QuantumModel_Cache" begin
     model = NQCModels.DoubleWell()
-    cache = NQCCalculators.Abstract_QuantumModel_Cache{Float64}(model, 1)
     r = rand(1,1)
+    cache = NQCCalculators.QuantumModel_Cache(model, 1, r)
     quantities = (:potential, :derivative, :eigen, :adiabatic_derivative, :nonadiabatic_coupling)
 
     @testset "Potential evaluation" begin
@@ -119,7 +119,7 @@ end
 @testset "RingPolymer_QuantumModel_Cache" begin
     model = NQCModels.DoubleWell()
 
-    reset_cache() = NQCCalculators.RingPolymer_QuantumModel_Cache{Float64}(model, 1, 10)
+    reset_cache() = NQCCalculators.RingPolymer_QuantumModel_Cache(model, 1, 10, hcat(1.0))
 
     r = rand(1,1,10)
     r_centroid = rand(1,1)
@@ -266,8 +266,8 @@ end
 
 @testset "Abstract_QuantumModel_Cache" begin
     model = NQCModels.AndersonHolstein(MiaoSubotnik(;Γ=1.0), TrapezoidalRule(40, -1.0, 1.0))
-    cache = NQCCalculators.Abstract_QuantumModel_Cache{Float64}(model, 1)
     r = rand(1,1)
+    cache = NQCCalculators.QuantumModel_Cache(model, 1, r)
 
     NQCCalculators.get_nonadiabatic_coupling(cache, r)
     @test all(x->x==1, values(cache.stats))
@@ -290,8 +290,8 @@ end
 
 @testset "RingPolymer_QuantumModel_Cache" begin
     model = NQCModels.AndersonHolstein(MiaoSubotnik(;Γ=1.0), TrapezoidalRule(40, -1.0, 1.0))
-    cache = NQCCalculators.RingPolymer_QuantumModel_Cache{Float64}(model, 1, 10)
     r = rand(1, 1, 10)
+    cache = NQCCalculators.RingPolymer_QuantumModel_Cache(model, 1, 10, r)
 
     NQCCalculators.get_nonadiabatic_coupling(cache, r)
     NQCCalculators.get_centroid_nonadiabatic_coupling(cache, r)
@@ -310,10 +310,10 @@ end
     @test @allocated(NQCCalculators.update_nonadiabatic_coupling!(cache, r)) == 0
 end
 
-@testset "Friction_Cache" begin
+@testset "ClassicalFrictionModel_Cache" begin
     model = CompositeFrictionModel(Free(), RandomFriction(1))
-    cache = NQCCalculators.Friction_Cache{Float64}(model, 1)
     r = rand(1,1)
+    cache = NQCCalculators.ClassicalFrictionModel_Cache(model, 1, r)
 
     NQCCalculators.get_potential(cache, r)
     NQCCalculators.get_derivative(cache, r)
@@ -330,10 +330,10 @@ end
     @test allocs_Friction ≤ 250
 end
 
-@testset "RingPolymer_Friction_Cache" begin
+@testset "RingPolymer_ClassicalFrictionModel_Cache" begin
     model = CompositeFrictionModel(Free(), RandomFriction(1))
-    cache = NQCCalculators.RingPolymer_Friction_Cache{Float64}(model, 1, 10)
     r = rand(1,1,10)
+    cache = NQCCalculators.RingPolymer_ClassicalFrictionModel_Cache(model, 1, 10, r)
 
     NQCCalculators.get_potential(cache, r)
     NQCCalculators.get_derivative(cache, r)

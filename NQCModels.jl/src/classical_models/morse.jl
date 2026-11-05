@@ -13,48 +13,35 @@ Parameters.@with_kw struct Morse{T} <: ClassicalModel
     m::T = 1.0
 end
 
-NQCModels.ndofs(harmonic::Morse) = 1
+NQCModels.ndofs(::Morse) = 1
 
 # GPU extensions: ext/NQCModelsCUDAExt.jl:29, ext/NQCModelsMetalExt.jl:29
-function NQCModels.potential(model::Morse, R::AbstractMatrix)
-    r = R[1]
+function NQCModels.potential(model::Morse{<:Number}, R::AbstractMatrix)
     (;Dₑ, x₀, a) = model
-    return Dₑ * (exp(-a*(r-x₀)) - 1)^2
-end
-
-function NQCModels.potential!(model::Morse, V::Matrix{<:Number}, R::AbstractMatrix)
-    r = R[1]
-    (;Dₑ, x₀, a) = model
-    V .= Dₑ * (exp(-a*(r-x₀)) - 1)^2
+    return sum(Dₑ * (exp(-a*(x-x₀)) - 1)^2 for x in R)
 end
 
 # GPU extensions: ext/NQCModelsCUDAExt.jl:35, ext/NQCModelsMetalExt.jl:35
-function NQCModels.derivative(model::Morse, R::AbstractMatrix)
-    r = R[1] 
+function NQCModels.derivative!(model::Morse{<:Number}, D::AbstractMatrix, R::AbstractMatrix)
     (;Dₑ, x₀, a) = model
-    return 2Dₑ * (exp(-a*(r-x₀)) - 1) * -a * exp(-a*(r-x₀))
-end
-
-function NQCModels.derivative!(model::Morse, D::AbstractMatrix, R::AbstractMatrix)
-    r = R[1] 
-    (;Dₑ, x₀, a) = model
-    @. D = 2Dₑ * (exp(-a*(r-x₀)) - 1) * -a * exp(-a*(r-x₀))
+    @. D = 2Dₑ * (exp(-a*(R-x₀)) - 1) * -a * exp(-a*(R-x₀))
+    return D
 end
 
 "Eq. 44"
-function getω₀(model::Morse)
+function getω₀(model::Morse{<:Number})
     (;Dₑ, a, m) = model
     return sqrt(2Dₑ * a^2 / m)
 end
 
 "Eq. 36"
-function getλ(model::Morse)
+function getλ(model::Morse{<:Number})
     (;Dₑ, a, m) = model
     return sqrt(2m*Dₑ) / a
 end
 
 "Eq. 43"
-function eigenenergy(model::Morse, n)
+function eigenenergy(model::Morse{<:Number}, n)
     λ = getλ(model)
     n > trunc(Int, λ - 1/2) && throw(DomainError(n, "State $n is unbound!")) # Eq. 40
     ω = getω₀(model)

@@ -17,49 +17,29 @@ Parameters.@with_kw struct TullyModelOne{A,B,C,D} <: TullyModel
 end
 
 # GPU extensions: ext/NQCModelsCUDAExt.jl:105, ext/NQCModelsMetalExt.jl:105
-function NQCModels.potential(model::TullyModelOne, R::AbstractMatrix)
-    Parameters.@unpack a, b, c, d = model
-    q = R[1]
-    if q > 0
-        V11 = a * (1 - exp(-b*q))
-    else
-        V11 = -a * (1 - exp(b*q))
-    end
-    V22 = -V11
-    V12 = c * exp(-d*q^2) # sets both off-diagonals as V is Hermitian
-    return Hermitian([V11 V12; V12 V22])
-end
 
 function NQCModels.potential!(model::TullyModelOne, V::Hermitian, R::AbstractMatrix)
     Parameters.@unpack a, b, c, d = model
-    q = R[1]
-    if q > 0
-        V11 = a * (1 - exp(-b*q))
-    else
-        V11 = -a * (1 - exp(b*q))
+    V11 = sum(R) do q
+        q > 0 ? a * (1 - exp(-b*q)) : -a * (1 - exp(b*q))
     end
-    V22 = -V11
-    V12 = c * exp(-d*q^2) # sets both off-diagonals as V is Hermitian
-    V.data .= [V11 V12; V12 V22]
+    V12 = sum(q -> c * exp(-d*q^2), R) # sets both off-diagonals as V is Hermitian
+    V.data .= [V11 V12; V12 -V11]
 end
 
 # GPU extensions: ext/NQCModelsCUDAExt.jl:119, ext/NQCModelsMetalExt.jl:119
-function NQCModels.derivative(model::TullyModelOne, R::AbstractMatrix)
-    Parameters.@unpack a, b, c, d = model
-    q = R[1]
-    D11 = a * b * exp(-b * abs(q))
-    D22 = -D11
-    D12 = -2 * c * d * q * exp(-d*q^2)
-    return Hermitian([D11 D12; D12 D22])
-end
 
-function NQCModels.derivative!(model::TullyModelOne, D::Hermitian, R::AbstractMatrix)
+function NQCModels.derivative!(model::TullyModelOne, D::AbstractMatrix{<:Hermitian}, R::AbstractMatrix)
     Parameters.@unpack a, b, c, d = model
-    q = R[1]
-    D11 = a * b * exp(-b * abs(q))
-    D22 = -D11
-    D12 = -2 * c * d * q * exp(-d*q^2)
-    D.data .= [D11 D12; D12 D22]
+    @inbounds for dof in axes(R, 1)
+        @inbounds for atom in axes(R, 2)
+            q = R[dof, atom]
+            D11 = a * b * exp(-b * abs(q))
+            D22 = -D11
+            D12 = -2 * c * d * q * exp(-d*q^2)
+            D[dof,atom].data .= [D11 D12; D12 D22]
+        end
+    end
 end
 
 """
@@ -76,43 +56,28 @@ Parameters.@with_kw struct TullyModelTwo{A,B,C,D,E} <: TullyModel
 end
 
 # GPU extensions: ext/NQCModelsCUDAExt.jl:130, ext/NQCModelsMetalExt.jl:130
-function NQCModels.potential(model::TullyModelTwo, R::AbstractMatrix)
-    Parameters.@unpack a, b, c, d, e = model
-    q = R[1]
-    V11 = 0
-    V22 = -a*exp(-b*q^2) + e
-    V12 = c * exp(-d*q^2)
-    return Hermitian([V11 V12; V12 V22])
-end
 
 function NQCModels.potential!(model::TullyModelTwo, V::Hermitian, R::AbstractMatrix)
     Parameters.@unpack a, b, c, d, e = model
-    q = R[1]
-    V11 = 0
-    V22 = -a*exp(-b*q^2) + e
-    V12 = c * exp(-d*q^2)
-    V.data .= [V11 V12; V12 V22]
+    V22 = sum(q -> -a*exp(-b*q^2) + e, R)
+    V12 = sum(q -> c * exp(-d*q^2), R)
+    V.data .= [0 V12; V12 V22]
 end
 
 # GPU extensions: ext/NQCModelsCUDAExt.jl:140, ext/NQCModelsMetalExt.jl:140
-function NQCModels.derivative(model::TullyModelTwo, R::AbstractMatrix)
+
+function NQCModels.derivative!(model::TullyModelTwo, D::AbstractMatrix{<:Hermitian}, R::AbstractMatrix)
     Parameters.@unpack a, b, c, d  = model
-    q = R[1]
-    D11 = 0
-    D22 = 2*a*b*q*exp(-b*q^2)
-    D12 = -2*c*d*q*exp(-d*q^2)
+    @inbounds for dof in axes(R, 1)
+        @inbounds for atom in axes(R, 2)
+            q = R[dof, atom]
+            D11 = 0
+            D22 = 2*a*b*q*exp(-b*q^2)
+            D12 = -2*c*d*q*exp(-d*q^2)
 
-    return Hermitian([D11 D12; D12 D22])
-end
-
-function NQCModels.derivative!(model::TullyModelTwo, D::Hermitian, R::AbstractMatrix)
-    Parameters.@unpack a, b, c, d  = model
-    q = R[1]
-    D11 = 0
-    D22 = 2*a*b*q*exp(-b*q^2)
-    D12 = -2*c*d*q*exp(-d*q^2)
-
-    D.data .= [D11 D12; D12 D22]
+            D[dof,atom].data .= [D11 D12; D12 D22]
+        end
+    end
 end
 
 """
@@ -127,55 +92,24 @@ Parameters.@with_kw struct TullyModelThree{A,B,C} <: TullyModel
 end
 
 # GPU extensions: ext/NQCModelsCUDAExt.jl:151, ext/NQCModelsMetalExt.jl:151
-function NQCModels.potential(model::TullyModelThree, R::AbstractMatrix)
-    Parameters.@unpack a, b, c = model
-    q = R[1]
-    V11 = a
-    V22 = -a
-    if q > 0
-        V12 = b * (2 - exp(-c*q))
-    else
-        V12 = b * exp(c*q)
-    end
-    return Hermitian([V11 V12; V12 V22])
-end
-
 function NQCModels.potential!(model::TullyModelThree, V::Hermitian, R::AbstractMatrix)
     Parameters.@unpack a, b, c = model
-    q = R[1]
-    V11 = a
-    V22 = -a
-    if q > 0
-        V12 = b * (2 - exp(-c*q))
-    else
-        V12 = b * exp(c*q)
+    n = length(R)
+    V12 = sum(R) do q
+        q > 0 ? b * (2 - exp(-c*q)) : b * exp(c*q)
     end
-    V.data .= [V11 V12; V12 V22]
+    V.data .= [a*n V12; V12 -a*n]
 end
 
-# GPU extensions: ext/NQCModelsCUDAExt.jl:165, ext/NQCModelsMetalExt.jl:165
-function NQCModels.derivative(model::TullyModelThree, R::AbstractMatrix)
+function NQCModels.derivative!(model::TullyModelThree, D::AbstractMatrix{<:Hermitian}, R::AbstractMatrix)
     Parameters.@unpack a, b, c = model
-    q = R[1]
-    D11 = 0
-    D22 = 0
-    if q > 0
-        D12 = b * c * exp(-c*q)
-    else
-        D12 = b * c * exp(c*q)
+    @inbounds for dof in axes(R,1)
+        @inbounds for atom in axes(R, 2)
+            q = R[dof, atom]
+            D11 = 0
+            D22 = 0
+            D12 = q > 0 ? b * c * exp(-c*q) : b * c * exp(c*q)
+            D[dof,atom].data .= [D11 D12; D12 D22]
+        end
     end
-    return Hermitian([D11 D12; D12 D22])
-end
-
-function NQCModels.derivative!(model::TullyModelThree, D::Hermitian, R::AbstractMatrix)
-    Parameters.@unpack a, b, c = model
-    q = R[1]
-    D11 = 0
-    D22 = 0
-    if q > 0
-        D12 = b * c * exp(-c*q)
-    else
-        D12 = b * c * exp(c*q)
-    end
-    D.data .= Hermitian([D11 D12; D12 D22])
 end

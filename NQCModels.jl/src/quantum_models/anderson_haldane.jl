@@ -48,10 +48,10 @@ function AndersonHaldane(;
     L   = austrip(1.10122u"Å"),
     x̃₀   = austrip(2.0589u"Å"),
     q   = 2.26384e-16,
-    
+
     scaledown = 1.0,
 
-) 
+)
     morse = ClassicalModels.Morse(;Dₑ, x₀, a, m)
     logistic = ClassicalModels.Logistic(D₁, a′, x₀′, c′, b)
     #c = -NQCModels.AdiabaticModels.eigenenergy(morse, 0) # Set c to offset zero-point energy
@@ -60,73 +60,37 @@ function AndersonHaldane(;
 end
 
 # GPU extensions: ext/NQCModelsCUDAExt.jl:375, ext/NQCModelsMetalExt.jl:375
-function NQCModels.potential(model::AndersonHaldane, r::AbstractMatrix)
+function NQCModels.potential!(model::AndersonHaldane, V::Hermitian, R::AbstractMatrix)
+    (;morse, logistic, scaledown, c, q, L, x̃₀, Ã) = model
 
-    r = r[1] # r is a 1x1 matrix, we only need the first element
-    # position-dependent of the coupling function
-    (;morse, logistic, scaledown, c) = model
-    ϵ₀(x) = (NQCModels.potential(morse, x) + c) * scaledown## U_0 Morse ##
-    h(x) = NQCModels.potential(logistic, x)                    ## U_0 Logistic ##
-    ϵ₁(x) = ϵ₀(x) + h(x)                                       ## U_1 ##
+    ϵ₀(r) = (NQCModels.potential(morse, hcat(r)) + c) * scaledown        ## U_0 Morse ##
+    V11 = sum(ϵ₀, R)
+    V22 = sum(r -> ϵ₀(r) + NQCModels.potential(logistic, hcat(r)), R)    ## U_1 = U_0 + U_0 Logistic ##
+    # coupling energy eq(20) https://journals.aps.org/prb/pdf/10.1103/PhysRevB.97.235452
+    V12 = sum(r -> Ã * ((1-q)/2*(1 - tanh((r-x̃₀)/L)) + q), R)
 
-    (;q, L, x̃₀, Ã) = model
-    Vₖ(x) = Ã * ((1-q)/2*(1 - tanh((x-x̃₀)/L)) + q) # coupling energy eq(20) https://journals.aps.org/prb/pdf/10.1103/PhysRevB.97.235452
-
-    V11 = ϵ₀(r)
-    V22 = ϵ₁(r)
-    V12 = Vₖ(r)
-    return Hermitian([V11 V12; V12 V22]) # Diabatic Hamiltonian
-end
-
-function NQCModels.potential!(model::AndersonHaldane, V::Hermitian, r::AbstractMatrix)
-    r = r[1] # r is a 1x1 matrix, we only need the first element
-    # position-dependent of the coupling function
-    (;morse, logistic, scaledown, c) = model
-    ϵ₀(x) = (NQCModels.potential(morse, x) + c) * scaledown## U_0 Morse ##
-    h(x) = NQCModels.potential(logistic, x)                    ## U_0 Logistic ##
-    ϵ₁(x) = ϵ₀(x) + h(x)                                       ## U_1 ##
-
-    (;q, L, x̃₀, Ã) = model
-    Vₖ(x) = Ã * ((1-q)/2*(1 - tanh((x-x̃₀)/L)) + q) # coupling energy eq(20) https://journals.aps.org/prb/pdf/10.1103/PhysRevB.97.235452
-
-    V11 = ϵ₀(r)
-    V22 = ϵ₁(r)
-    V12 = Vₖ(r)
-    V.data .= [V11 V12; V12 V22]
+    V.data .= [V11 V12; V12 V22] # Diabatic Hamiltonian
 end
 
 # GPU extensions: ext/NQCModelsCUDAExt.jl:392, ext/NQCModelsMetalExt.jl:392
-function NQCModels.derivative(model::AndersonHaldane, r::AbstractMatrix)
+function NQCModels.derivative!(model::AndersonHaldane, D::AbstractMatrix{<:Hermitian}, R::AbstractMatrix)
+    (;morse, logistic, q, L, x̃₀, Ã) = model
 
-    r = r[1] # r is a 1x1 matrix, we only need the first element
-    # explicit derivative from the .potential above
-    (;morse,logistic) = model
-    ∂ϵ₀(x) = NQCModels.derivative(morse, x)
-    ∂ϵ₁(x) = NQCModels.derivative(morse, x) + NQCModels.derivative(logistic, x)
+    ∂ϵ₀_full = NQCModels.derivative(morse, R)
+    ∂ϵ₁_full = ∂ϵ₀_full + NQCModels.derivative(logistic, R)
+    for dof in axes(R, 1)
+        for atom in axes(R, 2)
+            r = R[dof,atom]
+            ∂ϵ₀ = ∂ϵ₀_full[dof,atom]
+            ∂ϵ₁ = ∂ϵ₁_full[dof,atom]
+            ∂Vₖ = -Ã * (1-q)/2 * sech((r-x̃₀)/L)^2 / L
 
-    (;q, L, x̃₀, Ã) = model
-    ∂Vₖ(x) = -Ã * (1-q)/2 * sech((x-x̃₀)/L)^2 / L
-
-    D11 = ∂ϵ₀(r)
-    D22 = ∂ϵ₁(r)
-    D12 = ∂Vₖ(r)
-    return Hermitian([D11 D12; D12 D22])
-end
-
-function NQCModels.derivative!(model::AndersonHaldane, D::Hermitian, r::AbstractMatrix)
-    r = r[1] # r is a 1x1 matrix, we only need the first element
-    # explicit derivative from the .potential above
-    (;morse,logistic) = model
-    ∂ϵ₀(x) = NQCModels.derivative(morse, x)
-    ∂ϵ₁(x) = NQCModels.derivative(morse, x) + NQCModels.derivative(logistic, x)
-
-    (;q, L, x̃₀, Ã) = model
-    ∂Vₖ(x) = -Ã * (1-q)/2 * sech((x-x̃₀)/L)^2 / L
-
-    D11 = ∂ϵ₀(r)
-    D22 = ∂ϵ₁(r)
-    D12 = ∂Vₖ(r)
-    D.data .= [D11 D12; D12 D22]
+            D11 = ∂ϵ₀
+            D22 = ∂ϵ₁
+            D12 = ∂Vₖ
+            D[dof,atom].data .= [D11 D12; D12 D22]
+        end
+    end
 end
 
 NQCModels.nstates(::AndersonHaldane) = 2

@@ -2,11 +2,12 @@ using NQCBase
 using NQCDynamics: nbeads, TemperatureSetting
 using RingPolymerArrays: eachbead
 
-function NQCDynamics.RingPolymerSimulation{DiabaticMDEF}(atoms::Atoms{T}, model::Model, n_beads::Integer; friction_method::FrictionEvaluationMethod, 
+function NQCDynamics.RingPolymerSimulation{DiabaticMDEF}(atoms::Atoms, model::Model, n_beads::Integer; friction_method::FrictionEvaluationMethod,
     temperature=0u"K", cell::AbstractCell=InfiniteCell(), solver::Symbol=:exact, kwargs...
-    ) where {T}
+    )
+    T = eltype(atoms.masses)
 
-    cache = Create_Cache(model, length(atoms), n_beads, T; friction_method=friction_method)
+    cache = Create_Cache(model, length(atoms), n_beads, atoms.masses; friction_method=friction_method)
 
     # If a thermostat is provided, check it covers the whole system.
     isa(temperature, TemperatureSetting{Vector{Int}}) ? throw(DomainError(temperature, "TemperatureSetting must apply to all atoms.")) : nothing

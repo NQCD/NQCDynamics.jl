@@ -5,7 +5,8 @@ using RingPolymerArrays: get_centroid
 using NQCDynamics: RingPolymerSimulation, RingPolymers
 using NQCCalculators
 
-function RingPolymerSimulation{FSSH}(atoms::Atoms{T}, model::Model, n_beads::Integer; rescaling=:standard, kwargs...) where {T}
+function RingPolymerSimulation{FSSH}(atoms::Atoms, model::Model, n_beads::Integer; rescaling=:standard, kwargs...)
+    T = eltype(atoms.masses)
     RingPolymerSimulation(atoms, model, FSSH{T}(NQCModels.nstates(model), rescaling), n_beads; kwargs...)
 end
 

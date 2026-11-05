@@ -36,7 +36,8 @@ struct Ehrenfest{T} <: AbstractEhrenfest
     end
 end
 
-function Simulation{Ehrenfest}(atoms::Atoms{T}, model::Model; kwargs...) where {T}
+function Simulation{Ehrenfest}(atoms::Atoms, model::Model; kwargs...)
+    T = eltype(atoms.masses)
     Simulation(atoms, model, Ehrenfest{T}(NQCModels.nstates(model)); kwargs...)
 end
 

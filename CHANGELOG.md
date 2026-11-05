@@ -7,6 +7,27 @@
 
 ### NQCModels.jl
 - Added experimental Metal.jl and CUDA.jl support for a number of models. 
+- ![bugfix][badge-bugfix] `ClassicalModel`s are now consistently multi-particle capable: `potential(model, R)` always returns a scalar summed over every atom (column of `R`), and `derivative`/`derivative!` always return/fill a `dimensions * atoms` array of scalars, with a generic default provided for models that treat every atom independently.
+- ![bugfix][badge-bugfix] `QuantumModel`s are now consistently multi-particle capable: `potential(model, R)` always returns a single `nstates * nstates` Hermitian matrix summed over every independent atom, and `derivative`/`derivative!` always return/fill a `dimensions * atoms` array of Hermitian matrices. A generic default `potential!` (mirroring the existing `derivative!` default) was added so 1-dof-per-atom models only need to implement a single-atom `potential!(model, V, r::Number)`.
+
+  The following models were found to violate this contract and have been fixed:
+
+  | Model | Issue |
+  |---|---|
+  | `TullyModelOne`/`Two`/`Three` | `potential(model, R)` always returned an all-zero matrix; no matrix-level `potential!` existed to be reached by the (now added) generic default. |
+  | `Scattering1D` | Same missing matrix-level entry point as Tully, plus `potential!` double-counted the `V₀` contribution at the molecule-state diagonal entry, inconsistent with its own non-mutating `potential`. |
+  | `ThreeStateMorse` | `potential` never summed over atoms (only read the first atom's position); its own non-mutating `derivative`/`derivative!` returned/filled a bare `Hermitian` instead of the required `Matrix{Hermitian}` of shape `ndofs * natoms`. |
+  | `MiaoSubotnik` | Same atom-summing and derivative-shape bugs as `ThreeStateMorse`. |
+  | `OuyangModelOne` | Same atom-summing and derivative-shape bugs as `ThreeStateMorse`, plus `potential!` was missing the diagonal-states-fill line present in the non-mutating `potential`, so the in-place version was incomplete even for a single atom. |
+  | `GatesHollowayElbow` | `potential`/`potential!`/`derivative!` only ever read the first atom's coordinates; extra atoms were silently ignored instead of summed. |
+  | `ErpenbeckThoss` | `potential`'s off-diagonal/second-state terms were not summed over atoms (only the Morse-derived term was); `derivative!` had an out-of-bounds indexing bug (`D[i,i]` instead of `D[1,i]`) and passed a `Vector` where an `AbstractMatrix` was required, causing a `MethodError` even for a single atom. |
+  | `AndersonHaldane` | Called `ClassicalModels.Morse`/`Logistic` with a raw scalar, which their API never accepted, causing a `MethodError` regardless of atom count. |
+  | `DoubleWell` | `derivative!` indexed per-atom parameter vectors (`mass`, `ω`, `γ`) directly instead of broadcasting, causing a `BoundsError` for more atoms than parameters provided; separately, the electronic coupling term `Δ` did not scale with atom count in `potential`/`potential!`, unlike every other term. |
+  | `AndersonHolstein` | Cached an `impurity_derivative` buffer sized for exactly 1 atom, causing a crash for any other atom count; also reused a persistent `impurity_potential` buffer across calls without zeroing it, causing incorrect accumulation once the wrapped model's `potential!` correctly accumulates (`+=`) into `V`. |
+  | `BosonBath` | `potential!` reassigned the local `V` argument instead of mutating it in place (a silent no-op). |
+
+  `AnanthModelOne`/`AnanthModelTwo`, `SpinBoson`, `WideBandBath` and `AdiabaticStateSelector` were already correctly multi-particle capable and needed no changes.
+- ![bugfix][badge-bugfix] Fixed a method ambiguity in `CompositeFrictionModel.derivative!` introduced by the `ClassicalModel` generic default above.
 
 ## Version `v1.0.3`
 - ![Maintenance][badge-maintenance] Updated documentation to include JLD2.jl installation instructions [#457][github-457]

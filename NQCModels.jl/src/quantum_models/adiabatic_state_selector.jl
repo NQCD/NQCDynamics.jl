@@ -35,8 +35,8 @@ function NQCModels.derivative!(
     V = NQCModels.potential(model.quantum_model, r)
     U = eigen(V).vectors
     D = NQCModels.derivative(model.quantum_model, r)
-    for I in eachindex(output, D)
-        output[I] = (U'*D[I]*U)[model.state, model.state]
-    end
+    # QuantumModel derivatives are 2D Matrix{Hermitian} sized. For a fixed state, we need to reduce the transformed derivative to the respective state index.
+    transform_and_reduce(D_component::Hermitian) = (U' * D_component * U)[model.state, model.state]
+    output .= map(transform_and_reduce, D)
     return output
 end

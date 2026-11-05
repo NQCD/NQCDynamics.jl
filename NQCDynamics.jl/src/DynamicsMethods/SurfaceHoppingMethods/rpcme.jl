@@ -28,7 +28,8 @@ function evaluate_hopping_probability!(sim::RingPolymerSimulation{<:ClassicalMas
     end
 end
 
-function RingPolymerSimulation{CME}(atoms::Atoms{T}, model, n_beads; kwargs...) where {T}
+function RingPolymerSimulation{CME}(atoms::Atoms, model, n_beads; kwargs...)
+    T = eltype(atoms.masses)
     RingPolymerSimulation(atoms, model, CME{T}(NQCModels.nstates(model)), n_beads; kwargs...)
 end
 
@@ -48,7 +49,8 @@ function DynamicsUtils.classical_potential_energy(sim::RingPolymerSimulation{<:C
     return potential
 end
 
-function RingPolymerSimulation{BCME}(atoms::Atoms{T}, model, n_beads; bandwidth, kwargs...) where {T}
+function RingPolymerSimulation{BCME}(atoms::Atoms, model, n_beads; bandwidth, kwargs...)
+    T = eltype(atoms.masses)
     RingPolymerSimulation(atoms, model, BCME{T}(NQCModels.nstates(model), bandwidth), n_beads; kwargs...)
 end
 

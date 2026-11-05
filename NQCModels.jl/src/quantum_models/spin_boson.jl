@@ -113,7 +113,7 @@ function NQCModels.potential!(model::SpinBoson, V::Hermitian, r::AbstractMatrix)
     V11 = v0 + ϵ
 
     V11 += sum(cⱼ' .* r)
-    
+
     V22 = v0 - ϵ
     V22 -= sum(cⱼ' .* r)
 
@@ -135,8 +135,10 @@ function NQCModels.derivative!(model::SpinBoson, D::AbstractMatrix{<:Hermitian},
     d0 = zero(r)
     @. d0 = ωⱼ'^2 * r
 
-    for i in axes(r, 2)
-        D[i].data .= [d0[1,i]+cⱼ[i] 0; 0 d0[1,i]-cⱼ[i]]
+    for dof in axes(r, 1)
+        for atom in axes(r, 2)
+            D[dof,atom].data .= [d0[dof,atom]+cⱼ[atom] 0; 0 d0[dof,atom]-cⱼ[atom]]
+        end
     end
 end
 
@@ -163,7 +165,7 @@ function NQCModels.potential(model::BosonBath, r::AbstractMatrix)
 end
 
 function NQCModels.potential!(model::BosonBath, V, r::AbstractMatrix)
-    V = sum(model.ωⱼ'.^2 .* r.^2 ./2)
+    V .= sum(model.ωⱼ'.^2 .* r.^2 ./2)
 end
 
 function NQCModels.derivative!(model::BosonBath, D::AbstractMatrix, r::AbstractMatrix)

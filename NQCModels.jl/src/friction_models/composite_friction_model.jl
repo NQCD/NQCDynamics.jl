@@ -32,7 +32,7 @@ function NQCModels.potential!(model::CompositeFrictionModel, V::AbstractMatrix, 
     V .= NQCModels.potential(model.pes_model, R)
 end
 
-function NQCModels.derivative!(model::CompositeFrictionModel, D, R::AbstractMatrix)
+function NQCModels.derivative!(model::CompositeFrictionModel, D::AbstractMatrix, R::AbstractMatrix)
     NQCModels.derivative!(model.pes_model, D, R)
 end
 

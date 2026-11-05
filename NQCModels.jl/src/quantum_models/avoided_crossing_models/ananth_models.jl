@@ -17,41 +17,35 @@ Parameters.@with_kw struct AnanthModelOne{A,B,C,D} <: AnanthModel
 end
 
 # GPU extensions: ext/NQCModelsCUDAExt.jl:204, ext/NQCModelsMetalExt.jl:204
-function NQCModels.potential(model::AnanthModelOne, Q::AbstractMatrix)
-    q = Q[1]
+function NQCModels.potential(model::AnanthModelOne, q::AbstractMatrix)
     Parameters.@unpack a, b, c, d = model
-    V11 = a * tanh(b*q)
-    V22 = -a * tanh(b*q)
-    V12 = c * exp(-d*q^2) # sets both off-diagonals as V is Hermitian
+    V11 = sum(a .* tanh.(b .* q))
+    V22 = sum(.-a .* tanh.(b .* q))
+    V12 = sum(c .* exp.(.-d .* q .^ 2)) # sets both off-diagonals as V is Hermitian
     return Hermitian([V11 V12; V12 V22])
 end
 
-function NQCModels.potential!(model::AnanthModelOne, V::Hermitian, Q::AbstractMatrix)
-    q = Q[1]
+function NQCModels.potential!(model::AnanthModelOne, V::Hermitian, q::AbstractMatrix)
     Parameters.@unpack a, b, c, d = model
-    V11 = a * tanh(b*q)
-    V22 = -a * tanh(b*q)
-    V12 = c * exp(-d*q^2) # sets both off-diagonals as V is Hermitian
+    V11 = sum(a .* tanh.(b .* q))
+    V22 = sum(.-a .* tanh.(b .* q))
+    V12 = sum(c .* exp.(.-d .* q .^ 2)) # sets both off-diagonals as V is Hermitian
     V.data .= [V11 V12; V12 V22]
 end
 
 # GPU extensions: ext/NQCModelsCUDAExt.jl:216, ext/NQCModelsMetalExt.jl:216
-function NQCModels.derivative(model::AnanthModelOne, Q::AbstractMatrix)
-    q = Q[1]
-    Parameters.@unpack a, b, c, d = model
-    D11 = a * b * (1 - tanh(b*q)^2)
-    D22 = -D11
-    D12 = -2 * c * d * q * exp(-d*q^2)
-    return Hermitian([D11 D12; D12 D22])
-end
 
-function NQCModels.derivative!(model::AnanthModelOne, D::Hermitian, Q::AbstractMatrix)
-    q = Q[1]
+function NQCModels.derivative!(model::AnanthModelOne, D::AbstractMatrix{<:Hermitian}, R::AbstractMatrix)
     Parameters.@unpack a, b, c, d = model
-    D11 = a * b * (1 - tanh(b*q)^2)
-    D22 = -D11
-    D12 = -2 * c * d * q * exp(-d*q^2)
-    D.data .= [D11 D12; D12 D22]
+    for dof in axes(R, 1)
+        for atom in axes(R, 2)
+            q = R[dof, atom]
+            D11 = a * b * (1 - tanh(b*q)^2)
+            D22 = -D11
+            D12 = -2 * c * d * q * exp(-d*q^2)
+            D[dof,atom].data .= [D11 D12; D12 D22]
+        end
+    end
 end
 
 """
@@ -70,39 +64,32 @@ end
 
 # GPU extensions: ext/NQCModelsCUDAExt.jl:229, ext/NQCModelsMetalExt.jl:229
 function NQCModels.potential(model::AnanthModelTwo, Q::AbstractMatrix)
-    q = Q[1]
     Parameters.@unpack a, b, c, d, e, f = model
-    V11 = a * tanh(f*q)
-    V22 = -b * tanh(f*q)
-    V12 = c * exp(-d*(q+e)^2)
-    return Hermitian([V11 V12; V12 V22])
+    V11 = a .* tanh.(f .* Q)
+    V22 = -b .* tanh.(f .* Q)
+    V12 = c .* exp.(-d .* (Q .+ e) .^ 2)
+    return Hermitian([sum(V11) sum(V12); sum(V12) sum(V22)])
 end
 
 function NQCModels.potential!(model::AnanthModelTwo, V::Hermitian, Q::AbstractMatrix)
-    q = Q[1]
     Parameters.@unpack a, b, c, d, e, f = model
-    V11 = a * tanh(f*q)
-    V22 = -b * tanh(f*q)
-    V12 = c * exp(-d*(q+e)^2)
-    V.data .= [V11 V12; V12 V22]
+    V11 = a .* tanh.(f .* Q)
+    V22 = -b .* tanh.(f .* Q)
+    V12 = c .* exp.(-d .* (Q .+ e) .^ 2)
+    V.data .= [sum(V11) sum(V12); sum(V12) sum(V22)]
 end
 
 # GPU extensions: ext/NQCModelsCUDAExt.jl:241, ext/NQCModelsMetalExt.jl:241
-function NQCModels.derivative(model::AnanthModelTwo, Q::AbstractMatrix)
-    q = Q[1]
+function NQCModels.derivative!(model::AnanthModelTwo, D::AbstractMatrix{<:Hermitian}, R::AbstractMatrix)
     Parameters.@unpack a, b, c, d, e, f = model
-    D11 = a * f * (1 - tanh(f*q)^2)
-    D22 = -b * f * (1 - tanh(f*q)^2)
-    D12 = -2 * c * d * (q+e) * exp(-d*(q+e)^2)
-    return Hermitian([D11 D12; D12 D22])
-end
+    for dof in axes(R, 1)
+        for atom in axes(R, 2)
+            q = R[dof, atom]
+            D11 = a * f * (1 - tanh(f*q)^2)
+            D22 = -b * f * (1 - tanh(f*q)^2)
+            D12 = -2 * c * d * (q+e) * exp(-d*(q+e)^2)
 
-function NQCModels.derivative!(model::AnanthModelTwo, D::Hermitian, Q::AbstractMatrix)
-    q = Q[1]
-    Parameters.@unpack a, b, c, d, e, f = model
-    D11 = a * f * (1 - tanh(f*q)^2)
-    D22 = -b * f * (1 - tanh(f*q)^2)
-    D12 = -2 * c * d * (q+e) * exp(-d*(q+e)^2)
-
-    D.data .= [D11 D12; D12 D22]
+            D[dof,atom].data .= [D11 D12; D12 D22]
+        end
+    end
 end

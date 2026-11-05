@@ -47,5 +47,5 @@ function NQCModels.derivative(model::Harmonic, R::AbstractMatrix)
 end
 
 function NQCModels.derivative!(model::Harmonic, D::AbstractMatrix, R::AbstractMatrix) 
-    D .= model.m .* model.ω^2 .* (R .- model.r₀)
+    D .= model.m .* model.ω.^2 .* (R .- model.r₀)
 end

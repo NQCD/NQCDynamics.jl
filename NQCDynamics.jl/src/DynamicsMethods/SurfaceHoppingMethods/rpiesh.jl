@@ -1,8 +1,9 @@
 using RingPolymerArrays: eachbead
 
-function RingPolymerSimulation{AdiabaticIESH}(atoms::Atoms{T}, model::Model, n_beads::Integer;
+function RingPolymerSimulation{AdiabaticIESH}(atoms::Atoms, model::Model, n_beads::Integer;
     rescaling=:standard, estimate_probability=true, disable_hopping=false, decoherence=DecoherenceCorrectionNone(), kwargs...
-) where {T}
+)
+    T = eltype(atoms.masses)
     RingPolymerSimulation(atoms, model,
         AdiabaticIESH{T}(
             NQCModels.nstates(model),

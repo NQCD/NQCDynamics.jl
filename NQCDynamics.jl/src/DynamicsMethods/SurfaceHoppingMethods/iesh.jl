@@ -69,9 +69,10 @@ end
 
 unoccupied_states(sim::AbstractSimulation{<:AbstractIESH}) = sim.method.unoccupied
 
-function NQCDynamics.Simulation{IESH_type}(atoms::Atoms{T}, model::Model;
+function NQCDynamics.Simulation{IESH_type}(atoms::Atoms, model::Model;
     rescaling=:standard, estimate_probability=true, disable_hopping=false, decoherence=DecoherenceCorrectionNone(),
-    kwargs...) where {T,IESH_type<:AbstractIESH}
+    kwargs...) where {IESH_type<:AbstractIESH}
+    T = eltype(atoms.masses)
     NQCDynamics.Simulation(
         atoms, model,
         IESH_type{T}(

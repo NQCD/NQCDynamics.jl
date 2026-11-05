@@ -25,11 +25,12 @@ end
 NQCModels.ndofs(model::CSVModel_1D)=1
 
 function NQCModels.potential(model::CSVModel_1D, R::AbstractMatrix)
-    return(model.potential_function(R[1,1]))
+    return sum(model.potential_function(x) for x in R)
 end
 
 function NQCModels.derivative!(model::CSVModel_1D, D::AbstractMatrix, R::AbstractMatrix)
-    D.=model.derivative_function(R[1,1])
+    D .= model.derivative_function.(R)
+    return D
 end
 
 CSVModel_1D(x)=CSVModel_1D(potential_matrix=x) # Definition shortcut. 

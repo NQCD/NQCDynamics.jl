@@ -40,7 +40,8 @@ struct NRPMD{T} <: DynamicsMethods.Method
     end
 end
 
-function NQCDynamics.RingPolymerSimulation{NRPMD}(atoms::Atoms{T}, model::Model, n_beads::Integer; γ=0.5, kwargs...) where {T}
+function NQCDynamics.RingPolymerSimulation{NRPMD}(atoms::Atoms, model::Model, n_beads::Integer; γ=0.5, kwargs...)
+    T = eltype(atoms.masses)
     NQCDynamics.RingPolymerSimulation(atoms, model, NRPMD{T}(NQCModels.nstates(model), γ), n_beads; kwargs...)
 end
 

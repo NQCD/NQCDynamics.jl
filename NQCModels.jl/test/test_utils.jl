@@ -24,9 +24,6 @@ function test_model(model::NQCModels.Model, atoms; rtol=1e-5) # need a way to en
     R = rand(ndofs(model), atoms)
     D = derivative(model, R)
     finite_diff = finite_difference_gradient(model, R)
-    if atoms == 1
-        return isapprox(finite_diff[1], D, rtol=rtol)
-    end
     return isapprox(finite_diff, D, rtol=rtol)
 end
 

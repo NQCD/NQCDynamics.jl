@@ -37,15 +37,15 @@ Parameters.@with_kw struct DarlingHollowayElbow <: ClassicalModel
     w₃::Float64 = 2.0
 end
 
-NQCModels.ndofs(::DarlingHollowayElbow) = 1
+NQCModels.ndofs(::DarlingHollowayElbow) = 2
 
-# GPU extensions: ext/NQCModelsCUDAExt.jl:69, ext/NQCModelsMetalExt.jl:69
-function NQCModels.potential(model::DarlingHollowayElbow, R::AbstractMatrix)
+# Potential felt by a single atom at position r = [x, z].
+function single_atom_potential(model::DarlingHollowayElbow, r::AbstractVector)
 
     Parameters.@unpack d, α, p, zoff, V₀, βx, xb, βz, zb, V₁, βr, zr, Cvw, zvw, kc, m₁, m₂, m₃, w₁, w₂, w₃ = model
 
-    r_x = R[1]
-    r_z = R[2]
+    r_x = r[1]
+    r_z = r[2]
 
     y(x,z) = (1 + 1/x^4)*(1 + 1/z^4)
     f(x,z) = (y(x,z) - 1)^(-1/4)
@@ -72,40 +72,15 @@ function NQCModels.potential(model::DarlingHollowayElbow, R::AbstractMatrix)
     return total_V(r_x, r_z)
 end
 
-function NQCModels.potential!(model::DarlingHollowayElbow, V::Matrix{<:Number}, R::AbstractMatrix)
-
-    Parameters.@unpack d, α, p, zoff, V₀, βx, xb, βz, zb, V₁, βr, zr, Cvw, zvw, kc, m₁, m₂, m₃, w₁, w₂, w₃ = model
-
-    r_x = R[1]
-    r_z = R[2]
-
-    y(x,z) = (1 + 1/x^4)*(1 + 1/z^4)
-    f(x,z) = (y(x,z) - 1)^(-1/4)
-    s(a,b) = (1 + tanh(a*b)) / 2
-    function xₑ(x,z)
-        xp = x + p
-        zp = z + p
-        fp = f(xp,zp)
-        return fp + f(xp-fp, zp-fp) - p
-    end
-
-    zf(x,z) = z - zoff * s(x - m₁, w₁)
-
-    Velbow = d*(1 - exp(-α*xₑ(r_x,r_z)))^2
-    Vbarrier = V₀*exp(-βx*(r_x-xb)^2 - βz*(zf(r_x,r_z)-zb)^2) * s(r_x-zf(r_x,r_z)-m₂,w₂)
-
-    Vᵣ(z) = V₁*exp(-βr*(z-zr))
-    fc(x) = 1 - (2x*(1+x)+1)*exp(-2x)
-    Vvw(z) = - Cvw/(z - zvw)^3 * fc(kc*(z-zvw))
-    Vphys(x,z) = (Vᵣ(zf(x,z)) + Vvw(zf(x,z))) * s(zf(x,z)-x-m₂, w₂) * s(zf(x,z)-m₃, w₃)
-
-    total_V(x,z) = Velbow + Vbarrier + Vphys(x,z)
-
-    V .= total_V(r_x, r_z)
+# GPU extensions: ext/NQCModelsCUDAExt.jl:69, ext/NQCModelsMetalExt.jl:69
+function NQCModels.potential(model::DarlingHollowayElbow, R::AbstractMatrix)
+    return sum(single_atom_potential(model, r) for r in eachcol(R))
 end
 
-function NQCModels.derivative!(model::DarlingHollowayElbow, D, R::AbstractMatrix)
-    f(x) = NQCModels.potential(model, x)
-    copyto!(D, ForwardDiff.gradient(f, R))
+function NQCModels.derivative!(model::DarlingHollowayElbow, D::AbstractMatrix, R::AbstractMatrix)
+    f(r) = single_atom_potential(model, r)
+    for atom in axes(R, 2)
+        copyto!(view(D, :, atom), ForwardDiff.gradient(f, view(R, :, atom)))
+    end
     return D
 end

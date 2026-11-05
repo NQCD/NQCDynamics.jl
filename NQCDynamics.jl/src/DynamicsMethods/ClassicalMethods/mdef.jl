@@ -55,9 +55,9 @@ function NQCDynamics.RingPolymerSimulation{MDEF}(atoms::Atoms, model::Model, n_b
     NQCDynamics.RingPolymerSimulation(atoms, model, MDEF(atoms.masses, ndofs(model)), n_beads; kwargs...)
 end
 
-function NQCDynamics.Simulation{DiabaticMDEF}(atoms::Atoms{T}, model::Model; friction_method::FrictionEvaluationMethod,
+function NQCDynamics.Simulation{DiabaticMDEF}(atoms::Atoms, model::Model; friction_method::FrictionEvaluationMethod,
     temperature=0u"K", cell::AbstractCell=InfiniteCell(), solver::Symbol=:exact, kwargs...
-    ) where {T}
+    )
 
     cache = Create_Cache(model, length(atoms), atoms.masses; friction_method=friction_method)
 
@@ -65,11 +65,11 @@ function NQCDynamics.Simulation{DiabaticMDEF}(atoms::Atoms{T}, model::Model; fri
 end
 
 # Specific DiabaticMDEF Simulation multiple dispatch for the AndersonHolstein model
-function NQCDynamics.Simulation{DiabaticMDEF}(atoms::Atoms{T}, model::AndersonHolstein; friction_method::FrictionEvaluationMethod,
+function NQCDynamics.Simulation{DiabaticMDEF}(atoms::Atoms, model::AndersonHolstein; friction_method::FrictionEvaluationMethod,
     temperature=0u"K", cell::AbstractCell=InfiniteCell(), solver::Symbol=:exact, kwargs...
-    ) where {T}
+    )
 
-    cache = Create_Cache(model, length(atoms), T, friction_method) # Create_Cache has for variable arguments, `friction_method`, is no-longer a keyword argument
+    cache = Create_Cache(model, length(atoms), atoms.masses, friction_method) # Create_Cache has for variable arguments, `friction_method`, is no-longer a keyword argument
     Simulation(temperature, cell, atoms, cache, DiabaticMDEF(atoms.masses, ndofs(model)), solver)
 end
 

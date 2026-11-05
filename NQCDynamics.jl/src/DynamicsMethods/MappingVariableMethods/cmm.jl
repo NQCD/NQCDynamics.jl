@@ -19,7 +19,8 @@ struct eCMM{T} <: DynamicsMethods.Method
     end
 end
 
-function NQCDynamics.Simulation{eCMM}(atoms::Atoms{T}, model::Model; γ=0, kwargs...) where {T}
+function NQCDynamics.Simulation{eCMM}(atoms::Atoms, model::Model; γ=0, kwargs...)
+    T = eltype(atoms.masses)
     NQCDynamics.Simulation(atoms, model, eCMM{T}(NQCModels.nstates(model), γ); kwargs...)
 end
 

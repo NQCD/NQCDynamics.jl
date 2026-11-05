@@ -88,7 +88,8 @@ mutable struct MonteCarloOutput{T<:AbstractFloat,S}
     acceptance::Dict{Symbol, T}
     total_moves::Dict{Symbol, UInt}
     energy::Vector{T}
-    function MonteCarloOutput(R0::S, atoms::Atoms{T}) where {T,S}
+    function MonteCarloOutput(R0::S, atoms::Atoms) where {S}
+        T = eltype(atoms.masses)
         output = typeof(R0)[]
         acceptance = Dict{Symbol, T}()
         total_moves = Dict{Symbol, UInt}()

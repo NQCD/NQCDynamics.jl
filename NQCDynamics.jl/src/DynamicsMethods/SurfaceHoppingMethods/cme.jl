@@ -79,7 +79,8 @@ function CME{T}(nstates::Integer) where {T}
     return CME(hopping_probability, state, new_state)
 end
 
-function Simulation{CME}(atoms::Atoms{T}, model; kwargs...) where {T}
+function Simulation{CME}(atoms::Atoms, model; kwargs...)
+    T = eltype(atoms.masses)
     Simulation(atoms, model, CME{T}(NQCModels.nstates(model)); kwargs...)
 end
 
@@ -128,7 +129,8 @@ function BCME{T}(nstates::Integer, bandwidth) where {T}
     return BCME(hopping_probability, state, new_state, bandwidth)
 end
 
-function Simulation{BCME}(atoms::Atoms{T}, model; bandwidth, kwargs...) where {T}
+function Simulation{BCME}(atoms::Atoms, model; bandwidth, kwargs...)
+    T = eltype(atoms.masses)
     Simulation(atoms, model, BCME{T}(NQCModels.nstates(model), bandwidth); kwargs...)
 end
 

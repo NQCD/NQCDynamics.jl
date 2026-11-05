@@ -7,11 +7,11 @@ An explicit impurity-bath model which couples a quantum model to a discritised b
 is explicitly given by the wide-band approximation and the bath is discretised using the trapezoidal rule.
 
 It is recommended that this is the explicit bath model used in conjuction with MDEF and the friction evaluators defined in
-NQCCalculators.jl. For the modelling of explicit bathstate dynamics (i.e. using dynamics methods such as IESH) it is 
+NQCCalculators.jl. For the modelling of explicit bathstate dynamics (i.e. using dynamics methods such as IESH) it is
 recommended that the user use the Anderson-Holstein model alongside the Shenvi-Gauss Legendre discretisation scheme.
 """
 struct WideBandBath{M<:QuantumModel,V<:AbstractVector,T,D} <: QuantumFrictionModel
-    model::M
+    impurity_model::M
     bathstates::V
     ρ::T
     tmp_derivative::Base.RefValue{D}
@@ -26,15 +26,15 @@ function WideBandBath(model::QuantumModel; step, bandmin, bandmax)
     return WideBandBath(model, bathstates, ρ, tmp_derivative)
 end
 
-NQCModels.nstates(model::WideBandBath) = NQCModels.nstates(model.model) + length(model.bathstates) - 1
-NQCModels.ndofs(model::WideBandBath) = NQCModels.ndofs(model.model)
+NQCModels.nstates(model::WideBandBath) = NQCModels.nstates(model.impurity_model) + length(model.bathstates) - 1
+NQCModels.ndofs(model::WideBandBath) = NQCModels.ndofs(model.impurity_model)
 NQCModels.nelectrons(model::WideBandBath) = fld(NQCModels.nstates(model), 2)
 NQCModels.fermilevel(::WideBandBath) = 0.0
 
 function NQCModels.potential(model::WideBandBath, r::AbstractMatrix)
 
-    Vsystem = NQCModels.potential(model.model, r)
-    n = NQCModels.nstates(model.model)
+    Vsystem = NQCModels.potential(model.impurity_model, r)
+    n = NQCModels.nstates(model.impurity_model)
     ϵ0 = Vsystem[1,1]
     V = Hermitian(zeros((NQCModels.nstates(model), NQCModels.nstates(model))))
 
@@ -54,8 +54,8 @@ end
 
 function NQCModels.potential!(model::WideBandBath, V::Hermitian, r::AbstractMatrix)
 
-    Vsystem = NQCModels.potential(model.model, r)
-    n = NQCModels.nstates(model.model)
+    Vsystem = NQCModels.potential(model.impurity_model, r)
+    n = NQCModels.nstates(model.impurity_model)
     ϵ0 = Vsystem[1,1]
 
     # System states
@@ -84,59 +84,52 @@ end
 
 Updates the derivative of the Anderson-Holstein Hamiltonian with respect to all spatial degrees of freedom to have the correct values
 for a given position R.
-    
-This fucntion is multiple dispatched over the shape of derivative(model.model) as these sub-models may be defined over different
+
+This fucntion is multiple dispatched over the shape of derivative(model.impurity_model) as these sub-models may be defined over different
 numbers of spatial degrees of freedom.
 """
 function NQCModels.derivative!(model::WideBandBath, D::AbstractMatrix{<:Hermitian}, r::AbstractMatrix)
 
     # Get inner model derivative
-    Dsystem = NQCModels.zero_derivative(model.model, r)
-    NQCModels.derivative!(model.model, Dsystem, r)
-    n = NQCModels.nstates(model.model)
-    
+    Dsystem = NQCModels.zero_derivative(model.impurity_model, r)
+    NQCModels.derivative!(model.impurity_model, Dsystem, r)
+    n = NQCModels.nstates(model.impurity_model)
 
-    for I in eachindex(Dsystem, D)
-        ∂ϵ0 = Dsystem[I][1,1]
+    for dof in axes(D, 1)
+        for atom in axes(D, 2)
+            ∂ϵ0 = Dsystem[dof, atom][1,1]
 
-        # System states
-        D_system_output = @view D[I][diagind(D[I])[begin:n-1]]
-        D_system_input = @view Dsystem[I][diagind(Dsystem[I])[begin+1:end]]
-        @. D_system_output = D_system_input - ∂ϵ0
+            # System states
+            D_system_output = @view D[dof, atom][diagind(D[dof,atom])[begin:n-1]]
+            D_system_input = @view Dsystem[dof, atom][diagind(Dsystem[dof, atom])[begin+1:end]]
+            @. D_system_output = D_system_input - ∂ϵ0
 
-        # Coupling
-        for i=1:n-1
-            D[I].data[i,n:end] .= Dsystem[I][i+1,1] / sqrt(model.ρ)
+            # Coupling
+            for i=1:n-1
+                D[dof,atom].data[i,n:end] .= Dsystem[dof,atom][i+1,1] / sqrt(model.ρ)
+            end
         end
     end
 end
 
 function NQCModels.state_independent_potential(model::WideBandBath, r::AbstractMatrix)
-    Vsystem = NQCModels.potential(model.model, r)
+    Vsystem = NQCModels.potential(model.impurity_model, r)
     return Vsystem[1,1]
 end
 
 function NQCModels.state_independent_potential!(model::WideBandBath, Vsystem::AbstractMatrix, r::AbstractMatrix)
-    Vsystem .= NQCModels.potential(model.model, r)
+    Vsystem .= NQCModels.potential(model.impurity_model, r)
 end
 
 function NQCModels.state_independent_derivative(model::WideBandBath, r::AbstractMatrix)
-    Dsystem = NQCModels.zero_derivative(model.model, r)
-    NQCModels.derivative!(model.model, Dsystem, r)
-
     ∂V = zeros(size(r))
-    @assert ∂V |> length == Dsystem |> length
-
-    for I in eachindex(∂V)
-        ∂V[I] = Dsystem[I][1,1]
-    end
-
+    NQCModels.state_independent_derivative!(model, ∂V, r)
     return ∂V
 end
 
 function NQCModels.state_independent_derivative!(model::WideBandBath, ∂V::AbstractMatrix, r::AbstractMatrix)
-    Dsystem = NQCModels.zero_derivative(model.model, r)
-    NQCModels.derivative!(model.model, Dsystem, r)
+    Dsystem = NQCModels.zero_derivative(model.impurity_model, r)
+    NQCModels.derivative!(model.impurity_model, Dsystem, r)
 
     @assert ∂V |> length == Dsystem |> length
 
@@ -147,8 +140,8 @@ end
 
 function get_subsystem_derivative(model::WideBandBath, r::AbstractMatrix)
     if size(r) != size(model.tmp_derivative[])
-        model.tmp_derivative[] = NQCModels.zero_derivative(model.model, r)
+        model.tmp_derivative[] = NQCModels.zero_derivative(model.impurity_model, r)
     end
-    NQCModels.derivative!(model.model, model.tmp_derivative[], r)
+    NQCModels.derivative!(model.impurity_model, model.tmp_derivative[], r)
     return model.tmp_derivative[]
 end

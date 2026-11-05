@@ -1,9 +1,4 @@
 
-"Singleton type for labelling states as diabatic."
-struct Diabatic end
-"Singleton type for labelling states as adiabatic."
-struct Adiabatic end
-
 """
     ElectronicDistribution{S}
 

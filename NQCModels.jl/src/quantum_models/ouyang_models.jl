@@ -23,48 +23,27 @@ NQCModels.nstates(model::OuyangModelOne) = model.n_states
 NQCModels.ndofs(::OuyangModelOne) = 1
 
 # GPU extensions: ext/NQCModelsCUDAExt.jl:409, ext/NQCModelsMetalExt.jl:409
-function NQCModels.potential(model::OuyangModelOne, R::AbstractMatrix)
-    r = R[1]
-    Parameters.@unpack A, B, C, D, ΔE, N = model
-
-    V = zeros((N+1, N+1))
-
-    V[1,1] = A*tanh(B*r)
-    Δs = range(-ΔE/2, ΔE/2, length=N)
-    V[1,2:N+1] .= C*exp(-D*r^2)
-    V[diagind(N+1,N+1)[2:end]] .= -(A*tanh(B*r)).+Δs
-
-    return V
-end
-
 function NQCModels.potential!(model::OuyangModelOne, V::Hermitian, R::AbstractMatrix)
-    r = R[1]
     Parameters.@unpack A, B, C, D, ΔE, N = model
-
-    V[1,1] = A*tanh(B*r)
     Δs = range(-ΔE/2, ΔE/2, length=N)
-    V.data[1,2:N+1] .= C*exp(-D*r^2)
+    M = length(R)
+
+    V.data .= 0
+    V.data[1,1] = sum(r -> A*tanh(B*r), R)
+    V.data[1,2:N+1] .= sum(r -> C*exp(-D*r^2), R)
+    V.data[diagind(N+1,N+1)[2:end]] .= sum(r -> -(A*tanh(B*r)), R) .+ M .* Δs
 end
 
 # GPU extensions: ext/NQCModelsCUDAExt.jl:424, ext/NQCModelsMetalExt.jl:424
-function NQCModels.derivative(model::OuyangModelOne, R::AbstractMatrix)
-    r = R[1]
-    Parameters.@unpack A, B, C, D, N = model
+function NQCModels.derivative!(model::OuyangModelOne, D::AbstractMatrix{<:Hermitian}, R::AbstractMatrix)
+    (;A, B, C, N) = model
+    Dparam = model.D
 
-    derivative = Hermitian(zeros((N+1, N+1)))
-
-    derivative.data[1,1] = B*A*sech(B*r)^2
-    derivative.data[1,2:N+1] .= -2D*r*C*exp(-D*r^2)
-    derivative.data[diagind(N+1,N+1)[2:end]] .= -(B*A*sech(B*r)^2)
-
-    return derivative
-end
-
-function NQCModels.derivative!(model::OuyangModelOne, derivative::Hermitian, R::AbstractMatrix)
-    r = R[1]
-    Parameters.@unpack A, B, C, D, N = model
-
-    derivative.data[1,1] = B*A*sech(B*r)^2
-    derivative.data[1,2:N+1] .= -2D*r*C*exp(-D*r^2)
-    derivative.data[diagind(N+1,N+1)[2:end]] .= -(B*A*sech(B*r)^2)
+    for atom in axes(R, 2)
+        r = R[1, atom]
+        derivative = D[1,atom]
+        derivative.data[1,1] = B*A*sech(B*r)^2
+        derivative.data[1,2:N+1] .= -2Dparam*r*C*exp(-Dparam*r^2)
+        derivative.data[diagind(N+1,N+1)[2:end]] .= -(B*A*sech(B*r)^2)
+    end
 end

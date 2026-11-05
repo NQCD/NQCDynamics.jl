@@ -1,6 +1,7 @@
 using NQCDynamics: RingPolymers
 
-function RingPolymerSimulation{EhrenfestNA}(atoms::Atoms{T}, model::Model, n_beads::Integer; kwargs...) where {T}
+function RingPolymerSimulation{EhrenfestNA}(atoms::Atoms, model::Model, n_beads::Integer; kwargs...)
+    T = eltype(atoms.masses)
     return RingPolymerSimulation(
         atoms,
         model,

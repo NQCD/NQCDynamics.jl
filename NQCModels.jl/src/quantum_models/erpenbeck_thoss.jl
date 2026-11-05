@@ -50,7 +50,7 @@ function ErpenbeckThoss(;
     x̃   = austrip(3.5u"Å"),
     V̄ₖ  = sqrt(austrip(Γ)/2π),
     c   = nothing
-) 
+)
     morse = ClassicalModels.Morse(;Dₑ, x₀, a, m)
     if isnothing(c)
         c = -NQCModels.ClassicalModels.eigenenergy(morse, 0) # Set c to offset zero-point energy
@@ -60,61 +60,32 @@ function ErpenbeckThoss(;
 end
 
 # GPU extensions: ext/NQCModelsCUDAExt.jl:352, ext/NQCModelsMetalExt.jl:352
-function NQCModels.potential(model::ErpenbeckThoss, R::AbstractMatrix)
-    (;morse, c, D₁, D₂, x₀′, a′, V∞) = model
-
-    (;q, ã, x̃, V̄ₖ) = model
-
-    V11 = NQCModels.potential(morse, R) + c
-    V22 = D₁*exp(-2a′*(R[1]-x₀′)) - D₂*exp(-a′*(R[1]-x₀′)) + V∞
-    V12 = V̄ₖ * ((1-q)/2*(1 - tanh((R[1]-x̃)/ã)) + q)
-    return Hermitian([V11 V12; V12 V22])
-end
-
 function NQCModels.potential!(model::ErpenbeckThoss, V::Hermitian, R::AbstractMatrix)
-    (;morse, c, D₁, D₂, x₀′, a′, V∞) = model
+    (;morse, c, D₁, D₂, x₀′, a′, V∞, q, ã, x̃, V̄ₖ) = model
 
-    (;q, ã, x̃, V̄ₖ) = model
+    V11 = sum(r -> NQCModels.potential(morse, hcat(r)) + c, R)
+    V22 = sum(r -> D₁*exp(-2a′*(r-x₀′)) - D₂*exp(-a′*(r-x₀′)) + V∞, R)
+    V12 = sum(r -> V̄ₖ * ((1-q)/2*(1 - tanh((r-x̃)/ã)) + q), R)
 
-    V11 = NQCModels.potential(morse, R) + c
-    V22 = D₁*exp(-2a′*(R[1]-x₀′)) - D₂*exp(-a′*(R[1]-x₀′)) + V∞
-    V12 = V̄ₖ * ((1-q)/2*(1 - tanh((R[1]-x̃)/ã)) + q)
-
-    V.data[1,1] = V11
-    V.data[2,2] = V22
-    V.data[1,2] = V12
-
+    V.data .= [V11 V12; V12 V22]
 end
 
 # GPU extensions: ext/NQCModelsCUDAExt.jl:363, ext/NQCModelsMetalExt.jl:363
-function NQCModels.derivative(model::ErpenbeckThoss, R::AbstractMatrix)
-    (;morse, D₁, D₂, x₀′, a′) = model
+function NQCModels.derivative!(model::ErpenbeckThoss, D::AbstractMatrix{<:Hermitian}, R::AbstractMatrix)
+    (;morse, D₁, D₂, x₀′, a′, q, ã, x̃, V̄ₖ) = model
+    full_D11 = NQCModels.derivative(morse, R)
+    for dof in axes(R, 1)
+        for atom in axes(R, 2)
+            r = R[dof,atom]
+            D11 = full_D11[dof,atom]
+            D22 = -2a′*D₁*exp(-2a′*(r-x₀′)) + a′*D₂*exp(-a′*(r-x₀′))
+            D12 = -V̄ₖ * (1-q)/2 * sech((r-x̃)/ã)^2 / ã
 
-    (;q, ã, x̃, V̄ₖ) = model
-
-    D11 = NQCModels.derivative(morse, R)
-    D22 = -2a′*D₁*exp(-2a′*(R[1]-x₀′)) + a′*D₂*exp(-a′*(R[1]-x₀′))
-    D12 = -V̄ₖ * (1-q)/2 * sech((R[1]-x̃)/ã)^2 / ã
-    return Hermitian([D11 D12; D12 D22])
-end
-
-function NQCModels.derivative!(model::ErpenbeckThoss, D::Matrix{<:Hermitian}, R::AbstractMatrix)
-    NQCModels.derivative!(model, D[1,1], R)
-end
-
-function NQCModels.derivative!(model::ErpenbeckThoss, D::Hermitian, R::AbstractMatrix)
-    (;morse, D₁, D₂, x₀′, a′) = model
-
-    (;q, ã, x̃, V̄ₖ) = model
-
-    D11 = NQCModels.derivative(morse, R)
-    D22 = -2a′*D₁*exp(-2a′*(R[1]-x₀′)) + a′*D₂*exp(-a′*(R[1]-x₀′))
-    D12 = -V̄ₖ * (1-q)/2 * sech((R[1]-x̃)/ã)^2 / ã
-    
-    D.data[1,1] = D11
-    D.data[2,2] = D22
-    D.data[1,2] = D12
-
+            D[dof,atom].data[1,1] = D11
+            D[dof,atom].data[2,2] = D22
+            D[dof,atom].data[1,2] = D12
+        end
+    end
     return nothing
 end
 

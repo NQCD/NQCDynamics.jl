@@ -126,9 +126,10 @@ function update_eigen!(cache::Abstract_QuantumModel_Cache, r::AbstractMatrix)
 
     # Ensure symmetry explicitly
     cache.tmp_mat .= cache.potential
-
-    cache.eigen = eigen(Hermitian(cache.tmp_mat))
-    correct_phase!(cache, cache.eigen)
+    eig_result = eigen(Hermitian(cache.tmp_mat))
+    cache.eigen.values .= eig_result.values
+    cache.eigen.vectors .= eig_result.vectors
+    correct_phase!(cache, cache.eigen.vectors)
     return nothing
 end
 
@@ -137,7 +138,9 @@ function update_eigen!(cache::Abstract_QuantumModel_Cache, r::AbstractArray{T,3}
 
     @inbounds for i in beads(cache)
         cache.tmp_mat .= potential[i]
-        cache.eigen[i] = eigen(Hermitian(cache.tmp_mat))
+        eig_result = eigen(Hermitian(cache.tmp_mat))
+        cache.eigen[i].values .= eig_result.values
+        cache.eigen[i].vectors .= eig_result.vectors
         correct_phase!(cache.phase_ref[i], cache.eigen[i])
     end
     return nothing
@@ -169,9 +172,9 @@ end
 
 function update_centroid_adiabatic_derivative!(cache::Abstract_QuantumModel_Cache, r::AbstractArray{T, 3}) where {T}
     centroid_derivative = get_centroid_derivative(cache, r)
-    centroid_eigen = get_centroid_eigen(cache, r)
+    centroid_eigen = get_centroid_eigen(cache, r).vectors
     for I in eachindex(centroid_derivative)
-        cache.centroid_adiabatic_derivative[I] .= centroid_eigen.vectors' * centroid_derivative[I] * centroid_eigen.vectors
+        cache.centroid_adiabatic_derivative[I] .= centroid_eigen' * centroid_derivative[I] * centroid_eigen
     end
     return nothing
 end
@@ -193,10 +196,10 @@ end
 - SubotnikBellonzi_AnnuRevPhyschem_67_387_2016, section 2.3
 """
 function update_nonadiabatic_coupling!(cache::Abstract_QuantumModel_Cache, r::AbstractMatrix)
-    eigen = get_eigen(cache, r)
+    eigenvalues = get_eigen(cache, r).values
     adiabatic_derivative = get_adiabatic_derivative(cache, r)
 
-    update_inverse_difference_matrix!(cache.tmp_mat, eigen.values)
+    update_inverse_difference_matrix!(cache.tmp_mat, eigenvalues)
 
     nonadiabatic_coupling_loop!(cache, adiabatic_derivative, cache.model)
 
@@ -272,7 +275,9 @@ end
 function update_centroid_eigen!(cache::Abstract_QuantumModel_Cache, r::AbstractArray{T,3}) where {T}
     potential = get_centroid_potential(cache, r)
     cache.tmp_mat .= potential
-    cache.centroid_eigen = eigen(Hermitian(cache.tmp_mat))
+    eigen_result = eigen(Hermitian(cache.tmp_mat))
+    cache.centroid_eigen.values .= eigen_result.values
+    cache.centroid_eigen.vectors .= eigen_result.vectors
     correct_phase!(cache.centroid_phase_ref, cache.centroid_eigen)
     return nothing
 end

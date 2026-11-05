@@ -24,69 +24,50 @@ NQCModels.nstates(::GatesHollowayElbow) = 2
 NQCModels.ndofs(::GatesHollowayElbow) = 2
 
 """
-   potential(model::GatesHollowayElbow, R::AbstractMatrix)
-   
-finds the 2x2 potential matrix for a particle with an internal degree of freedom, x, and a distance from the surface, z, modelled as the sum of a repulsive and Morse potential.
-As it's currently implemented, the model is only defined for a single particle as the potential is only caclulated based on a single pair of x and z values. 
-"""
-# GPU extensions: ext/NQCModelsCUDAExt.jl:276, ext/NQCModelsMetalExt.jl:276
-function NQCModels.potential(model::GatesHollowayElbow, R::AbstractMatrix)
-    Parameters.@unpack λ₁, λ₂, z₀, x₀, α, d, z12, c, γ = model
-
-    x = R[1]
-    z = R[2]
-
-    V11 = d*(1-exp(-α*x))^2 + exp(-λ₁*(z+z₀))
-    V22 = d*(1-exp(-α*z))^2 + exp(-λ₂*(x+x₀))
-    V12 = c * exp(-γ*(z-z12))
-
-    return Hermitian([V11 V12; V12 V22])
-end
-
-"""
    potential!(model::GatesHollowayElbow, V::Hermitian, R::AbstractMatrix)
-   
-finds the 2x2 potential matrix for a particle with an internal degree of freedom, x, and a distance from the surface, z, modelled as the sum of a repulsive and Morse potential.
-As it's currently implemented, the model is only defined for a single particle as the potential is only caclulated based on a single pair of x and z values. 
+
+Finds the 2x2 potential matrix for one or more particles, each with an internal degree of
+freedom, x, and a distance from the surface, z, modelled as the sum of a repulsive and
+Morse potential. Every particle (column of `R`) is assumed to contribute independently,
+and its contribution is summed into `V`.
 """
+# Overloading base definition in QuantumModels.jl since this model works differently in different dimensions.
+# GPU extensions: ext/NQCModelsCUDAExt.jl:276, ext/NQCModelsMetalExt.jl:276
 function NQCModels.potential!(model::GatesHollowayElbow, V::Hermitian, R::AbstractMatrix)
     Parameters.@unpack λ₁, λ₂, z₀, x₀, α, d, z12, c, γ = model
 
-    x = R[1]
-    z = R[2]
+    V11 = sum(atom -> d*(1-exp(-α*R[1,atom]))^2 + exp(-λ₁*(R[2,atom]+z₀)), axes(R,2))
+    V22 = sum(atom -> d*(1-exp(-α*R[2,atom]))^2 + exp(-λ₂*(R[1,atom]+x₀)), axes(R,2))
+    V12 = sum(atom -> c * exp(-γ*(R[2,atom]-z12)), axes(R,2))
 
-    V11 = d*(1-exp(-α*x))^2 + exp(-λ₁*(z+z₀))
-    V22 = d*(1-exp(-α*z))^2 + exp(-λ₂*(x+x₀))
-    V12 = c * exp(-γ*(z-z12))
-
-    V.data .= Hermitian([V11 V12; V12 V22])
+    V.data .= [V11 V12; V12 V22]
 end
 
+"""
+   derivative!(model::GatesHollowayElbow, D::AbstractMatrix{<:Hermitian}, R::AbstractMatrix)
+
+Finds the derivative of the 2x2 potential matrix with respect to x and z for one or more
+particles. Every particle (column of `R`) is assumed to contribute independently, filling
+its own pair of entries (`D[1,atom]`, `D[2,atom]`).
+"""
+# Overloading base definition in QuantumModels.jl since this model works differently in different dimensions.
 # GPU extensions: ext/NQCModelsCUDAExt.jl:290, ext/NQCModelsMetalExt.jl:290
-function NQCModels.derivative(model::GatesHollowayElbow, R::AbstractMatrix)
-    D = [Hermitian(zero(matrix_template(model, eltype(R)))) for _=1:size(R, 1), _=1:size(R, 2)]
-    NQCModels.derivative!(model, D, R)
-    return D
-end
-
-# Overloading base definition in QuantumModels.jl since this model works differently in different dimensions. 
-function NQCModels.derivative!(model::GatesHollowayElbow, D::AbstractMatrix{<:Hermitian}, R::AbstractMatrix) 
+function NQCModels.derivative!(model::GatesHollowayElbow, D::AbstractMatrix{<:Hermitian}, R::AbstractMatrix)
     Parameters.@unpack λ₁, λ₂, z₀, x₀, α, d, z12, c, γ = model
 
-    drepel(x, λ, d) = -λ*exp(-λ*(x+d))
-    dmorse(x, d, α) = 2α*d*(1-exp(-α*x))*exp(-α*x)
+    for atom in axes(R, 2)
+        x = R[1, atom]
+        z = R[2, atom]
 
-    x = R[1,1]
-    z = R[2,1]
+        # x derivative
+        D[1,atom].data[1,1] = 2α*d*(1-exp(-α*x))*exp(-α*x)
+        D[1,atom].data[2,2] = -λ₂*exp(-λ₂*(x+x₀))
 
-    # x derivative
-    D[1,1].data[1,1] = 2α*d*(1-exp(-α*x))*exp(-α*x)
-    D[1,1].data[2,2] = -λ₂*exp(-λ₂*(x+x₀))
-
-    # z derivative
-    D[2,1].data[1,1] = -λ₁*exp(-λ₁*(z+z₀))
-    D[2,1].data[2,2] = 2α*d*(1-exp(-α*z))*exp(-α*z)
-    D[2,1].data[1,2] = D[2,1].data[2,1] = c * -γ*exp(-γ*(z-z12))
+        # z derivative
+        D[2,atom].data[1,1] = -λ₁*exp(-λ₁*(z+z₀))
+        D[2,atom].data[2,2] = 2α*d*(1-exp(-α*z))*exp(-α*z)
+        D[2,atom].data[1,2] = D[2,atom].data[2,1] = c * -γ*exp(-γ*(z-z12))
+    end
 
     return nothing
 end

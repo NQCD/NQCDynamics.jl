@@ -26,7 +26,8 @@ struct EhrenfestNA{T} <: AbstractEhrenfest
     end
 end
 
-function NQCDynamics.Simulation{EhrenfestNA}(atoms::Atoms{T}, model::Model; kwargs...) where {T}
+function NQCDynamics.Simulation{EhrenfestNA}(atoms::Atoms, model::Model; kwargs...)
+    T = eltype(atoms.masses)
     NQCDynamics.Simulation(atoms, model, EhrenfestNA{T}(NQCModels.nstates(model), NQCModels.nelectrons(model)); kwargs...)
 end
 

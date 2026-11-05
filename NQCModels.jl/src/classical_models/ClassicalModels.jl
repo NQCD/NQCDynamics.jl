@@ -24,19 +24,33 @@ using Reexport: @reexport
 `ClassicalModel`s represent the potentials from classical molecular dynamics
 where the potential is a function of the position.
 
+`R` is always a `dimensions * atoms` shaped `AbstractMatrix`, `potential(model, R)`
+always returns a scalar, and `derivative(model, R)`/`derivative!(model, D, R)` always
+return/fill a `dimensions * atoms` shaped array of scalars.
+
 # Implementation
 
-`ClassicalModel`s should implement:
-* `potential(model, R)`
-* `derivative!(model, D, R)` (this is the derivative of the potential energy with respect to the positions)
-* `ndofs(model)` (these are the degrees of freedom)
+Every model must implement:
+* `potential(model, R::AbstractMatrix)`: the total potential for every atom (column) in `R`.
+* `derivative!(model, D::AbstractMatrix, R::AbstractMatrix)`: fill `D` in place with the
+  derivative for every atom (column) in `R`.
+* `ndofs(model)` (the degrees of freedom per atom)
+
+There is no automatic per-atom fallback: if every atom experiences the model
+*independently*, the implementation should say so explicitly, typically by summing/broadcasting
+over `eachcol(R)`/`axes(R, 2)` internally. Models that explicitly implement an interaction
+between different atoms (like [`DiatomicHarmonic`](@ref)), or that support heterogeneous
+per-atom parameters (like [`Harmonic`](@ref)), are written the same way — there is only one
+method to implement, not a separate "independent atoms" special case.
+
+The only automatic convenience is at the [`Model`](@ref NQCModels.Model) level: for models
+where `ndofs(model) == 1`, the position of a single 1D atom may be passed directly as a plain
+number rather than a `1×1` matrix.
 
 # Example
 
-This example creates a 2 dimensional Classical model `MyModel`.
-We implement the 3 compulsory functions then evaluate the potential.
-Here, the argument `R` is an `AbstractMatrix` since this is a 2D model
-that can accept multiple atoms.
+This example creates a 2 dimensional Classical model `MyModel` where every atom is
+independent, then evaluates the potential for a 2 atom system.
 
 ```jldoctest
 struct MyModel{P} <: NQCModels.ClassicalModels.ClassicalModel
@@ -46,7 +60,9 @@ end
 NQCModels.ndofs(::MyModel) = 2
 
 NQCModels.potential(model::MyModel, R::AbstractMatrix) = model.param*sum(R.^2)
-NQCModels.derivative!(model::MyModel, D, R::AbstractMatrix) = D .= model.param*2R
+function NQCModels.derivative!(model::MyModel, D::AbstractMatrix, R::AbstractMatrix)
+    D .= model.param*2R
+end
 
 model = MyModel(10)
 
@@ -66,6 +82,16 @@ NQCModels.zero_derivative(::ClassicalModel, R) = zero(R)
 
 function NQCModels.potential!(model::ClassicalModel, V::Real, R::AbstractMatrix)
     @warn "In Julia, real numbers cannot be updated in place. Please define your potential as a matrix if you wish to pass it into potential!()"
+end
+
+"""
+    NQCModels.potential!(model::ClassicalModel, V::AbstractMatrix, R::AbstractMatrix)
+
+Default in-place `potential!`, suitable for every `ClassicalModel` since `potential`
+always returns a scalar.
+"""
+function NQCModels.potential!(model::ClassicalModel, V::AbstractMatrix, R::AbstractMatrix)
+    V .= NQCModels.potential(model, R)
 end
 
 # GPU extensions: NQCModelsCUDAExt, NQCModelsMetalExt

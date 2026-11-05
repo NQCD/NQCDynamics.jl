@@ -42,6 +42,40 @@ extra functions is required. See the docstrings for more info:
 - [`ClassicalFrictionModel`](@ref FrictionModels.ClassicalFrictionModel)
 - [`QuantumFrictionModel`](@ref FrictionModels.QuantumFrictionModel)
 
+## The N-dimensional, M-atom convention
+
+Every [`Model`](@ref NQCModels.Model) must work for an arbitrary number of atoms `M`
+and degrees of freedom per atom `N = ndofs(model)`. Concretely, `R` is always an
+`N * M` shaped `AbstractMatrix` (one column per atom), and:
+
+- `potential(model, R)`/`potential!(model, V, R)` always return/fill a value sized for
+  the *whole* system (a scalar for [`ClassicalModel`](@ref ClassicalModels.ClassicalModel),
+  a single `nstates * nstates` `Hermitian` for [`QuantumModel`](@ref QuantumModels.QuantumModel)).
+- `derivative(model, R)`/`derivative!(model, D, R)` always return/fill an `N * M` shaped
+  array with one entry per (degree of freedom, atom) pair.
+- `potential!`/`derivative!` **overwrite** `V`/`D` completely on every call rather than
+  accumulating across calls — callers (e.g. `NQCCalculators.jl`) rely on this to reuse the
+  same pre-allocated arrays every timestep without manually resetting them first.
+
+Every model implements `potential`/`potential!`/`derivative!` directly against
+`R::AbstractMatrix` — there is no per-atom "hook" method and no automatic fallback for
+multi-atom systems. If a model does not explicitly define an interaction between different
+atoms, its implementation should say so explicitly, typically by summing/broadcasting over
+`eachcol(R)`/`axes(R, 2)` internally (e.g. [`Morse`](@ref)). Models that genuinely couple
+different atoms (e.g. [`DiatomicHarmonic`](@ref), which couples exactly its first two atoms
+and leaves any further atoms independent/non-interacting) or that have heterogeneous
+per-atom parameters (e.g. [`Harmonic`](@ref)) are written the same way — see the
+[`ClassicalModel`](@ref ClassicalModels.ClassicalModel) and
+[`QuantumModel`](@ref QuantumModels.QuantumModel) docstrings for worked examples.
+
+### Backward-compatible scalar entry
+
+For models where `ndofs(model) == 1`, the position of a single atom can also be passed
+directly as a plain number, e.g. `potential(model, 1.0)`, rather than as a `1×1` matrix.
+This is handled generically by convenience methods defined on [`Model`](@ref NQCModels.Model)
+that wrap the number in a `1×1` matrix and redirect to the matrix-based methods, so
+individual models do not need to implement this themselves.
+
 ## Example implementations
 
 To implement a new model, you first select the abstract type, where you should first take a look
@@ -81,7 +115,7 @@ end
 
 ### Implementation Guidelines
 
-1. **Implement allocating methods only**: Only `potential` and `derivative` need GPU versions. The in-place versions (`potential!`, `derivative!`) remain CPU-only.
+1. **Implement in-place methods only**: Only `potential!` and `derivative!` need GPU versions. The allocating versions (`potential`, `derivative`) should already be defined by model-unspecific methods unless a deviation from normal behaviour is needed.
 
 2. **Match return types to input**: Return GPU arrays when given GPU input:
    ```julia

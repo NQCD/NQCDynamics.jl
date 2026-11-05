@@ -8,6 +8,7 @@ using Distributions: Normal
 using RingPolymerArrays: NormalModeTransformation, transform_from_normal_modes!
 using LinearAlgebra: mul!, diagind
 using ComponentArrays: ComponentVector
+using NQCBase: Adiabatic, Diabatic
 
 include("sampleable_components.jl")
 

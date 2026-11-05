@@ -9,7 +9,8 @@ struct SpinMappingW{T} <: DynamicsMethods.Method
     end
 end
 
-function NQCDynamics.Simulation{SpinMappingW}(atoms::Atoms{T}, model::Model; kwargs...) where {T}
+function NQCDynamics.Simulation{SpinMappingW}(atoms::Atoms, model::Model; kwargs...)
+    T = eltype(atoms.masses)
     NQCDynamics.Simulation(atoms, model, SpinMappingW{T}(NQCModels.nstates(model)); kwargs...)
 end
 

@@ -52,17 +52,19 @@ function NQCModels.derivative(model::ClassicalModels.Logistic, R::CUDA.CuArray)
 end
 
 # DiatomicHarmonic model
+# Only the first two atoms interact; any further atoms remain independent (zero contribution).
 function NQCModels.potential(model::ClassicalModels.DiatomicHarmonic, R::CUDA.CuArray)
-    r = sqrt(sum(R[:, 1] .^ 2))
-    return model.k / 2 * (r - model.r₀)^2
+    diff = R[:, 1] .- R[:, 2]
+    r = sqrt(sum(diff .^ 2))
+    return (r - model.r₀)^2 / 2
 end
 
 function NQCModels.derivative(model::ClassicalModels.DiatomicHarmonic, R::CUDA.CuArray)
-    r = sqrt(sum(R[:, 1] .^ 2))
+    diff = R[:, 1] .- R[:, 2]
+    r = sqrt(sum(diff .^ 2))
     D = CUDA.zeros(eltype(R), size(R))
-    if r > 0
-        D[:, 1] .= model.k .* (r - model.r₀) .* R[:, 1] ./ r
-    end
+    D[:, 1] .= (r - model.r₀) .* diff ./ r
+    D[:, 2] .= .-D[:, 1]
     return D
 end
 

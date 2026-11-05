@@ -18,3 +18,4 @@ dev/
 
 NQCDynamics.jl/test/tmp/
 NQCDynamics.jl/test/tmp/*
+*.code-workspace

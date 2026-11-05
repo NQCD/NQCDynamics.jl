@@ -20,30 +20,17 @@ Parameters.@with_kw struct Logistic{T} <: ClassicalModel
     a::T = 1.0
 end
 
-NQCModels.ndofs(harmonic::Logistic) = 1
+NQCModels.ndofs(::Logistic) = 1
 
 # GPU extensions: ext/NQCModelsCUDAExt.jl:43, ext/NQCModelsMetalExt.jl:43
 function NQCModels.potential(model::Logistic, R::AbstractMatrix)
-    r = R[1]
     (;L, k, x₀, c, a) = model
-    return L / (1 + exp(-k * (a * r - x₀))) + c
-end
-
-function NQCModels.potential!(model::Logistic, V::Matrix{<:Number}, R::AbstractMatrix)
-    r = R[1]
-    (;L, k, x₀, c, a) = model
-    V .= L / (1 + exp(-k * (a * r - x₀))) + c
+    return sum(L / (1 + exp(-k * (a * x - x₀))) + c for x in R)
 end
 
 # GPU extensions: ext/NQCModelsCUDAExt.jl:48, ext/NQCModelsMetalExt.jl:48
-function NQCModels.derivative(model::Logistic, R::AbstractMatrix)
-    r = R[1]  
-    (;L, k, x₀, a) = model
-    return L * a * k * exp(k * (a * r - x₀)) / ((1 + exp(k * ( a * r - x₀)))^2) # analytical derivative of the logistic function
-end
-
 function NQCModels.derivative!(model::Logistic, D::AbstractMatrix, R::AbstractMatrix)
-    r = R[1]  
     (;L, k, x₀, a) = model
-    D .= L * a * k * exp(k * (a * r - x₀)) / ((1 + exp(k * ( a * r - x₀)))^2) # analytical derivative of the logistic function
+    @. D = L * a * k * exp(k * (a * R - x₀)) / ((1 + exp(k * (a * R - x₀)))^2) # analytical derivative of the logistic function
+    return D
 end

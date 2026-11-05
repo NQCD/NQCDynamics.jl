@@ -1,7 +1,7 @@
 """
 NQCModels define the potentials and derivatives that
 govern the dynamics of the particles.
-These can exist as analytic models or as interfaces to other codes. 
+These can exist as analytic models or as interfaces to other codes.
 """
 module NQCModels
 
@@ -19,7 +19,7 @@ Top-level type for models.
 When adding new models, this should not be directly subtyped. Instead, depending on
 the intended functionality of the model, one of the child abstract types should be
 subtyped.
-If an appropriate type is not already available, a new abstract subtype should be created. 
+If an appropriate type is not already available, a new abstract subtype should be created.
 """
 abstract type Model end
 
@@ -38,42 +38,43 @@ GPU array support is provided via package extensions:
 When GPU arrays are passed, the return type matches the input array type.
 """
 function potential(model::Model, R::AbstractMatrix)
-    if ndofs(model) == 1
-        if size(R, 2) == 1
-            return potential(model, R[1])
-        else
-            return potential(model, @view R[1,:])
-        end
-    elseif size(R, 2) == 1
-        return potential(model, @view R[:,1])
-    else
-        throw(MethodError(potential, (model, R)))
-    end
+    throw(MethodError(potential, (model, R)))
 end
 
 """
-    potential(model::Model, R::Real)
+    potential(model::Model, R::Number)
 
-Wraps R in a 1x1 matrix and redirects to potential(model::Model, R::AbstractMatrix).
+Convenience method for models where `ndofs(model) == 1`, allowing the position of a
+single 1D atom to be passed directly as a number rather than a `1×1` matrix.
+Wraps `R` in a `1×1` matrix and redirects to `potential(model::Model, R::AbstractMatrix)`.
+
+Typed as `Number`, rather than `Real`, to stay unambiguous should a model ever dispatch
+on a `Number`-typed argument itself.
 """
-function potential(model::Model, R::Real)
-    potential(model::Model, hcat(R))
+function potential(model::Model, R::Number)
+    potential(model, hcat(R))
 end
+
 
 """
     potential!(model::Model, V, R::AbstractMatrix)
 
-In-place version of `potential`, used to implement more efficient dynamics. 
+In-place version of `potential`, used to implement more efficient dynamics.
 """
 function potential!(model::Model, V, R::AbstractMatrix) end
 
 """
-    potential!(model::Model, V, R::Real)
+    potential!(model::Model, V, R::Number)
 
-Wraps R in a 1x1 matrix and redirects to potential!(model::Model, V, R::AbstractMatrix). 
+Convenience method for models where `ndofs(model) == 1`, allowing the position of a
+single 1D atom to be passed directly as a number rather than a `1×1` matrix.
+Wraps `R` in a `1×1` matrix and redirects to `potential!(model::Model, V, R::AbstractMatrix)`.
+
+Typed as `Number`, rather than `Real`, to stay unambiguous should a model ever dispatch
+on a `Number`-typed argument itself.
 """
-function potential!(model::Model, V, R::Real) 
-    potential!(model::Model, V, hcat(R))
+function potential!(model::Model, V, R::Number)
+    potential!(model, V, hcat(R))
 end
 
 """
@@ -98,13 +99,19 @@ function derivative(model::Model, R)
 end
 
 """
-    derivative(model::Model, R::Real)
+    derivative(model::Model, R::Number)
 
-Wraps R in a 1x1 matrix and redirects to derivative(model::Model, R::AbstractMatrix). 
+Convenience method for models where `ndofs(model) == 1`, allowing the position of a
+single 1D atom to be passed directly as a number rather than a `1×1` matrix.
+Wraps `R` in a `1×1` matrix and redirects to `derivative(model::Model, R::AbstractMatrix)`.
+
+Typed as `Number`, rather than `Real`, to stay unambiguous should a model ever dispatch
+on a `Number`-typed argument itself.
 """
-function derivative(model::Model, R::Real)
-    derivative(model::Model, hcat(R))
+function derivative(model::Model, R::Number)
+    derivative(model, hcat(R))
 end
+
 
 """
     derivative!(model::Model, D, R::AbstractMatrix)
@@ -113,18 +120,24 @@ Fill `D` with the derivative of the electronic potential as a function of the po
 
 This must be implemented for all models.
 """
-function derivative!(model::Model, D, R::AbstractMatrix) 
+function derivative!(model::Model, D, R::AbstractMatrix)
     @warn "You have likely made a multiple dispatch mistake." maxlog = 1 model = model D = D R = R
 end
 
 """
-    derivative!(model::Model, D, R::Real)
+    derivative!(model::Model, D, R::Number)
 
-Wraps R in a 1x1 matrix and redirects to derivative!(model::Model, D, R::AbstractMatrix). 
+Convenience method for models where `ndofs(model) == 1`, allowing the position of a
+single 1D atom to be passed directly as a number rather than a `1×1` matrix.
+Wraps `R` in a `1×1` matrix and redirects to `derivative!(model::Model, D, R::AbstractMatrix)`.
+
+Typed as `Number`, rather than `Real`, to stay unambiguous should a model ever dispatch
+on a `Number`-typed argument itself.
 """
-function derivative!(model::Model, D, R::Real) 
-    derivative!(model::Model, D, hcat(R))
+function derivative!(model::Model, D, R::Number)
+    derivative!(model, D, hcat(R))
 end
+
 
 """
     zero_derivative(model::Model, R)
@@ -153,7 +166,7 @@ function get_subsystem_derivative() end
 
 state_independent_potential(model, r) = 0.0
 
-function state_independent_potential!(model, Vsystem, r) 
+function state_independent_potential!(model, Vsystem, r)
     Vsystem .= 0.0
 end
 

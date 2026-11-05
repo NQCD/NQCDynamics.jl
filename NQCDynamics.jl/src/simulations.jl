@@ -10,10 +10,10 @@ abstract type AbstractSimulation{M} end
 
 Base.broadcastable(sim::AbstractSimulation) = Ref(sim)
 
-struct Simulation{M,Cache,T,Ttype,C,S} <: AbstractSimulation{M}
+struct Simulation{M,Cache,A<:Atoms,Ttype,C,S} <: AbstractSimulation{M}
     temperature::Ttype
     cell::C
-    atoms::Atoms{T}
+    atoms::A
     cache::Cache
     method::M
     solver::S
@@ -22,8 +22,8 @@ end
 Adapt.@adapt_structure Simulation
 
 """
-    Simulation(atoms::Atoms{T}, model::Model, method::M;
-        temperature=0u"K", cell::AbstractCell=InfiniteCell()) where {M,S,T}
+    Simulation(atoms::Atoms, model::Model, method::M;
+        temperature=0u"K", cell::AbstractCell=InfiniteCell()) where {M,S}
 
 Simulation parameters that controls the types of atoms, interactions,
 dynamics method, temperature and simulation cell.
@@ -34,10 +34,10 @@ function Simulation(atoms::Atoms, model::Model, method::M;
     Simulation(temperature, cell, atoms, cache, method, solver)
 end
 
-struct RingPolymerSimulation{M,Cache,T,Ttype,C,B,S} <: AbstractSimulation{M}
+struct RingPolymerSimulation{M,Cache,A<:Atoms,Ttype,C,B,S} <: AbstractSimulation{M}
     temperature::Ttype
     cell::C
-    atoms::Atoms{T}
+    atoms::A
     cache::Cache
     method::M
     beads::B
@@ -45,8 +45,9 @@ struct RingPolymerSimulation{M,Cache,T,Ttype,C,B,S} <: AbstractSimulation{M}
 end
 
 function RingPolymerSimulation(temperature, cell::AbstractCell,
-        atoms::Atoms{T}, model::Model, method::M,
-        n_beads::Integer, quantum_nuclei::Vector{Symbol}; solver::Symbol=:exact) where {M,T}
+        atoms::Atoms, model::Model, method::M,
+        n_beads::Integer, quantum_nuclei::Vector{Symbol}; solver::Symbol=:exact) where {M}
+    T = eltype(atoms.masses)
 
     if isempty(quantum_nuclei)
         beads = RingPolymers.RingPolymerParameters{T}(n_beads, get_temperature(temperature), length(atoms))
@@ -54,7 +55,7 @@ function RingPolymerSimulation(temperature, cell::AbstractCell,
         beads = RingPolymers.RingPolymerParameters{T}(n_beads, get_temperature(temperature), atoms.types, quantum_nuclei)
     end
 
-    cache = Create_Cache(model, length(atoms), n_beads, T)
+    cache = Create_Cache(model, length(atoms), n_beads, atoms.masses)
     RingPolymerSimulation(temperature, cell, atoms, cache, method, beads, solver)
 end
 
