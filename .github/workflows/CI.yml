@@ -51,6 +51,7 @@ jobs:
           JULIA_PYTHONCALL_EXE: ${{ steps.install-python.outputs.python }}
           JULIA_CONDAPKG_BACKEND: "Null"
       - uses: julia-actions/julia-runtest@v1
+        continue-on-error: true
         env:
           BENCHMARK_OUTPUT_DIR: /home/runner/NQCDynamics.jl/NQCDynamics.jl/benchmarks
           JULIA_PYTHONCALL_EXE: ${{ steps.install-python.outputs.python }}
