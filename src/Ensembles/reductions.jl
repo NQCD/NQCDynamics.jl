@@ -75,19 +75,53 @@ function (reduction::FileReduction)(u, batch, I)
             trajectory_group = HDF5.create_group(file, "trajectory_$(trajectory_id)")
             trajectory = batch[i]
             for k in keys(trajectory)
-                value = trajectory[k]
-                if (value isa Array{<:Number}) || (value isa Number)
-                    trajectory_group[string(k)] = trajectory[k]
-                elseif (value isa Vector{<:Array})
-                    output = reshape(reduce(hcat, value), size(value[1])..., :)
-                    trajectory_group[string(k)] = output
-                else
-                    throw(error("Cannot convert output type to HDF5 format"))
-                end
+                write_hdf5!(trajectory_group, string(k), trajectory[k])
             end
         end
     end
     return ("Output written to $(reduction.filename).", false)
+end
+
+"""
+    write_hdf5!(parent, name, value)
+
+Recursively write `value` into the HDF5 `parent` under `name`.
+Numeric arrays and numbers are written directly, vectors of equally sized arrays are
+stacked along a new last dimension, and dictionaries, structs and other vectors become
+nested groups.
+"""
+function write_hdf5!(parent, name::AbstractString, value)
+    if value isa Union{Number,AbstractString,Symbol}
+        parent[name] = value isa Symbol ? string(value) : value
+    elseif value isa AbstractArray{<:Number}
+        parent[name] = collect(value)
+    elseif value isa AbstractVector{<:AbstractArray{<:Number}} && !isempty(value) &&
+           all(==(size(first(value))) ∘ size, value)
+        parent[name] = reshape(reduce(hcat, vec.(value)), size(first(value))..., :)
+    elseif value isa AbstractDict || value isa Dictionary
+        group = HDF5.create_group(parent, name)
+        for k in keys(value)
+            write_hdf5!(group, string(k), value[k])
+        end
+    elseif value isa AbstractArray
+        group = HDF5.create_group(parent, name)
+        for (i, v) in enumerate(value)
+            write_hdf5!(group, string(i), v)
+        end
+    elseif value isa Tuple
+        group = HDF5.create_group(parent, name)
+        for (i, v) in enumerate(value)
+            write_hdf5!(group, string(i), v)
+        end
+    elseif isstructtype(typeof(value)) && fieldcount(typeof(value)) > 0
+        group = HDF5.create_group(parent, name)
+        for f in fieldnames(typeof(value))
+            write_hdf5!(group, string(f), getfield(value, f))
+        end
+    else
+        throw(error("Cannot convert output type $(typeof(value)) to HDF5 format"))
+    end
+    return nothing
 end
 
 """
