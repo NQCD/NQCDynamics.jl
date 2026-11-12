@@ -17,6 +17,7 @@ export Simulation,
        RingPolymerSimulation,
        natoms,
        masses,
+       Temperature,
        TemperatureSetting,
        get_temperature
 
