@@ -1,0 +1,18 @@
+[deps]
+CUDA = "052768ef-5323-5732-b1bb-66c8b64840ba"
+KernelAbstractions = "63c18a36-062a-441e-b654-da1e3ab1ce7c"
+NQCBase = "78c76ebc-5665-4934-b512-82d81b5cbfb7"
+NQCCalculators = "ddd1f41d-9621-41e2-91a4-6b87cc8989f3"
+NQCDistributions = "657014a1-bd25-4aa2-92cb-cbcede0310ad"
+NQCDynamics = "36248dfb-79eb-4f4d-ab9c-e29ea5f33e14"
+NQCModels = "c814dc9f-a51f-4eaf-877f-82eda4edad48"
+Revise = "295af30f-e4ad-537b-8983-00126c2a3abe"
+RingPolymerArrays = "81cd853e-d334-476c-b156-f95acc8a32dc"
+
+[sources]
+NQCBase = {path = "NQCBase.jl"}
+NQCCalculators = {path = "NQCCalculators.jl"}
+NQCDistributions = {path = "NQCDistributions.jl"}
+NQCDynamics = {path = "NQCDynamics.jl"}
+NQCModels = {path = "NQCModels.jl"}
+RingPolymerArrays = {path = "RingPolymerArrays.jl"}

@@ -107,6 +107,10 @@ An overview of the implemented analytical models can be seen in the [Analytic mo
 many shall return later when we investigate the dynamics methods.
 An overview of interfaces to full-dimensional potential energy surfaces can be seen in the [Full dimensional model library](@ref).
 
+## GPU acceleration
+
+Many models in `NQCModels.jl` support GPU arrays through package extensions for CUDA.jl (NVIDIA GPUs) and Metal.jl (Apple Silicon). This allows potential and derivative calculations to be performed directly on GPU arrays. See [GPU Acceleration](@ref) for details on supported models, usage examples, and performance considerations.
+
 !!! note "Contributing new models"
 
     To learn more about NQCModels.jl and learn how to implement new models,

@@ -47,6 +47,7 @@ end
             "NQCModels/atomscalculators.md"
             "NQCModels/frictionmodels.md"
             "NQCModels/systembathmodels.md"
+            "NQCModels/gpu_support.md"
         ]
         "NQCCalculators.jl" => Any[
             "NQCCalculators/overview.md"

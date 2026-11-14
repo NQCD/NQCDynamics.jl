@@ -8,6 +8,16 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        package:
+          - NQCBase.jl
+          - NQCModels.jl
+          - NQCCalculators.jl
+          - RingPolymerArrays.jl
+          - NQCDistributions.jl
+          - NQCDynamics.jl
 
     steps:
       - id: workspace
@@ -38,7 +48,7 @@ jobs:
         shell: bash
       - name: Make benchmark directory
         run: |
-          mkdir -p /home/runner/NQCDynamics.jl/NQCDynamics.jl/benchmarks
+          mkdir -p /home/runner/NQCDynamics.jl/${{ matrix.package }}/benchmarks
         shell: bash
 
       - name: Install ase for IO tests
@@ -50,13 +60,19 @@ jobs:
         env:
           JULIA_PYTHONCALL_EXE: ${{ steps.install-python.outputs.python }}
           JULIA_CONDAPKG_BACKEND: "Null"
+        with:
+          project: ${{ matrix.package }}
       - uses: julia-actions/julia-runtest@v1
         continue-on-error: true
         env:
-          BENCHMARK_OUTPUT_DIR: /home/runner/NQCDynamics.jl/NQCDynamics.jl/benchmarks
+          BENCHMARK_OUTPUT_DIR: /home/runner/NQCDynamics.jl/${{ matrix.package }}/benchmarks
           JULIA_PYTHONCALL_EXE: ${{ steps.install-python.outputs.python }}
           JULIA_CONDAPKG_BACKEND: "Null"
+        with:
+          project: ${{ matrix.package }}
       - uses: julia-actions/julia-processcoverage@v1
+        with:
+          directories: ${{ matrix.package }}/src
       - uses: codecov/codecov-action@v7
         with:
           files: lcov.info
@@ -66,8 +82,8 @@ jobs:
       - name: 'Upload Artifact'
         uses: actions/upload-artifact@v4
         with:
-          name: test-timings
-          path: /home/runner/NQCDynamics.jl/NQCDynamics.jl/benchmarks/*.json
+          name: test-timings-${{ matrix.package }}
+          path: /home/runner/NQCDynamics.jl/${{ matrix.package }}/benchmarks/*.json
           retention-days: 21
   upload_benchmarks:
     runs-on: ubuntu-latest
