@@ -92,6 +92,20 @@ struct Statistical end
 struct Binary end
 
 
+"""
+    DensityMatrix{T,S} <: ElectronicDistribution{S}
+
+Electronic distribution that requests a density matrix representation of the electronic subsystem.
+
+`diagonal` holds the distribution used to populate the diagonal of the density matrix
+(a [`FermiDiracState`](@ref) or a [`NonEqState`](@ref)).
+`systemtype` labels the occupations as [`Binary`](@ref) or [`Statistical`](@ref).
+
+    DensityMatrix(fermi_level::Float64, temperature::Float64; statetype=Adiabatic(), available_states=Colon(), systemtype=Binary())
+    DensityMatrix(dis_spline::LinearInterpolation, dos_spline::LinearInterpolation; statetype=Adiabatic(), available_states=Colon(), systemtype=Binary())
+
+The first form builds a Fermi-Dirac diagonal (atomic units), the second a non-equilibrium diagonal.
+"""
 struct DensityMatrix{T,S} <: ElectronicDistribution{S}
     diagonal::T
     systemtype::S
