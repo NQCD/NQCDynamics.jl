@@ -1,0 +1,29 @@
+comment:
+  layout: "header, diff, flags, components"
+
+component_management:
+  individual_components:
+    - NQCDynamics
+      name: NQCDynamics
+      paths:
+        - NQCDynamics.jl/**
+    - NQCBase
+      name: NQCBase
+      paths:
+        - NQCBase.jl/**
+    - NQCCalculators
+      name: NQCCalculators
+      paths:
+        - NQCCalculators.jl/**
+    - NQCDistributions
+      name: NQCDistributions
+      paths:
+        - NQCDistributions.jl/**
+    - NQCModels
+      name: NQCModels
+      paths:
+        - NQCModels.jl/**
+    - RingPolymerArrays
+      name: RingPolymerArrays
+      paths:
+        - RingPolymerArrays.jl/**
