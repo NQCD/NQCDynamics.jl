@@ -21,6 +21,12 @@ Unitful = "1"
 UnitfulAtomic = "1"
 julia = "1"
 
+[weakdeps]
+CUDA = "052768ef-5323-5732-b1bb-66c8b64840ba"
+
+[extensions]
+NQCDistributionsCUDAExt = "CUDA"
+
 [sources]
 NQCBase = {path="../NQCBase.jl"}
 RingPolymerArrays = {path="../RingPolymerArrays.jl"}
