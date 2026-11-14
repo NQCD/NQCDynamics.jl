@@ -3,6 +3,7 @@ using SafeTestsets, Test
 @safetestset "SampleableComponents" begin include("sampleable_components.jl") end
 @safetestset "DynamicalDistribution" begin include("dynamical_distribution.jl") end
 @safetestset "ElectronicDistributions" begin include("electronic.jl") end
+@safetestset "CUDA extension" begin include("cuda_extension.jl") end
 
 @testset "Nuclear distributions" begin
     @safetestset "HarmonicWigner" begin include("harmonic_wigner.jl") end
