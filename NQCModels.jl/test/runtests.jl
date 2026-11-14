@@ -36,6 +36,9 @@ end
 @safetestset "AdiabaticStateSelector" begin
     include("test_adiabatic_state_selector.jl")
 end
+@safetestset "StateSelector" begin
+    include("test_state_selector.jl")
+end
 
 include("test_utils.jl")
 
