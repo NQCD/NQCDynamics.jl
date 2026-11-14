@@ -8,7 +8,7 @@ Simple two state elbow potential from Gates and Holloway:
 Has two diabatic states each comprised of the sum of a Morse and a repulsive potential.
 The coupling between them is an exponential function of `z` (distance from the surface).
 """
-Parameters.@with_kw struct GatesHollowayElbow <: QuantumModel
+Parameters.@with_kw struct GatesHollowayElbow <: QuantumModel{Diabatic}
     λ₁::Float64 = 3.5
     λ₂::Float64 = 3.5
     z₀::Float64 = 1.4

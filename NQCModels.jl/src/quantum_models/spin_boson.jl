@@ -66,7 +66,7 @@ Spin boson model with `N` bosons with given spectral density.
 # References
 [Xin He, Jian Liu, J. Chem. Phys. 151, 024105 (2019)](http://aip.scitation.org/doi/10.1063/1.5108736)
 """
-struct SpinBoson{T} <: QuantumModel
+struct SpinBoson{T} <: QuantumModel{Diabatic}
     ϵ::T
     Δ::T
     ωⱼ::Vector{T}

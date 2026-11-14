@@ -1,5 +1,5 @@
 
-abstract type AnanthModel <: QuantumModel end
+abstract type AnanthModel <: QuantumModel{Diabatic} end
 
 NQCModels.ndofs(::AnanthModel) = 1
 NQCModels.nstates(::AnanthModel) = 2

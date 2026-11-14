@@ -1,5 +1,5 @@
 
-abstract type TullyModel <: QuantumModel end
+abstract type TullyModel <: QuantumModel{Diabatic} end
 
 NQCModels.ndofs(::TullyModel) = 1
 NQCModels.nstates(::TullyModel) = 2

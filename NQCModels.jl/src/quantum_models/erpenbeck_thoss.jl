@@ -1,6 +1,6 @@
 
 """
-    struct ErpenbeckThoss{T<:AbstractFloat} <: QuantumModel
+    struct ErpenbeckThoss{T<:AbstractFloat} <: QuantumModel{Diabatic}
 
 1D two-state Quantum system capable of modelling a molecule adsorbed on a metal surface
 or a single-molecule junction.
@@ -17,7 +17,7 @@ it is automatically determined in the constructor from the Morse potential zero-
 - PHYSICAL REVIEW B 97, 235452 (2018)
 - J. Chem. Phys. 151, 191101 (2019)
 """
-struct ErpenbeckThoss{T<:AbstractFloat} <: QuantumModel
+struct ErpenbeckThoss{T<:AbstractFloat} <: QuantumModel{Diabatic}
     Γ::T
     morse::ClassicalModels.Morse{T}
     D₁::T
