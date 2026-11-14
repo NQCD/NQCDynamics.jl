@@ -1,5 +1,6 @@
 Manifest.toml
 Project.toml
+!**/Project.toml
 *.xyz
 docs/build
 docs/.CondaPkg
