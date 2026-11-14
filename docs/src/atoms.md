@@ -80,6 +80,25 @@ println(structure.info)
 ```
 
 
+## Periodic replicas and supercells
+
+For periodic structures, a [`Supercell`](@ref) generates periodic copies of the atomic positions,
+for example for plotting. Each range gives the unit cell translations along one cell vector:
+
+```julia
+using NQCBase
+
+cell = PeriodicCell([1 0 0; 0 1 0; 0 0 1])
+supercell = Supercell(cell, -1:1, -1:1, 0) # 3x3 replicas in x and y, none in z
+
+positions = rand(3, 2)
+supercell(positions) # 3x18 matrix containing all 9 translations, including the original positions
+
+# Structures can be replicated directly. The atom types are repeated to match the new positions.
+structure = NQCBase.Structure(Atoms([:H, :C]), positions, cell)
+supercell(structure)
+```
+
 ## Saving and loading with AtomsBase
 
 After running a simulation it is often desirable to save the trajectory in a standard format for visualization.

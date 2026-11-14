@@ -171,7 +171,11 @@ end
 """
     Supercell{T}(cell::PeriodicCell, replicas::AbstractVector)
 
-This type carries information about how to replicate periodic copies of a structure based on the unit cell provided.
+A `Supercell` contains information for how the unit cell should be replicated in each dimension.
+
+## Fields:
+- `cell`: The unit cell which should be replicated.
+- `replicas`: A vector of `PeriodicReplica`s, which contain the translation vectors for the respective replicas.
 """
 struct Supercell{R<:AbstractVector{<:PeriodicReplica}}
     cell::PeriodicCell
@@ -205,5 +209,5 @@ function Supercell(cell::PeriodicCell, x_range, y_range, z_range)
 end
 
 function (supercell::Supercell)(positions::AbstractMatrix)
-    return hcat(positions, [Rep(positions) for Rep in supercell.replicas]...)
+    return hcat([Rep(positions) for Rep in supercell.replicas]...)
 end
