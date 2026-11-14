@@ -2,16 +2,16 @@
 This module contains functions and types necessary for performing
 nonadiabatic molecular dynamics.
 
-Dynamics is performed using [`DifferentialEquations.jl`](https://diffeq.sciml.ai/stable/).
+Dynamics is performed using [`DifferentialEquations.jl`](https://docs.sciml.ai/DiffEqDocs/stable/).
 As such, this module is centered around the implementation of the functions
 necessary to integrate the dynamics.
 
 For deterministic Hamiltonian methods, the central function is [`DynamicsMethods.motion!`](@ref),
 which is the inplace form of the function
-to be integrated by [`DifferentialEquations.jl`](https://diffeq.sciml.ai/stable/).
+to be integrated by [`DifferentialEquations.jl`](https://docs.sciml.ai/DiffEqDocs/stable/).
 
 Further, methods that have discontinuities, such as surface hopping, use the
-[callback interface](https://diffeq.sciml.ai/stable/features/callback_functions/#callbacks)
+[callback interface](https://docs.sciml.ai/DiffEqDocs/stable/features/callback_functions/#callbacks)
 provided by `DifferentialEquations.jl`.
 """
 module DynamicsMethods

@@ -52,7 +52,7 @@ with a description of how to save and load structures can be found
 This package chooses to separate the dynamical variables from the static atomic parameters
 included in the [`Atoms`](@ref NQCBase.Atoms) type.
 This allows us to easily interface with other numerical packages like
-[DifferentialEquations.jl](https://diffeq.sciml.ai/stable/) and
+[DifferentialEquations.jl](https://docs.sciml.ai/DiffEqDocs/stable/) and
 [AdvancedMH.jl](https://github.com/TuringLang/AdvancedMH.jl).
 As such, both positions and velocities are represented using Julia's standard `Array`
 type, specifically as an `Array{T,2}` or the `Matrix{T}` type, which are equivalent.

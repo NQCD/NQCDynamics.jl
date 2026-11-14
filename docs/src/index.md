@@ -47,14 +47,14 @@ issue/pull request on Github!
 
 ### Dynamics with `DifferentialEquations.jl`
 
-The [`DifferentialEquations`](https://diffeq.sciml.ai/stable/) ecosystem from the
+The [`DifferentialEquations`](https://docs.sciml.ai/DiffEqDocs/stable/) ecosystem from the
 [SciML organisation](https://github.com/SciML/) provides a large library of integration
 algorithms along with a simple interface for implementing new algorithms that can be tailored
 for specific nonadiabatic dynamics methods.
 Further, they provide helpful utilities for introducing discontinuities through the 
-[callback interface](https://diffeq.sciml.ai/stable/features/callback_functions/#Using-Callbacks)
+[callback interface](https://docs.sciml.ai/DiffEqDocs/stable/features/callback_functions/#Using-Callbacks)
 or handling many trajectories at once to obtain ensemble averaged observables with
-the [ensemble interface](https://diffeq.sciml.ai/stable/features/ensemble/).
+the [ensemble interface](https://docs.sciml.ai/DiffEqDocs/stable/features/ensemble/).
 We can take advantage of these utilities by basing our dynamics setup on this framework
 which significantly simplifies the implementation of new methods.
 
