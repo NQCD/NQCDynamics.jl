@@ -72,6 +72,26 @@ end
     # Try building a Supercell which contains a single translation
     supercell_xy = Supercell(cell, 1,1,0) 
     R_sup = supercell_xy(R)
-    # Do the supercell positions contain the initial positions and then the translated ones?
-    @test all(hcat(R, R_xy) .== R_sup)
+    # The supercell only contains the requested replicas, the initial positions are not prepended.
+    @test R_sup == R_xy
+    # Replicas in all directions include the [0,0,0] translation exactly once
+    supercell_3x3 = Supercell(cell, -1:1, -1:1, 0)
+    R_3x3 = supercell_3x3(R)
+    @test size(R_3x3) == (3, 9 * size(R, 2))
+    # Iterators.product runs x fastest, so [0,0,0] is the 5th replica
+    @test R_3x3[:, 41:50] == R
+    @test count(j -> R_3x3[:, j] == R[:, 1], axes(R_3x3, 2)) == 1
+end
+
+@testset "Supercell of a Structure" begin
+    cell = PeriodicCell([1 0 0; 0 1 0; 0 0 1])
+    R = rand(3, 2)
+    structure = NQCBase.Structure(Atoms([:H, :C]), R, cell)
+    supercell = Supercell(cell, -1:1, 0, 0)
+    replicated = supercell(structure)
+    @test replicated isa NQCBase.Structure
+    @test replicated.positions == supercell(R)
+    @test replicated.atoms.types == [:H, :C, :H, :C, :H, :C]
+    @test size(replicated.positions, 2) == length(replicated.atoms.types)
+    @test replicated.cell === structure.cell
 end
