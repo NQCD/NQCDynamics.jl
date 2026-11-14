@@ -1,7 +1,7 @@
 name = "NQCDistributions"
 uuid = "657014a1-bd25-4aa2-92cb-cbcede0310ad"
 authors = ["James Gardner <james.gardner1421@gmail.com> and contributors"]
-version = "1.0.0"
+version = "1.1.0"
 
 [deps]
 ComponentArrays = "b0b7db55-cfe3-40fc-9ded-d10e2dbeff66"

@@ -37,23 +37,15 @@ struct DynamicalDistribution{V,R}
     velocity::V
     position::R
     rng::Xoshiro # Random seed generator
-    frozen_atoms::Vector{Int} # Indices of atoms which are frozen in place
+    frozen_atoms::AbstractVector # One-hot vector of atoms to freeze velocities of
 end
 
-function freeze(velocity_array, frozen_atoms::Vector{Int})
-    if isempty(frozen_atoms) # No need to modify the velocity array if no atoms are frozen
-        return velocity_array
-    else
-        for (num, slice) in enumerate(eachslice(velocity_array; dims=2))
-            if num in frozen_atoms
-                slice .= 0.0 # Set the velocity of the frozen atom to zero
-            end
-        end
-        return velocity_array
-    end
+function freeze(velocity_array, frozen_atoms)
+    velocity_array_new = velocity_array .* frozen_atoms'
+    return velocity_array_new
 end
 
-function DynamicalDistribution(velocity::SampleableComponent, position::SampleableComponent, frozen_atoms::Vector{Int})
+function DynamicalDistribution(velocity::SampleableComponent, position::SampleableComponent, frozen_atoms::AbstractVector)
     size(velocity) == size(position) || throw(
         DimensionMismatch(
             "`velocity` and `position` sample size does not match: \
@@ -66,13 +58,17 @@ end
 function DynamicalDistribution(velocity, position, dims::Dims{2}; frozen_atoms=Int[])
     v = SampleableComponent(velocity, dims)
     r = SampleableComponent(position, dims)
-    return DynamicalDistribution(v, r, frozen_atoms)
+    frozen_onehot = [i ∉ frozen_atoms for i in 1:dims[2]]
+    @assert length(frozen_onehot) == dims[2] "Length of frozen_atoms must match number of atoms."
+    return DynamicalDistribution(v, r, frozen_onehot)
 end
 
 function DynamicalDistribution(velocity, position, dims::Dims{3}; classical=Int[], frozen_atoms=Int[])
     v = SampleableComponent(velocity, dims, classical)
     r = SampleableComponent(position, dims, classical)
-    return DynamicalDistribution(v, r, frozen_atoms)
+    frozen_onehot = [i ∉ frozen_atoms for i in 1:dims[2]]
+    @assert length(frozen_onehot) == dims[2] "Length of frozen_atoms must match number of atoms."
+    return DynamicalDistribution(v, r, frozen_onehot)
 end
 
 function Random.rand(rng::AbstractRNG, d::SamplerTrivial{<:DynamicalDistribution})
@@ -113,10 +109,10 @@ function Base.lastindex(d::DynamicalDistribution)
         lastindex(d.velocity) == lastindex(d.position) || throw(
             DimensionMismatch("Length of position and velocity distributions do not match.")
         )
-        return freeze(lastindex(d.velocity), d.frozen_atoms)
+        return lastindex(d.velocity)
 
     elseif isindexable(d.velocity)
-        return freeze(lastindex(d.velocity), d.frozen_atoms)
+        return lastindex(d.velocity)
 
     elseif isindexable(d.position)
         return lastindex(d.position)
