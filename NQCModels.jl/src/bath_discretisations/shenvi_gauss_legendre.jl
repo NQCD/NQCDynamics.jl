@@ -2,14 +2,24 @@
     ShenviGaussLegendre{T}
 
 Defined as described by Shenvi et al. in J. Chem. Phys. 130, 174107 (2009).
+Use Gauss-Legendre quadrature to discretise the bath continuum in two halves across the given bandwidth, split at the Fermi level.
 The position of the negative sign for the state energy level has been moved to ensure the states are sorted from lowest to highest.
 """
-struct ShenviGaussLegendre{T} <: WideBandBathDiscretisation
+struct ShenviGaussLegendre{T} <: BathDiscretisationScheme
     bathstates::Vector{T}
     bathcoupling::Vector{T}
+    discretisationtype::Symbol
 end
 
-function ShenviGaussLegendre(M, bandmin, bandmax)
+"""
+    ShenviGaussLegendre(M::Int64, bandmin, bandmax)
+
+Args:
+- `M`: number of states in discretisation  
+- `bandmin`: minimum of discretised energy range
+- `bandmax`: maximum of discretised energy range
+"""
+function ShenviGaussLegendre(M::Int64, bandmin, bandmax)
     M % 2 == 0 || throw(error("The number of states `M` must be even."))
     knots, weights = gausslegendre(div(M, 2))
     centre = (bandmax + bandmin) / 2
@@ -30,7 +40,9 @@ function ShenviGaussLegendre(M, bandmin, bandmax)
         bathcoupling[i+length(weights)] = sqrt((bandmax - centre)/2  * w)
     end
 
-    return ShenviGaussLegendre(bathstates, bathcoupling)
+    discretisationtype = :ShenviGaussLegendre
+
+    return ShenviGaussLegendre(bathstates, bathcoupling, discretisationtype)
 end
 
 """
@@ -41,7 +53,7 @@ Two differences from ShenviGaussLegendre:
 - Position of minus sign in energy levels has been corrected.
 - Division by sqrt(ΔE) in the coupling. 
 """
-struct ReferenceGaussLegendre{T} <: WideBandBathDiscretisation
+struct ReferenceGaussLegendre{T} <: BathDiscretisationScheme
     bathstates::Vector{T}
     bathcoupling::Vector{T}
 end

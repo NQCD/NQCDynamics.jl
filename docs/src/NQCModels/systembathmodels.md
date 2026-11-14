@@ -373,3 +373,19 @@ Where:
 
 This method allows the user to finely discretise the electronic bath states over a larger energy range than can be achieved with the Gauss-Legendre quadrature method, without resorting to use a trapezoidal rule discretisation with many states. Hence, saving computation time. The motivation for such a discretisation was to provide a better energy grid for the bath such that a non-equlibrium electronic distribution with a complex shape could be more accurately sampled from. 
 
+
+#### Bath functions
+The discretisation schemes above assume a constant density of states (the wide band limit). To use a different density of states, a discretisation scheme can be combined with a *bath function* using `discrete_bath`. The resulting `DiscreteBath` can be passed to [`AndersonHolstein`](@ref) in place of the discretisation scheme:
+```julia
+discretisation = ShenviGaussLegendre(M, bandmin, bandmax)
+bath = discrete_bath(discretisation, lorentzianbath(discretisation, N; W=4.5))
+model = AndersonHolstein(impurity_model, bath)
+```
+The available bath functions are:
+ - `widebandbath(discretisation)`: wide band limit with unit degeneracy for every state. This is the default for `discrete_bath(discretisation)`, and is equivalent to using the discretisation scheme directly.
+ - `widebandbath(discretisation, N)`: wide band limit where `M` discrete states represent `N` electronic states, so every state has a degeneracy of `N/M`.
+ - `lorentzianbath(discretisation, N; W=4.5)`: Lorentzian density of states with width `W` (in eV). The degeneracy of each discrete state is `N` times the integral of the Lorentzian over the energy interval that the state represents.
+
+Here `N` is the number of electronic states represented by the bath, while `M` is the number of discrete states in the discretisation. The degeneracy of each state scales its coupling to the impurity.
+
+Currently, `TrapezoidalRule`, `ShenviGaussLegendre` and `WindowedTrapezoidalRule` can be combined with bath functions.

@@ -1,21 +1,26 @@
 """
     WindowedTrapezoidalRule{B,T}
 
-Discretise wide band continuum using the trapezoidal rule with a region of higher state density
+Discretise bath within the given energy bandwidth using the trapezoidal rule with a region of higher state density
 surrounding the Fermi Energy. The position of the energy window containing more densely packed states
 is defined by energy values and the increase in density by a proportion. 
 """
-
-struct WindowedTrapezoidalRule{T} <: WideBandBathDiscretisation
-    bathstates::Vector{T} # due to the non-even distribution need to represent as vectors
-    bathcoupling::Vector{T} 
+struct WindowedTrapezoidalRule{T} <: BathDiscretisationScheme
+    bathstates::Vector{T}
+    bathcoupling::Vector{T}
+    discretisationtype::Symbol
 end
+
+# struct WindowedTrapezoidalRule{T} <: WideBandBathDiscretisation
+#     bathstates::Vector{T} # due to the non-even distribution need to represent as vectors
+#     bathcoupling::Vector{T} 
+# end
 
 """
     WindowedTrapezoidalRule(M, bandmin, bandmax, windmin, windmax; densityratio=0.50, fermilevelstate=false)
                
 """
-function WindowedTrapezoidalRule(M, bandmin, bandmax, windmin, windmax; densityratio=0.50, fermilevelstate=false)
+function WindowedTrapezoidalRule(M::Int64, bandmin, bandmax, windmin, windmax; densityratio=0.50, fermilevelstate=false)
     (M - (M*densityratio)) % 2 == 0 || throw(error("For the provided arguments, the number of states not in the windowed region is $(M - (M*densityratio)). This value must be even for a symmetric discretisation.")) # constraint enforced such that the a densityratio=0.5 can be utilized and return an integer number of states.
     abs(bandmin) > abs(windmin) || throw(error("Requested window minimum energy lies outside of energy range."))
     abs(bandmax) > abs(windmax) || throw(error("Requested window maximum energy lies outside of energy range."))
@@ -61,5 +66,6 @@ function WindowedTrapezoidalRule(M, bandmin, bandmax, windmin, windmax; densityr
     bcoupling_sparse2 = fill!(copy(bstates_sparse2), sqrt(ΔE_sparse2 / (M_sparse-1)))
     bathcoupling = [bcoupling_sparse1; bcoupling_window; bcoupling_sparse2]
 
-    return WindowedTrapezoidalRule(bathstates, bathcoupling)
+    discretisationtype = :WindowedTrapezoidalRule
+    return WindowedTrapezoidalRule(bathstates, bathcoupling, discretisationtype)
 end
