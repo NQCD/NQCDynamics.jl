@@ -1,5 +1,5 @@
 """
-    MiaoSubotnik{T<:AbstractFloat} <: QuantumModel
+    MiaoSubotnik{T<:AbstractFloat} <: QuantumModel{Diabatic}
 
 Double well model with parameters matching those of Miao and Subotnik in the reference.
 This model should be paired with the `AndersonHolstein` model to couple to the bath of metallic states.
@@ -8,7 +8,7 @@ This model should be paired with the `AndersonHolstein` model to couple to the b
 
 - J. Chem. Phys. 150, 041711 (2019)
 """
-struct MiaoSubotnik{T<:AbstractFloat} <: QuantumModel
+struct MiaoSubotnik{T<:AbstractFloat} <: QuantumModel{Diabatic}
     Γ::T
     m::T
     ω::T

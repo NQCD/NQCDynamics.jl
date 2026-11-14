@@ -6,11 +6,16 @@ These can exist as analytic models or as interfaces to other codes.
 module NQCModels
 
 using Reexport: @reexport
+using NQCBase: Adiabatic, Diabatic
 
 export potential, potential!
 export derivative, derivative!
 export nstates
 export ndofs
+export hamiltonian_type
+export Diabatic, Adiabatic
+
+function hamiltonian_type end
 
 """
 Top-level type for models.
