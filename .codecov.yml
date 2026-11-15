@@ -3,27 +3,27 @@ comment:
 
 component_management:
   individual_components:
-    - NQCDynamics
+    - NQCDynamics:
       name: NQCDynamics
       paths:
         - NQCDynamics.jl/**
-    - NQCBase
+    - NQCBase:
       name: NQCBase
       paths:
         - NQCBase.jl/**
-    - NQCCalculators
+    - NQCCalculators:
       name: NQCCalculators
       paths:
         - NQCCalculators.jl/**
-    - NQCDistributions
+    - NQCDistributions:
       name: NQCDistributions
       paths:
         - NQCDistributions.jl/**
-    - NQCModels
+    - NQCModels:
       name: NQCModels
       paths:
         - NQCModels.jl/**
-    - RingPolymerArrays
+    - RingPolymerArrays:
       name: RingPolymerArrays
       paths:
         - RingPolymerArrays.jl/**
