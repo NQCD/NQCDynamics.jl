@@ -76,8 +76,8 @@ update_cache!(DoubleWell_Cache, r)
 @show DoubleWell_Cache
 
 #Individual quantities can be extracted from the Cache by calling Cache.$quantity
-@show DoubleWell_Cache.eigen.w
-@show DoubleWell_Cache.eigen.Z
+@show DoubleWell_Cache.eigen.values
+@show DoubleWell_Cache.eigen.vectors
 @show DoubleWell_Cache.adiabatic_derivative;
 ```
 
@@ -91,8 +91,8 @@ r_2 = [austrip(0.9u"Å") austrip(2.2u"Å") austrip(4.1u"Å")]
 update_eigen!(DoubleWell_Cache, r_2)
 
 #we can check that the new eigenvalues and eigenvectors are different to before
-@show DoubleWell_Cache.eigen.w
-@show DoubleWell_Cache.eigen.Z
+@show DoubleWell_Cache.eigen.values
+@show DoubleWell_Cache.eigen.vectors
 
 #we can also check that they are the only values that have been updated
 @show DoubleWell_Cache.adiabatic_derivative;
@@ -105,11 +105,11 @@ r_3 = [austrip(0.8u"Å") austrip(2.4u"Å") austrip(4.2u"Å")]
 evaluated_eigen = evaluate_eigen(DoubleWell_Cache, r_3)
 
 #we can check that the new evaluated eigenvalues and eigenvectors are different to those currently present in the cache
-@show evaluated_eigen.w
-@show DoubleWell_Cache.eigen.w
+@show evaluated_eigen.values
+@show DoubleWell_Cache.eigen.values
 
-@show evaluated_eigen.Z
-@show DoubleWell_Cache.eigen.Z;
+@show evaluated_eigen.vectors
+@show DoubleWell_Cache.eigen.vectors;
 ```
 
 !!! info "update!" vs evaluate" functions
@@ -119,5 +119,4 @@ evaluated_eigen = evaluate_eigen(DoubleWell_Cache, r_3)
     As such, the `update_\$(quantity)!` functions are written as inplace functions as they "update" fields in the cache that they are provided with, 
     without returning a new variable. For the `evaluate_\$(quantity)` functions however, we want a new variable to be returned and for the cache in 
     its original state to be preserved, so regular (non-in-place) functions are used (indicated by no `!` in the name) 
-    that return new variables containing the "evaluated" quantity. 
-
+    that return new variables containing the "evaluated" quantity.
