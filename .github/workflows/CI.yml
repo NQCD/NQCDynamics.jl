@@ -43,9 +43,6 @@ jobs:
             ${{ runner.os }}-test-${{ env.cache-name }}-
             ${{ runner.os }}-test-
 
-      - name: Add ACEregistry
-        run: julia -e 'using Pkg; Pkg.Registry.add(RegistrySpec(url="https://github.com/ACEsuit/ACEregistry"))'
-        shell: bash
       - name: Make benchmark directory
         run: |
           mkdir -p /home/runner/NQCDynamics.jl/${{ matrix.package }}/benchmarks
