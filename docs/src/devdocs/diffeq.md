@@ -35,7 +35,7 @@ using Plots
 
 atoms = Atoms(:C)
 model = NQCModels.Harmonic()
-cell = PeriodicCell(hcat(50))
+cell = PeriodicCell(hcat(50.0))
 sim = Simulation(atoms, model; cell=cell)
 
 z = DynamicsVariables(sim, hcat(1.0), zeros(1,1))
