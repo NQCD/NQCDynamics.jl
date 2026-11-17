@@ -1,4 +1,9 @@
+"""
 
+    AdiabaticStateSelector
+
+    This model enables classical dynamics to be performed on a single state of a `QuantumModel`.
+"""
 struct AdiabaticStateSelector{M} <: NQCModels.ClassicalModels.ClassicalModel
     quantum_model::M
     state::Int
