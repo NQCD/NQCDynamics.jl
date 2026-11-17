@@ -37,7 +37,7 @@ using Unitful, UnitfulAtomic
 model = DoubleWell()
 
 #Creating an empty cache with 3 atoms that propagate according to the double well potential
-DoubleWell_Cache = Create_Cache(model, 3, Float64)
+DoubleWell_Cache = Create_Cache(model, 3, Float64[1 2 3;])
 ```
 
 Here we have created an empty cache with all of the data structures necessary to contain quantities that define 3 independent atoms 
