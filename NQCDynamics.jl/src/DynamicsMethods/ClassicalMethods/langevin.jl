@@ -28,7 +28,7 @@ function Langevin(γ::AbstractFloat, temperature::Number, masses::AbstractVector
 end
 
 # StochasticDiffEq.BAOAB is currently broken, so let's do our one instead and call it MDEF.
-function NQCDynamics.Simulation{Langevin}(atoms::Atoms, model::Model; γ=1, temperature=0u"K", kwargs...)
+function NQCDynamics.Simulation{Langevin}(atoms::Atoms, model::ClassicalModel; γ=1, temperature=0u"K", kwargs...)
     gamma_matrix = zeros(eltype(atoms.masses), length(atoms.masses), length(atoms.masses))
     for i in 1:length(atoms.masses)
         gamma_matrix[i, i] = γ
@@ -78,7 +78,7 @@ struct ThermalLangevin{T<:Real} <: DynamicsMethods.Method
     γ::T
 end
 
-function NQCDynamics.RingPolymerSimulation{ThermalLangevin}(atoms::Atoms, model::Model, n_beads::Integer; γ=1, kwargs...)
+function NQCDynamics.RingPolymerSimulation{ThermalLangevin}(atoms::Atoms, model::ClassicalModel, n_beads::Integer; γ=1, kwargs...)
     NQCDynamics.RingPolymerSimulation(atoms, model, ThermalLangevin(γ), n_beads; kwargs...)
 end
 
