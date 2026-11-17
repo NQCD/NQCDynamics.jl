@@ -99,11 +99,11 @@ end
         # Check all the results
         @test cache.potential ≈ potential(model, r)
         @test cache.derivative ≈ derivative(model, r)
-        @test cache.eigen.w ≈ eigvals(potential(model, r))
-        @test abs.(cache.eigen.Z) ≈ abs.(eigvecs(potential(model, r)))
+        @test cache.eigen.values ≈ eigvals(potential(model, r))
+        @test abs.(cache.eigen.vectors) ≈ abs.(eigvecs(potential(model, r)))
         @test isapprox(
             cache.adiabatic_derivative[1],
-            cache.eigen.Z' * derivative(model, r)[1] * cache.eigen.Z
+            cache.eigen.vectors' * derivative(model, r)[1] * cache.eigen.vectors
         )
     end
 
@@ -166,11 +166,11 @@ end
         # Check all the results
         @test cache.potential ≈ [potential(model, r[:,:,i]) for i=1:10]
         @test cache.derivative ≈ [derivative(model, r[k,j,i]) for k=1:1, j=1:1, i=1:10]
-        @test [cache.eigen[i].w for i=1:10] ≈ eigvals.(cache.potential)
-        @test [abs.(cache.eigen[i].Z) for i=1:10] ≈ [abs.(eigvecs(cache.potential[i])) for i=1:10]
+        @test [cache.eigen[i].values for i=1:10] ≈ eigvals.(cache.potential)
+        @test [abs.(cache.eigen[i].vectors) for i=1:10] ≈ [abs.(eigvecs(cache.potential[i])) for i=1:10]
         @test isapprox(
             cache.adiabatic_derivative[1],
-            cache.eigen[1].Z' * derivative(model, r[:,:,1])[1] * cache.eigen[1].Z
+            cache.eigen[1].vectors' * derivative(model, r[:,:,1])[1] * cache.eigen[1].vectors
         )
     end
 
@@ -194,11 +194,11 @@ end
         # Check all the results
         @test cache.centroid_potential ≈ potential(model, r_centroid)
         @test cache.centroid_derivative ≈ derivative(model, r_centroid)
-        @test cache.centroid_eigen.w ≈ eigvals(potential(model, r_centroid))
-        @test abs.(cache.centroid_eigen.Z) ≈ abs.(eigvecs(potential(model, r_centroid)))
+        @test cache.centroid_eigen.values ≈ eigvals(potential(model, r_centroid))
+        @test abs.(cache.centroid_eigen.vectors) ≈ abs.(eigvecs(potential(model, r_centroid)))
         @test isapprox(
             cache.centroid_adiabatic_derivative[1],
-            cache.centroid_eigen.Z' * derivative(model, r_centroid)[1] * cache.centroid_eigen.Z
+            cache.centroid_eigen.vectors' * derivative(model, r_centroid)[1] * cache.centroid_eigen.vectors
         )
     end
 

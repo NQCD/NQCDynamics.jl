@@ -34,7 +34,7 @@ using NQCModels, Plots
 using NQCBase: eV_to_au
 
 model = DarlingHollowayElbow()
-V(x,z) = potential(model, hcat([x, z]))
+V(x,z) = potential(model, hcat([x; z;;]))
 
 x = range(-0.5, 3.5, length=200)
 z = range(-0.5, 4.5, length=200)
@@ -88,8 +88,8 @@ plot(-5:0.1:5, DoubleWell(); coupling=true)
 using NQCModels, Plots
 
 model = GatesHollowayElbow()
-v1(x,z) = potential(model, [x z])[1,1]
-v2(x,z) = potential(model, [x z])[2,2]
+v1(x,z) = potential(model, [x ;z;;])[1,1]
+v2(x,z) = potential(model, [x ;z;;])[2,2]
 
 x = range(-0.5, 4.0, length=200)
 z = range(-0.5, 4.0, length=200)

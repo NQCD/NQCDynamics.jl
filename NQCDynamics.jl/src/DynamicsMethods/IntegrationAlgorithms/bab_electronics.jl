@@ -27,7 +27,7 @@ function OrdinaryDiffEqCore.alg_cache(
     calck,
     inplace::Val{true}
     ) where {uEltypeNoUnits,uBottomEltypeNoUnits,tTypeNoUnits}
-    
+
     tmp = zero(u)
     vtmp = zero(DynamicsUtils.get_velocities(u))
     k = zero(DynamicsUtils.get_positions(rate_prototype))
@@ -81,7 +81,7 @@ end
     step_B!(DynamicsUtils.get_velocities(u), vtmp, dt/2, k)
 
     d = NQCCalculators.get_nonadiabatic_coupling(p.cache, rfinal)
-    vals = NQCCalculators.get_eigen(p.cache, rfinal).w
+    vals = NQCCalculators.get_eigen(p.cache, rfinal).values
     DynamicsMethods.update_parameters!(electronic_integrator.p, vals, d, vfinal, t+dt)
 
     density_matrix = DynamicsUtils.get_quantum_subsystem(u)

@@ -1,4 +1,8 @@
+"""
+    AveragedPotential(models::Vector{<:ClassicalModel}, r::AbstractMatrix)
 
+    A classical model that averages the potential and derivative of a set of classical models.
+"""
 struct AveragedPotential{M,T} <: ClassicalModel
     models::M
     tmp_derivative::Matrix{T}

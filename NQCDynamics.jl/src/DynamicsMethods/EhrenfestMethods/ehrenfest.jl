@@ -53,7 +53,7 @@ function DynamicsUtils.acceleration!(dv, v, r, sim::Simulation{<:Ehrenfest}, t, 
     NQCModels.state_independent_derivative!(sim.cache.model, dv, r)
     LinearAlgebra.lmul!(-1, dv)
 
-    NQCCalculators.update_cache!(sim.cache, r) # Ensure adiabatic derivative is updated. 
+    NQCCalculators.update_cache!(sim.cache, r) # Ensure adiabatic derivative is updated.
     adiabatic_derivative = NQCCalculators.get_adiabatic_derivative(sim.cache, r)
     @inbounds for i in mobileatoms(sim)
         for j in dofs(sim)
@@ -75,7 +75,7 @@ end
 
 function Estimators.diabatic_population(sim::AbstractSimulation{<:AbstractEhrenfest}, u)
     r = DynamicsUtils.get_positions(u)
-    NQCDynamics.NQCCalculators.update_cache!(sim.cache, r) # Ensure eigenvecs needed for transformation are updated. 
+    NQCDynamics.NQCCalculators.update_cache!(sim.cache, r) # Ensure eigenvecs needed for transformation are updated.
     U = DynamicsUtils.evaluate_transformation(sim.cache, r)
 
     σ = DynamicsUtils.get_quantum_subsystem(u)
@@ -89,8 +89,8 @@ function DynamicsUtils.classical_potential_energy(sim::Simulation{<:Ehrenfest}, 
 
     potential = NQCModels.state_independent_potential(sim.cache.model, DynamicsUtils.get_positions(u))
     σ = DynamicsUtils.get_quantum_subsystem(u)
-    for i in eachindex(eigs.w)
-        potential += real(σ[i,i]) * eigs.w[i]
+    for i in eachindex(eigs.values)
+        potential += real(σ[i,i]) * eigs.values[i]
     end
     return potential
 end

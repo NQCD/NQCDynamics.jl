@@ -33,7 +33,7 @@ end
 
 function DynamicsMethods.DynamicsVariables(sim::AbstractSimulation{<:EhrenfestNA}, v, r)
     ψ = zeros(NQCModels.nstates(sim), NQCModels.nelectrons(sim))
-    
+
     for i in eachelectron(sim)
         ψ[i,i] = 1
     end
@@ -44,7 +44,7 @@ end
 function DynamicsMethods.DynamicsVariables(sim::AbstractSimulation{<:EhrenfestNA}, v, r, electronic::FermiDiracState{Adiabatic})
     tmp_v = copy(v)
     tmp_r = copy(r)
-    
+
     ef_model = NQCModels.fermilevel(sim)
     ef_distribution = electronic.fermi_level
     ef_model ≈ ef_distribution || throw(error(
@@ -109,7 +109,7 @@ function DynamicsUtils.classical_potential_energy(sim::Simulation{<:EhrenfestNA}
 
     for electron in eachelectron(sim)
         for i in eachstate(sim)
-            potential += eigen.w[i] * abs2(ψ[i,electron])
+            potential += eigen.values[i] * abs2(ψ[i,electron])
         end
     end
     return potential

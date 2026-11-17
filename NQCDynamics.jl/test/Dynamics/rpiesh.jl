@@ -50,7 +50,7 @@ SurfaceHoppingMethods.set_unoccupied_states!(sim)
     end
     avg ./= samples
     eigs = NQCCalculators.get_centroid_eigen(sim.cache, r)
-    occupations = NQCDistributions.fermi.(eigs.w, distribution.fermi_level, distribution.β)
+    occupations = NQCDistributions.fermi.(eigs.values, distribution.fermi_level, distribution.β)
 
     @test avg ≈ occupations atol = 0.2
 end
@@ -69,12 +69,12 @@ end
     dt = 1.0
     output = (OutputPosition, OutputVelocity, OutputQuantumSubsystem, OutputTotalEnergy)
     traj2 = run_dynamics(sim, tspan, u; algorithm=Tsit5(), saveat=tspan[1]:dt:tspan[2], output, reltol=1e-8, abstol=1e-8)
-    
+
     dyn_test = @timed run_dynamics(sim, tspan, u; dt, algorithm=DynamicsMethods.IntegrationAlgorithms.BCBWavefunction(), output)
     traj1 = dyn_test.value
     benchmark_results["BCBWavefunction"] = Dict("Time" => dyn_test.time, "Allocs" => dyn_test.bytes)
 
-    # We cannot compare these when hopping is happening since the trajectories will be different. 
+    # We cannot compare these when hopping is happening since the trajectories will be different.
 end
 
 # Make benchmark directory if it doesn't already exist.

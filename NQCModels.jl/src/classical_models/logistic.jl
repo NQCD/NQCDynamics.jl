@@ -11,7 +11,6 @@
             a is a scaling factor
 
 """
-
 Parameters.@with_kw struct Logistic{T} <: ClassicalModel
     L::T = 1.0
     k::T = 1.0

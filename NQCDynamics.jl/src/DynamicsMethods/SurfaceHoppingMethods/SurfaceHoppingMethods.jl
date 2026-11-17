@@ -52,7 +52,7 @@ function DynamicsMethods.motion!(du, u, sim::Simulation{<:SurfaceHopping}, t)
     v = DynamicsUtils.get_velocities(u)
     #σ = DynamicsUtils.get_quantum_subsystem(u)
 
-    set_state!(u, sim.method.state, sim) # Make sure the state variables match, 
+    set_state!(u, sim.method.state, sim) # Make sure the state variables match,
 
     DynamicsUtils.velocity!(dr, v, r, sim, t) # Set the velocity
     NQCCalculators.update_cache!(sim.cache, r) # Calculate electronic quantities
@@ -79,11 +79,11 @@ function DynamicsMethods.create_problem(u0, tspan, sim::AbstractSimulation{<:Sur
 end
 
 function DynamicsUtils.get_hopping_eigenvalues(sim::Simulation, r::AbstractMatrix)
-    return NQCCalculators.get_eigen(sim.cache, r).w
+    return NQCCalculators.get_eigen(sim.cache, r).values
 end
 
 function DynamicsUtils.get_hopping_eigenvalues(sim::RingPolymerSimulation, r::AbstractArray{T,3}) where {T}
-    return NQCCalculators.get_centroid_eigen(sim.cache, r).w
+    return NQCCalculators.get_centroid_eigen(sim.cache, r).values
 end
 
 function DynamicsUtils.get_hopping_nonadiabatic_coupling(sim::Simulation, r::AbstractMatrix)

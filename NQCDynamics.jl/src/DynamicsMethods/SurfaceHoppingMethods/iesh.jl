@@ -82,14 +82,14 @@ function NQCDynamics.Simulation{IESH_type}(atoms::Atoms, model::Model;
             estimate_probability,
             disable_hopping,
             decoherence
-        ); 
+        );
         kwargs...
     )
 end
 
 function DynamicsMethods.DynamicsVariables(sim::AbstractSimulation{<:AdiabaticIESH}, v, r)
     ψ = zeros(NQCModels.nstates(sim), NQCModels.nelectrons(sim))
-    
+
     for i in eachelectron(sim)
         ψ[i,i] = 1
     end
@@ -100,7 +100,7 @@ end
 function DynamicsMethods.DynamicsVariables(sim::AbstractSimulation{<:AdiabaticIESH}, v, r, electronic::FermiDiracState{Adiabatic})
     tmp_v = copy(v)
     tmp_r = copy(r)
-    
+
     ef_model = NQCModels.fermilevel(sim)
     ef_distribution = electronic.fermi_level
     ef_model ≈ ef_distribution || throw(error(
@@ -129,8 +129,8 @@ function DynamicsMethods.DynamicsVariables(sim::AbstractSimulation{<:AdiabaticIE
 end
 
 function DynamicsMethods.create_problem(u0, tspan, sim::AbstractSimulation{<:AbstractIESH})
-    
-    set_state!(sim.method, convert(Vector{Int},u0.state), sim) # state 
+
+    set_state!(sim.method, convert(Vector{Int},u0.state), sim) # state
     set_unoccupied_states!(sim)
     OrdinaryDiffEq.ODEProblem(DynamicsMethods.motion!, u0, tspan, sim;
         callback=DynamicsMethods.get_callbacks(sim))
@@ -208,14 +208,14 @@ function DynamicsUtils.acceleration!(dv, v, r, sim::Simulation{<:AbstractIESH}, 
 end
 
 """
-Propagation of electronic wave function happens according to Eq. (14) 
+Propagation of electronic wave function happens according to Eq. (14)
 in the Shenvi, Tully paper (JCP 2009)
 
 In IESH each electron is independent so we can loop through electrons and set the
 derivative one at a time, in the standard way for FSSH.
 """
 function DynamicsUtils.set_quantum_derivative!(dσ, u, sim::AbstractSimulation{<:AdiabaticIESH})
-    
+
     v = DynamicsUtils.get_hopping_velocity(sim, DynamicsUtils.get_velocities(u))
     σ = DynamicsUtils.get_quantum_subsystem(u)
     r = DynamicsUtils.get_positions(u)
@@ -339,7 +339,7 @@ function Estimators.diabatic_population(sim::Simulation{<:AdiabaticIESH}, u)
     ψ = DynamicsUtils.get_quantum_subsystem(u).re
 
     eigen = NQCCalculators.get_eigen(sim.cache, DynamicsUtils.get_positions(u))
-    transformation = eigen.Z
+    transformation = eigen.vectors
 
     return iesh_diabatic_population(ψ, transformation, sim.method.state)
 end
@@ -383,7 +383,7 @@ function DynamicsUtils.classical_potential_energy(sim::Simulation{<:AbstractIESH
     eigen = NQCCalculators.get_eigen(sim.cache, DynamicsUtils.get_positions(u))
     potential = NQCModels.state_independent_potential(sim.cache.model, DynamicsUtils.get_positions(u))
     for i in sim.method.state
-        potential += eigen.w[i]
+        potential += eigen.values[i]
     end
     return potential
 end
@@ -437,7 +437,7 @@ function iesh_apply_decoherence_correction_edc!(integrator)
     Ekin = DynamicsUtils.classical_kinetic_energy(sim, integrator.u)
     ψ = DynamicsUtils.get_quantum_subsystem(integrator.u)
     @views for (i, state) in enumerate(sim.method.state)
-        apply_decoherence_correction!(ψ[:,i], sim.method.decoherence, state, dt, eigen.w, Ekin)
+        apply_decoherence_correction!(ψ[:,i], sim.method.decoherence, state, dt, eigen.values, Ekin)
     end
 end
 

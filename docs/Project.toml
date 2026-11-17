@@ -28,13 +28,13 @@ UnitfulAtomic = "a7773ee8-282e-5fa2-be4e-bd808c38a91a"
 [sources]
 MACEModels = {rev = "main", url = "https://github.com/NQCD/MACEModels.jl.git"}
 FrictionProviders = {rev = "main", url = "https://github.com/NQCD/FrictionProviders.jl.git"}
-NQCBase = {rev = "main", url = "https://github.com/NQCD/NQCBase.jl.git"}
-NQCCalculators = {rev = "main", url = "https://github.com/NQCD/NQCCalculators.jl.git"}
+NQCBase = {path = "../NQCBase.jl"}
+NQCCalculators = {path = "../NQCCalculators.jl"}
 NQCDInterfASE = {rev = "main", url = "https://github.com/NQCD/NQCDInterfASE.jl.git"}
-NQCDistributions = {rev = "main", url = "https://github.com/NQCD/NQCDistributions.jl.git"}
-NQCDynamics = {path = ".."}
-NQCModels = {rev = "main", url = "https://github.com/NQCD/NQCModels.jl.git"}
-RingPolymerArrays = {rev = "main", url = "https://github.com/NQCD/RingPolymerArrays.jl.git"}
+NQCDistributions = {path = "../NQCDistributions.jl"}
+NQCDynamics = {path = "../NQCDynamics.jl"}
+NQCModels = {path = "../NQCModels.jl"}
+RingPolymerArrays = {path = "../RingPolymerArrays.jl"}
 
 [compat]
 Documenter = "1"

@@ -81,7 +81,7 @@ end
     copyto!(rfinal, rtmp)
 
     d = NQCCalculators.get_centroid_nonadiabatic_coupling(p.cache, rfinal)
-    vals = NQCCalculators.get_centroid_eigen(p.cache, rfinal).w
+    vals = NQCCalculators.get_centroid_eigen(p.cache, rfinal).values
     DynamicsMethods.update_parameters!(
         electronic_integrator.p,
         vals,

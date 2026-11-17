@@ -1,4 +1,12 @@
 # Currently multi-particle capable, but all with same parameters.
+
+"""
+1D scattering model with a single molecule state and a set of metal states.
+The molecule state is coupled to the metal states, which are coupled to each other.
+The molecule state has a Morse potential, and the metal states have a constant energy.
+The coupling between the molecule and metal states is a Gaussian function of the distance between the molecule and the metal states.
+
+"""
 struct Scattering1D <: QuantumFrictionModel
     n_states::UInt
     N::UInt

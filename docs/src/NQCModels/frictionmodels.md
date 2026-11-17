@@ -37,7 +37,7 @@ classDef FP fill:#387D8A,color:#fff
 classDef function fill:#D22E4E,color:#F2BE40
 ```
 
-## [NQCModels.FrictionModels](@ref)
+## [`NQCModels.FrictionModels`](@ref)
 
 NQCModels.jl contains the basic type definitions for friction models designed to be paired with Classical and Quantum models. 
 
