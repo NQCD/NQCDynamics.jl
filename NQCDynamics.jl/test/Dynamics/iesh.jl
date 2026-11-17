@@ -56,9 +56,9 @@ SurfaceHoppingMethods.set_unoccupied_states!(sim)
         avg[round.(Int, u.state)] .+= 1
     end
     avg ./= samples
-    NQCDynamics.NQCCalculators.update_cache!(sim.cache, r) # Calculate all fields. 
+    NQCDynamics.NQCCalculators.update_cache!(sim.cache, r) # Calculate all fields.
     eigs = NQCCalculators.get_eigen(sim.cache, r)
-    occupations = NQCDistributions.fermi.(eigs.w, distribution.fermi_level, distribution.β)
+    occupations = NQCDistributions.fermi.(eigs.values, distribution.fermi_level, distribution.β)
 
     @test isapprox(avg, occupations, rtol = 0.2)
 end
@@ -160,16 +160,16 @@ end
     dyn_test = @timed run_dynamics(sim, tspan, u; dt, algorithm=DynamicsMethods.IntegrationAlgorithms.VerletwithElectronics(), output)
     traj1 = dyn_test.value
     benchmark_results["VerletwithElectronics"] = Dict("Time" => dyn_test.time, "Allocs" => dyn_test.bytes)
-    
+
     dyn_test = @timed run_dynamics(sim, tspan, u; algorithm=Tsit5(), saveat=tspan[1]:dt:tspan[2], output, reltol=1e-6, abstol=1e-6)
     traj2 = dyn_test.value
     benchmark_results["Tsit5"] = Dict("Time" => dyn_test.time, "Allocs" => dyn_test.bytes)
-    
+
 #=     dyn_test = @timed run_dynamics(sim, tspan, u; dt, algorithm=DynamicsMethods.IntegrationAlgorithms.VerletwithElectronics2(MagnusMidpoint(krylov=false), dt=dt / 5), output)
     traj3 = dyn_test.value
     benchmark_results["VerletwithElectronics2"] = Dict("Time" => dyn_test.time, "Allocs" => dyn_test.bytes) =#
 
-    # We cannot compare these when hopping is happening since the trajectories will be different. 
+    # We cannot compare these when hopping is happening since the trajectories will be different.
 end
 
 @testset "DecoherenceCorrectionEDC" begin
@@ -179,11 +179,11 @@ end
     u = DynamicsVariables(sim, hcat(v0), hcat(austrip(5u"Å")))
     tspan = (0.0, 100000.0)
     dt = 100.0
-    
-    
+
+
     dyn_test = @timed run_dynamics(sim, tspan, u; dt, output=(OutputQuantumSubsystem, OutputSurfaceHops))
     traj = dyn_test.value
-    
+
     @test traj[:OutputSurfaceHops] > 0 # Ensure some hops occur
     norms = zeros(length(traj[:Time]))
     for i in eachindex(norms)

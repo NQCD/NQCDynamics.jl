@@ -43,7 +43,7 @@ end
 
     @unpack t, dt, uprev, u, p = integrator
     @unpack k, vtmp = integrator_cache
-    
+
     rprev = DynamicsUtils.get_positions(uprev)
     vprev = DynamicsUtils.get_velocities(uprev)
     σprev = DynamicsUtils.get_quantum_subsystem(uprev)
@@ -135,7 +135,7 @@ end
     step_B!(vfinal, vtmp, dt/2, k)
 
     d = NQCCalculators.get_nonadiabatic_coupling(sim.cache, rfinal)
-    vals = NQCCalculators.get_eigen(sim.cache, rfinal).w
+    vals = NQCCalculators.get_eigen(sim.cache, rfinal).values
     DynamicsMethods.update_parameters!(electronic_integrator.p, vals, d, vfinal, t+dt)
 
     for i in axes(get_quantum_subsystem(u), 2)

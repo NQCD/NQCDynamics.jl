@@ -23,7 +23,7 @@ atoms = Atoms(2)
     v = randn(size(sim))
     u = DynamicsVariables(sim, v, r, PureState(1, Adiabatic()))
     du = zero(u)
-    
+
     update_cache!(sim.cache, r) # Required for the cache to initialise all fields
     @test DynamicsUtils.get_quantum_subsystem(u) ≈ Complex.([1 0; 0 0])
 
@@ -66,7 +66,7 @@ atoms = Atoms(2)
         get_velocities(integrator.u) .= 0.0 # Set momentum to zero to force frustrated hop
         integrator.p.method.new_state = 2
         cont = SurfaceHoppingMethods.rescale_velocity!(integrator.p, integrator.u)
-        @test cont == false # Check hop is rejected 
+        @test cont == false # Check hop is rejected
 
         get_velocities(integrator.u) .= 1e5 # Set momentum to big to force hop
         cont = SurfaceHoppingMethods.rescale_velocity!(integrator.p, integrator.u)
@@ -74,8 +74,8 @@ atoms = Atoms(2)
     end
 
     @testset "calculate_potential_energy_change" begin
-        integrator.p.cache.eigen.w .= [0.9, -0.3]
-        integrator.p.cache.eigen.Z .= [1 0; 0.0 1]
+        integrator.p.cache.eigen.values .= [0.9, -0.3]
+        integrator.p.cache.eigen.vectors .= [1 0; 0.0 1]
         eigs = DynamicsUtils.get_hopping_eigenvalues(
             integrator.p,
             DynamicsUtils.get_positions(integrator.u),
@@ -155,7 +155,7 @@ end
         get_velocities(integrator.u) .= 0.0 # Set momentum to zero to force frustrated hop
         integrator.p.method.new_state = 2
         cont = SurfaceHoppingMethods.rescale_velocity!(integrator.p, integrator.u)
-        @test cont == false # Check hop is rejected 
+        @test cont == false # Check hop is rejected
 
         get_velocities(integrator.u) .= 1e5 # Set momentum to big to force hop
         cont = SurfaceHoppingMethods.rescale_velocity!(integrator.p, integrator.u)
@@ -163,8 +163,8 @@ end
     end
 
     @testset "calculate_potential_energy_change" begin
-        integrator.p.cache.centroid_eigen.w .= [0.9, -0.3]
-        integrator.p.cache.centroid_eigen.Z .= [1 0; 0.0 1]
+        integrator.p.cache.centroid_eigen.values .= [0.9, -0.3]
+        integrator.p.cache.centroid_eigen.vectors .= [1 0; 0.0 1]
         eigs = DynamicsUtils.get_hopping_eigenvalues(
             integrator.p,
             DynamicsUtils.get_positions(integrator.u),
@@ -177,7 +177,7 @@ end
         NQCDynamics.NQCCalculators.update_cache!(integrator.p.cache, get_positions(integrator.u))
         get_velocities(integrator.u) .= 5 # Set high momentum to ensure successful hop
         integrator.u.state = [1] # Modifying SurfaceHoppingVariables, so supply a vector
-        integrator.p.method.new_state = 2 # Modifying RPSH, so supply an Int. 
+        integrator.p.method.new_state = 2 # Modifying RPSH, so supply an Int.
         eigs = DynamicsUtils.get_hopping_eigenvalues(
             integrator.p,
             DynamicsUtils.get_positions(integrator.u),

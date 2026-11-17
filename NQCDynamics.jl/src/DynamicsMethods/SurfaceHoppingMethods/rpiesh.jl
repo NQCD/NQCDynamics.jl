@@ -22,7 +22,7 @@ function DynamicsUtils.acceleration!(dv, v, r, sim::RingPolymerSimulation{<:Abst
     fill!(dv, zero(eltype(dv)))
     NQCCalculators.update_cache!(sim.cache, r) # Ensure adiabatic_derivative is populated
     adiabatic_derivative = NQCCalculators.get_adiabatic_derivative(sim.cache, r)
-    @inbounds for b in axes(dv,3) 
+    @inbounds for b in axes(dv,3)
         @views NQCModels.state_independent_derivative!(sim.cache.model, dv[:,:,b], r[:,:,b])
         for i in mobileatoms(sim)
             for j in dofs(sim)
@@ -46,7 +46,7 @@ function DynamicsUtils.classical_potential_energy(sim::RingPolymerSimulation{<:A
     for b in axes(r,3) # eachbead
         potential += NQCModels.state_independent_potential(sim.cache.model, view(r,:,:,b))
         for i in convert(Vector{Int},u.state)
-            potential += eigs[b].w[i]
+            potential += eigs[b].values[i]
         end
     end
     return potential

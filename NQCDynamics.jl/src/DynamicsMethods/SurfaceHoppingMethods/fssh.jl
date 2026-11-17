@@ -150,6 +150,6 @@ end
 
 function DynamicsUtils.classical_potential_energy(sim::Simulation{<:FSSH}, u)
     eigs = NQCCalculators.get_eigen(sim.cache, DynamicsUtils.get_positions(u))
-    potential = eigs.w[convert(Int, first(u.state))]
+    potential = eigs.values[convert(Int, first(u.state))]
     return potential
 end
