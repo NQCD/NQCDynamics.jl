@@ -1,5 +1,5 @@
 using NQCBase
-using NQCDynamics: nbeads, TemperatureSetting
+using NQCDynamics: nbeads
 using RingPolymerArrays: eachbead
 
 function NQCDynamics.RingPolymerSimulation{DiabaticMDEF}(atoms::Atoms, model::QuantumModel, n_beads::Integer; friction_method::FrictionEvaluationMethod,
@@ -8,20 +8,6 @@ function NQCDynamics.RingPolymerSimulation{DiabaticMDEF}(atoms::Atoms, model::Qu
     T = eltype(atoms.masses)
 
     cache = Create_Cache(model, length(atoms), n_beads, atoms.masses; friction_method=friction_method)
-
-    # If a thermostat is provided, check it covers the whole system.
-    isa(temperature, TemperatureSetting{Vector{Int}}) ? throw(DomainError(temperature, "TemperatureSetting must apply to all atoms.")) : nothing
-
-    # If multiple TemperatureSettings are provided, check that each atom only has one thermostat applied to it.
-    if isa(temperature, Vector{<:TemperatureSetting})
-        indices = vcat([thermostat.indices for thermostat in temperature]...)
-        if length(unique(indices)) != length(atoms.masses)
-            throw(DomainError(temperature, "Every atom must have a TemperatureSetting applied to it."))
-        end
-        if length(indices) != length(unique(indices))
-            throw(DomainError(temperature, "Atoms can only have one thermostat applied to them."))
-        end
-    end
 
     beads = RingPolymers.RingPolymerParameters{T}(n_beads, get_temperature(temperature), length(atoms))
 
