@@ -21,19 +21,19 @@ Simulation{Classical}:
 """
 struct Classical <: DynamicsMethods.Method end
 
-function NQCDynamics.Simulation{Classical}(atoms::Atoms, model::Model; kwargs...)
+function NQCDynamics.Simulation{Classical}(atoms::Atoms, model::ClassicalModel; kwargs...)
     NQCDynamics.Simulation(atoms, model, Classical(); kwargs...)
 end
 
-function NQCDynamics.RingPolymerSimulation{Classical}(atoms::Atoms, model::Model, n_beads::Integer; kwargs...)
+function NQCDynamics.RingPolymerSimulation{Classical}(atoms::Atoms, model::ClassicalModel, n_beads::Integer; kwargs...)
     NQCDynamics.RingPolymerSimulation(atoms, model, Classical(), n_beads::Integer; kwargs...)
 end
 
-function NQCDynamics.Simulation(atoms::Atoms, model::Model; kwargs...)
+function NQCDynamics.Simulation(atoms::Atoms, model::ClassicalModel; kwargs...)
     NQCDynamics.Simulation{Classical}(atoms, model; kwargs...)
 end
 
-function NQCDynamics.RingPolymerSimulation(atoms::Atoms, model::Model, n_beads::Integer; kwargs...)
+function NQCDynamics.RingPolymerSimulation(atoms::Atoms, model::ClassicalModel, n_beads::Integer; kwargs...)
     NQCDynamics.RingPolymerSimulation{Classical}(atoms, model, n_beads; kwargs...)
 end
 

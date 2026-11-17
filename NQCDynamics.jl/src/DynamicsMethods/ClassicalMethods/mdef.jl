@@ -48,14 +48,14 @@ function get_mass_scale_matrix(masses::AbstractVector, DoFs::Integer)
     vect * vect'
 end
 
-function NQCDynamics.Simulation{MDEF}(atoms::Atoms, model::Model; kwargs...)
+function NQCDynamics.Simulation{MDEF}(atoms::Atoms, model::ClassicalModel; kwargs...)
     NQCDynamics.Simulation(atoms, model, MDEF(atoms.masses, ndofs(model));  kwargs...)
 end
-function NQCDynamics.RingPolymerSimulation{MDEF}(atoms::Atoms, model::Model, n_beads::Integer; kwargs...)
+function NQCDynamics.RingPolymerSimulation{MDEF}(atoms::Atoms, model::ClassicalModel, n_beads::Integer; kwargs...)
     NQCDynamics.RingPolymerSimulation(atoms, model, MDEF(atoms.masses, ndofs(model)), n_beads; kwargs...)
 end
 
-function NQCDynamics.Simulation{DiabaticMDEF}(atoms::Atoms, model::Model; friction_method::FrictionEvaluationMethod,
+function NQCDynamics.Simulation{DiabaticMDEF}(atoms::Atoms, model::QuantumModel; friction_method::FrictionEvaluationMethod,
     temperature=0u"K", cell::AbstractCell=InfiniteCell(), solver::Symbol=:exact, kwargs...
     )
 

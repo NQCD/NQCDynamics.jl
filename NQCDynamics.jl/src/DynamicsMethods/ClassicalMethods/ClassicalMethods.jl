@@ -12,7 +12,7 @@ using NQCDynamics:
     RingPolymers
 using NQCCalculators
 using NQCBase: Atoms
-using NQCModels: Model, ndofs
+using NQCModels: Model, ndofs, ClassicalModels.ClassicalModel, QuantumModels.QuantumModel
 
 include("classical.jl")
 export Classical

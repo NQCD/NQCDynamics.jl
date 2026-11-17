@@ -2,7 +2,7 @@ using NQCBase
 using NQCDynamics: nbeads, TemperatureSetting
 using RingPolymerArrays: eachbead
 
-function NQCDynamics.RingPolymerSimulation{DiabaticMDEF}(atoms::Atoms, model::Model, n_beads::Integer; friction_method::FrictionEvaluationMethod,
+function NQCDynamics.RingPolymerSimulation{DiabaticMDEF}(atoms::Atoms, model::QuantumModel, n_beads::Integer; friction_method::FrictionEvaluationMethod,
     temperature=0u"K", cell::AbstractCell=InfiniteCell(), solver::Symbol=:exact, kwargs...
     )
     T = eltype(atoms.masses)
