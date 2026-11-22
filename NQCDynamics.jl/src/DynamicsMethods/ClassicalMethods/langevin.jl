@@ -39,7 +39,7 @@ function NQCDynamics.Simulation{Langevin}(atoms::Atoms, model::ClassicalModel; Î
     friction_matrix = NQCModels.FrictionModels.ConstantFriction(ndofs(model), gamma_ondevice)
     combined_model = CompositeFrictionModel(model, friction_matrix)
 
-    NQCDynamics.Simulation(atoms, combined, MDEF(atoms.masses, ndofs(model));
+    NQCDynamics.Simulation(atoms, combined_model, MDEF(atoms.masses, ndofs(model));
                temperature=temperature, kwargs...)
 end
 

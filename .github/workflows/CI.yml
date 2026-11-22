@@ -43,9 +43,6 @@ jobs:
             ${{ runner.os }}-test-${{ env.cache-name }}-
             ${{ runner.os }}-test-
 
-      - name: Add ACEregistry
-        run: julia -e 'using Pkg; Pkg.Registry.add(RegistrySpec(url="https://github.com/ACEsuit/ACEregistry"))'
-        shell: bash
       - name: Make benchmark directory
         run: |
           mkdir -p /home/runner/NQCDynamics.jl/${{ matrix.package }}/benchmarks
@@ -71,15 +68,18 @@ jobs:
         with:
           project: ${{ matrix.package }}
       - uses: julia-actions/julia-processcoverage@v1
+        if: success() || failure()
         with:
           directories: ${{ matrix.package }}/src
       - uses: codecov/codecov-action@v7
+        if: success() || failure()
         with:
           files: lcov.info
           fail_ci_if_error: false
           token: ${{ secrets.CODECOV_TOKEN }}
           verbose: true
       - name: 'Upload Artifact'
+        if: success() || failure()
         uses: actions/upload-artifact@v4
         with:
           name: test-timings-${{ matrix.package }}
@@ -88,7 +88,7 @@ jobs:
   upload_benchmarks:
     runs-on: ubuntu-latest
     needs: [test]
-    if: ${{ always() }}
+    if: success() || failure()
     outputs:
       newest_release_version: ${{ steps.save_tag.current_version }}
       previous_release_version: ${{ steps.save_tag.last_version }}
