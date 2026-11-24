@@ -25,6 +25,7 @@ NQCBaseCUDAext = ["CUDA"]
 [compat]
 Adapt = "4.7.0"
 AtomsBase = "0.5"
+CUDA = "6.5.1"
 Distances = "0.10"
 ExtXYZ = "0.2, 0.4"
 KernelAbstractions = "0.9.42"
