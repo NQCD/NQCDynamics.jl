@@ -23,6 +23,7 @@ RingPolymerArrays = {path = "../RingPolymerArrays.jl"}
 [compat]
 Adapt = "4.7.0"
 FastLapackInterface = "2.1.0"
+LinearAlgebra = "<0.0.1, 1"
 NQCBase = "0.5, 1"
 NQCModels = "0.10, 1"
 ParallelTestRunner = "2.8.2"
