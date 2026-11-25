@@ -7,6 +7,7 @@ using UnitfulAtomic: austrip
 using Distributions: Normal
 using RingPolymerArrays: NormalModeTransformation, transform_from_normal_modes!
 using LinearAlgebra: mul!, diagind
+using DataInterpolations: LinearInterpolation
 using ComponentArrays: ComponentVector
 using NQCBase: Adiabatic, Diabatic
 
@@ -31,6 +32,10 @@ export Adiabatic, Diabatic
 export PureState
 export MixedState
 export FermiDiracState
+export density_matrix
+export NonEqState # added to export new electronic state struct
+export Statistical, Binary
+export DensityMatrix
 
 include("dynamical_distribution.jl")
 export DynamicalDistribution

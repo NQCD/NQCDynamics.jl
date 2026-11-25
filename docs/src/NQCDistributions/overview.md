@@ -159,6 +159,34 @@ FermiDiracState(0.0, 300u"K"; statetype=Adiabatic())
 These structs contain only the minimal information about the distributions, whereas the sampling
 of the distribution is handled separately by each of the different methods.
 
+### Non-equilibrium electronic distributions and density matrices
+
+To start from a non-equilibrium electronic distribution, the [`NonEqState`](@ref) takes two
+`DataInterpolations.LinearInterpolation` splines over the state energies: one for the occupation
+of each energy (`dis_spline`) and one for the density of states (`dos_spline`).
+
+Wrapping an electronic distribution in a [`DensityMatrix`](@ref) requests a density matrix
+representation of the electronic subsystem. The diagonal is either a Fermi-Dirac distribution
+(Fermi level and temperature given in atomic units) or a [`NonEqState`](@ref).
+The `systemtype` keyword labels the occupations as [`Binary`](@ref) (the default) or [`Statistical`](@ref).
+
+```julia
+using NQCDistributions
+using DataInterpolations: LinearInterpolation
+
+energies = collect(range(-1.0, 1.0; length=101))
+dis_spline = LinearInterpolation([ϵ < 0 ? 1.0 : 0.0 for ϵ in energies], energies)
+dos_spline = LinearInterpolation(ones(length(energies)), energies)
+
+NonEqState(dis_spline, dos_spline; statetype=Adiabatic())
+DensityMatrix(dis_spline, dos_spline; systemtype=Statistical())
+DensityMatrix(0.0, 0.001) # Fermi-Dirac diagonal
+```
+
+!!! note
+
+    No dynamics method in NQCDynamics.jl consumes `NonEqState` or `DensityMatrix` yet.
+
 ## Product distributions - Combining Nuclear and electronic distributions
 
 The initial nuclear and electronic states of a system can be combined in a product distribution, which can be used in place of a purely nuclear distribution for methods considering electronic dynamics.
