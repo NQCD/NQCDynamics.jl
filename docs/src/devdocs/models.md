@@ -28,8 +28,14 @@ shared behaviour across the branches is minimal.
 The [`ClassicalModel`](@ref ClassicalModels.ClassicalModel)
 describes the familiar form from molecular dynamics that provides a single potential energy surface.
 The [`QuantumModel`](@ref QuantumModels.QuantumModel) instead provides 
-multiple potential energy surfaces with couplings between them. As implied by the name,
-these are in the diabatic representation.
+multiple potential energy surfaces with couplings between them.
+Its type parameter declares whether `potential` returns the Hamiltonian in the diabatic
+or the adiabatic representation: most models are diabatic and subtype `QuantumModel{Diabatic}`,
+while models that directly provide adiabatic energies subtype `QuantumModel{Adiabatic}`.
+`hamiltonian_type(model)` returns `Diabatic()` or `Adiabatic()` accordingly.
+To obtain a single electronic state as a `ClassicalModel`, wrap a `QuantumModel` in
+`StateSelector(model, state, Adiabatic)` or `StateSelector(model, state, Diabatic)`;
+`ReducedQuantumModel(model, states, representation)` keeps a subset of states instead.
 If the desired model does not fall under either of these branches, a new abstract type
 should be created.
 

@@ -5,7 +5,7 @@
 Two state double well, also called the one-dimensional spin-boson model.
 See: [J. Chem. Phys. 150, 244102 (2019)](https://doi.org/10.1063/1.5096276)
 """
-Parameters.@with_kw struct DoubleWell{M,W,Y,D} <: QuantumModel
+Parameters.@with_kw struct DoubleWell{M,W,Y,D} <: QuantumModel{Diabatic}
     mass::M = [1.0]
     ω::W = [1.0]
     γ::Y = [1.0]

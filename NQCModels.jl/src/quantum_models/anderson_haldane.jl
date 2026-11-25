@@ -1,6 +1,6 @@
 
 """
-    struct AndersonHaldane{T<:AbstractFloat} <: QuantumModel
+    struct AndersonHaldane{T<:AbstractFloat} <: QuantumModel{Diabatic}
 
 1D two-state diabatic system capable of modelling a Hydrogen atom scattering on a Ge(111) surface.
 
@@ -9,7 +9,7 @@ This model is inspired by ErpenbeckThoss model at J. Chem. Phys. 151, 191101 (20
 ## References
 - J. Chem. Phys. 151, 191101 (2019)
 """
-struct AndersonHaldane{T<:AbstractFloat} <: QuantumModel
+struct AndersonHaldane{T<:AbstractFloat} <: QuantumModel{Diabatic}
     #Γ::T
     # Morse Potential
     morse::ClassicalModels.Morse{T}

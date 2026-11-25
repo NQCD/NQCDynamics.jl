@@ -24,7 +24,7 @@ Model used in J. Chem. Phys. 142, 084110 (2015).
 
 Below we verify the implementation by reproducing the data in Fig. 2.
 """
-struct TestModel{T} <: NQCModels.QuantumModels.QuantumModel
+struct TestModel{T} <: NQCModels.QuantumModels.QuantumModel{NQCModels.Diabatic}
     ħω::T
     Ed::T
     g::T

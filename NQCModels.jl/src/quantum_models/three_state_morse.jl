@@ -7,7 +7,7 @@ Three state morse potential referred to as Model IA here:
 
 Models IB and IC retain the same functional form and need only a change of parameters.
 """
-Parameters.@with_kw struct ThreeStateMorse <: QuantumModel
+Parameters.@with_kw struct ThreeStateMorse <: QuantumModel{Diabatic}
     d1::Float64 = 0.02
     d2::Float64 = 0.02
     d3::Float64 = 0.003

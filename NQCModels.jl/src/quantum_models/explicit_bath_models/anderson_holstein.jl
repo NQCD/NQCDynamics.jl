@@ -3,7 +3,7 @@
 ## Newns-Anderson model
 The **Anderson Impurity Model (AIM)** describes a localized impurity state interacting with a continuous band of bath states. AIM is a foundamental model in condensed matter physics and quantum chemistry, introduced by P.W. Anderson in 1961. The **Newns-Anderson model** is a generalization of the AIM, which includes the possibility of **multiple impurity states** and a more complex interaction with the bath. A key advantage of using the AIM lies in its ability to yield **analytical solutions** for the energy level distribution and the hybridization (coupling) density, making it a powerful tool for theoretical analysis.
 """
-struct AndersonHolstein{M<:QuantumModel,B,T,D} <: QuantumModel
+struct AndersonHolstein{M<:QuantumModel,B,T,D} <: QuantumModel{Diabatic}
     impurity_model::M
     bath_model::B
     fermi_level::T
