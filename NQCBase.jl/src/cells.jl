@@ -68,9 +68,15 @@ function set_vectors!(cell::PeriodicCell, vectors::AbstractMatrix)
     cell.inverse .= inv(cell.vectors)
 end
 
+function apply_cell_boundaries!(cell::PeriodicCell, R::AbstractArray{T,3}) where {T}
+    @views for i in axes(R, 3) # beads
+        apply_cell_boundaries!(cell, R[:, :, i])
+    end
+end
+
 function apply_cell_boundaries!(cell::PeriodicCell, R::AbstractMatrix)
     @views for i in axes(R, 2) # atoms
-        apply_cell_boundaries!(cell, R[:,i])
+        apply_cell_boundaries!(cell, R[:, i])
     end
 end
 apply_cell_boundaries!(::InfiniteCell, ::AbstractArray) = nothing
@@ -86,6 +92,15 @@ end
 @kernel function apply_cell_boundaries!_kernel(periodicity, tmp_vector1)
     J = @index(Global)
     periodicity[J] ? tmp_vector1[J] = mod(tmp_vector1[J], 1) : nothing
+end
+
+function check_atoms_in_cell(cell::PeriodicCell, R::AbstractArray{T,3}) where {T}
+    @views for i in axes(R, 3) # beads
+        if !check_atoms_in_cell(cell, R[:, :, i])
+            return false
+        end
+    end
+    return true
 end
 
 """

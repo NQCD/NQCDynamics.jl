@@ -30,6 +30,20 @@ a = PeriodicCell([x y z])
     @test all(0 .<= A .<= 1) # Check they're all back in
 end
 
+@testset "apply_cell_boundaries! for ring polymer arrays" begin
+    cell = PeriodicCell([1 0 0; 0 1 0; 0 0 1])
+    R = rand(3, 4, 5) # dofs x atoms x beads
+    A = copy(R)
+    apply_cell_boundaries!(cell, A)
+    @test R == A # Check unchanged when inside cell
+    A += 2rand(3, 4, 5) # Move atoms out of cell
+    apply_cell_boundaries!(cell, A)
+    @test all(0 .<= A .<= 1) # Check they're all back in
+    A -= 2rand(3, 4, 5) # Move atoms out of cell
+    apply_cell_boundaries!(cell, A)
+    @test all(0 .<= A .<= 1) # Check they're all back in
+end
+
 a = PeriodicCell(hcat(1))
 @test a.periodicity == [true, true, true]
 set_periodicity!(a, [true, true, false])
@@ -58,6 +72,16 @@ end
     @test !check_atoms_in_cell(cell, R) # Some atoms not inside cell
     R[3, 5] -= 2
     @test !check_atoms_in_cell(cell, R) # Some atoms not inside cell
+end
+
+@testset "check_atoms_in_cell for ring polymer arrays" begin
+    cell = PeriodicCell([1 0 0; 0 1 0; 0 0 1])
+    R = rand(3, 10, 4) # dofs x atoms x beads
+    @test check_atoms_in_cell(cell, R) # All beads inside cell
+    R[3, 5, 4] += 1
+    @test !check_atoms_in_cell(cell, R) # One bead of one atom outside the cell
+    R[3, 5, 4] -= 2
+    @test !check_atoms_in_cell(cell, R)
 end
 
 @testset "Periodic translations" begin
