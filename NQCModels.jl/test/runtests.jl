@@ -33,6 +33,9 @@ end
 @time @safetestset "Anderson Holstein" begin
     include("anderson_holstein.jl")
 end
+@time @safetestset "Bath functions" begin
+    include("bath_functions.jl")
+end
 @safetestset "AdiabaticStateSelector" begin
     include("test_adiabatic_state_selector.jl")
 end
@@ -163,6 +166,8 @@ if GROUP == "All" || GROUP == "Quantum"
         @test test_model(AndersonHolstein(GatesHollowayElbow(), ShenviGaussLegendre(10, -1, 1)), 4)
         @test test_model(AndersonHolstein(AndersonHaldane(), GapGaussLegendre(10, -1, 1, 0.1)), 1)
         @test test_model(AndersonHolstein(AndersonHaldane(), GapGaussLegendre(10, -1, 1, 0.1)), 3)
+        @test test_model(AndersonHolstein(ErpenbeckThoss(Γ=2.0), discrete_bath(TrapezoidalRule(10, -1, 1), widebandbath(TrapezoidalRule(10, -1, 1), 100))), 3)
+        @test test_model(AndersonHolstein(ErpenbeckThoss(Γ=2.0), discrete_bath(ShenviGaussLegendre(10, -1, 1), lorentzianbath(ShenviGaussLegendre(10, -1, 1), 100))), 3)
     end
 end
 

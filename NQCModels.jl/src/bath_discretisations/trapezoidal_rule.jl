@@ -1,20 +1,30 @@
 
 """
-    TrapezoidalRule{B,T} <: WideBandBathDiscretisation
+    TrapezoidalRule{B,T} <: BathDiscretisationScheme
 
-Discretise wide band continuum using trapezoidal rule.
+Discretise bath within the given energy bandwidth using trapezoidal rule.
 Leads to evenly spaced states and constant coupling.
 """
-struct TrapezoidalRule{B,T} <: WideBandBathDiscretisation
-    bathstates::B   # ϵ
-    bathcoupling::T # V(ϵ,x̃) 
+struct TrapezoidalRule{T} <: BathDiscretisationScheme
+    bathstates::Vector{T}   # ϵ
+    bathcoupling::Vector{T} # V(ϵ,x̃) 
+    discretisationtype::Symbol
 end
 
-function TrapezoidalRule(M, bandmin, bandmax)
+"""
+    TrapezoidalRule(M::Int64, bandmin, bandmax)
+
+Args:
+- `M`: number of states in discretisation  
+- `bandmin`: minimum of discretised energy range
+- `bandmax`: maximum of discretised energy range
+"""
+function TrapezoidalRule(M::Int64, bandmin, bandmax)
     ΔE = bandmax - bandmin
-    bathstates = range(bandmin, bandmax, length=M)
-    bathcoupling = sqrt(ΔE / M)
-    return TrapezoidalRule(bathstates, bathcoupling)
+    bathstates = collect(range(bandmin, bandmax, length=M))
+    bathcoupling = repeat([sqrt(ΔE / M)], M)
+    discretisationtype = :TrapezoidalRule
+    return TrapezoidalRule(bathstates, bathcoupling, discretisationtype)
 end
 
 """
